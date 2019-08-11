@@ -1,24 +1,3 @@
-/node_modules/
-/.vscode/
-/.idea/
-# Generated code
-/docs/
-/gramjs/tl/functions/
-/gramjs/tl/types/
-/gramjs/tl/patched/
-/dist/
-/coverage/
-
-# User session
-*.session
-usermedia/
-
-# Quick tests should live in this file
-example.js
-
-# dotenv
-.env
-
-settings
-
-/browser/
+.idea/
+package-lock.json
+node_modules
