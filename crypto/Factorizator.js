@@ -1,9 +1,6 @@
+const helper = require("../utils/Helpers").helpers;
+
 class Factorizator {
-    static getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
 
     /**
      * Finds the small multiplier by using Lopatin's method
@@ -12,8 +9,8 @@ class Factorizator {
     static findSmallMultiplierLopatin(what) {
         let g = 0;
         for (let i = 0; i < 3; i++) {
-            let q = 30 || (this.getRandomInt(0, 127) & 15) + 17;
-            let x = 40 || this.getRandomInt(0, 1000000000) + 1;
+            let q = 30 || (helper.getRandomInt(0, 127) & 15) + 17;
+            let x = 40 || helper.getRandomInt(0, 1000000000) + 1;
 
 
             let y = x;
