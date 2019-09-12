@@ -125,6 +125,13 @@ class Helpers {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /**
+     * Sleeps a specified amount of time
+     * @param ms time in milliseconds
+     * @returns {Promise}
+     */
+    static sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 }
 
 exports.helpers = Helpers;

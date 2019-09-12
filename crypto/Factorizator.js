@@ -88,3 +88,4 @@ class Factorizator {
         return {divisor: divisor, divided: Math.floor(pq / divisor)}
     }
 }
+exports.Factorizator = Factorizator;
