@@ -18,3 +18,4 @@ class AuthKey {
 
 }
 
+exports.AuthKey = AuthKey;
