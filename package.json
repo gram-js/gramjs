@@ -1,0 +1,23 @@
+{
+  "name": "gramjs",
+  "version": "0.1.0",
+  "description": "NodeJS MTProto API Telegram client library,",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gram-js/gramjs.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gram-js/gramjs/issues"
+  },
+  "homepage": "https://github.com/gram-js/gramjs#readme",
+  "dependencies": {
+    "crc": "^3.8.0",
+    "csv-parse": "^4.4.6",
+    "fast-csv": "^3.4.0",
+    "glob": "^7.1.4",
+    "python-struct": "^1.1.1",
+    "string-format": "^2.0.0"
+  }
+}
