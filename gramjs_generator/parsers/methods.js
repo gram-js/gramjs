@@ -47,15 +47,18 @@ const parseMethods = function*(csvFile, friendlyCsvFile, errorsDict) {
     for (let line = 0; line < f2.length; line++) {
         let [method, usability, errors] = f2[line];
 
-        errors = errors.split(' ').map(x => {
-            if (x && !(x in errorsDict)) {
-                throw new Error(
-                    `Method ${method} references unknown errors ${errors}`
-                );
-            }
+        errors = errors
+            .split(' ')
+            .filter(Boolean)
+            .map(x => {
+                if (x && !(x in errorsDict)) {
+                    throw new Error(
+                        `Method ${method} references unknown errors ${errors}`
+                    );
+                }
 
-            return errorsDict[x];
-        });
+                return errorsDict[x];
+            });
 
         const friendly = rawToFriendly[method];
         delete rawToFriendly[method];
