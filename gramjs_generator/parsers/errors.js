@@ -27,7 +27,10 @@ const getClassName = errorCode => {
     }
 
     return snakeToCamelCase(
-        errorCode.replace('FIRSTNAME', 'FIRST_NAME').toLowerCase(),
+        errorCode
+            .replace('FIRSTNAME', 'FIRST_NAME')
+            .replace('SLOWMODE', 'SLOW_MODE')
+            .toLowerCase(),
         'Error'
     );
 };
