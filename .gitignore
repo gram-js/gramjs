@@ -1,5 +1,6 @@
 /node_modules/
 /.vscode/
+/.idea/
 
 # Generated code
 /gramjs/tl/functions/
