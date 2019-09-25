@@ -682,7 +682,7 @@ const writeAllTlobjects = (tlobjects, layer, builder = new SourceBuilder()) => {
     builder.endBlock(true);
     builder.writeln('');
     builder.writeln('module.exports = {');
-    builder.writeln('layer,');
+    builder.writeln('LAYER,');
     builder.writeln('tlobjects');
     builder.endBlock(true);
 };
