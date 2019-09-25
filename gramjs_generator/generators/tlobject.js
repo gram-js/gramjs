@@ -648,7 +648,7 @@ const writePatched = (outDir, namespaceTlobjects) => {
     }
 };
 
-const writeAllTlobjects = (tlobjects, layer, builder = new SourceBuilder()) => {
+const writeAllTlobjects = (tlobjects, layer, builder) => {
     builder.writeln(AUTO_GEN_NOTICE);
     builder.writeln();
 
