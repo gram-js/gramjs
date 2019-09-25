@@ -1,5 +1,27 @@
 const fs = require('fs');
+const path = require('path');
 const glob = require('glob');
+
+class TempWorkDir {
+    /**
+     * Switches the working directory to be the one on which this file lives.
+     */
+    constructor(dir) {
+        this.original = null;
+        this.dir = dir || path.join(__filename, '..');
+    }
+
+    open() {
+        this.original = __dirname;
+        fs.mkdirSync(this.dir, { recursive: true });
+        process.chdir(this.dir);
+        return this;
+    }
+
+    close() {
+        process.chdir(this.original);
+    }
+}
 
 const GENERATOR_DIR = './gramjs_generator';
 const LIBRARY_DIR = './gramjs';
@@ -16,7 +38,7 @@ const TLOBJECT_IN_TLS = glob.sync(`${GENERATOR_DIR}/data/*.tl`);
 const TLOBJECT_OUT = `${LIBRARY_DIR}/tl`;
 const IMPORT_DEPTH = 2;
 
-const DOCS_IN_RES = `${GENERATOR_DIR}/data/html`;
+const DOCS_IN_RES = `../${GENERATOR_DIR}/data/html`;
 const DOCS_OUT = `./docs`;
 
 const generate = (which, action = 'gen') => {
@@ -30,7 +52,7 @@ const generate = (which, action = 'gen') => {
     const {
         generateErrors,
         generateTlobjects,
-        // generateDocs,
+        generateDocs,
         cleanTlobjects,
     } = require('./gramjs_generator/generators');
 
@@ -96,15 +118,16 @@ const generate = (which, action = 'gen') => {
 
     if (which.includes('docs')) {
         which.splice(which.indexOf('docs'), 1);
-        // console.log(action, 'documentation...');
-        console.log('TODO: documentation...');
+        console.log(action, 'documentation...');
 
         if (clean) {
             if (fs.statSync(DOCS_OUT)) {
                 fs.rmdirSync(DOCS_OUT);
             }
         } else {
-            // TODO
+            const tmp = new TempWorkDir(DOCS_OUT).open();
+            generateDocs(tlobjects, methods, layer, DOCS_IN_RES);
+            tmp.close();
         }
     }
 
