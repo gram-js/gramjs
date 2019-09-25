@@ -148,6 +148,7 @@ class TLObject {
     }
 
     asExample(f, indent) {
+        f.write('<strong>new</strong> ');
         f.write(this.isFunction ? 'functions' : 'types');
 
         if (this.namespace) {
