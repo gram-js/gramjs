@@ -47,9 +47,10 @@ const generate = (which, action = 'gen') => {
         ),
     ];
 
-    const [tlobjects] = TLOBJECT_IN_TLS.map(file => [
-        ...parseTl(file, layer, methods),
-    ]);
+    const tlobjects = TLOBJECT_IN_TLS.reduce(
+        (files, file) => [...files, ...parseTl(file, layer, methods)],
+        []
+    );
 
     if (!which || which.length === 0) {
         which.push('tl', 'errors');
