@@ -52,6 +52,7 @@ class MtProtoPlainSender {
         return BigInt(newMsgId);
 
     }
+
 }
 
 exports.MtProtoPlainSender = MtProtoPlainSender;
