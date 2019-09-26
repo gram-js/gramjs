@@ -5,6 +5,7 @@ class Factorizator {
     /**
      * Finds the small multiplier by using Lopatin's method
      * @param what
+     * @return {number}
      */
     static findSmallMultiplierLopatin(what) {
         let g = 0;
@@ -47,7 +48,7 @@ class Factorizator {
                 }
 
             }
-            if (g>1){
+            if (g > 1) {
                 break;
             }
         }
@@ -59,7 +60,7 @@ class Factorizator {
      * Calculates the greatest common divisor
      * @param a
      * @param b
-     * @returns {*}
+     * @returns {number}
      */
     static gcd(a, b) {
         while (((a !== 0) && (b !== 0))) {
@@ -81,11 +82,12 @@ class Factorizator {
     /**
      * Factorizes the given number and returns both the divisor and the number divided by the divisor
      * @param pq
-     * @returns {{divisor: *, divided: *}}
+     * @returns {{divisor: number, divided: number}}
      */
     static factorize(pq) {
         let divisor = this.findSmallMultiplierLopatin(pq);
         return {divisor: divisor, divided: Math.floor(pq / divisor)}
     }
 }
+
 exports.Factorizator = Factorizator;
