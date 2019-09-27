@@ -48,7 +48,7 @@ class Factorizator {
                 }
 
             }
-            if (g>1){
+            if (g > 1) {
                 break;
             }
         }
@@ -89,3 +89,5 @@ class Factorizator {
         return {divisor: divisor, divided: Math.floor(pq / divisor)}
     }
 }
+
+exports.Factorizator = Factorizator;

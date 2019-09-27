@@ -1,0 +1,9 @@
+{
+  "name": "gramjs",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "aes-js": "^3.1.2",
+    "crc": "^3.8.0"
+  }
+}

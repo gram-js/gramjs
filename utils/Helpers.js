@@ -116,6 +116,63 @@ class Helpers {
 
     }
 
+
+    /**
+     *
+     * @param buffer {Buffer}
+     * @param offset {Number}
+     * @returns {{data: {Buffer}, offset: {Number}}}
+     */
+    static tgReadByte(buffer, offset) {
+        let firstByte = buffer.readInt8(offset);
+        offset += 1;
+        let padding, length;
+        if (firstByte === 255) {
+            length = buffer.readInt8(offset) | (buffer.readInt8(offset) << 8) | (buffer.readInt8(offset) << 16);
+            offset += 1;
+            padding = length % 4;
+        } else {
+            length = firstByte;
+            padding = (length + 1) % 4;
+        }
+        let data = buffer.readInt8(offset);
+        offset += 1;
+        if (padding > 0) {
+            padding = 4 - padding;
+            offset += padding;
+        }
+        return {data, offset}
+    }
+
+    static tgWriteBytes(data) {
+        let buffer;
+        let padding;
+
+        if (data.length < 254) {
+            padding = (data.length + 1) % 4;
+            if (padding !== 0) {
+                padding = 4 - padding;
+            }
+            buffer = Buffer.from([data.length, data]);
+        } else {
+            padding = data.length % 4;
+            if (padding !== 0) {
+                padding = 4 - padding;
+            }
+            buffer = Buffer.concat([Buffer.from([254]),
+                Buffer.from([data.length % 256]),
+                Buffer.from([(data.length >> 8) % 256]),
+                Buffer.from([(data.length >> 16) % 256]),
+                Buffer.from([data]),
+                Buffer.from([padding])
+            ]);
+
+        }
+        return buffer;
+
+
+    }
+
     /**
      * returns a random int from min (inclusive) and max (inclusive)
      * @param min
@@ -128,6 +185,15 @@ class Helpers {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /**
+     * Sleeps a specified amount of time
+     * @param ms time in milliseconds
+     * @returns {Promise}
+     */
+    static sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 }
 
-exports.helpers = Helpers;
+let l = Buffer.from(0x83c95aec);
+console.log(l.length);
+
