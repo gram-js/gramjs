@@ -1,5 +1,3 @@
-const TextEncoder = require("util").TextEncoder;
-const TextDecoder = require("util").TextDecoder;
 const aesjs = require('aes-js');
 
 
