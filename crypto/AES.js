@@ -4,6 +4,13 @@ const aesjs = require('aes-js');
 
 
 class AES {
+    /**
+     * Decrypts the given text in 16-bytes blocks by using the given key and 32-bytes initialization vector
+     * @param cipherText {Buffer}
+     * @param key {Buffer}
+     * @param iv {Buffer}
+     * @returns {Buffer}
+     */
     static decryptIge(cipherText, key, iv) {
         let iv1 = iv.slice(0, Math.floor(iv.length / 2));
         let iv2 = iv.slice(Math.floor(iv.length / 2));
@@ -30,9 +37,16 @@ class AES {
             ]);
 
         }
-        return plainText;
+        return Buffer.from(plainText);
     }
 
+    /**
+     * Encrypts the given text in 16-bytes blocks by using the given key and 32-bytes initialization vector
+     * @param plainText {Buffer}
+     * @param key {Buffer}
+     * @param iv {Buffer}
+     * @returns {Buffer}
+     */
     static encryptIge(plainText, key, iv) {
         if (plainText.length % 16 !== 0) {
             let padding = new Uint8Array(16 - plainText.length % 16);
@@ -65,7 +79,7 @@ class AES {
                 ...cipherText.slice(blockIndex * 16 + 16)
             ]);
         }
-        return cipherText;
+        return Buffer.from(cipherText);
     }
 
 }
