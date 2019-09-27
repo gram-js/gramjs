@@ -1,5 +1,5 @@
 const Helpers = require("../utils/Helpers");
-const fs = require("fs").promises;
+const fs = require("fs");
 
 class Session {
     constructor(sessionUserId) {
@@ -24,13 +24,13 @@ class Session {
         }
     }
 
-    static async tryLoadOrCreateNew(sessionUserId) {
+    static tryLoadOrCreateNew(sessionUserId) {
         if (sessionUserId === undefined) {
             return new Session();
         }
         let filepath = `${sessionUserId}.session`;
-        if (await fs.exists(filepath)) {
-            return JSON.parse(await fs.readFile(filepath, "utf-8"));
+        if (fs.existsSync(filepath)) {
+            return JSON.parse(fs.readFileSync(filepath, "utf-8"));
         } else {
             return Session(sessionUserId);
         }
