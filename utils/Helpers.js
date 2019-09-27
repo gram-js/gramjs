@@ -8,9 +8,12 @@ class Helpers {
      * Generates a random long integer (8 bytes), which is optionally signed
      * @returns {number}
      */
-    static generateRandomLong() {
+    static generateRandomLong(signed) {
         let buf = Buffer.from(this.generateRandomBytes(8)); // 0x12345678 = 305419896
-        return buf.readUInt32BE(0);
+        if (signed)
+            return buf.readInt32BE(0);
+        else
+            return buf.readUInt32LE(0);
     }
 
     /**
