@@ -13,6 +13,7 @@
   },
   "homepage": "https://github.com/gram-js/gramjs#readme",
   "dependencies": {
+    "aes-js": "^3.1.2",
     "crc": "^3.8.0",
     "csv-parse": "^4.4.6",
     "fast-csv": "^3.4.0",
