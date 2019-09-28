@@ -161,6 +161,7 @@ class RPCError extends Error {
         // 420 FLOOD
         'FLOOD_WAIT_(\\d+)': 'A wait of {} seconds is required.'
     };
+
     constructor(code, message) {
         let codeMeaning = RPCError.CodeMessages[code];
         let mustResend = code === 303; // ERROR_SEE_OTHER, "The request must be repeated"
@@ -174,7 +175,7 @@ class RPCError extends Error {
             let match = message.match(key);
 
             if (match) {
-            console.log(match[1]);
+                console.log(match[1]);
                 // Get additionalData if any
                 if (match.length === 2) {
                     console.log(errorMsg);
@@ -201,7 +202,6 @@ class RPCError extends Error {
 
     }
 }
-
 
 /**
  * Occurs when handling a badMessageNotification
@@ -248,3 +248,14 @@ class BadMessageError extends Error {
 
 }
 
+
+module.exports = {
+    ReadCancelledError,
+    TLGeneratorNotRan,
+    InvalidParameterError,
+    TypeNotFoundError,
+    InvalidDCError,
+    InvalidChecksumError,
+    RPCError,
+    BadMessageError
+};

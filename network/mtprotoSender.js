@@ -1,10 +1,10 @@
-const MtProtoPlainSender = require("./mtprotoPlainSender").MtProtoPlainSender;
+const MtProtoPlainSender = require("./MTProtoPlainSender");
 const Helpers = require("../utils/Helpers");
 
 /**
  * MTProto Mobile Protocol sender (https://core.telegram.org/mtproto/description)
  */
-class MtProtoSender {
+class MTProtoSender {
     constructor(transport, session) {
         this.transport = transport;
         this.session = session;
@@ -313,3 +313,5 @@ class MtProtoSender {
         }
     }
 }
+
+module.exports = MTProtoSender;

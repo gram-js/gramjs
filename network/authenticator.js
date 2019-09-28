@@ -1,9 +1,9 @@
-const AES = require("../crypto/AES").AES;
-const AuthKey = require("../crypto/AuthKey").AuthKey;
-const Factorizator = require("../crypto/Factorizator").Factorizator;
-const RSA = require("../crypto/RSA").RSA;
-const MtProtoPlainSender = require("./mtprotoPlainSender").MtProtoPlainSender;
-const Helpers = require("../utils/Helpers").helpers;
+const AES = require("../crypto/AES");
+const AuthKey = require("../crypto/AuthKey");
+const Factorizator = require("../crypto/Factorizator");
+const RSA = require("../crypto/RSA");
+const MtProtoPlainSender = require("./MTProtoPlainSender");
+const Helpers = require("../utils/Helpers");
 
 function doAuthentication(transport) {
     let sender = MtProtoPlainSender(transport);
@@ -194,16 +194,14 @@ function doAuthentication(transport) {
         if (newNonceHash1 !== newNonceHashCalculated) {
             throw Error("Invalid new nonce hash");
         }
-        return {authKey,timeOffset};
-    }
-    else if (code===0x46dc1fb9){
+        return {authKey, timeOffset};
+    } else if (code === 0x46dc1fb9) {
         throw Error("dh_gen_retry");
 
-    }
-    else if (code===0x46dc1fb9){
+    } else if (code === 0x46dc1fb9) {
         throw Error("dh_gen_fail");
 
-    }else{
+    } else {
         throw Error("DH Gen unknown");
 
     }
@@ -249,3 +247,4 @@ function getByteArray(integer, signed) {
 
     }
 }
+module.exports = doAuthentication;

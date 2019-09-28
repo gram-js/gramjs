@@ -1,4 +1,42 @@
-const helpers = require("../utils/Helpers").helpers;
+const Helpers = require("../utils/Helpers");
+
+
+class RSAServerKey {
+    constructor(fingerprint, m, e) {
+        this.fingerprint = fingerprint;
+        this.m = m;
+        this.e = e;
+
+    }
+
+    /**
+     * Encrypts the given data with the current key
+     * @param data
+     * @param offset
+     * @param length
+     */
+    encrypt(data, offset, length) {
+        if (offset === undefined) {
+            offset = 0;
+        }
+        if (length === undefined) {
+            length = data.length;
+        }
+        let dataToWrite = data.split(offset, offset + length);
+        let sha1Data = helpers.sha1(dataToWrite);
+        let writer = Buffer.concat([sha1Data, dataToWrite]);
+
+        if (length < 235) {
+            writer = Buffer.concat([writer, Helpers.generateRandomBytes(235 - length)]);
+
+        }
+        let result = writer.readIntBE(0, writer.byteLength);
+        result = (result ** this.e) % this.m;
+        let buffer = Buffer.alloc(256);
+        buffer.writeUIntBE(result, 0, 256);
+        return buffer;
+    }
+}
 
 
 class RSA {
@@ -209,41 +247,5 @@ class RSA {
     }
 }
 
-class RSAServerKey {
-    constructor(fingerprint, m, e) {
-        this.fingerprint = fingerprint;
-        this.m = m;
-        this.e = e;
 
-    }
-
-    /**
-     * Encrypts the given data with the current key
-     * @param data
-     * @param offset
-     * @param length
-     */
-    encrypt(data, offset, length) {
-        if (offset === undefined) {
-            offset = 0;
-        }
-        if (length === undefined) {
-            length = data.length;
-        }
-        let dataToWrite = data.split(offset, offset + length);
-        let sha1Data = helpers.sha1(dataToWrite);
-        let writer = Buffer.concat([sha1Data, dataToWrite]);
-
-        if (length < 235) {
-            writer = Buffer.concat([writer, helpers.generateRandomBytes(235 - length)]);
-
-        }
-        let result = writer.readIntBE(0, writer.byteLength);
-        result = (result ** this.e) % this.m;
-        let buffer = Buffer.alloc(256);
-        buffer.writeUIntBE(result, 0, 256);
-        return buffer;
-    }
-}
-
-exports.RSA = RSA;
+module.exports = RSA;

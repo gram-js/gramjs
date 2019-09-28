@@ -1,4 +1,4 @@
-const helper = require("../utils/Helpers").helpers;
+const Helpers = require("../utils/Helpers");
 
 class Factorizator {
 
@@ -10,8 +10,8 @@ class Factorizator {
     static findSmallMultiplierLopatin(what) {
         let g = 0n;
         for (let i = 0n; i < 3n; i++) {
-            let q = 30n || (helper.getRandomInt(0, 127) & 15) + 17;
-            let x = 40n || helper.getRandomInt(0, 1000000000) + 1;
+            let q = 30n || (Helpers.getRandomInt(0, 127) & 15) + 17;
+            let x = 40n || Helpers.getRandomInt(0, 1000000000) + 1;
 
 
             let y = x;
@@ -93,4 +93,4 @@ class Factorizator {
     }
 }
 
-exports.Factorizator = Factorizator;
+module.exports = Factorizator;
