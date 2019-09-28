@@ -1,9 +1,9 @@
-const helpers = require("../utils/Helpers").helpers;
+const Helpers = require("../utils/Helpers");
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)
  */
-class MtProtoPlainSender {
+class MTProtoPlainSender {
     constructor(transport) {
         this._sequence = 0;
         this._timeOffset = 0;
@@ -43,7 +43,7 @@ class MtProtoPlainSender {
         let msTime = Date.now();
         let newMsgId = ((BigInt(Math.floor(msTime / 1000)) << BigInt(32)) | // "must approximately equal unixtime*2^32"
             (BigInt(msTime % 1000) << BigInt(32)) | // "approximate moment in time the message was created"
-            BigInt(helpers.getRandomInt(0, 524288)) << BigInt(2));// "message identifiers are divisible by 4"
+            BigInt(Helpers.getRandomInt(0, 524288)) << BigInt(2));// "message identifiers are divisible by 4"
         //Ensure that we always return a message ID which is higher than the previous one
         if (this._lastMsgId >= newMsgId) {
             newMsgId = this._lastMsgId + 4
@@ -55,4 +55,4 @@ class MtProtoPlainSender {
 
 }
 
-exports.MtProtoPlainSender = MtProtoPlainSender;
+module.exports = MTProtoPlainSender;

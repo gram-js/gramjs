@@ -1,4 +1,4 @@
-const TcpClient = require("./tcpClient").TcpClient;
+const TcpClient = require("./TcpClient");
 const crc = require('crc');
 
 class TcpTransport {
@@ -81,3 +81,4 @@ class TcpTransport {
 
 
 }
+module.exports = TcpTransport;

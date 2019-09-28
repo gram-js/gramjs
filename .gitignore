@@ -3,6 +3,7 @@
 /.idea/
 
 # Generated code
+/gramjs/
 /docs/
 /gramjs/tl/functions/
 /gramjs/tl/types/
@@ -20,3 +21,4 @@ example.js
 # dotenv
 .env
 
+/api/

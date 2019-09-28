@@ -1,6 +1,5 @@
 const Socket = require("net").Socket;
-const TextEncoder = require("util").TextEncoder;
-const sleep = require("../utils/Helpers").helpers.sleep;
+const sleep = require("../utils/Helpers").sleep;
 
 class TcpClient {
     constructor() {
@@ -71,4 +70,4 @@ class TcpClient {
 
 }
 
-exports.TcpClient = TcpClient;
+module.exports = TcpClient;

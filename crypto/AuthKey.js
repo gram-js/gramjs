@@ -1,13 +1,13 @@
-const {helpers} = require("../utils/Helpers");
+const Helpers = require("../utils/Helpers");
 
 class AuthKey {
     constructor(data) {
         this.data = data;
         let offset = 0;
-        let buffer = helpers.sha1(data);
-        this.auxHash = buffer.readBigUInt64LE(0);
+        let buffer = Helpers.sha1(data);
+        this.auxHash = buffer.readBigUInt64LE(offset);
         offset += 8 + 4;
-        this.keyId = buffer.readBigUInt64LE(8);
+        this.keyId = buffer.readBigUInt64LE(offset);
 
     }
 
@@ -24,9 +24,9 @@ class AuthKey {
         let secondBuffer = Buffer.alloc(8);
         secondBuffer.writeBigUInt64LE(this.auxHash, 0);
         let buffer = Buffer.concat([new_nonce, tempBuffer, secondBuffer]);
-        return helpers.calcMsgKey(buffer);
+        return Helpers.calcMsgKey(buffer);
     }
 
 }
 
-exports.AuthKey = AuthKey;
+module.exports = AuthKey;

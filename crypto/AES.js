@@ -82,4 +82,4 @@ class AES {
 
 }
 
-exports.AES = AES;
+module.exports = AES;

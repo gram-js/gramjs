@@ -1,8 +1,13 @@
-const Session = require("./Session");
+const {Session} = require("./Session");
+const {doAuthentication} = require("../network/authenticator");
+const {MtProtoSender} = require("../network/mtprotoSender");
+const {TcpTransport} = require("../network/tcpTransport");
+const {InvokeWithLayerRequest, InitConnectionRequest} = require("../gramjs/tl/functions/index");
+const {GetConfigRequest} = require("../gramjs/tl/functions/help");
 
 class TelegramClient {
 
-    async constructor(sessionUserId, layer, apiId, apiHash) {
+    constructor(sessionUserId, layer, apiId, apiHash) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error("Your API ID or Hash are invalid. Please read \"Requirements\" on README.md");
         }
@@ -31,7 +36,7 @@ class TelegramClient {
     async connect(reconnect = false) {
         try {
             if (!this.session.authKey || reconnect) {
-                let res = network.authenticator.doAuthentication(this.transport);
+                let res = doAuthentication(this.transport);
                 this.session.authKey = res.authKey;
                 this.session.timeOffset = res.timeOffset;
                 this.session.save();
@@ -41,7 +46,7 @@ class TelegramClient {
             // Now it's time to send an InitConnectionRequest
             // This must always be invoked with the layer we'll be using
             let query = InitConnectionRequest({
-                apiId: apiId,
+                apiId: this.apiId,
                 deviceModel: "PlaceHolder",
                 systemVersion: "PlaceHolder",
                 appVersion: "0.0.1",
@@ -110,3 +115,5 @@ class TelegramClient {
         return request.result;
     }
 }
+
+module.exports = TelegramClient;
