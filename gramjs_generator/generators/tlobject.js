@@ -737,7 +737,7 @@ const generateTlobjects = (tlobjects, layer, importDepth, outputDir) => {
         namespaceTypes,
         typeConstructors
     );
-    writePatched(`${outputDir}/pathced`, namespacePatched);
+    writePatched(`${outputDir}/patched`, namespacePatched);
 
     const filename = `${outputDir}/alltlobjects.js`;
     const stream = fs.createWriteStream(filename);
