@@ -26,20 +26,20 @@ class MTProtoRequest {
         this.confirmReceived = true;
     }
 
-    needResend(){
+    needResend() {
         return this.dirty || (this.confirmed && !this.confirmReceived && new Date().getTime() - this.sendTime > 3000);
     }
 
     // These should be overrode
-    onSend(buffer){
+    onSend() {
+        throw Error("Not overload " + this.constructor.name);
+    }
+
+    onResponse(buffer) {
 
     }
 
-    onResponse(buffer){
-
-    }
-
-    onException(exception){
+    onException(exception) {
 
     }
 }

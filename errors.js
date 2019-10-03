@@ -175,10 +175,8 @@ class RPCError extends Error {
             let match = message.match(key);
 
             if (match) {
-                console.log(match[1]);
                 // Get additionalData if any
                 if (match.length === 2) {
-                    console.log(errorMsg);
                     let additionalData = parseInt(match[1]);
                     super(errorMsg.replace("{}", additionalData));
 

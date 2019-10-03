@@ -7,9 +7,12 @@ class TcpTransport {
         this.sendCounter = 0;
         this.ipAddress = ipAddress;
         this.port = port;
+
     }
 
     async connect() {
+
+
         await this.tcpClient.connect(this.ipAddress, this.port);
     }
 
@@ -19,9 +22,9 @@ class TcpTransport {
      * The packets are encoded as: total length, sequence number, packet and checksum (CRC32)
      * @param packet
      */
-    send(packet) {
-        if (this.tcpClient.connected) {
-            throw Error("not connected");
+    async send(packet) {
+        if (!this.tcpClient.connected) {
+            throw Error("Client not connected to server.");
         }
         let buffer = Buffer.alloc(4 + 4);
         buffer.writeInt32LE(packet.length + 12, 0);
@@ -30,22 +33,22 @@ class TcpTransport {
         let tempBuffer = Buffer.alloc(4);
         tempBuffer.writeUInt32LE(crc.crc32(buffer), 0);
         buffer = Buffer.concat([buffer, tempBuffer]);
-        this.tcpClient.write(buffer);
+        await this.tcpClient.write(buffer);
         this.sendCounter++;
     }
 
     /**
      * Receives a TCP message (tuple(sequence number, body)) from the connected peer
-     * @returns {{body: {Buffer}, seq: {Buffer}}}
+     * @returns {{body: Buffer, seq: number}}
      */
-    receive() {
+    async receive() {
         /**First read everything we need**/
-        let packetLengthBytes = this.tcpClient.read(4);
-        let packetLength = Buffer.from(packetLengthBytes).readInt32LE(0);
-        let seqBytes = this.tcpClient.read(4);
-        let seq = Buffer.from(seqBytes).readInt32LE(0);
-        let body = this.tcpClient.read(packetLength - 12);
-        let checksum = Buffer.from(this.tcpClient.read(4)).readUInt32LE(0);
+        let packetLengthBytes = await this.tcpClient.read(4);
+        let packetLength = packetLengthBytes.readInt32LE(0);
+        let seqBytes = await this.tcpClient.read(4);
+        let seq = seqBytes.readInt32LE(0);
+        let body = await this.tcpClient.read(packetLength - 12);
+        let checksum = (await this.tcpClient.read(4)).readUInt32LE(0);
         /**Then perform the checks**/
         let rv = Buffer.concat([packetLengthBytes, seqBytes, body]);
         let validChecksum = crc.crc32(rv);
@@ -57,9 +60,9 @@ class TcpTransport {
         return {seq, body}
     }
 
-    close() {
+    async close() {
         if (this.tcpClient.connected) {
-            this.tcpClient.close();
+            await this.tcpClient.close();
         }
     }
 
@@ -81,4 +84,5 @@ class TcpTransport {
 
 
 }
+
 module.exports = TcpTransport;

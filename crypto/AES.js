@@ -46,6 +46,7 @@ class AES {
      * @returns {Buffer}
      */
     static encryptIge(plainText, key, iv) {
+
         if (plainText.length % 16 !== 0) {
             let padding = new Uint8Array(16 - plainText.length % 16);
             plainText = new Uint8Array([

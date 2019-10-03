@@ -2,11 +2,11 @@ const Helpers = require("../utils/Helpers");
 
 class AuthKey {
     constructor(data) {
-        this.data = data;
+        this.key = data;
         let offset = 0;
         let buffer = Helpers.sha1(data);
         this.auxHash = buffer.readBigUInt64LE(offset);
-        offset += 8 + 4;
+        offset = 8 + 4;
         this.keyId = buffer.readBigUInt64LE(offset);
 
     }
