@@ -1,7 +1,9 @@
-const {Session} = require("./Session");
-const {doAuthentication} = require("../network/authenticator");
-const {MtProtoSender} = require("../network/mtprotoSender");
-const {TcpTransport} = require("../network/tcpTransport");
+const Session = require("./Session");
+const doAuthentication = require("../network/authenticator");
+const MtProtoSender = require("../network/mtprotoSender");
+const MTProtoRequest = require("../tl/MTProtoRequest");
+const TcpTransport = require("../network/tcpTransport");
+
 const {InvokeWithLayerRequest, InitConnectionRequest} = require("../gramjs/tl/functions/index");
 const {GetConfigRequest} = require("../gramjs/tl/functions/help");
 
@@ -17,11 +19,10 @@ class TelegramClient {
         this.layer = layer;
 
         this.session = Session.tryLoadOrCreateNew(sessionUserId);
-        this.transport = TcpTransport(this.session.serverAddress, this.session.port);
-
+        this.transport = new TcpTransport(this.session.serverAddress, this.session.port);
         //These will be set later
-        this.dcOptions = undefined;
-        this.sender = undefined;
+        this.dcOptions = null;
+        this.sender = null;
         this.phoneCodeHashes = Array();
 
     }
@@ -34,36 +35,40 @@ class TelegramClient {
      * @returns {Promise<Boolean>}
      */
     async connect(reconnect = false) {
+        await this.transport.connect();
         try {
             if (!this.session.authKey || reconnect) {
-                let res = doAuthentication(this.transport);
+                let res = await doAuthentication(this.transport);
+                console.log("authenticated");
                 this.session.authKey = res.authKey;
                 this.session.timeOffset = res.timeOffset;
                 this.session.save();
             }
-            this.sender = MtProtoSender(this.transport, this.session);
-
+            this.sender = new MtProtoSender(this.transport, this.session);
+            let r = await this.invoke(new GetConfigRequest());
+            console.log(r);
+            process.exit(0)
             // Now it's time to send an InitConnectionRequest
             // This must always be invoked with the layer we'll be using
-            let query = InitConnectionRequest({
+            let query = new InitConnectionRequest({
                 apiId: this.apiId,
                 deviceModel: "PlaceHolder",
                 systemVersion: "PlaceHolder",
                 appVersion: "0.0.1",
                 langCode: "en",
-                query: GetConfigRequest()
+                query: new GetConfigRequest()
             });
-            let result = await this.invoke(InvokeWithLayerRequest({
+            let result = await this.invoke(new InvokeWithLayerRequest({
                 layer: this.layer,
                 query: query
             }));
-
             // We're only interested in the DC options
             // although many other options are available!
             this.dcOptions = result.dcOptions;
             return true;
         } catch (error) {
             console.log('Could not stabilise initial connection: {}'.replace("{}", error));
+            console.log(error.stack);
             return false;
         }
     }
@@ -83,8 +88,9 @@ class TelegramClient {
                 break;
             }
         }
-        this.transport.close();
+        await this.transport.close();
         this.transport = new TcpTransport(dc.ipAddress, dc.port);
+        await this.transport.connect();
         this.session.server_address = dc.ipAddress;
         this.session.port = dc.port;
         this.session.save();
@@ -107,10 +113,11 @@ class TelegramClient {
      * @returns {Promise}
      */
     async invoke(request) {
-        if (!MTProtoRequest.prototype.isPrototypeOf(Object.getPrototypeOf(request).prototype)) {
-            throw new Error("You can only invoke MtProtoRequests");
+        if (!(request instanceof MTProtoRequest)) {
+            throw new Error("You can only invoke MTProtoRequests");
         }
         await this.sender.send(request);
+
         await this.sender.receive(request);
         return request.result;
     }

@@ -50,6 +50,7 @@ class TcpClient {
             let leftCount = bufferSize - writtenCount;
             let partial = this.socket.read(leftCount);
             if (partial == null) {
+                console.log("sleeping");
                 await sleep(this.delay);
                 continue;
             }

@@ -1,4 +1,5 @@
 const Helpers = require("../utils/Helpers");
+const BigIntBuffer = require('bigint-buffer');
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)
@@ -15,22 +16,34 @@ class MTProtoPlainSender {
      * Sends a plain packet (auth_key_id = 0) containing the given message body (data)
      * @param data
      */
-    send(data) {
-        let packet = Buffer.alloc(8, 0);
-        packet.writeBigInt64LE(this.getNewMsgId(), packet.byteLength);
-        packet.writeInt32LE(data.length, packet.byteLength);
-        packet.write(data, packet.byteLength);
-        this._transport.send(packet);
+    async send(data) {
+        let packet = Buffer.alloc(20);
+        let offset = 0;
+        packet.writeBigInt64LE(0n, offset);
+        offset += 8;
+        packet.writeBigInt64LE(this.getNewMsgId(), offset);
+        offset += 8;
+        packet.writeInt32LE(data.length, offset);
+        await this._transport.send(Buffer.concat([
+            packet,
+            data,
+        ]));
     }
 
     /**
      * Receives a plain packet, returning the body of the response
-     * @returns {Buffer}
+     * @returns {number}
      */
-    receive() {
-        let {seq, body} = this._transport.receive();
-        let message_length = body.readInt32LE(16);
-        return body.slice(20, message_length);
+    async receive() {
+        let {seq, body} = await this._transport.receive();
+        let offset = 0;
+        let authKeyId = body.readBigInt64LE(0);
+        offset += 8;
+        let msgId = body.readBigInt64LE(offset);
+        offset += 8;
+        let messageLength = body.readInt32LE(offset);
+        offset += 4;
+        return body.slice(offset);
 
     }
 
@@ -46,7 +59,7 @@ class MTProtoPlainSender {
             BigInt(Helpers.getRandomInt(0, 524288)) << BigInt(2));// "message identifiers are divisible by 4"
         //Ensure that we always return a message ID which is higher than the previous one
         if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + 4
+            newMsgId = this._lastMsgId + 4n
         }
         this._lastMsgId = newMsgId;
         return BigInt(newMsgId);

@@ -6,14 +6,14 @@ class Helpers {
 
     /**
      * Generates a random long integer (8 bytes), which is optionally signed
-     * @returns {number}
+     * @returns {BigInt}
      */
     static generateRandomLong(signed) {
-        let buf = Buffer.from(this.generateRandomBytes(8)); // 0x12345678 = 305419896
+        let buf = Buffer.from(Helpers.generateRandomBytes(8)); // 0x12345678 = 305419896
         if (signed)
-            return buf.readInt32BE(0);
+            return buf.readBigInt64LE(0);
         else
-            return buf.readUInt32LE(0);
+            return buf.readBigUInt64LE(0);
     }
 
     /**
@@ -30,7 +30,7 @@ class Helpers {
      * @param path
      * @returns {Promise<void>}
      */
-    static async loadSettings(path = "../api/settings") {
+    static async loadSettings(path = "api/settings") {
         let settings = {};
         let left, right, value_pair;
 
@@ -61,20 +61,39 @@ class Helpers {
      * @param shared_key
      * @param msg_key
      * @param client
-     * @returns {[*, *]}
+     * @returns {{iv: Buffer, key: Buffer}}
      */
 
     static calcKey(shared_key, msg_key, client) {
-        let x = client !== null ? 0 : 8;
+        let x = client === true ? 0 : 8;
         let iv, key, sha1a, sha1b, sha1c, sha1d;
-        sha1a = this.sha1((msg_key + shared_key.slice(x, (x + 32))));
-        sha1b = this.sha1(((shared_key.slice((x + 32), (x + 48)) + msg_key) + shared_key.slice((x + 48), (x + 64))));
-        sha1c = this.sha1((shared_key.slice((x + 64), (x + 96)) + msg_key));
-        sha1d = this.sha1((msg_key + shared_key.slice((x + 96), (x + 128))));
-        key = ((sha1a.slice(0, 8) + sha1b.slice(8, 20)) + sha1c.slice(4, 16));
-        iv = (((sha1a.slice(8, 20) + sha1b.slice(0, 8)) + sha1c.slice(16, 20)) + sha1d.slice(0, 8));
-        return [key, iv];
-
+        sha1a = Helpers.sha1(Buffer.concat([
+            msg_key,
+            shared_key.slice(x, (x + 32))
+        ]));
+        sha1b = Helpers.sha1(Buffer.concat([
+            shared_key.slice(x + 32, x + 48),
+            msg_key,
+            shared_key.slice(x + 48, x + 64)
+        ]));
+        sha1c = Helpers.sha1(Buffer.concat([
+            shared_key.slice(x + 64, x + 96),
+            msg_key
+        ]));
+        sha1d = Helpers.sha1(Buffer.concat([
+            msg_key,
+            shared_key.slice((x + 96), (x + 128))
+        ]));
+        key = Buffer.concat([
+            sha1a.slice(0, 8),
+            sha1b.slice(8, 20),
+            sha1c.slice(4, 16)]);
+        iv = Buffer.concat([
+            sha1a.slice(8, 20),
+            sha1b.slice(0, 8),
+            sha1c.slice(16, 20),
+            sha1d.slice(0, 8)]);
+        return {key, iv}
 
     }
 
@@ -84,7 +103,7 @@ class Helpers {
      * @returns {Buffer}
      */
     static calcMsgKey(data) {
-        return this.sha1(data).slice(4, 20);
+        return Helpers.sha1(data).slice(4, 20);
 
 
     }
@@ -96,10 +115,10 @@ class Helpers {
      * @returns {{ivBuffer: Buffer, keyBuffer: Buffer}}
      */
     static generateKeyDataFromNonces(serverNonce, newNonce) {
-        let hash1 = this.sha1(Buffer.concat([newNonce, serverNonce]));
-        let hash2 = this.sha1(Buffer.concat([serverNonce, newNonce]));
-        let hash3 = this.sha1(Buffer.concat([newNonce, newNonce]));
-        let keyBuffer = Buffer.concat([hash1, hash1.slice(0, 12)]);
+        let hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
+        let hash2 = Helpers.sha1(Buffer.concat([serverNonce, newNonce]));
+        let hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));
+        let keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)]);
         let ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)]);
         return {keyBuffer: keyBuffer, ivBuffer: ivBuffer}
     }
@@ -116,32 +135,78 @@ class Helpers {
 
     }
 
+    /**
+     * Reads a Telegram-encoded string
+     * @param buffer {Buffer}
+     * @param offset {number}
+     * @returns {{string: string, offset: number}}
+     */
+    static tgReadString(buffer, offset) {
+        let res = Helpers.tgReadByte(buffer, offset);
+        offset = res.offset;
+        let string = res.data.toString("utf8");
+        return {string, offset}
+    }
+
+    /**
+     *
+     * @param reader {Buffer}
+     * @param offset {number}
+     */
+    static tgReadObject(reader, offset) {
+        let constructorId = reader.readUInt32LE(offset);
+        offset += 4;
+        let clazz = tlobjects[constructorId];
+        if (clazz === undefined) {
+            /**
+             * The class was None, but there's still a
+             *  chance of it being a manually parsed value like bool!
+             */
+            if (constructorId === 0x997275b5) {
+                return true
+            } else if (constructorId === 0xbc799737) {
+                return false
+            }
+            throw Error("type not found "+ constructorId);
+        }
+        return undefined;
+    }
+
 
     /**
      *
      * @param buffer {Buffer}
      * @param offset {Number}
-     * @returns {{data: {Buffer}, offset: {Number}}}
+     * @returns {{data: Buffer, offset: Number}}
      */
     static tgReadByte(buffer, offset) {
-        let firstByte = buffer.readInt8(offset);
+        let firstByte = buffer[offset];
         offset += 1;
         let padding, length;
-        if (firstByte === 255) {
-            length = buffer.readInt8(offset) | (buffer.readInt8(offset) << 8) | (buffer.readInt8(offset) << 16);
-            offset += 1;
+        if (firstByte === 254) {
+            length = buffer.readInt8(offset) | (buffer.readInt8(offset + 1) << 8) | (buffer.readInt8(offset + 2) << 16);
+            offset += 3;
             padding = length % 4;
         } else {
             length = firstByte;
             padding = (length + 1) % 4;
         }
-        let data = buffer.readInt8(offset);
-        offset += 1;
+
+        let data = buffer.slice(offset, offset + length);
+
+        offset += length;
+
         if (padding > 0) {
             padding = 4 - padding;
             offset += padding;
         }
-        return {data, offset}
+
+        return {data: data, offset: offset}
+    }
+
+
+    static tgWriteString(string) {
+        return Helpers.tgWriteBytes(Buffer.from(string, "utf8"));
     }
 
     static tgWriteBytes(data) {
@@ -153,25 +218,50 @@ class Helpers {
             if (padding !== 0) {
                 padding = 4 - padding;
             }
-            buffer = Buffer.from([data.length, data]);
+            buffer = Buffer.concat([Buffer.from([data.length]), data]);
         } else {
             padding = data.length % 4;
             if (padding !== 0) {
                 padding = 4 - padding;
             }
-            buffer = Buffer.concat([Buffer.from([254]),
+            buffer = Buffer.concat([
+                Buffer.from([254]),
                 Buffer.from([data.length % 256]),
                 Buffer.from([(data.length >> 8) % 256]),
                 Buffer.from([(data.length >> 16) % 256]),
-                Buffer.from([data]),
-                Buffer.from([padding])
+                data,
             ]);
 
         }
-        return buffer;
+
+        return Buffer.concat([buffer, Buffer.alloc(padding).fill(0)]);
 
 
     }
+
+    /**
+     * Fast mod pow for RSA calculation. a^b % n
+     * @param a
+     * @param b
+     * @param n
+     * @returns {bigint}
+     */
+    static modExp(a, b, n) {
+        a = a % n;
+        let result = 1n;
+        let x = a;
+        while (b > 0) {
+            let leastSignificantBit = b % 2n;
+            b = b / 2n;
+            if (leastSignificantBit === 1n) {
+                result = result * x;
+                result = result % n;
+            }
+            x = x * x;
+            x = x % n;
+        }
+        return result;
+    };
 
     /**
      * returns a random int from min (inclusive) and max (inclusive)

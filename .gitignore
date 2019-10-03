@@ -1,7 +1,6 @@
 /node_modules/
 /.vscode/
 /.idea/
-
 # Generated code
 /gramjs/
 /docs/
@@ -21,4 +20,4 @@ example.js
 # dotenv
 .env
 
-/api/
+settings

@@ -1,5 +1,6 @@
 const Helpers = require("../utils/Helpers");
-const fs = require("fs");
+const fs = require("fs").promises;
+const {existsSync,readFileSync} = require("fs");
 
 class Session {
     constructor(sessionUserId) {
@@ -9,9 +10,9 @@ class Session {
         this.authKey = undefined;
         this.id = Helpers.generateRandomLong(false);
         this.sequence = 0;
-        this.salt = 0; // Unsigned long
-        this.timeOffset = 0;
-        this.lastMessageId = 0;
+        this.salt = 0n; // Unsigned long
+        this.timeOffset = 0n;
+        this.lastMessageId = 0n;
         this.user = undefined;
     }
 
@@ -20,7 +21,7 @@ class Session {
      */
     async save() {
         if (this.sessionUserId) {
-            await fs.writeFile(`${this.sessionUserId}.session`, JSON.stringify(this));
+            //await fs.writeFile(`${this.sessionUserId}.session`, JSON.stringify(this));
         }
     }
 
@@ -29,21 +30,21 @@ class Session {
             return new Session();
         }
         let filepath = `${sessionUserId}.session`;
-        if (fs.existsSync(filepath)) {
-            return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        if (existsSync(filepath)) {
+            return JSON.parse(readFileSync(filepath, "utf-8"));
         } else {
-            return Session(sessionUserId);
+            return new Session(sessionUserId);
         }
     }
 
     getNewMsgId() {
         let msTime = new Date().getTime();
-        let newMessageId = (BigInt(Math.floor(msTime / 1000) + this.timeOffset) << BigInt(32)) |
-            ((msTime % 1000) << 22) |
-            (Helpers.getRandomInt(0, 524288) << 2); // 2^19
+        let newMessageId = (BigInt(BigInt(Math.floor(msTime / 1000)) + this.timeOffset) << 32n) |
+            (BigInt(msTime % 1000) << 22n) |
+            (BigInt(Helpers.getRandomInt(0, 524288)) << 2n); // 2^19
 
         if (this.lastMessageId >= newMessageId) {
-            newMessageId = this.lastMessageId + 4;
+            newMessageId = this.lastMessageId + 4n;
         }
         this.lastMessageId = newMessageId;
         return newMessageId;
@@ -51,3 +52,4 @@ class Session {
 }
 
 module.exports = Session;
+

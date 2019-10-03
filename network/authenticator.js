@@ -4,56 +4,72 @@ const Factorizator = require("../crypto/Factorizator");
 const RSA = require("../crypto/RSA");
 const MtProtoPlainSender = require("./MTProtoPlainSender");
 const Helpers = require("../utils/Helpers");
+const BigIntBuffer = require("bigint-buffer");
 
-function doAuthentication(transport) {
-    let sender = MtProtoPlainSender(transport);
+/**
+ *
+ * @param transport
+ * @returns {Promise<{authKey: AuthKey, timeOffset: BigInt}>}
+ */
+async function doAuthentication(transport) {
+    let sender = new MtProtoPlainSender(transport);
 
     // Step 1 sending: PQ request
     let nonce = Helpers.generateRandomBytes(16);
-    let buffer = Buffer.alloc(32);
+    let buffer = Buffer.alloc(4);
     buffer.writeUInt32LE(0x60469778, 0);
     buffer = Buffer.concat([buffer, nonce]);
-    sender.send(buffer);
-
+    await sender.send(buffer);
+    let offset = 0;
     // Step 1 response: PQ request
-    let pq = null;
-    let serverNonce = null;
+    let pq;
+    let serverNonce;
     let fingerprints = Array();
-    buffer = sender.receive();
-    let responseCode = buffer.readUInt32LE(0);
+    buffer = await sender.receive();
+
+    let responseCode = buffer.readUInt32LE(offset);
+    offset += 4;
     if (responseCode !== 0x05162463) {
         throw Error("invalid response code");
     }
-    let nonceFromServer = buffer.read(16, 8);
-    if (nonce !== nonceFromServer) {
+
+    let nonceFromServer = buffer.slice(offset, offset + 16);
+    offset += 16;
+    if (!nonce.equals(nonceFromServer)) {
         throw Error("Invalid nonce from server");
     }
-    serverNonce = buffer.read(16, 12);
+    serverNonce = buffer.slice(offset, offset + 16);
+    offset += 16;
+    let res = Helpers.tgReadByte(buffer, offset);
+    let pqBytes = res.data;
 
-    let {pqBytes, newOffset} = Helpers.tgReadByte(buffer, 12);
-    pq = buffer.readBigInt64BE(newOffset);
-    newOffset += 8;
-    let vectorId = buffer.readInt8(newOffset);
-    newOffset += 1;
+    let newOffset = res.offset;
+    pq = BigIntBuffer.toBigIntBE(pqBytes);
+
+    let vectorId = buffer.readInt32LE(newOffset);
+    newOffset += 4;
     if (vectorId !== 0x1cb5c415) {
         throw Error("vector error");
     }
-    let fingerprints_count = buffer.readInt8(newOffset);
+    let fingerprints_count = buffer.readInt32LE(newOffset);
+    newOffset += 4;
     for (let i = 0; i < fingerprints_count; i++) {
-        fingerprints.push(buffer.readInt32LE(newOffset));
+        fingerprints.push(buffer.slice(newOffset, newOffset + 8));
         newOffset += 8;
     }
-
     // Step 2 sending: DH Exchange
     let newNonce = Helpers.generateRandomBytes(32);
     let {p, q} = Factorizator.factorize(pq);
-    let tempBuffer = Buffer.alloc(8);
-    tempBuffer.writeUIntLE(0x83c95aec, 0, 8);
+    let min = p < q ? p : q;
+    let max = p > q ? p : q;
+
+    let tempBuffer = Buffer.alloc(4);
+    tempBuffer.writeUInt32LE(0x83c95aec, 0);
     let pqInnerData = Buffer.concat([
         tempBuffer,
         Helpers.tgWriteBytes(getByteArray(pq, false)),
-        Helpers.tgWriteBytes(getByteArray(Math.min(p, q), false)),
-        Helpers.tgWriteBytes(getByteArray(Math.max(p, q), false)),
+        Helpers.tgWriteBytes(getByteArray(min, false)),
+        Helpers.tgWriteBytes(getByteArray(max, false)),
         nonce,
         serverNonce,
         newNonce,
@@ -69,23 +85,26 @@ function doAuthentication(transport) {
     if (cipherText === undefined) {
         throw Error("Could not find a valid key for fingerprints");
     }
-    tempBuffer = Buffer.alloc(8);
-    tempBuffer.writeUIntLE(0xd712e4be, 0, 8);
+
+    tempBuffer = Buffer.alloc(4);
+    tempBuffer.writeUInt32LE(0xd712e4be, 0);
+
 
     let reqDhParams = Buffer.concat([
         tempBuffer,
         nonce,
         serverNonce,
-        Helpers.tgWriteBytes(getByteArray(Math.min(p, q), false)),
-        Helpers.tgWriteBytes(getByteArray(Math.max(p, q), false)),
+        Helpers.tgWriteBytes(getByteArray(min, false)),
+        Helpers.tgWriteBytes(getByteArray(max, false)),
         targetFingerprint,
         Helpers.tgWriteBytes(cipherText)
     ]);
-    sender.send(reqDhParams);
+
+    await sender.send(reqDhParams);
     // Step 2 response: DH Exchange
     newOffset = 0;
-    let reader = sender.receive();
-    responseCode = reader.readInt32LE(newOffset);
+    let reader = await sender.receive();
+    responseCode = reader.readUInt32LE(newOffset);
     newOffset += 4;
     if (responseCode === 0x79cb045d) {
         throw Error("Server DH params fail: TODO ");
@@ -93,59 +112,65 @@ function doAuthentication(transport) {
     if (responseCode !== 0xd0e8075c) {
         throw Error("Invalid response code: TODO ");
     }
-    nonceFromServer = reader.readIntLE(newOffset, 16);
+    nonceFromServer = reader.slice(newOffset, newOffset + 16);
     newOffset += 16;
-    if (nonceFromServer !== nonce) {
+    if (!nonceFromServer.equals(nonce)) {
         throw Error("Invalid nonce from server");
     }
-    let serverNonceFromServer = reader.readIntLE(newOffset, 16);
-    if (serverNonceFromServer !== nonceFromServer) {
+    let serverNonceFromServer = reader.slice(newOffset, newOffset + 16);
+
+    if (!serverNonceFromServer.equals(serverNonce)) {
         throw Error("Invalid server nonce from server");
     }
-    newOffset += 16;
-    let encryptedAnswer = Helpers.tgReadByte(reader, newOffset).data;
 
+    newOffset += 16;
+
+    let encryptedAnswer = Helpers.tgReadByte(reader, newOffset).data;
     // Step 3 sending: Complete DH Exchange
 
-    let {key, iv} = Helpers.generateKeyDataFromNonces(serverNonce, newNonce);
+    res = Helpers.generateKeyDataFromNonces(serverNonce, newNonce);
+    let key = res.keyBuffer;
+    let iv = res.ivBuffer;
     let plainTextAnswer = AES.decryptIge(encryptedAnswer, key, iv);
     let g, dhPrime, ga, timeOffset;
     let dhInnerData = plainTextAnswer;
     newOffset = 20;
-    let code = dhInnerData.readUInt32BE(newOffset);
+    let code = dhInnerData.readUInt32LE(newOffset);
     if (code !== 0xb5890dba) {
         throw Error("Invalid DH Inner Data code:")
     }
     newOffset += 4;
-    let nonceFromServer1 = dhInnerData.readIntLE(newOffset, 16);
-    if (nonceFromServer1 !== nonceFromServer) {
+    let nonceFromServer1 = dhInnerData.slice(newOffset, newOffset + 16);
+    if (!nonceFromServer1.equals(nonceFromServer)) {
         throw Error("Invalid nonce in encrypted answer");
     }
     newOffset += 16;
-    let serverNonceFromServer1 = dhInnerData.readIntLE(newOffset, 16);
-    if (serverNonceFromServer1 !== serverNonce) {
+    let serverNonceFromServer1 = dhInnerData.slice(newOffset, newOffset + 16);
+    if (!serverNonceFromServer1.equals(serverNonce)) {
         throw Error("Invalid server nonce in encrypted answer");
     }
     newOffset += 16;
-    g = dhInnerData.readInt32LE(newOffset);
+    g = BigInt(dhInnerData.readInt32LE(newOffset));
     newOffset += 4;
-    let temp = Helpers.tgReadByte(dhInnerData, newOffset);
-    newOffset += temp.offset;
 
-    dhPrime = temp.data.readUInt32BE(0);
+    let temp = Helpers.tgReadByte(dhInnerData, newOffset);
+    newOffset = temp.offset;
+
+    dhPrime = BigIntBuffer.toBigIntBE(temp.data);
     temp = Helpers.tgReadByte(dhInnerData, newOffset);
-    newOffset += temp.offset;
-    ga = temp.data.readUInt32BE(0);
+
+    newOffset = temp.offset;
+    ga = BigIntBuffer.toBigIntBE(temp.data);
     let serverTime = dhInnerData.readInt32LE(newOffset);
     timeOffset = serverTime - Math.floor(new Date().getTime() / 1000);
-    let b = Helpers.generateRandomBytes(2048).readUInt32BE(0);
-    let gb = (g ** b) % dhPrime;
-    let gab = (ga * b) % dhPrime;
+    let b = BigIntBuffer.toBigIntBE(Helpers.generateRandomBytes(2048));
+    let gb = Helpers.modExp(g, b, dhPrime);
+    let gab = Helpers.modExp(ga, b, dhPrime);
 
     // Prepare client DH Inner Data
 
-    tempBuffer = Buffer.alloc(8);
-    tempBuffer.writeUIntLE(0x6643b654, 0, 8);
+    tempBuffer = Buffer.alloc(4);
+    tempBuffer.writeUInt32LE(0x6643b654, 0);
     let clientDHInnerData = Buffer.concat([
         tempBuffer,
         nonce,
@@ -162,38 +187,39 @@ function doAuthentication(transport) {
     let clientDhInnerDataEncrypted = AES.encryptIge(clientDhInnerData, key, iv);
 
     // Prepare Set client DH params
-    tempBuffer = Buffer.alloc(8);
-    tempBuffer.writeUIntLE(0xf5045f1f, 0, 8);
+    tempBuffer = Buffer.alloc(4);
+    tempBuffer.writeUInt32LE(0xf5045f1f, 0);
     let setClientDhParams = Buffer.concat([
         tempBuffer,
         nonce,
         serverNonce,
         Helpers.tgWriteBytes(clientDhInnerDataEncrypted),
     ]);
-    sender.send(setClientDhParams);
+    await sender.send(setClientDhParams);
 
     // Step 3 response: Complete DH Exchange
-    reader = sender.receive();
+    reader = await sender.receive();
     newOffset = 0;
     code = reader.readUInt32LE(newOffset);
     newOffset += 4;
     if (code === 0x3bcbf734) { //  DH Gen OK
-        nonceFromServer = reader.readIntLE(newOffset, 16);
+        nonceFromServer = reader.slice(newOffset, newOffset + 16);
         newOffset += 16;
-        if (nonceFromServer !== nonce) {
+        if (!nonceFromServer.equals(nonce)) {
             throw Error("Invalid nonce from server");
         }
-        serverNonceFromServer = reader.readIntLE(newOffset, 16);
+        serverNonceFromServer = reader.slice(newOffset, newOffset + 16);
         newOffset += 16;
-        if (serverNonceFromServer !== serverNonce) {
+        if (!serverNonceFromServer.equals(serverNonce)) {
             throw Error("Invalid server nonce from server");
         }
-        let newNonceHash1 = reader.readIntLE(newOffset, 16);
-        let authKey = AuthKey(getByteArray(gab, false));
+        let newNonceHash1 = reader.slice(newOffset, newOffset + 16);
+        let authKey = new AuthKey(getByteArray(gab, false));
         let newNonceHashCalculated = authKey.calcNewNonceHash(newNonce, 1);
-        if (newNonceHash1 !== newNonceHashCalculated) {
+        if (!newNonceHash1.equals(newNonceHashCalculated)) {
             throw Error("Invalid new nonce hash");
         }
+        timeOffset = BigInt(timeOffset);
         return {authKey, timeOffset};
     } else if (code === 0x46dc1fb9) {
         throw Error("dh_gen_retry");
@@ -222,29 +248,28 @@ function rightJustify(string, length, char) {
  * @returns {string}
  */
 function getFingerprintText(fingerprint) {
-    let res = "";
-    for (let b of fingerprint) {
-        res += rightJustify(b.toString(16), 2, '0').toUpperCase();
-    }
-    return res;
+    return fingerprint.toString("hex");
+
 }
 
+
 /**
- *
+ * Gets the arbitrary-length byte array corresponding to the given integer
  * @param integer {number,BigInt}
  * @param signed {boolean}
- * @returns {number}
+ * @returns {Buffer}
  */
 function getByteArray(integer, signed) {
     let bits = integer.toString(2).length;
     let byteLength = Math.floor((bits + 8 - 1) / 8);
-    let buffer = Buffer.alloc(byteLength);
+    let f;
     if (signed) {
-        return buffer.readIntLE(0, byteLength);
+        f = BigIntBuffer.toBufferBE(BigInt(integer), byteLength);
 
     } else {
-        return buffer.readUIntLE(0, byteLength);
-
+        f = BigIntBuffer.toBufferBE(BigInt(integer), byteLength);
     }
+    return f;
 }
+
 module.exports = doAuthentication;
