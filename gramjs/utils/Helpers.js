@@ -136,6 +136,19 @@ class Helpers {
     }
 
     /**
+     * Calculates the SHA256 digest for the given data
+     * @param data
+     * @returns {Buffer}
+     */
+    static sha256(data) {
+        let shaSum = crypto.createHash('sha256');
+        shaSum.update(data);
+        return shaSum.digest();
+
+    }
+
+
+    /**
      * Reads a Telegram-encoded string
      * @param buffer {Buffer}
      * @param offset {number}
@@ -285,3 +298,5 @@ class Helpers {
 }
 
 module.exports = Helpers;
+
+console.log(Helpers.sha256("ok"));

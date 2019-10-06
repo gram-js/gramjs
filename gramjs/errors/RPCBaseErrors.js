@@ -2,24 +2,19 @@
  * Base class for all Remote Procedure Call errors.
  */
 class RPCError extends Error {
-    constructor(message, request, code = null) {
-        super(
-            'RPCError {0}: {1}{2}'
-                .replace('{0}', code)
-                .replace('{1}', message)
-                .replace('{2}', RPCError._fmtRequest(request))
-        )
-        this.code = code
-        this.message = message
+
+
+    constructor(request, message, code = null) {
+        super("RPCError {0}: {1}{2}"
+            .replace("{0}", code)
+            .replace("{1}", message)
+            .replace("{2}", RPCError._fmt_request(request)));
+        this.code = code;
+        this.message = message;
     }
 
-    static _fmtRequest(request) {
-        // TODO fix this
-        if (request) {
-            return ` (caused by ${request.className})`
-        } else {
-            return ''
-        }
+    static _fmt_request(request) {
+        return ' (caused by {})'.format(request.constructor.name)
     }
 }
 
@@ -27,12 +22,10 @@ class RPCError extends Error {
  * The request must be repeated, but directed to a different data center.
  */
 class InvalidDCError extends RPCError {
-    constructor(request, message, code) {
-        super(message, request, code)
-        this.code = code || 303
-        this.message = message || 'ERROR_SEE_OTHER'
-    }
+    code = 303;
+    message = 'ERROR_SEE_OTHER'
 }
+
 
 /**
  * The query contains errors. In the event that a request was created
@@ -40,7 +33,7 @@ class InvalidDCError extends RPCError {
  * notified that the data must be corrected before the query is repeated.
  */
 class BadRequestError extends RPCError {
-    code = 400
+    code = 400;
     message = 'BAD_REQUEST'
 }
 
@@ -49,7 +42,7 @@ class BadRequestError extends RPCError {
  * to authorized users.
  */
 class UnauthorizedError extends RPCError {
-    code = 401
+    code = 401;
     message = 'UNAUTHORIZED'
 }
 
@@ -58,7 +51,7 @@ class UnauthorizedError extends RPCError {
  * someone who has blacklisted the current user.
  */
 class ForbiddenError extends RPCError {
-    code = 403
+    code = 403;
     message = 'FORBIDDEN'
 }
 
@@ -66,7 +59,7 @@ class ForbiddenError extends RPCError {
  * An attempt to invoke a non-existent object, such as a method.
  */
 class NotFoundError extends RPCError {
-    code = 404
+    code = 404;
     message = 'NOT_FOUND'
 }
 
@@ -75,7 +68,7 @@ class NotFoundError extends RPCError {
  * AUTH_KEY_DUPLICATED which can cause the connection to fail.
  */
 class AuthKeyError extends RPCError {
-    code = 406
+    code = 406;
     message = 'AUTH_KEY'
 }
 
@@ -86,8 +79,10 @@ class AuthKeyError extends RPCError {
  * phone number.
  */
 class FloodError extends RPCError {
-    code = 420
+    code = 420;
     message = 'FLOOD'
+
+
 }
 
 /**
@@ -96,7 +91,7 @@ class FloodError extends RPCError {
  * storage
  */
 class ServerError extends RPCError {
-    code = 500 // Also witnessed as -500
+    code = 500;  // Also witnessed as -500
     message = 'INTERNAL'
 }
 
@@ -105,19 +100,6 @@ class ServerError extends RPCError {
  * call ``answerCallbackQuery`` will result in this "special" RPCError.
  */
 class TimedOutError extends RPCError {
-    code = 503 // Only witnessed as -503
-    message = 'Timeout'
-}
-
-module.exports = {
-    RPCError,
-    InvalidDCError,
-    BadRequestError,
-    UnauthorizedError,
-    ForbiddenError,
-    NotFoundError,
-    AuthKeyError,
-    FloodError,
-    ServerError,
-    TimedOutError,
+    code = 503;  // Only witnessed as -503
+    message = 'Timeout';
 }

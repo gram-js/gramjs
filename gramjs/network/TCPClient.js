@@ -1,7 +1,7 @@
 const Socket = require("net").Socket;
 const sleep = require("../utils/Helpers").sleep;
 
-class TcpClient {
+class TCPClient {
     constructor() {
         this.connected = false;
         this.socket = new Socket();
@@ -71,4 +71,4 @@ class TcpClient {
 
 }
 
-module.exports = TcpClient;
+module.exports = TCPClient;

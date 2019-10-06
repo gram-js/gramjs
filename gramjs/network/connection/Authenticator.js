@@ -1,9 +1,9 @@
-const AES = require("../crypto/AES");
-const AuthKey = require("../crypto/AuthKey");
-const Factorizator = require("../crypto/Factorizator");
-const RSA = require("../crypto/RSA");
-const MtProtoPlainSender = require("./MTProtoPlainSender");
-const Helpers = require("../utils/Helpers");
+const AES = require("../../crypto/AES");
+const AuthKey = require("../../crypto/AuthKey");
+const Factorizator = require("../../crypto/Factorizator");
+const RSA = require("../../crypto/RSA");
+const MtProtoPlainSender = require("../MTProtoPlainSender");
+const Helpers = require("../../utils/Helpers");
 const BigIntBuffer = require("bigint-buffer");
 
 /**

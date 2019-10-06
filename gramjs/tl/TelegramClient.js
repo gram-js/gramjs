@@ -1,8 +1,8 @@
 const Session = require("./Session");
-const doAuthentication = require("../network/authenticator");
+const doAuthentication = require("../network/connection/Authenticator");
 const MtProtoSender = require("../network/mtprotoSender");
 const MTProtoRequest = require("../tl/MTProtoRequest");
-const TcpTransport = require("../network/tcpTransport");
+const TcpTransport = require("../network/TCPTransport");
 
 const {InvokeWithLayerRequest, InitConnectionRequest} = require("../gramjs/tl/functions/index");
 const {GetConfigRequest} = require("../gramjs/tl/functions/help");

@@ -1,74 +1,54 @@
-const { sha1, toSignedLittleBuffer,readBufferFromBigInt, readBigIntFromBuffer } = require('../Helpers')
-const BinaryReader = require('../extensions/BinaryReader')
-const { sleep } = require('../Helpers')
+const Helpers = require("../utils/Helpers");
+const BinaryReader = require("../extensions/BinaryReader");
 
 class AuthKey {
+    constructor(data) {
+        this.key = data;
 
-    constructor(value, hash) {
-        if (!hash || !value) {
-            return
-        }
-        this._key = value
-        this._hash = hash
-        const reader = new BinaryReader(hash)
-        this.auxHash = reader.readLong(false)
-        reader.read(4)
-        this.keyId = reader.readLong(false)
     }
 
-    async setKey(value) {
+    set key(value) {
         if (!value) {
-            this._key = this.auxHash = this.keyId = this._hash = null
+            this._key = this.auxHash = this.keyId = null;
             return
         }
-        if (value instanceof AuthKey) {
-            this._key = value._key
-            this.auxHash = value.auxHash
-            this.keyId = value.keyId
-            this._hash = value._hash
+        if (value instanceof this) {
+            this._key = value._key;
+            this.auxHash = value.auxHash;
+            this.keyId = value.keyId;
             return
         }
-        this._key = value
-        this._hash = await sha1(this._key)
-        const reader = new BinaryReader(this._hash)
-        this.auxHash = reader.readLong(false)
-        reader.read(4)
-        this.keyId = reader.readLong(false)
+        this._key = value;
+        let reader = new BinaryReader(Helpers.sha1(this._key));
+        this.auxHash = reader.readLong(false);
+        reader.read(4);
+        this.keyId = reader.readLong(false);
     }
 
-    async waitForKey() {
-        while (!this.keyId) {
-            await sleep(20)
-        }
+    get key() {
+        return this._key;
     }
 
-    getKey() {
-        return this._key
-    }
 
     // TODO : This doesn't really fit here, it's only used in authentication
-
     /**
      * Calculates the new nonce hash based on the current class fields' values
-     * @param newNonce
-     * @param number
-     * @returns {bigint}
+     * @param new_nonce {Buffer}
+     * @param number {number}
+     * @returns {Buffer}
      */
-    async calcNewNonceHash(newNonce, number) {
-        newNonce = toSignedLittleBuffer(newNonce, 32)
-        const n = Buffer.alloc(1)
-        n.writeUInt8(number, 0)
-        const data = Buffer.concat([newNonce,
-            Buffer.concat([n, readBufferFromBigInt(this.auxHash, 8, true)])])
-
-        // Calculates the message key from the given data
-        const shaData = (await sha1(data)).slice(4, 20)
-        return readBigIntFromBuffer(shaData, true, true)
+    calcNewNonceHash(new_nonce, number) {
+        let tempBuffer = Buffer.alloc(1);
+        tempBuffer.writeInt8(number, 0);
+        let secondBuffer = Buffer.alloc(8);
+        secondBuffer.writeBigUInt64LE(this.auxHash, 0);
+        let buffer = Buffer.concat([new_nonce, tempBuffer, secondBuffer]);
+        return Helpers.calcMsgKey(buffer);
     }
 
     equals(other) {
-        return other instanceof this.constructor && this._key && other.getKey() && other.getKey().equals(this._key)
+        return (other instanceof this.constructor && other.key === this._key)
     }
 }
 
-module.exports = AuthKey
+module.exports = AuthKey;

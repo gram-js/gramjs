@@ -1,34 +1,15 @@
-const MtProtoPlainSender = require('./MTProtoPlainSender')
-const MTProtoState = require('./MTProtoState')
-const Helpers = require('../Helpers')
-const AuthKey = require('../crypto/AuthKey')
-const doAuthentication = require('./Authenticator')
-const RPCResult = require('../tl/core/RPCResult')
-const MessageContainer = require('../tl/core/MessageContainer')
-const GZIPPacked = require('../tl/core/GZIPPacked')
-const RequestState = require('./RequestState')
-const { MsgsAck, upload, MsgsStateInfo, Pong } = require('../tl').constructors
-const MessagePacker = require('../extensions/MessagePacker')
-const BinaryReader = require('../extensions/BinaryReader')
-const { UpdateConnectionState } = require("./index");
-const { BadMessageError } = require("../errors/Common")
-const {
-    BadServerSalt,
-    BadMsgNotification,
-    MsgDetailedInfo,
-    MsgNewDetailedInfo,
-    NewSessionCreated,
-    FutureSalts,
-    MsgsStateReq,
-    MsgResendReq,
-    MsgsAllInfo,
-} = require('../tl').constructors
-const { SecurityError } = require('../errors/Common')
-const { InvalidBufferError } = require('../errors/Common')
-const { LogOut } = require('../tl').requests.auth
-const { RPCMessageToError } = require('../errors')
-const { TypeNotFoundError } = require('../errors/Common')
-
+const MtProtoPlainSender = require("./MTProtoPlainSender");
+const Helpers = require("../utils/Helpers");
+const {MsgsAck} = require("../gramjs/tl/types");
+const AES = require("../crypto/AES");
+const {RPCError} = require("../errors");
+const format = require('string-format');
+const {TypeNotFoundError} = require("../errors");
+const {BadMessageError} = require("../errors");
+const {InvalidDCError} = require("../errors");
+const {gzip, ungzip} = require('node-gzip');
+//const {tlobjects} = require("../gramjs/tl/alltlobjects");
+format.extend(String.prototype, {});
 
 /**
  * MTProto Mobile Protocol sender
@@ -44,37 +25,31 @@ const { TypeNotFoundError } = require('../errors/Common')
  * key exists yet.
  */
 class MTProtoSender {
-    static DEFAULT_OPTIONS = {
-        logger: null,
-        retries: Infinity,
-        delay: 2000,
+
+    /**
+     * @param authKey
+     * @param opt
+     */
+    constructor(authKey, opt = {
+        loggers: null,
+        retries: 5,
+        delay: 1,
         autoReconnect: true,
         connectTimeout: null,
         authKeyCallback: null,
         updateCallback: null,
-        autoReconnectCallback: null,
-        isMainSender: null,
-        senderCallback: null,
-    }
-
-    /**
-     * @param authKey
-     * @param opts
-     */
-    constructor(authKey, opts) {
-        const args = { ...MTProtoSender.DEFAULT_OPTIONS, ...opts }
-        this._connection = null
-        this._log = args.logger
-        this._dcId = args.dcId
-        this._retries = args.retries
-        this._delay = args.delay
-        this._autoReconnect = args.autoReconnect
-        this._connectTimeout = args.connectTimeout
-        this._authKeyCallback = args.authKeyCallback
-        this._updateCallback = args.updateCallback
-        this._autoReconnectCallback = args.autoReconnectCallback
-        this._isMainSender = args.isMainSender;
-        this._senderCallback = args.senderCallback;
+        autoReconnectCallback: null
+    }) {
+        this._connection = null;
+        this._loggers = opt.loggers;
+        this._log = opt.loggers[__name__];
+        this._retries = opt.retries;
+        this._delay = opt.delay;
+        this._autoReconnect = opt.autoReconnect;
+        this._connectTimeout = opt.connectTimeout;
+        this._authKeyCallback = opt.authKeyCallback;
+        this._updateCallback = opt.updateCallback;
+        this._autoReconnectCallback = opt.autoReconnectCallback;
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -84,65 +59,68 @@ class MTProtoSender {
          * be cleared but on explicit user disconnection all the
          * pending futures should be cancelled.
          */
-        this._user_connected = false
-        this._reconnecting = false
-        this._disconnected = true
+        this._user_connected = false;
+        this._reconnecting = false;
+        this._disconnected = true;
 
         /**
          * We need to join the loops upon disconnection
          */
-        this._send_loop_handle = null
-        this._recv_loop_handle = null
+        this._send_loop_handle = null;
+        this._recv_loop_handle = null;
 
         /**
          * Preserving the references of the AuthKey and state is important
          */
-        this.authKey = authKey || new AuthKey()
-        this._state = new MTProtoState(this.authKey, this._log)
+        this.auth_key = authKey || new AuthKey(null);
+        this._state = new MTProtoState(this.auth_key, this._loggers);
 
         /**
          * Outgoing messages are put in a queue and sent in a batch.
          * Note that here we're also storing their ``_RequestState``.
          */
-        this._send_queue = new MessagePacker(this._state, this._log)
+        this._send_queue = new MessagePacker(this._state,
+            this._loggers);
 
         /**
          * Sent states are remembered until a response is received.
          */
-        this._pending_state = {}
+        this._pending_state = {};
 
         /**
          * Responses must be acknowledged, and we can also batch these.
          */
-        this._pending_ack = new Set()
+        this._pending_ack = new Set();
 
         /**
          * Similar to pending_messages but only for the last acknowledges.
          * These can't go in pending_messages because no acknowledge for them
          * is received, but we may still need to resend their state on bad salts.
          */
-        this._last_acks = []
+        this._last_acks = [];
 
         /**
          * Jump table from response ID to method that handles it
          */
 
         this._handlers = {
-            [RPCResult.CONSTRUCTOR_ID]: this._handleRPCResult.bind(this),
-            [MessageContainer.CONSTRUCTOR_ID]: this._handleContainer.bind(this),
-            [GZIPPacked.CONSTRUCTOR_ID]: this._handleGzipPacked.bind(this),
-            [Pong.CONSTRUCTOR_ID]: this._handlePong.bind(this),
-            [BadServerSalt.CONSTRUCTOR_ID]: this._handleBadServerSalt.bind(this),
-            [BadMsgNotification.CONSTRUCTOR_ID]: this._handleBadNotification.bind(this),
-            [MsgDetailedInfo.CONSTRUCTOR_ID]: this._handleDetailedInfo.bind(this),
-            [MsgNewDetailedInfo.CONSTRUCTOR_ID]: this._handleNewDetailedInfo.bind(this),
-            [NewSessionCreated.CONSTRUCTOR_ID]: this._handleNewSessionCreated.bind(this),
-            [MsgsAck.CONSTRUCTOR_ID]: this._handleAck.bind(this),
-            [FutureSalts.CONSTRUCTOR_ID]: this._handleFutureSalts.bind(this),
-            [MsgsStateReq.CONSTRUCTOR_ID]: this._handleStateForgotten.bind(this),
-            [MsgResendReq.CONSTRUCTOR_ID]: this._handleStateForgotten.bind(this),
-            [MsgsAllInfo.CONSTRUCTOR_ID]: this._handleMsgAll.bind(this),
+            [RPCResult.CONSTRUCTOR_ID]: this._handle_rpc_result,
+            [MessageContainer.CONSTRUCTOR_ID]: this._handle_container,
+            [GzipPacked.CONSTRUCTOR_ID]: this._handle_gzip_packed,
+            [Pong.CONSTRUCTOR_ID]: this._handle_pong,
+            [BadServerSalt.CONSTRUCTOR_ID]: this._handle_bad_server_salt,
+            [BadMsgNotification.CONSTRUCTOR_ID]: this._handle_bad_notification,
+            [MsgDetailedInfo.CONSTRUCTOR_ID]: this._handle_detailed_info,
+            [MsgNewDetailedInfo.CONSTRUCTOR_ID]: this._handle_new_detailed_info,
+            [NewSessionCreated.CONSTRUCTOR_ID]: this._handle_new_session_created,
+            [MsgsAck.CONSTRUCTOR_ID]: this._handle_ack,
+            [FutureSalts.CONSTRUCTOR_ID]: this._handle_future_salts,
+            [MsgsStateReq.CONSTRUCTOR_ID]: this._handle_state_forgotten,
+            [MsgResendReq.CONSTRUCTOR_ID]: this._handle_state_forgotten,
+            [MsgsAllInfo.CONSTRUCTOR_ID]: this._handle_msg_all,
         }
+
+
     }
 
     // Public API
@@ -150,36 +128,20 @@ class MTProtoSender {
     /**
      * Connects to the specified given connection using the given auth key.
      * @param connection
-     * @param eventDispatch {function}
      * @returns {Promise<boolean>}
      */
-    async connect(connection, eventDispatch=null) {
+    async connect(connection) {
         if (this._user_connected) {
-            this._log.info('User is already connected!')
-            return false
+            this._log.info('User is already connected!');
+            return false;
         }
-        this._connection = connection
-
-        const retries = this._retries
-
-        for (let attempt = 0; attempt < retries; attempt++) {
-            try {
-                await this._connect()
-                break
-            } catch (e) {
-                if (attempt===0 && eventDispatch!==null){
-                    eventDispatch({ update: new UpdateConnectionState(-1) })
-                }
-                console.dir(e);
-
-                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
-                await Helpers.sleep(this._delay)
-            }
-        }
-        return true
+        this._connection = connection;
+        await this._connect();
+        this._user_connected = true;
+        return true;
     }
 
-    isConnected() {
+    is_connected() {
         return this._user_connected
     }
 
@@ -188,8 +150,7 @@ class MTProtoSender {
      * all pending requests, and closes the send and receive loops.
      */
     async disconnect() {
-
-        await this._disconnect()
+        await this._disconnect();
     }
 
     /**
@@ -221,18 +182,14 @@ class MTProtoSender {
         if (!this._user_connected) {
             throw new Error('Cannot send requests while disconnected')
         }
-        //CONTEST
-        const state = new RequestState(request)
-        this._send_queue.append(state)
-        return state.promise
-        /*
-        if (!Helpers.isArrayLike(request)) {
-            const state = new RequestState(request)
-            this._send_queue.append(state)
-            return state.promise
+
+        if (!utils.isArrayLike(request)) {
+            let state = new RequestState(request);
+            this._send_queue.push(state);
+            return state;
         } else {
-            throw new Error('not supported')
-        }*/
+            throw new Error("not supported");
+        }
     }
 
     /**
@@ -243,18 +200,15 @@ class MTProtoSender {
      * @private
      */
     async _connect() {
-        this._log.info('Connecting to {0}...'.replace('{0}', this._connection))
-        await this._connection.connect()
-        this._log.debug('Connection success!')
-        //process.exit(0)
-        if (!this.authKey.getKey()) {
-            const plain = new MtProtoPlainSender(this._connection, this._log)
-            this._log.debug('New auth_key attempt ...')
-            const res = await doAuthentication(plain, this._log)
-            this._log.debug('Generated new auth_key successfully')
-            await this.authKey.setKey(res.authKey)
+        this._log.info('Connecting to {0}...'.replace("{0}", this._connection));
+        await this._connection.connect();
 
-            this._state.time_offset = res.timeOffset
+        this._log.debug("Connection success!");
+        if (!this.auth_key) {
+            let plain = new MtProtoPlainSender(this._connection, this._loggers);
+            let res = await authenticator.do_authentication(plain);
+            this.auth_key.key = res.key;
+            this._state.time_offset = res.timeOffset;
 
             /**
              * This is *EXTREMELY* important since we don't control
@@ -263,39 +217,36 @@ class MTProtoSender {
              * switch to different data centers.
              */
             if (this._authKeyCallback) {
-                await this._authKeyCallback(this.authKey, this._dcId)
+                this._authKeyCallback(this.auth_key)
+
             }
-        } else {
-            this._log.debug('Already have an auth key ...')
+
         }
-        this._user_connected = true
-        this._reconnecting = false
+        this._log.debug('Starting send loop');
+        this._send_loop_handle = this._send_loop();
 
-        this._log.debug('Starting send loop')
-        this._send_loop_handle = this._sendLoop()
-
-        this._log.debug('Starting receive loop')
-        this._recv_loop_handle = this._recvLoop()
+        this._log.debug('Starting receive loop');
+        this._recv_loop_handle = this._recv_loop();
 
         // _disconnected only completes after manual disconnection
         // or errors after which the sender cannot continue such
         // as failing to reconnect or any unexpected error.
 
-        this._log.info('Connection to %s complete!'.replace('%s', this._connection.toString()))
+        this._log.info('Connection to %s complete!', this._connection)
+
     }
 
-    async _disconnect(error = null) {
+
+    async _disconnected(error = null) {
         if (this._connection === null) {
-            this._log.info('Not disconnecting (already have no connection)')
+            this._log.info('Not disconnecting (already have no connection)');
             return
         }
-        if (this._updateCallback){
-            this._updateCallback(-1)
-        }
-        this._log.info('Disconnecting from %s...'.replace('%s', this._connection.toString()))
-        this._user_connected = false
-        this._log.debug('Closing current connection...')
+        this._log.info('Disconnecting from %s...', this._connection);
+        this._user_connected = false;
+        this._log.debug('Closing current connection...');
         await this._connection.disconnect()
+
     }
 
     /**
@@ -305,122 +256,82 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
-    async _sendLoop() {
-        this._send_queue = new MessagePacker(this._state, this._log)
-
+    async _send_loop() {
         while (this._user_connected && !this._reconnecting) {
-            if (this._pending_ack.size) {
-                const ack = new RequestState(new MsgsAck({ msgIds: Array(...this._pending_ack) }))
-                this._send_queue.append(ack)
-                this._last_acks.push(ack)
+            if (this._pending_ack) {
+                let ack = new RequestState(new MsgsAck(Array(this._pending_ack)));
+                this._send_queue.push(ack);
+                this._last_acks.push(ack);
                 this._pending_ack.clear()
             }
-            this._log.debug('Waiting for messages to send...'+this._reconnecting)
+            this._log.debug('Waiting for messages to send...');
             // TODO Wait for the connection send queue to be empty?
             // This means that while it's not empty we can wait for
             // more messages to be added to the send queue.
-            const res = await this._send_queue.get()
+            let {batch, data} = await this._send_queue.get();
 
-            if (this._reconnecting) {
-                return
-            }
-
-            if (!res) {
+            if (!data) {
                 continue
             }
-            let data = res.data
-            const batch = res.batch
-            this._log.debug(`Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`)
+            this._log.debug(`Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`);
 
-            data = await this._state.encryptMessageData(data)
-
+            data = this._state.encryptMessageData(data);
             try {
-                await this._connection.send(data)
+                await this._connection.send(data);
             } catch (e) {
-                this._log.error(e)
-                this._log.info('Connection closed while sending data')
+                console.log(e);
+                this._log.info('Connection closed while sending data');
                 return
             }
-            for (const state of batch) {
-                if (!Array.isArray(state)) {
-                    if (state.request.classType === 'request') {
-                        this._pending_state[state.msgId] = state
-                    }
-                } else {
-                    for (const s of state) {
-                        if (s.request.classType === 'request') {
-                            this._pending_state[s.msgId] = s
-                        }
-                    }
-                }
-            }
-            this._log.debug('Encrypted messages put in a queue to be sent')
+
         }
     }
 
-    async _recvLoop() {
-        let body
-        let message
+
+    async _recv_loop() {
+        let body, message;
 
         while (this._user_connected && !this._reconnecting) {
-            // this._log.debug('Receiving items from the network...');
-            this._log.debug('Receiving items from the network...')
+            this._log.debug('Receiving items from the network...');
             try {
-                body = await this._connection.recv()
+                body = await this._connection.recv();
             } catch (e) {
-                // this._log.info('Connection closed while receiving data');
-                this._log.warn('Connection closed while receiving data')
-                this._startReconnect()
+                this._log.info('Connection closed while receiving data');
                 return
             }
             try {
-                message = await this._state.decryptMessageData(body)
+                message = this._state.decryptMessageData(body);
             } catch (e) {
+                console.log(e);
+
                 if (e instanceof TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
-                    this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`)
-                    continue
+                    this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`);
                 } else if (e instanceof SecurityError) {
                     // A step while decoding had the incorrect data. This message
                     // should not be considered safe and it should be ignored.
-                    this._log.warn(`Security error while unpacking a received message: ${e}`)
+                    this._log.warning(`Security error while unpacking a received message: ${e}`);
                     continue
                 } else if (e instanceof InvalidBufferError) {
-                    this._log.info('Broken authorization key; resetting')
-                    if (this._updateCallback && this._isMainSender){
-                        // 0 == broken
-                        this._updateCallback(0)
-                    } else if (this._senderCallback && !this._isMainSender){
-                        // Deletes the current sender from the object
-                        this._senderCallback(this._dcId)
-                    }
-
-                    // We don't really need to do this if we're going to sign in again
-                    /*await this.authKey.setKey(null)
-
+                    this._log.info('Broken authorization key; resetting');
+                    this.auth_key.key = null;
                     if (this._authKeyCallback) {
-                        await this._authKeyCallback(null)
-                    }*/
-                    // We can disconnect at sign in
-                    /* await this.disconnect()
-                    */
+                        this._authKeyCallback(null)
+                    }
                     return
                 } else {
-                    this._log.error('Unhandled error while receiving data')
-                    this._log.error(e)
-                    console.log(e)
-                    this._startReconnect()
+                    this._log.exception('Unhandled error while receiving data');
                     return
                 }
             }
-            try {
-                await this._processMessage(message)
-            } catch (e) {
-                this._log.error('Unhandled error while receiving data')
-                console.log(e)
-                this._log.error(e)
-            }
         }
+        try {
+            await this._processMessage(message)
+        } catch (e) {
+            this._log.exception('Unhandled error while receiving data');
+
+        }
+
     }
 
     // Response Handlers
@@ -434,56 +345,48 @@ class MTProtoSender {
      * @private
      */
     async _processMessage(message) {
-        this._pending_ack.add(message.msgId)
-        // eslint-disable-next-line require-atomic-updates
-        message.obj = await message.obj
-        let handler = this._handlers[message.obj.CONSTRUCTOR_ID]
-        if (!handler) {
-            handler = this._handleUpdate.bind(this)
-        }
-
-        await handler(message)
+        this._pending_ack.add(message.msgId);
+        let handler = this._handlers.get(message.obj.CONSTRUCTOR_ID, this.handleUpdate);
+        await handler(message);
     }
 
     /**
      * Pops the states known to match the given ID from pending messages.
      * This method should be used when the response isn't specific.
      * @param msgId
-     * @returns {*[]}
+     * @returns {Promise<[]>}
      * @private
      */
-    _popStates(msgId) {
-        let state = this._pending_state[msgId]
+    async _popStates(msgId) {
+        let state = this._pending_state.pop(msgId, null);
         if (state) {
-            delete this._pending_state[msgId]
-            return [state]
+            return [state];
         }
 
-        const toPop = []
+        let to_pop = [];
 
-        for (state of Object.values(this._pending_state)) {
-            if (state.containerId && state.containerId.equals(msgId)) {
-                toPop.push(state.msgId)
+        for (state of this._pending_state.values()) {
+            if (state.containerId === msgId) {
+                to_pop.push(state.msgId);
             }
         }
 
-        if (toPop.length) {
-            const temp = []
-            for (const x of toPop) {
-                temp.push(this._pending_state[x])
-                delete this._pending_state[x]
+        if (to_pop) {
+            let temp = [];
+            for (const x of to_pop) {
+                temp.push(this._pending_state.pop(x));
             }
             return temp
         }
 
-        for (const ack of this._last_acks) {
-            if (ack.msgId === msgId) {
+        for (let ack of this._last_acks) {
+            if (ack.msgId === msgId)
                 return [ack]
-            }
         }
 
         return []
     }
+
 
     /**
      * Handles the result for Remote Procedure Calls:
@@ -493,13 +396,10 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
-    _handleRPCResult(message) {
-        const RPCResult = message.obj
-        const state = this._pending_state[RPCResult.reqMsgId]
-        if (state) {
-            delete this._pending_state[RPCResult.reqMsgId]
-        }
-        this._log.debug(`Handling RPC result for message ${RPCResult.reqMsgId}`)
+    async _handleRPCResult(message) {
+        let RPCResult = message.obj;
+        let state = this._pending_state.pop(RPCResult.reqMsgId, null);
+        this._log.debug(`Handling RPC result for message ${RPCResult.reqMsgId}`);
 
         if (!state) {
             // TODO We should not get responses to things we never sent
@@ -507,30 +407,29 @@ class MTProtoSender {
             // See #658, #759 and #958. They seem to happen in a container
             // which contain the real response right after.
             try {
-                const reader = new BinaryReader(RPCResult.body)
+                let reader = new BinaryReader(RPCResult.body);
                 if (!(reader.tgReadObject() instanceof upload.File)) {
-                    throw new TypeNotFoundError('Not an upload.File')
+                    throw new TypeNotFoundError("Not an upload.File");
                 }
             } catch (e) {
-                this._log.error(e)
                 if (e instanceof TypeNotFoundError) {
-                    this._log.info(`Received response without parent request: ${RPCResult.body}`)
+                    this._log.info(`Received response without parent request: ${RPCResult.body}`);
                     return
                 } else {
-                    throw e
+                    throw e;
                 }
             }
+            if (RPCResult.error) {
+                let error = RPCMessageToError(RPCResult.error, state.request);
+                this._send_queue.append(
+                    new RequestState(new MsgsAck([state.msgId]))
+                );
+            } else {
+                let reader = new BinaryReader(RPCResult.body);
+                let result = state.request.readResult(reader);
+            }
         }
-        if (RPCResult.error) {
-            // eslint-disable-next-line new-cap
-            const error = RPCMessageToError(RPCResult.error, state.request)
-            this._send_queue.append(new RequestState(new MsgsAck({ msgIds: [state.msgId] })))
-            state.reject(error)
-        } else {
-            const reader = new BinaryReader(RPCResult.body)
-            const read = state.request.readResult(reader)
-            state.resolve(read)
-        }
+
     }
 
     /**
@@ -541,9 +440,9 @@ class MTProtoSender {
      * @private
      */
     async _handleContainer(message) {
-        this._log.debug('Handling container')
-        for (const innerMessage of message.obj.messages) {
-            await this._processMessage(innerMessage)
+        this._log.debug('Handling container');
+        for (let inner_message in message.obj.messages) {
+            await this._processMessage(inner_message)
         }
     }
 
@@ -555,19 +454,18 @@ class MTProtoSender {
      * @private
      */
     async _handleGzipPacked(message) {
-        this._log.debug('Handling gzipped data')
-        const reader = new BinaryReader(message.obj.data)
-        message.obj = reader.tgReadObject()
+        this._log.debug('Handling gzipped data');
+        let reader = new BinaryReader(message.obj.data);
+        message.obj = reader.tgReadObject();
         await this._processMessage(message)
     }
 
     async _handleUpdate(message) {
-        if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {
-            // crc32(b'Updates')
-            this._log.warn(`Note: ${message.obj.className} is not an update, not dispatching it`)
+        if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {  // crc32(b'Updates')
+            this._log.warning(`Note: %s is not an update, not dispatching it ${message.obj}`);
             return
         }
-        this._log.debug('Handling update ' + message.obj.className)
+        this._log.debug('Handling update %s', message.obj.constructor.name);
         if (this._updateCallback) {
             this._updateCallback(message.obj)
         }
@@ -582,14 +480,12 @@ class MTProtoSender {
      * @private
      */
     async _handlePong(message) {
-        const pong = message.obj
-        this._log.debug(`Handling pong for message ${pong.msgId}`)
-        const state = this._pending_state[pong.msgId]
-        delete this._pending_state[pong.msgId]
-
+        let pong = message.obj;
+        this._log.debug(`Handling pong for message ${pong.msgId}`);
+        let state = this._pending_state.pop(pong.msgId, null);
         // Todo Check result
         if (state) {
-            state.resolve(pong)
+            state.future.set_result(pong)
         }
     }
 
@@ -603,12 +499,12 @@ class MTProtoSender {
      * @private
      */
     async _handleBadServerSalt(message) {
-        const badSalt = message.obj
-        this._log.debug(`Handling bad salt for message ${badSalt.badMsgId}`)
-        this._state.salt = badSalt.newServerSalt
-        const states = this._popStates(badSalt.badMsgId)
-        this._send_queue.extend(states)
-        this._log.debug(`${states.length} message(s) will be resent`)
+        let badSalt = message.obj;
+        this._log.debug(`Handling bad salt for message ${badSalt.badMsgId}`);
+        this._state.salt = badSalt.newServerSalt;
+        let states = this._popStates(badSalt.badMsgId);
+        this._send_queue.extend(states);
+        this._log.debug('%d message(s) will be resent', states.length);
     }
 
     /**
@@ -621,14 +517,14 @@ class MTProtoSender {
      * @private
      */
     async _handleBadNotification(message) {
-        const badMsg = message.obj
-        const states = this._popStates(badMsg.badMsgId)
-        this._log.debug(`Handling bad msg ${JSON.stringify(badMsg)}`)
-        if ([16, 17].includes(badMsg.errorCode)) {
+        let badMsg = message.obj;
+        let states = this._popStates(badMsg.badMsgId);
+        this._log.debug(`Handling bad msg ${badMsg}`);
+        if ([16, 17].contains(badMsg.errorCode)) {
             // Sent msg_id too low or too high (respectively).
             // Use the current msg_id to determine the right time offset.
-            const to = this._state.updateTimeOffset(message.msgId)
-            this._log.info(`System clock is wrong, set time offset to ${to}s`)
+            let to = this._state.updateTimeOffset(message.msgId);
+            this._log.info(`System clock is wrong, set time offset to ${to}s`);
         } else if (badMsg.errorCode === 32) {
             // msg_seqno too low, so just pump it up by some "large" amount
             // TODO A better fix would be to start with a new fresh session ID
@@ -637,15 +533,16 @@ class MTProtoSender {
             // msg_seqno too high never seems to happen but just in case
             this._state._sequence -= 16
         } else {
-
-            for (const state of states) {
-                state.reject(new BadMessageError(state.request, badMsg.errorCode))
+            for (let state of states) {
+                // TODO set errors;
+                /* state.future.set_exception(
+                BadMessageError(state.request, bad_msg.error_code))*/
             }
 
             return
         }
         // Messages are to be re-sent once we've corrected the issue
-        this._send_queue.extend(states)
+        this._send_queue.extend(states);
         this._log.debug(`${states.length} messages will be resent due to bad msg`)
     }
 
@@ -659,8 +556,8 @@ class MTProtoSender {
      */
     async _handleDetailedInfo(message) {
         // TODO https://goo.gl/VvpCC6
-        const msgId = message.obj.answerMsgId
-        this._log.debug(`Handling detailed info for message ${msgId}`)
+        let msgId = message.obj.answerMsgId;
+        this._log.debug(`Handling detailed info for message ${msgId}`);
         this._pending_ack.add(msgId)
     }
 
@@ -674,8 +571,8 @@ class MTProtoSender {
      */
     async _handleNewDetailedInfo(message) {
         // TODO https://goo.gl/VvpCC6
-        const msgId = message.obj.answerMsgId
-        this._log.debug(`Handling new detailed info for message ${msgId}`)
+        let msgId = message.obj.answerMsgId;
+        this._log.debug(`Handling new detailed info for message ${msgId}`);
         this._pending_ack.add(msgId)
     }
 
@@ -689,8 +586,8 @@ class MTProtoSender {
      */
     async _handleNewSessionCreated(message) {
         // TODO https://goo.gl/LMyN7A
-        this._log.debug('Handling new session created')
-        this._state.salt = message.obj.serverSalt
+        this._log.debug('Handling new session created');
+        this._state.salt = message.obj.serverSalt;
     }
 
     /**
@@ -712,15 +609,16 @@ class MTProtoSender {
      * @private
      */
     async _handleAck(message) {
-        const ack = message.obj
-        this._log.debug(`Handling acknowledge for ${ack.msgIds}`)
-        for (const msgId of ack.msgIds) {
-            const state = this._pending_state[msgId]
-            if (state && state.request instanceof LogOut) {
-                delete this._pending_state[msgId]
-                state.resolve(true)
+        let ack = message.obj;
+        this._log.debug(`Handling acknowledge for ${ack.msgIds}`);
+        for (let msgId of ack.msgIds) {
+            let state = this._pending_state[msgId];
+            if (state && state.request instanceof LogOutRequest) {
+                delete this._pending_state[msgId];
+                state.future.set_result(true)
             }
         }
+
     }
 
     /**
@@ -735,12 +633,10 @@ class MTProtoSender {
     async _handleFutureSalts(message) {
         // TODO save these salts and automatically adjust to the
         // correct one whenever the salt in use expires.
-        this._log.debug(`Handling future salts for message ${message.msgId}`)
-        const state = this._pending_state[message.msgId]
-
+        this._log.debug(`Handling future salts for message ${message.msgId}`);
+        let state = self._pending_state.pop(message.msgId, null);
         if (state) {
-            delete this._pending_state[message]
-            state.resolve(message.obj)
+            state.future.set_result(message.obj)
         }
     }
 
@@ -752,9 +648,8 @@ class MTProtoSender {
      * @private
      */
     async _handleStateForgotten(message) {
-        this._send_queue.append(
-            new RequestState(new MsgsStateInfo(message.msgId, String.fromCharCode(1).repeat(message.obj.msgIds))),
-        )
+        self._send_queue.append(new RequestState(new MsgsStateInfo(
+            message.msgId, String.fromCharCode(1).repeat(message.obj.msgIds))))
     }
 
     /**
@@ -763,53 +658,360 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
-    async _handleMsgAll(message) {
+    async _handleMsgAll(message){
+
     }
 
-    async _startReconnect() {
-        if (this._user_connected && !this._reconnecting) {
-            this._reconnecting = true
-            // TODO Should we set this?
-            // this._user_connected = false
-            this._log.info("Started reconnecting")
-            this._reconnect()
+    /**
+     * Adds an update handler (a method with one argument, the received
+     * TLObject) that is fired when there are updates available
+     * @param handler {function}
+     */
+    addUpdateHandler(handler) {
+        let firstHandler = Boolean(this.onUpdateHandlers.length);
+        this.onUpdateHandlers.push(handler);
+        // If this is the first added handler,
+        // we must start receiving updates
+        if (firstHandler) {
+            this.setListenForUpdates(true);
         }
     }
 
-    async _reconnect() {
-        this._log.debug('Closing current connection...')
+    /**
+     * Removes an update handler (a method with one argument, the received
+     * TLObject) that is fired when there are updates available
+     * @param handler {function}
+     */
+    removeUpdateHandler(handler) {
+        let index = this.onUpdateHandlers.indexOf(handler);
+        if (index !== -1) this.onUpdateHandlers.splice(index, 1);
+        if (!Boolean(this.onUpdateHandlers.length)) {
+            this.setListenForUpdates(false);
+
+        }
+    }
+
+    /**
+     *
+     * @param confirmed {boolean}
+     * @returns {number}
+     */
+    generateSequence(confirmed) {
+        if (confirmed) {
+            let result = this.session.sequence * 2 + 1;
+            this.session.sequence += 1;
+            return result;
+        } else {
+            return this.session.sequence * 2;
+        }
+    }
+
+    /**
+     * Sends the specified MTProtoRequest, previously sending any message
+     * which needed confirmation. This also pauses the updates thread
+     * @param request {MTProtoRequest}
+     * @param resend
+     */
+    async send(request, resend = false) {
+        let buffer;
+        //If any message needs confirmation send an AckRequest first
+        if (this.needConfirmation.length) {
+            let msgsAck = new MsgsAck(
+                {
+                    msgIds:
+                    this.needConfirmation
+                });
+
+            buffer = msgsAck.onSend();
+            await this.sendPacket(buffer, msgsAck);
+            this.needConfirmation.length = 0;
+        }
+        //Finally send our packed request
+
+        buffer = request.onSend();
+        await this.sendPacket(buffer, request);
+
+        //And update the saved session
+        this.session.save();
+
+    }
+
+    /**
+     *
+     * @param request
+     */
+    async receive(request) {
         try {
-            await this.disconnect()
-        } catch (err) {
-            this._log.warn(err)
-        }
-        this._send_queue.append(null)
-
-        this._state.reset()
-        const retries = this._retries
-
-
-        for (let attempt = 0; attempt < retries; attempt++) {
-            try {
-                await this._connect()
-                // uncomment this if you want to resend
-                //this._send_queue.extend(Object.values(this._pending_state))
-                this._pending_state = {}
-                if (this._autoReconnectCallback) {
-                    await this._autoReconnectCallback()
-                }
-                if (this._updateCallback){
-                    this._updateCallback(1)
-                }
-
-                break
-            } catch (e) {
-                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
-                console.log(e)
-                await Helpers.sleep(this._delay)
+            //Try until we get an update
+            while (!request.confirmReceived) {
+                let {seq, body} = await this.transport.receive();
+                let {message, remoteMsgId, remoteSequence} = this.decodeMsg(body);
+                console.log("processing msg");
+                await this.processMsg(remoteMsgId, remoteSequence, message, 0, request);
+                console.log("finished processing msg");
             }
+        } finally {
+            // Todo
+        }
+    }
+
+    // region Low level processing
+    /**
+     * Sends the given packet bytes with the additional
+     * information of the original request.
+     * @param packet
+     * @param request
+     */
+    async sendPacket(packet, request) {
+        request.msgId = this.session.getNewMsgId();
+        // First Calculate plainText to encrypt it
+        let first = Buffer.alloc(8);
+        let second = Buffer.alloc(8);
+        let third = Buffer.alloc(8);
+        let forth = Buffer.alloc(4);
+        let fifth = Buffer.alloc(4);
+        first.writeBigUInt64LE(this.session.salt, 0);
+        second.writeBigUInt64LE(this.session.id, 0);
+        third.writeBigUInt64LE(request.msgId, 0);
+        forth.writeInt32LE(this.generateSequence(request.confirmed), 0);
+        fifth.writeInt32LE(packet.length, 0);
+        let plain = Buffer.concat([
+            first,
+            second,
+            third,
+            forth,
+            fifth,
+            packet
+        ]);
+        let msgKey = Helpers.calcMsgKey(plain);
+        let {key, iv} = Helpers.calcKey(this.session.authKey.key, msgKey, true);
+
+        let cipherText = AES.encryptIge(plain, key, iv);
+
+        //And then finally send the encrypted packet
+
+        first = Buffer.alloc(8);
+        first.writeBigUInt64LE(this.session.authKey.keyId, 0);
+        let cipher = Buffer.concat([
+            first,
+            msgKey,
+            cipherText,
+        ]);
+        await this.transport.send(cipher);
+    }
+
+    /**
+     *
+     * @param body {Buffer}
+     * @returns {{remoteMsgId: number, remoteSequence: BigInt, message: Buffer}}
+     */
+    decodeMsg(body) {
+        if (body.length < 8) {
+            throw Error("Can't decode packet");
+        }
+        let remoteAuthKeyId = body.readBigInt64LE(0);
+        let offset = 8;
+        let msgKey = body.slice(offset, offset + 16);
+        offset += 16;
+        let {key, iv} = Helpers.calcKey(this.session.authKey.key, msgKey, false);
+        let plainText = AES.decryptIge(body.slice(offset, body.length), key, iv);
+        offset = 0;
+        let remoteSalt = plainText.readBigInt64LE(offset);
+        offset += 8;
+        let remoteSessionId = plainText.readBigInt64LE(offset);
+        offset += 8;
+        let remoteMsgId = plainText.readBigInt64LE(offset);
+        offset += 8;
+        let remoteSequence = plainText.readInt32LE(offset);
+        offset += 4;
+        let msgLen = plainText.readInt32LE(offset);
+        offset += 4;
+        let message = plainText.slice(offset, offset + msgLen);
+        return {message, remoteMsgId, remoteSequence}
+    }
+
+    async processMsg(msgId, sequence, reader, offset, request = undefined) {
+        this.needConfirmation.push(msgId);
+        let code = reader.readUInt32LE(offset);
+        console.log("code is ", code);
+        // The following codes are "parsed manually"
+        if (code === 0xf35c6d01) {  //rpc_result, (response of an RPC call, i.e., we sent a request)
+            console.log("got rpc result");
+            return await this.handleRpcResult(msgId, sequence, reader, offset, request);
+        }
+
+        if (code === 0x73f1f8dc) {  //msg_container
+            return this.handleContainer(msgId, sequence, reader, offset, request);
+        }
+        if (code === 0x3072cfa1) {  //gzip_packed
+            return this.handleGzipPacked(msgId, sequence, reader, offset, request);
+        }
+        if (code === 0xedab447b) {  //bad_server_salt
+            return await this.handleBadServerSalt(msgId, sequence, reader, offset, request);
+        }
+        if (code === 0xa7eff811) {  //bad_msg_notification
+            console.log("bad msg notification");
+            return this.handleBadMsgNotification(msgId, sequence, reader, offset);
+        }
+        /**
+         * If the code is not parsed manually, then it was parsed by the code generator!
+         * In this case, we will simply treat the incoming TLObject as an Update,
+         * if we can first find a matching TLObject
+         */
+        console.log("code", code);
+        if (code === 0x9ec20908) {
+            return this.handleUpdate(msgId, sequence, reader, offset);
+        } else {
+
+            if (tlobjects.contains(code)) {
+                return this.handleUpdate(msgId, sequence, reader);
+            }
+        }
+        console.log("Unknown message");
+        return false;
+    }
+
+    // region Message handling
+
+    handleUpdate(msgId, sequence, reader, offset = 0) {
+        let tlobject = Helpers.tgReadObject(reader, offset);
+        for (let handler of this.onUpdateHandlers) {
+            handler(tlobject);
+        }
+        return Float32Array
+    }
+
+    async handleContainer(msgId, sequence, reader, offset, request) {
+        let code = reader.readUInt32LE(offset);
+        offset += 4;
+        let size = reader.readInt32LE(offset);
+        offset += 4;
+        for (let i = 0; i < size; i++) {
+            let innerMsgId = reader.readBigUInt64LE(offset);
+            offset += 8;
+            let innerSequence = reader.readInt32LE(offset);
+            offset += 4;
+            let innerLength = reader.readInt32LE(offset);
+            offset += 4;
+            if (!(await this.processMsg(innerMsgId, sequence, reader, offset, request))) {
+                offset += innerLength;
+            }
+        }
+        return false;
+    }
+
+    async handleBadServerSalt(msgId, sequence, reader, offset, request) {
+        let code = reader.readUInt32LE(offset);
+        offset += 4;
+        let badMsgId = reader.readBigUInt64LE(offset);
+        offset += 8;
+        let badMsgSeqNo = reader.readInt32LE(offset);
+        offset += 4;
+        let errorCode = reader.readInt32LE(offset);
+        offset += 4;
+        let newSalt = reader.readBigUInt64LE(offset);
+        offset += 8;
+        this.session.salt = newSalt;
+
+        if (!request) {
+            throw Error("Tried to handle a bad server salt with no request specified");
+        }
+
+        //Resend
+        await this.send(request, true);
+        return true;
+    }
+
+    handleBadMsgNotification(msgId, sequence, reader, offset) {
+        let code = reader.readUInt32LE(offset);
+        offset += 4;
+        let requestId = reader.readUInt32LE(offset);
+        offset += 4;
+        let requestSequence = reader.readInt32LE(offset);
+        offset += 4;
+        let errorCode = reader.readInt32LE(offset);
+        return new BadMessageError(errorCode);
+    }
+
+    async handleRpcResult(msgId, sequence, reader, offset, request) {
+        if (!request) {
+            throw Error("RPC results should only happen after a request was sent");
+        }
+        let buffer = Buffer.alloc(0);
+        let code = reader.readUInt32LE(offset);
+        offset += 4;
+        let requestId = reader.readUInt32LE(offset);
+        offset += 4;
+        let innerCode = reader.readUInt32LE(offset);
+        offset += 4;
+        if (requestId === request.msgId) {
+            request.confirmReceived = true;
+        }
+
+        if (innerCode === 0x2144ca19) {  // RPC Error
+            console.log("Got an error");
+            let errorCode = reader.readInt32LE(offset);
+            offset += 4;
+            let errorMessage = Helpers.tgReadString(reader, offset);
+            offset = errorMessage.offset;
+            errorMessage = errorMessage.data;
+            let error = new RPCError(errorCode, errorMessage);
+            if (error.mustResend) {
+                request.confirmReceived = false;
+            }
+            if (error.message.startsWith("FLOOD_WAIT_")) {
+                console.log("Should wait {}s. Sleeping until then.".format(error.additionalData));
+                await Helpers.sleep();
+            } else if (error.message.startsWith("PHONE_MIGRATE_")) {
+                throw new InvalidDCError(error.additionalData);
+            } else {
+                throw error;
+            }
+
+        } else {
+            console.log("no errors");
+            if (innerCode === 0x3072cfa1) { //GZip packed
+                console.log("Gzipped data");
+                let res = Helpers.tgReadByte(reader, offset);
+                let unpackedData = await ungzip(res.data);
+                offset = res.offset;
+                res = request.onResponse(unpackedData, offset);
+                buffer = res.data;
+                offset = res.offset;
+            } else {
+                console.log("plain data");
+                offset -= 4;
+                let res = request.onResponse(reader, offset);
+                buffer = res.data;
+                offset = res.offset;
+            }
+        }
+        return {buffer, offset}
+
+    }
+
+    handleGzipPacked(msgId, sequence, reader, offset, request) {
+        throw Error("not implemented");
+        // TODO
+    }
+
+    setListenForUpdates(enabled) {
+
+        if (enabled) {
+            console.log("Enabled updates");
+        } else {
+            console.log("Disabled updates");
+        }
+    }
+
+    updatesListenMethod() {
+        while (true) {
+            let {seq, body} = this.transport.receive();
+            let {message, remoteMsgId, remoteSequence} = this.decodeMsg(body);
+            this.processMsg(remoteMsgId, remoteSequence, message);
+
         }
     }
 }
 
-module.exports = MTProtoSender
+module.exports = MTProtoSender;
