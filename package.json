@@ -23,6 +23,7 @@
     "string-format": "^2.0.0"
   },
   "devDependencies": {
-    "bigint-buffer": "^1.1.2"
+    "bigint-buffer": "^1.1.2",
+    "leemon": "^6.2.0"
   }
 }

@@ -1,7 +1,7 @@
-const TcpClient = require("./TcpClient");
+const TcpClient = require("./TCPClient");
 const crc = require('crc');
 
-class TcpTransport {
+class TCPTransport {
     constructor(ipAddress, port) {
         this.tcpClient = new TcpClient();
         this.sendCounter = 0;
@@ -85,4 +85,4 @@ class TcpTransport {
 
 }
 
-module.exports = TcpTransport;
+module.exports = TCPTransport;
