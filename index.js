@@ -51,9 +51,9 @@ const generate = (which, action = 'gen') => {
 
     const {
         generateErrors,
-        generateTlobjects,
+        generateTLObjects,
         generateDocs,
-        cleanTlobjects,
+        cleanTLObjects,
     } = require('./gramjs_generator/generators');
 
     const [layer] = TLOBJECT_IN_TLS.map(findLayer).filter(Boolean);
@@ -96,9 +96,9 @@ const generate = (which, action = 'gen') => {
         console.log(action, 'TLObjects...');
 
         if (clean) {
-            cleanTlobjects(TLOBJECT_OUT);
+            cleanTLObjects(TLOBJECT_OUT);
         } else {
-            generateTlobjects(tlobjects, layer, IMPORT_DEPTH, TLOBJECT_OUT);
+            generateTLObjects(tlobjects, layer, IMPORT_DEPTH, TLOBJECT_OUT);
         }
     }
 
