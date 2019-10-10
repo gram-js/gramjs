@@ -112,7 +112,7 @@ class Helpers {
      * Generates the key data corresponding to the given nonces
      * @param serverNonce
      * @param newNonce
-     * @returns {{ivBuffer: Buffer, keyBuffer: Buffer}}
+     * @returns {{key: Buffer, iv: Buffer}}
      */
     static generateKeyDataFromNonces(serverNonce, newNonce) {
         let hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
@@ -120,7 +120,7 @@ class Helpers {
         let hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));
         let keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)]);
         let ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)]);
-        return {keyBuffer: keyBuffer, ivBuffer: ivBuffer}
+        return {key: keyBuffer, iv: ivBuffer}
     }
 
     /**
@@ -180,7 +180,7 @@ class Helpers {
             } else if (constructorId === 0xbc799737) {
                 return false
             }
-            throw Error("type not found "+ constructorId);
+            throw Error("type not found " + constructorId);
         }
         return undefined;
     }

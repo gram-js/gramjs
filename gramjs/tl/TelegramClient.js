@@ -1,5 +1,5 @@
 const Session = require("./Session");
-const doAuthentication = require("../network/connection/Authenticator");
+const doAuthentication = require("../network/Authenticator");
 const MtProtoSender = require("../network/mtprotoSender");
 const MTProtoRequest = require("../tl/MTProtoRequest");
 const TcpTransport = require("../network/TCPTransport");
