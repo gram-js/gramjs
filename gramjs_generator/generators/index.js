@@ -1,10 +1,10 @@
 const { generateErrors } = require('./errors');
-const { generateTlobjects, cleanTlobjects } = require('./tlobject');
+const { generateTLObjects, cleanTLObjects } = require('./tlobject');
 const { generateDocs } = require('./docs');
 
 module.exports = {
     generateErrors,
-    generateTlobjects,
-    cleanTlobjects,
+    generateTLObjects,
+    cleanTLObjects,
     generateDocs,
 };

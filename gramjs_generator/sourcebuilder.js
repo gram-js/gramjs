@@ -19,7 +19,7 @@ class SourceBuilder {
      * by the current indentation level
      */
     indent() {
-        this.write(' '.repeat(this.currentIndent * this.indentSize));
+        this.write(' '.repeat(Math.abs(this.currentIndent * this.indentSize)));
     }
 
     /**
