@@ -114,7 +114,7 @@ class BinaryReader {
      * specifying its length.
      * @returns {Buffer}
      */
-    tgReadByte() {
+    tgReadBytes() {
         let firstByte = this.readByte();
         let padding, length;
         if (firstByte === 254) {

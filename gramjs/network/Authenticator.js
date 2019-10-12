@@ -5,6 +5,20 @@ const RSA = require("../crypto/RSA");
 const MtProtoPlainSender = require("./MTProtoPlainSender");
 const Helpers = require("../utils/Helpers");
 const BigIntBuffer = require("bigint-buffer");
+const {ServerDHParamsFail} = require("../tl/types");
+const {ServerDHParamsOk} = require("../tl/types");
+const {ReqDHParamsRequest} = require("../tl/functions");
+const {SecurityError} = require("../errors/Common");
+const {PQInnerData} = require("../tl/types");
+const BinaryReader = require("../extensions/BinaryReader");
+const {DhGenFail} = require("../tl/types");
+const {DhGenRetry} = require("../tl/types");
+const {DhGenOk} = require("../tl/types");
+const {SetClientDHParamsRequest} = require("../tl/functions");
+const {ServerDHInnerData} = require("../tl/types");
+const {ResPQ} = require("../tl/types");
+const {ReqPqMultiRequest} = require("../tl/functions");
+
 
 /**
  * Executes the authentication process with the Telegram servers.
@@ -23,7 +37,7 @@ async function doAuthentication(sender) {
     if (!resPQ.nonce.equals(nonce)) {
         throw new SecurityError("Step 1 invalid nonce from server'")
     }
-    pq = BigIntBuffer.toBigIntBE(resPQ.pq);
+    let pq = BigIntBuffer.toBigIntBE(resPQ.pq);
 
     // Step 2 sending: DH Exchange
     let {p, q} = Factorizator.factorize(pq);
@@ -31,7 +45,7 @@ async function doAuthentication(sender) {
     q = getByteArray(q);
     let newNonce = Helpers.generateRandomBytes(32);
     let pqInnerData = PQInnerData({
-            pq: rsa.get_byte_array(pq),
+            pq: getByteArray(pq),
             p: p,
             q: q,
             nonce: resPQ.nonce,
@@ -44,7 +58,7 @@ async function doAuthentication(sender) {
     // sha_digest + data + random_bytes
     let cipherText = null;
     let targetFingerprint = null;
-    for (let fingerprint of resPQ.serverPublicKeyFingerprints) {
+    for (let fingerprint of resPQ.server_public_key_fingerprints) {
         cipherText = RSA.encrypt(getFingerprintText(fingerprint), pqInnerData);
         if (cipherText !== null) {
             targetFingerprint = fingerprint;
@@ -78,7 +92,7 @@ async function doAuthentication(sender) {
     if (serverDhParams instanceof ServerDHParamsFail) {
         let sh = Helpers.sha1(BigIntBuffer.toBufferLE(newNonce, 32).slice(4, 20));
         let nnh = BigIntBuffer.toBigIntLE(sh);
-        if (serverDhParams.newNonceHash !== nnh) {
+        if (serverDhParams.new_nonce_hash !== nnh) {
             throw new SecurityError('Step 2 invalid DH fail nonce from server')
 
         }
@@ -90,12 +104,12 @@ async function doAuthentication(sender) {
     // Step 3 sending: Complete DH Exchange
     let {key, iv} = Helpers.generateKeyDataFromNonces(resPQ.server_nonce, newNonce);
 
-    if (serverDhParams.encryptedAnswer.length % 16 !== 0) {
+    if (serverDhParams.encrypted_answer.length % 16 !== 0) {
         // See PR#453
         throw new SecurityError('Step 3 AES block size mismatch')
     }
     let plainTextAnswer = AES.decryptIge(
-        serverDhParams.encryptedAnswer, key, iv
+        serverDhParams.encrypted_answer, key, iv
     );
 
     let reader = new BinaryReader(plainTextAnswer);
@@ -112,7 +126,7 @@ async function doAuthentication(sender) {
         throw new SecurityError('Step 3 Invalid server nonce in encrypted answer')
     }
     let dhPrime = BigIntBuffer.toBigIntLE(serverDhInner.dhPrime);
-    let ga = BigIntBuffer.toBigIntLE(serverDhInner.ga);
+    let ga = BigIntBuffer.toBigIntLE(serverDhInner.gA);
     let timeOffset = serverDhInner.serverTime - Math.floor(new Date().getTime() / 1000);
 
     let b = BigIntBuffer.toBigIntLE(Helpers.generateRandomBytes(256));
