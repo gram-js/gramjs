@@ -6,8 +6,8 @@
 /gramjs/tl/functions/
 /gramjs/tl/types/
 /gramjs/tl/patched/
-/gramjs/tl/alltlobjects.py
-/gramjs/errors/rpcerrorlist.py
+/gramjs/tl/alltlobjects.js
+/gramjs/errors/rpcerrorlist.js
 
 # User session
 *.session
