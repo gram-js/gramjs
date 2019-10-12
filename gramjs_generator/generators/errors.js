@@ -56,7 +56,7 @@ const generateErrors = (errors, f) => {
             f.write(`super('${capture}'`);
         }
 
-        f.write(' + this._fmtRequest(args.request));\n');
+        f.write(' + RPCError._fmtRequest(args.request));\n');
 
         if (error.hasCaptures) {
             f.write(
