@@ -1,6 +1,6 @@
 const types = require("./types");
 const functions = require("./functions");
-const patched = require("./patched");
+const patched = null;
 module.exports = {
     types,
     functions,
