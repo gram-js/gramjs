@@ -13,7 +13,7 @@ class RPCError extends Error {
         this.message = message;
     }
 
-    static _fmt_request(request) {
+    static _fmtRequest(request) {
         return ' (caused by {})'.format(request.constructor.name)
     }
 }

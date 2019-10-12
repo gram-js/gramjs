@@ -484,7 +484,6 @@ const writeToBytes = (tlobject, builder) => {
     // First constructor code, we already know its bytes
     builder.writeln('Buffer.from("%s","hex"),', b.toString("hex"));
     for (let arg of tlobject.args) {
-        console.log("ok");
         if (writeArgToBytes(builder, arg, tlobject.args)) {
             builder.writeln(',');
         }
@@ -500,9 +499,17 @@ const writeFromReader = (tlobject, builder) => {
 
     builder.writeln("static fromReader(reader) {");
     for (const arg of tlobject.args) {
-        if (arg.name !== "flag")
-            builder.writeln("let %s", "_" + arg.name + ";");
+        if (arg.name !== "flag") {
+
+
+            if (arg.name !== "x") {
+
+
+                builder.writeln("let %s", "_" + arg.name + ";");
+            }
+        }
     }
+
     builder.writeln("let _x;");
 
 
@@ -664,12 +671,12 @@ const writeArgReadCode = (builder, arg, args, name) => {
         // Treat 'true' flags as a special case, since they're true if
         // they're set, and nothing else needs to actually be read.
         if (arg.type === "true") {
-            builder.writeln("%s = Boolean(flags & %s)", name, 1 << arg.flagIndex);
+            builder.writeln("%s = Boolean(flags & %s);", name, 1 << arg.flagIndex);
             return;
         }
 
         wasFlag = true;
-        builder.writeln("if (flags & %s)", 1 << arg.flagIndex);
+        builder.writeln("if (flags & %s) {", 1 << arg.flagIndex);
         // Temporary disable .is_flag not to enter this if
         // again when calling the method recursively
         arg.isFlag = false;
@@ -680,17 +687,17 @@ const writeArgReadCode = (builder, arg, args, name) => {
             // We have to read the vector's constructor ID
             builder.writeln("reader.readInt();");
         }
-        builder.writeln("%s = []", name);
+        builder.writeln("%s = [];", name);
         builder.writeln("for (let i=0;i<reader.readInt();i++){");
         // Temporary disable .is_vector, not to enter this if again
         arg.isVector = false;
         writeArgReadCode(builder, arg, args, "_x");
-        builder.writeln("%s.push(_x)", name);
+        builder.writeln("%s.push(_x);", name);
         arg.isVector = true;
 
     } else if (arg.flagIndicator) {
         //Read the flags, which will indicate what items we should read next
-        builder.writeln("let flags = reader.readInt()");
+        builder.writeln("let flags = reader.readInt();");
         builder.writeln();
     } else if (arg.type === "int") {
         builder.writeln("%s = reader.readInt();", name)
@@ -736,22 +743,21 @@ const writeArgReadCode = (builder, arg, args, name) => {
             // file with the same namespace, but since it does no harm
             // and we don't have information about such thing in the
             // method we just ignore that case.
-            builder.writeln('const %s = require("%S");', className, ns);
+            builder.writeln('let %s = require("%s");', className, ns);
             builder.writeln("%s = %s.fromReader(reader);", name, className);
         }
     }
 
     // End vector and flag blocks if required (if we opened them before)
     if (arg.isVector) {
-        builder.endBlock();
+        builder.writeln("}");
+
     }
-    builder.currentIndent -= 1;
     if (wasFlag) {
-        builder.currentIndent -= 1;
-        builder.writeln("else");
-        builder.currentIndent -= 1;
+        builder.endBlock();
+        builder.writeln("else {");
         builder.writeln("%s = null", name);
-        builder.currentIndent -= 1;
+        builder.endBlock();
         // Restore .isFlag;
         arg.isFlag = true;
     }
