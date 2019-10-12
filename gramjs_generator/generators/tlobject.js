@@ -47,11 +47,15 @@ const BASE_TYPES = [
 ];
 
 // Patched types {fullname: custom.ns.Name}
-const PATCHED_TYPES = {
+
+//No patches currently
+/**
+ const PATCHED_TYPES = {
     messageEmpty: 'message.Message',
     message: 'message.Message',
     messageService: 'message.Message',
-};
+};*/
+const PATCHED_TYPES = {};
 
 const writeModules = (
     outDir,
@@ -179,7 +183,8 @@ const writeModules = (
         }
 
         // Add imports required for type checking
-        if (imports) {
+        /**
+         if (imports) {
             builder.writeln('if (false) { // TYPE_CHECKING {');
 
             for (const [namespace, names] of Object.entries(imports)) {
@@ -191,7 +196,7 @@ const writeModules = (
             }
 
             builder.endBlock();
-        }
+        }*/
 
         // Generate the class for every TLObject
         for (const t of tlobjects) {
@@ -209,8 +214,21 @@ const writeModules = (
         for (const line of typeDefs) {
             builder.writeln(line);
         }
-
         writeModuleExports(tlobjects, builder);
+        if (file.indexOf("index.js") > 0) {
+            for (const [ns, tlobjects] of Object.entries(namespaceTlobjects)) {
+                if (ns !== 'null') {
+                    builder.writeln("let %s = require('./%s');", ns, ns);
+                }
+            }
+            for (const [ns, tlobjects] of Object.entries(namespaceTlobjects)) {
+                if (ns !== 'null') {
+                    builder.writeln("module.exports.%s = %s;", ns, ns);
+                }
+            }
+
+        }
+
     }
 };
 
@@ -234,15 +252,16 @@ const writeReadResult = (tlobject, builder) => {
     if (!m) {
         return
     }
-    builder.endBlock();
+    //builder.endBlock();
     builder.writeln('static readResult(reader){');
-    builder.writeln('reader.readInt()  // Vector ID');
+    builder.writeln('reader.readInt();  // Vector ID');
     builder.writeln('let temp = [];');
     builder.writeln('for (let i=0;i<reader.readInt();i++){');
-    builder.writeln('temp.push(reader.read%s', m[0]);
-    builder.writeln("}");
+    let read = m[1][0].toUpperCase() + m[1].slice(1);
+    builder.writeln('temp.push(reader.read%s())', read);
+    builder.endBlock();
     builder.writeln('return temp');
-
+    builder.endBlock();
 };
 
 /**
@@ -261,6 +280,7 @@ const writeSourceCode = (tlobject, kind, builder, typeConstructors) => {
     builder.currentIndent--;
     writeFromReader(tlobject, builder);
     writeReadResult(tlobject, builder);
+    builder.currentIndent--;
     builder.writeln('}');
 
 };
@@ -488,7 +508,6 @@ const writeToBytes = (tlobject, builder) => {
             builder.writeln(',');
         }
     }
-    builder.currentIndent--;
     builder.writeln("])");
     builder.endBlock();
 
@@ -509,7 +528,7 @@ const writeFromReader = (tlobject, builder) => {
             }
         }
     }
-
+    // TODO fix this really
     builder.writeln("let _x;");
 
 
@@ -521,7 +540,7 @@ const writeFromReader = (tlobject, builder) => {
         temp.push(`${a.name}:_${a.name}`)
     }
     builder.writeln("return this({%s})", temp.join(",\n\t"));
-    builder.writeln("}");
+    builder.endBlock();
 };
 // writeReadResult
 
@@ -929,6 +948,7 @@ const cleanTLObjects = outputDir => {
 };
 
 const writeModuleExports = (tlobjects, builder) => {
+
     builder.writeln('module.exports = {');
 
     for (const t of tlobjects) {

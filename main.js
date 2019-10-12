@@ -1,6 +1,4 @@
-const Helpers = require("./utils/Helpers");
-const TelegramClient = require("./tl/TelegramClient");
-
+/**
 (async function () {
     console.log("Loading interactive example...");
     let settings = await Helpers.loadSettings();
@@ -8,3 +6,4 @@ const TelegramClient = require("./tl/TelegramClient");
     await client.connect();
     console.log("You should now be connected.");
 })();
+*/
