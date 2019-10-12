@@ -765,6 +765,7 @@ const writeArgReadCode = (builder, arg, args, name) => {
 
 
 const writePatched = (outDir, namespaceTlobjects) => {
+
     fs.mkdirSync(outDir, {recursive: true});
 
     for (const [ns, tlobjects] of Object.entries(namespaceTlobjects)) {
@@ -798,6 +799,8 @@ const writePatched = (outDir, namespaceTlobjects) => {
             writeFromReader(t, builder);
 
             builder.writeln();
+            builder.endBlock();
+            builder.currentIndent = 0;
             builder.writeln(
                 'types.%s%s = %s',
                 t.namespace ? `${t.namespace}.` : '',
