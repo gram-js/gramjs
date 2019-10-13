@@ -518,6 +518,7 @@ const writeFromReader = (tlobject, builder) => {
 
     builder.writeln("static fromReader(reader) {");
     for (const arg of tlobject.args) {
+
         if (arg.name !== "flag") {
 
 
@@ -537,7 +538,7 @@ const writeFromReader = (tlobject, builder) => {
     }
     let temp = [];
     for (let a of tlobject.realArgs) {
-        temp.push(`${a.name}:_${a.name}`)
+        temp.push(`${variableSnakeToCamelCase(a.name)}:_${a.name}`)
     }
     builder.writeln("return this({%s})", temp.join(",\n\t"));
     builder.endBlock();

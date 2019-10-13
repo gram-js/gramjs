@@ -1,13 +1,31 @@
 const MtProtoPlainSender = require("./MTProtoPlainSender");
+const MTProtoState = require("./MTProtoState");
 const Helpers = require("../utils/Helpers");
-const {MsgsAck} = require("../gramjs/tl/types");
+const {MsgsAck} = require("../tl/types");
+const AuthKey = require("../crypto/AuthKey");
 const AES = require("../crypto/AES");
-const {RPCError} = require("../errors");
+const {RPCError} = require("../errors/RPCBaseErrors");
+const RPCResult = require("../tl/core/RPCResult");
+const MessageContainer = require("../tl/core/MessageContainer");
+const GZIPPacked = require("../tl/core/GZIPPacked");
+const TLMessage = require("../tl/core/TLMessage");
+
 const format = require('string-format');
 const {TypeNotFoundError} = require("../errors");
 const {BadMessageError} = require("../errors");
 const {InvalidDCError} = require("../errors");
 const {gzip, ungzip} = require('node-gzip');
+const MessagePacker = require("../extensions/MessagePacker");
+const Pong = require("../tl/core/GZIPPacked");
+const BadServerSalt = require("../tl/core/GZIPPacked");
+const BadMsgNotification = require("../tl/core/GZIPPacked");
+const MsgDetailedInfo = require("../tl/core/GZIPPacked");
+const MsgNewDetailedInfo = require("../tl/core/GZIPPacked");
+const NewSessionCreated = require("../tl/core/GZIPPacked");
+const FutureSalts = require("../tl/core/GZIPPacked");
+const MsgsStateReq = require("../tl/core/GZIPPacked");
+const MsgResendReq = require("../tl/core/GZIPPacked");
+const MsgsAllInfo = require("../tl/core/GZIPPacked");
 //const {tlobjects} = require("../gramjs/tl/alltlobjects");
 format.extend(String.prototype, {});
 
@@ -42,7 +60,7 @@ class MTProtoSender {
     }) {
         this._connection = null;
         this._loggers = opt.loggers;
-        this._log = opt.loggers[__name__];
+        this._log = opt.loggers;
         this._retries = opt.retries;
         this._delay = opt.delay;
         this._autoReconnect = opt.autoReconnect;
@@ -72,8 +90,8 @@ class MTProtoSender {
         /**
          * Preserving the references of the AuthKey and state is important
          */
-        this.auth_key = authKey || new AuthKey(null);
-        this._state = new MTProtoState(this.auth_key, this._loggers);
+        this.authKey = authKey || new AuthKey(null);
+        this._state = new MTProtoState(this.authKey, this._loggers);
 
         /**
          * Outgoing messages are put in a queue and sent in a batch.
@@ -104,20 +122,20 @@ class MTProtoSender {
          */
 
         this._handlers = {
-            [RPCResult.CONSTRUCTOR_ID]: this._handle_rpc_result,
-            [MessageContainer.CONSTRUCTOR_ID]: this._handle_container,
-            [GzipPacked.CONSTRUCTOR_ID]: this._handle_gzip_packed,
-            [Pong.CONSTRUCTOR_ID]: this._handle_pong,
-            [BadServerSalt.CONSTRUCTOR_ID]: this._handle_bad_server_salt,
-            [BadMsgNotification.CONSTRUCTOR_ID]: this._handle_bad_notification,
-            [MsgDetailedInfo.CONSTRUCTOR_ID]: this._handle_detailed_info,
-            [MsgNewDetailedInfo.CONSTRUCTOR_ID]: this._handle_new_detailed_info,
-            [NewSessionCreated.CONSTRUCTOR_ID]: this._handle_new_session_created,
-            [MsgsAck.CONSTRUCTOR_ID]: this._handle_ack,
-            [FutureSalts.CONSTRUCTOR_ID]: this._handle_future_salts,
-            [MsgsStateReq.CONSTRUCTOR_ID]: this._handle_state_forgotten,
-            [MsgResendReq.CONSTRUCTOR_ID]: this._handle_state_forgotten,
-            [MsgsAllInfo.CONSTRUCTOR_ID]: this._handle_msg_all,
+            [RPCResult.CONSTRUCTOR_ID]: this._handleRPCResult,
+            [MessageContainer.CONSTRUCTOR_ID]: this._handleContainer,
+            [GZIPPacked.CONSTRUCTOR_ID]: this._handleGzipPacked,
+            [Pong.CONSTRUCTOR_ID]: this._handlePong,
+            [BadServerSalt.CONSTRUCTOR_ID]: this._handleBadServerSalt,
+            [BadMsgNotification.CONSTRUCTOR_ID]: this._handleBadNotification,
+            [MsgDetailedInfo.CONSTRUCTOR_ID]: this._handleDetailedInfo,
+            [MsgNewDetailedInfo.CONSTRUCTOR_ID]: this._handleNewDetailedInfo,
+            [NewSessionCreated.CONSTRUCTOR_ID]: this._handleNewSessionCreated,
+            [MsgsAck.CONSTRUCTOR_ID]: this._handleAck,
+            [FutureSalts.CONSTRUCTOR_ID]: this._handleFutureSalts,
+            [MsgsStateReq.CONSTRUCTOR_ID]: this._handleStateForgotten,
+            [MsgResendReq.CONSTRUCTOR_ID]: this._handleStateForgotten,
+            [MsgsAllInfo.CONSTRUCTOR_ID]: this._handleMsgAll,
         }
 
 
@@ -135,8 +153,10 @@ class MTProtoSender {
             this._log.info('User is already connected!');
             return false;
         }
+        console.log("connecting sender");
         this._connection = connection;
         await this._connect();
+        console.log("finished connecting sender");
         this._user_connected = true;
         return true;
     }
@@ -200,14 +220,14 @@ class MTProtoSender {
      * @private
      */
     async _connect() {
-        this._log.info('Connecting to {0}...'.replace("{0}", this._connection));
+        //this._log.info('Connecting to {0}...'.replace("{0}", this._connection));
         await this._connection.connect();
 
-        this._log.debug("Connection success!");
-        if (!this.auth_key) {
+        //this._log.debug("Connection success!");
+        if (!this.authKey) {
             let plain = new MtProtoPlainSender(this._connection, this._loggers);
             let res = await authenticator.do_authentication(plain);
-            this.auth_key.key = res.key;
+            this.authKey.key = res.key;
             this._state.time_offset = res.timeOffset;
 
             /**
@@ -217,22 +237,22 @@ class MTProtoSender {
              * switch to different data centers.
              */
             if (this._authKeyCallback) {
-                this._authKeyCallback(this.auth_key)
+                this._authKeyCallback(this.authKey)
 
             }
 
         }
-        this._log.debug('Starting send loop');
+        //this._log.debug('Starting send loop');
         this._send_loop_handle = this._send_loop();
 
-        this._log.debug('Starting receive loop');
+        //this._log.debug('Starting receive loop');
         this._recv_loop_handle = this._recv_loop();
 
         // _disconnected only completes after manual disconnection
         // or errors after which the sender cannot continue such
         // as failing to reconnect or any unexpected error.
 
-        this._log.info('Connection to %s complete!', this._connection)
+        //this._log.info('Connection to %s complete!', this._connection)
 
     }
 
@@ -292,11 +312,11 @@ class MTProtoSender {
         let body, message;
 
         while (this._user_connected && !this._reconnecting) {
-            this._log.debug('Receiving items from the network...');
+            //this._log.debug('Receiving items from the network...');
             try {
                 body = await this._connection.recv();
             } catch (e) {
-                this._log.info('Connection closed while receiving data');
+                //this._log.info('Connection closed while receiving data');
                 return
             }
             try {
@@ -306,21 +326,21 @@ class MTProtoSender {
 
                 if (e instanceof TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
-                    this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`);
+                    //this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`);
                 } else if (e instanceof SecurityError) {
                     // A step while decoding had the incorrect data. This message
                     // should not be considered safe and it should be ignored.
-                    this._log.warning(`Security error while unpacking a received message: ${e}`);
+                    //this._log.warning(`Security error while unpacking a received message: ${e}`);
                     continue
                 } else if (e instanceof InvalidBufferError) {
-                    this._log.info('Broken authorization key; resetting');
-                    this.auth_key.key = null;
+                    //this._log.info('Broken authorization key; resetting');
+                    this.authKey.key = null;
                     if (this._authKeyCallback) {
                         this._authKeyCallback(null)
                     }
                     return
                 } else {
-                    this._log.exception('Unhandled error while receiving data');
+                    //this._log.exception('Unhandled error while receiving data');
                     return
                 }
             }
@@ -328,8 +348,8 @@ class MTProtoSender {
         try {
             await this._processMessage(message)
         } catch (e) {
-            this._log.exception('Unhandled error while receiving data');
-
+            //this._log.exception('Unhandled error while receiving data');
+            console.log(e);
         }
 
     }
@@ -658,7 +678,7 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
-    async _handleMsgAll(message){
+    async _handleMsgAll(message) {
 
     }
 
@@ -706,35 +726,6 @@ class MTProtoSender {
         }
     }
 
-    /**
-     * Sends the specified MTProtoRequest, previously sending any message
-     * which needed confirmation. This also pauses the updates thread
-     * @param request {MTProtoRequest}
-     * @param resend
-     */
-    async send(request, resend = false) {
-        let buffer;
-        //If any message needs confirmation send an AckRequest first
-        if (this.needConfirmation.length) {
-            let msgsAck = new MsgsAck(
-                {
-                    msgIds:
-                    this.needConfirmation
-                });
-
-            buffer = msgsAck.onSend();
-            await this.sendPacket(buffer, msgsAck);
-            this.needConfirmation.length = 0;
-        }
-        //Finally send our packed request
-
-        buffer = request.onSend();
-        await this.sendPacket(buffer, request);
-
-        //And update the saved session
-        this.session.save();
-
-    }
 
     /**
      *

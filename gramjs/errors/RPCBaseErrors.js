@@ -8,13 +8,13 @@ class RPCError extends Error {
         super("RPCError {0}: {1}{2}"
             .replace("{0}", code)
             .replace("{1}", message)
-            .replace("{2}", RPCError._fmt_request(request)));
+            .replace("{2}", RPCError._fmtRequest(request)));
         this.code = code;
         this.message = message;
     }
 
     static _fmtRequest(request) {
-        return ' (caused by {})'.format(request.constructor.name)
+        return ` (caused by ${request.constructor.name})`
     }
 }
 
@@ -102,4 +102,17 @@ class ServerError extends RPCError {
 class TimedOutError extends RPCError {
     code = 503;  // Only witnessed as -503
     message = 'Timeout';
+}
+
+module.exports = {
+    RPCError,
+    InvalidDCError,
+    BadRequestError,
+    UnauthorizedError,
+    ForbiddenError,
+    NotFoundError,
+    AuthKeyError,
+    FloodError,
+    ServerError,
+    TimedOutError
 }

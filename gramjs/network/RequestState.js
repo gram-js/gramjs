@@ -5,7 +5,7 @@ class RequestState {
         this.containerId = null;
         this.msgId = null;
         this.request = request;
-        this.data = request.toBuffer();
+        this.data = request.bytes;
         this.after = after
 
     }

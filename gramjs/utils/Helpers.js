@@ -299,4 +299,3 @@ class Helpers {
 
 module.exports = Helpers;
 
-console.log(Helpers.sha256("ok"));
