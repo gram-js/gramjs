@@ -29,8 +29,12 @@ const {ReqPqMultiRequest} = require("../tl/functions");
 async function doAuthentication(sender) {
 
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random
-    let nonce = Helpers.generateRandomBytes(16);
-    let resPQ = await sender.send(ReqPqMultiRequest(nonce));
+    let nonce = BigIntBuffer.toBigIntLE(Helpers.generateRandomBytes(16));
+    console.log(nonce);
+    process.exit(0);
+    await sender.send(new ReqPqMultiRequest({nonce: nonce}));
+
+    let resPQ = await sender.receive();
     if (!(resPQ instanceof ResPQ)) {
         throw new Error(`Step 1 answer was ${resPQ}`)
     }

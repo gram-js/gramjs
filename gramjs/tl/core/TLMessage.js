@@ -1,14 +1,14 @@
+const {TLObject} = require("../tlobject");
 
-class TLMessage {
+class TLMessage extends TLObject {
     static SIZE_OVERHEAD = 12;
-    static classType = "constructor"
 
     constructor(msgId, seqNo, obj) {
-        this.msgId = msgId
-        this.seqNo = seqNo
-        this.obj = obj
-        this.classType = "constructor"
+        super();
+        this.msgId = msgId;
+        this.seqNo = seqNo;
+        this.obj = obj;
     }
 }
 
-module.exports = TLMessage
+module.exports = TLMessage;

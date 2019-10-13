@@ -1,7 +1,5 @@
-const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
-const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
-const AsyncQueue = require('../../extensions/AsyncQueue')
-const {IS_NODE} = require("../../Helpers");
+const Socket = require("net").Socket;
+const Helpers = require("../../utils/Helpers");
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -15,161 +13,137 @@ const {IS_NODE} = require("../../Helpers");
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    PacketCodecClass = null
+    packetCodec = null;
 
     constructor(ip, port, dcId, loggers) {
-        this._ip = ip
-        this._port = port
-        this._dcId = dcId
-        this._log = loggers
-        this._connected = false
-        this._sendTask = null
-        this._recvTask = null
-        this._codec = null
-        this._obfuscation = null // TcpObfuscated and MTProxy
-        this._sendArray = new AsyncQueue()
-        this._recvArray = new AsyncQueue()
-        this.socket = IS_NODE ? new PromisedNetSockets() : new PromisedWebSockets()
+        this._ip = ip;
+        this._port = port;
+        this._dcId = dcId;
+        this._log = loggers;
+        this._reader = null;
+        this._writer = null;
+        this._connected = false;
+        this._sendTask = null;
+        this._recvTask = null;
+        this._codec = null;
+        this._obfuscation = null;  // TcpObfuscated and MTProxy
+        this._sendArray = [];
+        this._recvArray = [];
+        this.socket = new Socket();
 
-        //this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
-        this._log.debug('Connecting')
-        this._codec = new this.PacketCodecClass(this)
-        await this.socket.connect(this._port, this._ip, this)
-        this._log.debug('Finished connecting')
-        // await this.socket.connect({host: this._ip, port: this._port});
-        await this._initConn()
+        console.log("trying to connect sock");
+        console.log("ip is ", this._ip);
+        console.log("port is ", this._port);
+        await this.socket.connect({host: this._ip, port: this._port});
+        this._codec = new this.packetCodec(this);
+        this._initConn();
+        console.log("finished init");
     }
 
     async connect() {
-        await this._connect()
-        this._connected = true
-
-        if (!this._sendTask) {
-            this._sendTask = this._sendLoop()
-        }
-        this._recvTask = this._recvLoop()
+        console.log("TCP connecting");
+        await this._connect();
+        this._connected = true;
+        console.log("finished first connect");
+        this._sendTask = this._sendLoop();
+        this._recvTask = this._recvLoop();
+        console.log("finsihed TCP connecting");
     }
 
     async disconnect() {
-        this._connected = false
-        await this._recvArray.push(null)
-        await this.socket.close()
+        this._connected = false;
+        this.socket.close();
     }
 
     async send(data) {
+        console.log(this._sendArray);
         if (!this._connected) {
-            throw new Error('Not connected')
+            throw new Error("Not connected");
         }
-        await this._sendArray.push(data)
+        while (this._sendArray.length !== 0) {
+            await Helpers.sleep(100);
+        }
+        console.log("will send",data);
+        this._sendArray.push(data);
     }
 
     async recv() {
         while (this._connected) {
-            const result = await this._recvArray.pop()
+            while (this._recvArray.length === 0) {
+                await Helpers.sleep(100);
+            }
+            let result = await this._recvArray.pop();
 
-            // null = sentinel value = keep trying
-            if (result) {
+            if (result) { // null = sentinel value = keep trying
                 return result
             }
         }
-        throw new Error('Not connected')
+        throw new Error("Not connected");
     }
 
     async _sendLoop() {
         // TODO handle errors
-        try {
-            while (this._connected) {
-                const data = await this._sendArray.pop()
-                if (!data) {
-                    this._sendTask = null
-                    return
-                }
-                await this._send(data)
+        while (this._connected) {
+            while (this._sendArray.length === 0) {
+                console.log("sleeping");
+                await Helpers.sleep(1000);
             }
-        } catch (e) {
-            this._log.info('The server closed the connection while sending')
+            await this._send(this._sendArray.pop());
+
         }
     }
 
     async _recvLoop() {
-        let data
         while (this._connected) {
-            try {
-                data = await this._recv()
-                if (!data) {
-                    throw new Error("no data received")
-                }
-            } catch (e) {
-                this._log.info('connection closed')
-                //await this._recvArray.push()
-                console.log(e)
-                this.disconnect()
-                return
+
+            while (this._recvArray.length === 0) {
+                await Helpers.sleep(1000);
             }
-            await this._recvArray.push(data)
+            let data = await this._recv();
+
+            this._recvArray.push(data);
         }
     }
 
     async _initConn() {
         if (this._codec.tag) {
-            await this.socket.write(this._codec.tag)
+            console.log("writing codec");
+            this.socket.write(this._codec.tag);
         }
     }
 
     async _send(data) {
-        const encodedPacket = this._codec.encodePacket(data)
-        this.socket.write(encodedPacket)
+        console.log("sending ", data);
+        await this.socket.write(this._codec.encodePacket(data));
     }
 
     async _recv() {
-        return await this._codec.readPacket(this.socket)
-    }
-
-    toString() {
-        return `${this._ip}:${this._port}/${this.constructor.name.replace('Connection', '')}`
-    }
-}
-
-class ObfuscatedConnection extends Connection {
-    ObfuscatedIO = null
-
-    async _initConn() {
-        this._obfuscation = new this.ObfuscatedIO(this)
-        this.socket.write(this._obfuscation.header)
-    }
-
-    _send(data) {
-        this._obfuscation.write(this._codec.encodePacket(data))
-    }
-
-
-    async _recv() {
-        return await this._codec.readPacket(this._obfuscation)
+        console.log("receiving");
+        return await this._codec.readPacket(this.socket);
     }
 }
 
 class PacketCodec {
     constructor(connection) {
-        this._conn = connection
+        this._conn = connection;
     }
 
     encodePacket(data) {
-        throw new Error('Not Implemented')
+        throw new Error("Not Implemented")
 
-        // Override
+        //Override
     }
 
     async readPacket(reader) {
-        // override
-        throw new Error('Not Implemented')
+        //override
+        throw new Error("Not Implemented")
     }
 }
 
 module.exports = {
     Connection,
-    PacketCodec,
-    ObfuscatedConnection,
-}
+    PacketCodec
+};

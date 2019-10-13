@@ -2,75 +2,63 @@ const Session = require("./Session");
 const doAuthentication = require("../network/Authenticator");
 const MtProtoSender = require("../network/mtprotoSender");
 const MTProtoRequest = require("../tl/MTProtoRequest");
-const TcpTransport = require("../network/TCPTransport");
-
-const {InvokeWithLayerRequest, InitConnectionRequest} = require("../gramjs/tl/functions/index");
-const {GetConfigRequest} = require("../gramjs/tl/functions/help");
+const {ConnectionTCPFull} = require("../network/connection/TCPFull");
+const {InvokeWithLayerRequest, InitConnectionRequest} = require("./functions/index");
+const {GetConfigRequest} = require("./functions/help");
+const {LAYER} = require("../tl/alltlobjects");
 
 class TelegramClient {
 
-    constructor(sessionUserId, layer, apiId, apiHash) {
+    constructor(sessionUserId, apiId, apiHash, connection = ConnectionTCPFull) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error("Your API ID or Hash are invalid. Please read \"Requirements\" on README.md");
         }
+
         this.apiId = apiId;
         this.apiHash = apiHash;
-
-        this.layer = layer;
-
+        this._connection = ConnectionTCPFull;
+        this._initWith = (x) => {
+            return new InvokeWithLayerRequest({
+                layer: LAYER,
+                query: new InitConnectionRequest({
+                    apiId: this.apiId,
+                    deviceModel: "Windows",
+                    systemVersion: "1.8.3",
+                    appVersion: "1.8",
+                    langCode: "en",
+                    systemLangCode: "en",
+                    query: x,
+                    proxy: null,
+                })
+            })
+        };
         this.session = Session.tryLoadOrCreateNew(sessionUserId);
-        this.transport = new TcpTransport(this.session.serverAddress, this.session.port);
         //These will be set later
         this.dcOptions = null;
-        this.sender = null;
+        this._sender = new MtProtoSender(this.session.authKey);
         this.phoneCodeHashes = Array();
 
     }
+
 
     /**
      * Connects to the Telegram servers, executing authentication if required.
      * Note that authenticating to the Telegram servers is not the same as authenticating
      * the app, which requires to send a code first.
-     * @param reconnect {Boolean}
-     * @returns {Promise<Boolean>}
+     * @returns {Promise<void>}
      */
-    async connect(reconnect = false) {
-        await this.transport.connect();
-        try {
-            if (!this.session.authKey || reconnect) {
-                let res = await doAuthentication(this.transport);
-                console.log("authenticated");
-                this.session.authKey = res.authKey;
-                this.session.timeOffset = res.timeOffset;
-                this.session.save();
-            }
-            this.sender = new MtProtoSender(this.transport, this.session);
-            let r = await this.invoke(new GetConfigRequest());
-            console.log(r);
-            process.exit(0)
-            // Now it's time to send an InitConnectionRequest
-            // This must always be invoked with the layer we'll be using
-            let query = new InitConnectionRequest({
-                apiId: this.apiId,
-                deviceModel: "PlaceHolder",
-                systemVersion: "PlaceHolder",
-                appVersion: "0.0.1",
-                langCode: "en",
-                query: new GetConfigRequest()
-            });
-            let result = await this.invoke(new InvokeWithLayerRequest({
-                layer: this.layer,
-                query: query
-            }));
-            // We're only interested in the DC options
-            // although many other options are available!
-            this.dcOptions = result.dcOptions;
-            return true;
-        } catch (error) {
-            console.log('Could not stabilise initial connection: {}'.replace("{}", error));
-            console.log(error.stack);
-            return false;
+    async connect() {
+        let connection = new this._connection(this.session.serverAddress, this.session.port, this.session.dcId, null);
+        if (!await this._sender.connect(connection)) {
+            return;
         }
+        console.log("ok");
+        this.session.authKey = this._sender.authKey;
+        await this.session.save();
+        await this._sender.send(this._initWith(
+            new GetConfigRequest()
+        ));
+
     }
 
     /**
@@ -94,7 +82,7 @@ class TelegramClient {
         this.session.server_address = dc.ipAddress;
         this.session.port = dc.port;
         this.session.save();
-        await this.connect(true);
+        await this.connect();
     }
 
     /**
