@@ -19,11 +19,16 @@
     "fast-csv": "^3.4.0",
     "glob": "^7.1.4",
     "node-gzip": "^1.1.2",
+    "node-rsa": "^1.0.6",
+    "promise-socket": "^6.0.2",
     "python-struct": "^1.1.1",
+    "random-bigint": "0.0.1",
+    "socks": "^2.3.2",
     "string-format": "^2.0.0"
   },
   "devDependencies": {
     "bigint-buffer": "^1.1.2",
+    "biguintle": "^1.0.3",
     "leemon": "^6.2.0"
   }
 }

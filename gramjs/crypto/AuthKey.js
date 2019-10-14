@@ -1,6 +1,7 @@
 const Helpers = require("../utils/Helpers");
 const BinaryReader = require("../extensions/BinaryReader");
-
+const struct = require("python-struct");
+const bigUintLE  =require("biguintle");
 class AuthKey {
     constructor(data) {
         this.key = data;
@@ -12,7 +13,7 @@ class AuthKey {
             this._key = this.auxHash = this.keyId = null;
             return
         }
-        if (value instanceof this) {
+        if (value instanceof AuthKey) {
             this._key = value._key;
             this.auxHash = value.auxHash;
             this.keyId = value.keyId;
@@ -31,24 +32,30 @@ class AuthKey {
 
 
     // TODO : This doesn't really fit here, it's only used in authentication
+
     /**
      * Calculates the new nonce hash based on the current class fields' values
-     * @param new_nonce {Buffer}
-     * @param number {number}
-     * @returns {Buffer}
+     * @param new_nonce
+     * @param number
+     * @returns {bigint}
      */
     calcNewNonceHash(new_nonce, number) {
-        let tempBuffer = Buffer.alloc(1);
-        tempBuffer.writeInt8(number, 0);
-        let secondBuffer = Buffer.alloc(8);
-        secondBuffer.writeBigUInt64LE(this.auxHash, 0);
-        let buffer = Buffer.concat([new_nonce, tempBuffer, secondBuffer]);
-        return Helpers.calcMsgKey(buffer);
+
+        new_nonce = Helpers.readBufferFromBigInt(new_nonce, 32);
+        let data = Buffer.concat([
+            new_nonce,
+            struct.pack("<BQ", number.toString(), this.auxHash.toString())
+        ]);
+
+        //Calculates the message key from the given data
+        let shaData = Helpers.sha1(data).slice(4, 20);
+        return Helpers.readBigIntFromBuffer(shaData);
     }
 
     equals(other) {
         return (other instanceof this.constructor && other.key === this._key)
     }
+
 }
 
 module.exports = AuthKey;

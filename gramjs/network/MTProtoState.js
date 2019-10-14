@@ -209,11 +209,12 @@ class MTProtoState {
      * @private
      */
     _getNewMsgId() {
+
         let now = new Date().getTime() / 1000 + this.timeOffset;
         let nanoseconds = Math.floor((now - Math.floor(now)) * 1e+9);
-        let newMsgId = (Math.floor(now) << 32n) | (nanoseconds << 2);
+        let newMsgId = (BigInt(Math.floor(now)) << 32n) | (BigInt(nanoseconds) << 2n);
         if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + 4;
+            newMsgId = this._lastMsgId + 4n;
         }
         this._lastMsgId = newMsgId;
         return newMsgId;

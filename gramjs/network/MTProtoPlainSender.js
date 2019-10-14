@@ -3,10 +3,10 @@
  *  in plain text, when no authorization key has been created yet.
  */
 const Helpers = require("../utils/Helpers");
-const BigIntBuffer = require('bigint-buffer');
 const MTProtoState = require("./MTProtoState");
 const struct = require("python-struct");
 const BinaryReader = require("../extensions/BinaryReader");
+const {InvalidBufferError} = require("../errors/Common");
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)
@@ -19,7 +19,7 @@ class MTProtoPlainSender {
      * @param loggers
      */
     constructor(connection, loggers) {
-        this._state = MTProtoState(connection, loggers);
+        this._state = new MTProtoState(connection, loggers);
         this._connection = connection;
 
     }
@@ -29,16 +29,17 @@ class MTProtoPlainSender {
      * @param request
      */
     async send(request) {
-        let body = request.toBuffer();
+        let body = request.bytes;
         let msgId = this._state._getNewMsgId();
-        await this._connection.send(
-            Buffer.concat([
-                struct.pack('<qqi', 0, msgId, body.length),
-                body
-            ])
-        );
+        let res = Buffer.concat([
+            struct.pack('<qqi', [0, msgId.toString(), body.length]),
+            body
+        ]);
 
+        await this._connection.send(res);
+        console.log("sent it");
         body = await this._connection.recv();
+        console.log("recived body",body);
         if (body.length < 9) {
             throw InvalidBufferError(body);
         }
@@ -66,6 +67,7 @@ class MTProtoPlainSender {
          * the next TLObject without including the padding, but since the
          * reader isn't used for anything else after this, it's unnecessary.
          */
+        console.log("returned object");
         return reader.tgReadObject();
 
     }

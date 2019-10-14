@@ -3,6 +3,61 @@ const fs = require("fs").promises;
 
 class Helpers {
 
+    static readBigIntFromBuffer(buffer, little = true, signed = true) {
+        let randBuffer = Buffer.from(buffer);
+        let bytesNumber = randBuffer.length;
+        if (little) {
+            randBuffer = randBuffer.reverse();
+        }
+        let bigInt = BigInt("0x" + randBuffer.toString("hex"));
+        if (signed && Math.floor(bigInt.toString("2").length / 8) >= bytesNumber) {
+            bigInt -= 2n ** BigInt(bytesNumber * 8);
+        }
+        return bigInt;
+    }
+
+
+    static readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = true) {
+        let bitLength = bigInt.toString("2").length;
+
+        let bytes = Math.ceil(bitLength / 8);
+        if (bytesNumber < bytes) {
+            throw new Error("OverflowError: int too big to convert")
+        } else if (bytesNumber > bytes) {
+
+        }
+        if (!signed && bigInt < 0) {
+            throw new Error("Cannot convert to unsigned");
+        }
+        let below = false;
+        if (bigInt < 0) {
+            below = true;
+            bigInt = -bigInt;
+        }
+
+        let hex = bigInt.toString("16").padStart(bytesNumber * 2, "0");
+        let l = Buffer.from(hex, "hex");
+        if (little) {
+            l = l.reverse();
+        }
+
+        if (signed && below) {
+            if (little) {
+                l[0] = 256 - l[0];
+                for (let i = 1; i < l.length; i++) {
+                    l[i] = 255 - l[i];
+                }
+            } else {
+                l[l.length - 1] = 256 - l[l.length - 1];
+                for (let i = 0; i < l.length - 1; i++) {
+                    l[i] = 255 - l[i];
+                }
+
+            }
+
+        }
+        return l;
+    }
 
     /**
      * Generates a random long integer (8 bytes), which is optionally signed
@@ -114,7 +169,9 @@ class Helpers {
      * @param newNonce
      * @returns {{key: Buffer, iv: Buffer}}
      */
-    static generateKeyDataFromNonces(serverNonce, newNonce) {
+    static generateKeyDataFromNonce(serverNonce, newNonce) {
+        serverNonce = Helpers.readBufferFromBigInt(serverNonce, 16);
+        newNonce = Helpers.readBufferFromBigInt(newNonce, 32);
         let hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
         let hash2 = Helpers.sha1(Buffer.concat([serverNonce, newNonce]));
         let hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));
@@ -263,7 +320,7 @@ class Helpers {
         a = a % n;
         let result = 1n;
         let x = a;
-        while (b > 0) {
+        while (b > 0n) {
             let leastSignificantBit = b % 2n;
             b = b / 2n;
             if (leastSignificantBit === 1n) {
@@ -294,6 +351,25 @@ class Helpers {
      * @returns {Promise}
      */
     static sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    /**
+     * Checks if the obj is an array
+     * @param obj
+     * @returns {boolean}
+     */
+    static isArrayLike(obj) {
+        if (!obj) return false;
+        let l = obj.length;
+        if (typeof l != 'number' || l < 0) return false;
+        if (Math.floor(l) !== l) return false;
+        // fast check
+        if (l > 0 && !((l - 1) in obj)) return false;
+        // more complete check (optional)
+        for (let i = 0; i < l; ++i) {
+            if (!(i in obj)) return false;
+        }
+        return true;
+    }
 
 }
 
