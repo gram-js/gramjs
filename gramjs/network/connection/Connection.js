@@ -1,4 +1,5 @@
-const Socket = require("net").Socket;
+const {PromiseSocket, TimeoutError} = require("promise-socket");
+const {Socket} = require("net");
 const Helpers = require("../../utils/Helpers");
 
 /**
@@ -29,28 +30,23 @@ class Connection {
         this._obfuscation = null;  // TcpObfuscated and MTProxy
         this._sendArray = [];
         this._recvArray = [];
-        this.socket = new Socket();
+        this.socket = new PromiseSocket(new Socket());
 
     }
 
     async _connect() {
-        console.log("trying to connect sock");
-        console.log("ip is ", this._ip);
-        console.log("port is ", this._port);
-        await this.socket.connect({host: this._ip, port: this._port});
+        await this.socket.connect(this._port, this._ip);
+
+        //await this.socket.connect({host: this._ip, port: this._port});
         this._codec = new this.packetCodec(this);
         this._initConn();
-        console.log("finished init");
     }
 
     async connect() {
-        console.log("TCP connecting");
         await this._connect();
         this._connected = true;
-        console.log("finished first connect");
         this._sendTask = this._sendLoop();
         this._recvTask = this._recvLoop();
-        console.log("finsihed TCP connecting");
     }
 
     async disconnect() {
@@ -59,23 +55,26 @@ class Connection {
     }
 
     async send(data) {
-        console.log(this._sendArray);
         if (!this._connected) {
             throw new Error("Not connected");
         }
         while (this._sendArray.length !== 0) {
-            await Helpers.sleep(100);
+            await Helpers.sleep(1000);
         }
-        console.log("will send",data);
+        console.log("pushed it");
         this._sendArray.push(data);
+        console.log("why am i still here");
     }
 
     async recv() {
         while (this._connected) {
+
             while (this._recvArray.length === 0) {
-                await Helpers.sleep(100);
+                console.log(this._recvArray);
+                await Helpers.sleep(1000);
             }
-            let result = await this._recvArray.pop();
+            console.log("got result line 76");
+            let result = this._recvArray.pop();
 
             if (result) { // null = sentinel value = keep trying
                 return result
@@ -88,7 +87,6 @@ class Connection {
         // TODO handle errors
         while (this._connected) {
             while (this._sendArray.length === 0) {
-                console.log("sleeping");
                 await Helpers.sleep(1000);
             }
             await this._send(this._sendArray.pop());
@@ -98,11 +96,11 @@ class Connection {
 
     async _recvLoop() {
         while (this._connected) {
-
-            while (this._recvArray.length === 0) {
+            let data = await this._recv();
+            console.log("ok data is here");
+            while (this._recvArray.length !== 0) {
                 await Helpers.sleep(1000);
             }
-            let data = await this._recv();
 
             this._recvArray.push(data);
         }
@@ -111,18 +109,23 @@ class Connection {
     async _initConn() {
         if (this._codec.tag) {
             console.log("writing codec");
-            this.socket.write(this._codec.tag);
+            await this.socket.write(this._codec.tag);
         }
     }
 
     async _send(data) {
-        console.log("sending ", data);
-        await this.socket.write(this._codec.encodePacket(data));
+        let encodedPacket = this._codec.encodePacket(data);
+        console.log("sent", encodedPacket.toString("hex"));
+        await this.socket.write(encodedPacket);
+        //await this.socket.write(this._codec.encodePacket(data));
+
     }
 
     async _recv() {
         console.log("receiving");
-        return await this._codec.readPacket(this.socket);
+        let res = await this._codec.readPacket(this.socket);
+        console.log("read a packet");
+        return res;
     }
 }
 

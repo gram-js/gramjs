@@ -21,8 +21,9 @@ class TLObject {
             }
         }
         let r = [];
-        let padding = 0;
-        if (data.length < 252) {
+        let padding;
+        console.log(data.length)
+        if (data.length < 254) {
             padding = (data.length + 1) % 4;
             if (padding !== 0) {
                 padding = 4 - padding;

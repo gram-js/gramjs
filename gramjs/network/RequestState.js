@@ -10,3 +10,5 @@ class RequestState {
 
     }
 }
+
+module.exports = RequestState;

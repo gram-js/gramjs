@@ -3,13 +3,14 @@ const MTProtoState = require("./MTProtoState");
 const Helpers = require("../utils/Helpers");
 const {MsgsAck} = require("../tl/types");
 const AuthKey = require("../crypto/AuthKey");
+const doAuthentication = require("./Authenticator");
 const AES = require("../crypto/AES");
 const {RPCError} = require("../errors/RPCBaseErrors");
 const RPCResult = require("../tl/core/RPCResult");
 const MessageContainer = require("../tl/core/MessageContainer");
 const GZIPPacked = require("../tl/core/GZIPPacked");
 const TLMessage = require("../tl/core/TLMessage");
-
+const RequestState = require("./RequestState");
 const format = require('string-format');
 const {TypeNotFoundError} = require("../errors");
 const {BadMessageError} = require("../errors");
@@ -203,9 +204,9 @@ class MTProtoSender {
             throw new Error('Cannot send requests while disconnected')
         }
 
-        if (!utils.isArrayLike(request)) {
+        if (!Helpers.isArrayLike(request)) {
             let state = new RequestState(request);
-            this._send_queue.push(state);
+            this._send_queue.append(state);
             return state;
         } else {
             throw new Error("not supported");
@@ -222,12 +223,14 @@ class MTProtoSender {
     async _connect() {
         //this._log.info('Connecting to {0}...'.replace("{0}", this._connection));
         await this._connection.connect();
-
+        console.log("Connection success");
         //this._log.debug("Connection success!");
-        if (!this.authKey) {
+        console.log("auth key is ", this.authKey);
+        if (!this.authKey._key) {
+            console.log("creating authKey");
             let plain = new MtProtoPlainSender(this._connection, this._loggers);
-            let res = await authenticator.do_authentication(plain);
-            this.authKey.key = res.key;
+            let res = await doAuthentication(plain);
+            this.authKey.key = res.authKey;
             this._state.time_offset = res.timeOffset;
 
             /**
@@ -280,7 +283,7 @@ class MTProtoSender {
         while (this._user_connected && !this._reconnecting) {
             if (this._pending_ack) {
                 let ack = new RequestState(new MsgsAck(Array(this._pending_ack)));
-                this._send_queue.push(ack);
+                this._send_queue.append(ack);
                 this._last_acks.push(ack);
                 this._pending_ack.clear()
             }
@@ -344,12 +347,12 @@ class MTProtoSender {
                     return
                 }
             }
-        }
-        try {
-            await this._processMessage(message)
-        } catch (e) {
-            //this._log.exception('Unhandled error while receiving data');
-            console.log(e);
+            try {
+                await this._processMessage(message)
+            } catch (e) {
+                //this._log.exception('Unhandled error while receiving data');
+                console.log(e);
+            }
         }
 
     }
@@ -440,7 +443,7 @@ class MTProtoSender {
                 }
             }
             if (RPCResult.error) {
-                let error = RPCMessageToError(RPCResult.error, state.request);
+                let error = new RPCMessageToError(RPCResult.error, state.request);
                 this._send_queue.append(
                     new RequestState(new MsgsAck([state.msgId]))
                 );

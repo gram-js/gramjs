@@ -3,6 +3,7 @@ const struct = require("python-struct");
 const {crc32} = require("crc");
 const {InvalidChecksumError} = require("../../errors/Common");
 const Socket = require("net").Socket;
+const Helpers = require("../../utils/Helpers");
 
 class FullPacketCodec extends PacketCodec {
     constructor(connection) {
@@ -14,10 +15,10 @@ class FullPacketCodec extends PacketCodec {
         // https://core.telegram.org/mtproto#tcp-transport
         // total length, sequence number, packet and checksum (CRC32)
         let length = data.length + 12;
-        data = struct.pack('<ii', length, this._sendCounter) + data;
+        data = Buffer.concat([struct.pack('<ii', length, this._sendCounter), data]);
         let crc = struct.pack('<I', crc32(data));
         this._sendCounter += 1;
-        return data + crc;
+        return Buffer.concat([data, crc]);
     }
 
     /**
@@ -25,21 +26,29 @@ class FullPacketCodec extends PacketCodec {
      * @param reader {Socket}
      * @returns {Promise<*>}
      */
-    async readPacket(reader)
-    {
+    async readPacket(reader) {
+        console.log("will read soon");
         let packetLenSeq = await reader.read(8); // 4 and 4
+        //process.exit(0);
 
-        console.log("packet length", packetLenSeq);
+        if (packetLenSeq === undefined) {
+            throw new Error("closed connection");
+        }
+        console.log("read packet length", packetLenSeq.toString("hex"));
+
         let res = struct.unpack("<ii", packetLenSeq);
         let packetLen = res[0];
         let seq = res[1];
         let body = await reader.read(packetLen - 8);
+        console.log("body", body.toString("hex"));
         let checksum = struct.unpack("<I", body.slice(-4))[0];
+        body = body.slice(0, -4);
 
-        let validChecksum = crc32(packetLen + body);
-        if (!(validChecksum.equals(checksum))) {
+        let validChecksum = crc32(Buffer.concat([packetLenSeq, body]));
+        if (!(validChecksum === checksum)) {
             throw new InvalidChecksumError(checksum, validChecksum);
         }
+        console.log("correct checksum");
         return body;
     }
 }

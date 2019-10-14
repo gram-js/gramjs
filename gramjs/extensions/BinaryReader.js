@@ -1,6 +1,8 @@
 const unpack = require("python-struct").unpack;
-const BigIntBuffer = require("bigint-buffer");
-
+const {TypeNotFoundError} = require("../errors/Common");
+const {coreObjects} = require("../tl/core");
+const {tlobjects} = require("../tl/alltlobjects");
+const Helpers = require("../utils/Helpers");
 class BinaryReader {
 
     /**
@@ -52,6 +54,8 @@ class BinaryReader {
             res = this.stream.readBigUInt64LE(this.offset);
         }
         this.offset += 8;
+        console.log("current offset is ", this.offset);
+
         return res;
     }
 
@@ -78,7 +82,7 @@ class BinaryReader {
      */
     readLargeInt(bits, signed = true) {
         let buffer = this.read(Math.floor(bits / 8));
-        return BigIntBuffer.toBigIntLE(buffer);
+        return Helpers.readBigIntFromBuffer(buffer, true, signed);
     }
 
     /**
@@ -118,13 +122,12 @@ class BinaryReader {
         let firstByte = this.readByte();
         let padding, length;
         if (firstByte === 254) {
-            length = this.readByte | this.readByte << 8 | this.readByte << 16;
+            length = this.readByte() | this.readByte() << 8 | this.readByte() << 16;
             padding = length % 4;
         } else {
             length = firstByte;
             padding = (length + 1) % 4;
         }
-
         let data = this.read(length);
 
         if (padding > 0) {
@@ -174,6 +177,9 @@ class BinaryReader {
     tgReadObject() {
         let constructorId = this.readInt(false);
         let clazz = tlobjects[constructorId];
+        console.log("class is ", clazz);
+        console.log(this.stream.toString("hex"));
+        console.log(this.offset);
         if (clazz === undefined) {
             /**
              * The class was None, but there's still a
@@ -193,16 +199,18 @@ class BinaryReader {
             }
 
             clazz = coreObjects[constructorId];
+
             if (clazz === undefined) {
                 // If there was still no luck, give up
                 this.seek(-4); // Go back
                 let pos = this.tellPosition();
-                let error = TypeNotFoundError(constructorId, this.read());
+                let error = new TypeNotFoundError(constructorId, this.read());
                 this.setPosition(pos);
-                throw new error;
+                throw error;
             }
 
         }
+        console.log(this.tellPosition());
         return clazz.fromReader(this);
 
     }
@@ -246,7 +254,7 @@ class BinaryReader {
      * Sets the current position on the stream.
      * @param position
      */
-    sePosition(position) {
+    setPosition(position) {
         this.offset = position;
     }
 

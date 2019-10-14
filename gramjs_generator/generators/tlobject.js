@@ -97,7 +97,6 @@ const writeModules = (
         // Import struct for the .__bytes__(self) serialization
         builder.writeln("const struct = require('python-struct');");
         builder.writeln(`const Helpers = require('../../utils/Helpers');`);
-        builder.writeln(`const BigIntBuffer = require("bigint-buffer");`);
 
         const typeNames = new Set();
         const typeDefs = [];
@@ -256,7 +255,8 @@ const writeReadResult = (tlobject, builder) => {
     builder.writeln('static readResult(reader){');
     builder.writeln('reader.readInt();  // Vector ID');
     builder.writeln('let temp = [];');
-    builder.writeln('for (let i=0;i<reader.readInt();i++){');
+    builder.writeln("len = reader.readInt();");
+    builder.writeln('for (let i=0;i<len;i++){');
     let read = m[1][0].toUpperCase() + m[1].slice(1);
     builder.writeln('temp.push(reader.read%s())', read);
     builder.endBlock();
@@ -334,7 +334,7 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
     builder.writeln(
         `this.CONSTRUCTOR_ID = 0x${tlobject.id.toString(16).padStart(8, '0')};`
     );
-    builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(tlobject.result)};`);
+    builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(tlobject.result).toString("16")};`);
     builder.writeln();
 
     // Set the arguments
@@ -531,6 +531,7 @@ const writeFromReader = (tlobject, builder) => {
     }
     // TODO fix this really
     builder.writeln("let _x;");
+    builder.writeln("let len;");
 
 
     for (const arg of tlobject.args) {
@@ -540,7 +541,7 @@ const writeFromReader = (tlobject, builder) => {
     for (let a of tlobject.realArgs) {
         temp.push(`${variableSnakeToCamelCase(a.name)}:_${a.name}`)
     }
-    builder.writeln("return this({%s})", temp.join(",\n\t"));
+    builder.writeln("return new this({%s})", temp.join(",\n\t"));
     builder.endBlock();
 };
 // writeReadResult
@@ -629,21 +630,21 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
     } else if (arg.type === 'long') {
         builder.write("struct.pack('<q', %s)", name);
     } else if (arg.type === 'int128') {
-        builder.write("BigIntBuffer.toBufferLE(BigInt(%s,16))", name);
+        builder.write("Helpers.readBufferFromBigInt(%s,16)", name);
     } else if (arg.type === 'int256') {
-        builder.write("BigIntBuffer.toBufferLE(BigInt(%s,32))", name);
+        builder.write("Helpers.readBufferFromBigInt(%s,32)", name);
     } else if (arg.type === 'double') {
         builder.write("struct.pack('<d', %s)", name);
     } else if (arg.type === 'string') {
-        builder.write('this.serializeBytes(%s)', name);
+        builder.write('TLObject.serializeBytes(%s)', name);
     } else if (arg.type === 'Bool') {
         builder.write('%s ? 0xb5757299 : 0x379779bc', name);
     } else if (arg.type === 'true') {
         // These are actually NOT written! Only used for flags
     } else if (arg.type === 'bytes') {
-        builder.write('this.serializeBytes(%s)', name);
+        builder.write('TLObject.serializeBytes(%s)', name);
     } else if (arg.type === 'date') {
-        builder.write('this.serializeDatetime(%s)', name);
+        builder.write('TLObject.serializeDatetime(%s)', name);
     } else {
         // Else it may be a custom type
         builder.write('%s.bytes', name);
@@ -708,7 +709,9 @@ const writeArgReadCode = (builder, arg, args, name) => {
             builder.writeln("reader.readInt();");
         }
         builder.writeln("%s = [];", name);
-        builder.writeln("for (let i=0;i<reader.readInt();i++){");
+        builder.writeln("len = reader.readInt();");
+        builder.writeln('for (let i=0;i<len;i++){');
+
         // Temporary disable .is_vector, not to enter this if again
         arg.isVector = false;
         writeArgReadCode(builder, arg, args, "_x");
@@ -722,7 +725,7 @@ const writeArgReadCode = (builder, arg, args, name) => {
     } else if (arg.type === "int") {
         builder.writeln("%s = reader.readInt();", name)
     } else if (arg.type === "long") {
-        builder.writeln("%s = reader.readInt();", name);
+        builder.writeln("%s = reader.readLong();", name);
     } else if (arg.type === "int128") {
         builder.writeln('%s = reader.readLargeInt(128);', name);
     } else if (arg.type === "int256") {
@@ -797,7 +800,6 @@ const writePatched = (outDir, namespaceTlobjects) => {
         builder.writeln("const struct = require('python-struct');");
         builder.writeln(`const { TLObject, types, custom } = require('..');`);
         builder.writeln(`const Helpers = require('../../utils/Helpers');`);
-        builder.writeln(`const BigIntBuffer = require("bigint-buffer");`);
 
         builder.writeln();
 
@@ -811,7 +813,7 @@ const writePatched = (outDir, namespaceTlobjects) => {
             builder.writeln('constructor() {');
             builder.writeln('super();');
             builder.writeln(`this.CONSTRUCTOR_ID = 0x${t.id.toString(16)}`);
-            builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(t.result)}`);
+            builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(t.result).toString("16")}`);
             builder.endBlock();
 
             //writeToJson(t, builder);

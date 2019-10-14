@@ -6,7 +6,9 @@ class Session {
     constructor(sessionUserId) {
         this.sessionUserId = sessionUserId;
         this.serverAddress = "149.154.167.40";
-        this.port = 80;
+        this.port = 443;
+        //this.serverAddress = "localhost";
+        //this.port = 21;
         this.authKey = undefined;
         this.id = Helpers.generateRandomLong(false);
         this.sequence = 0;
@@ -14,6 +16,8 @@ class Session {
         this.timeOffset = 0n;
         this.lastMessageId = 0n;
         this.user = undefined;
+
+
     }
 
     /**
