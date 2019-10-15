@@ -54,7 +54,6 @@ class BinaryReader {
             res = this.stream.readBigUInt64LE(this.offset);
         }
         this.offset += 8;
-        console.log("current offset is ", this.offset);
 
         return res;
     }
@@ -177,9 +176,6 @@ class BinaryReader {
     tgReadObject() {
         let constructorId = this.readInt(false);
         let clazz = tlobjects[constructorId];
-        console.log("class is ", clazz);
-        console.log(this.stream.toString("hex"));
-        console.log(this.offset);
         if (clazz === undefined) {
             /**
              * The class was None, but there's still a
@@ -210,7 +206,6 @@ class BinaryReader {
             }
 
         }
-        console.log(this.tellPosition());
         return clazz.fromReader(this);
 
     }

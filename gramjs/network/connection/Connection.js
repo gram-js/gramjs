@@ -61,19 +61,15 @@ class Connection {
         while (this._sendArray.length !== 0) {
             await Helpers.sleep(1000);
         }
-        console.log("pushed it");
         this._sendArray.push(data);
-        console.log("why am i still here");
     }
 
     async recv() {
         while (this._connected) {
 
             while (this._recvArray.length === 0) {
-                console.log(this._recvArray);
                 await Helpers.sleep(1000);
             }
-            console.log("got result line 76");
             let result = this._recvArray.pop();
 
             if (result) { // null = sentinel value = keep trying
@@ -85,19 +81,32 @@ class Connection {
 
     async _sendLoop() {
         // TODO handle errors
-        while (this._connected) {
-            while (this._sendArray.length === 0) {
-                await Helpers.sleep(1000);
+        try {
+
+
+            while (this._connected) {
+                while (this._sendArray.length === 0) {
+                    await Helpers.sleep(1000);
+                }
+                await this._send(this._sendArray.pop());
+
             }
-            await this._send(this._sendArray.pop());
+        } catch (e) {
+            console.log(e);
+            this._log.info('The server closed the connection while sending')
 
         }
     }
 
     async _recvLoop() {
+        let data;
         while (this._connected) {
-            let data = await this._recv();
-            console.log("ok data is here");
+            try {
+                data = await this._recv();
+            } catch (e) {
+                console.log(e);
+                this._log.info("The server closed the connection")
+            }
             while (this._recvArray.length !== 0) {
                 await Helpers.sleep(1000);
             }
@@ -108,25 +117,24 @@ class Connection {
 
     async _initConn() {
         if (this._codec.tag) {
-            console.log("writing codec");
             await this.socket.write(this._codec.tag);
         }
     }
 
     async _send(data) {
         let encodedPacket = this._codec.encodePacket(data);
-        console.log("sent", encodedPacket.toString("hex"));
         await this.socket.write(encodedPacket);
-        //await this.socket.write(this._codec.encodePacket(data));
 
     }
 
     async _recv() {
-        console.log("receiving");
-        let res = await this._codec.readPacket(this.socket);
-        console.log("read a packet");
-        return res;
+        return await this._codec.readPacket(this.socket);
     }
+
+    toString() {
+        return `${this._ip}:${this._port}/${this.constructor.name.replace("Connection", "")}`
+    }
+
 }
 
 class PacketCodec {

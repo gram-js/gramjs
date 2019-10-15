@@ -71,6 +71,18 @@ class Helpers {
             return buf.readBigUInt64LE(0);
     }
 
+
+    /**
+     * .... really javascript
+     * @param n {number}
+     * @param m {number}
+     * @returns {number}
+     */
+    static mod(n, m) {
+        return ((n % m) + m) % m;
+    }
+
+
     /**
      * Generates a random bytes array
      * @param count
