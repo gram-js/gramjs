@@ -1,3 +1,5 @@
+const Helpers = require("../utils/Helpers");
+
 class RequestState {
 
 
@@ -6,9 +8,14 @@ class RequestState {
         this.msgId = null;
         this.request = request;
         this.data = request.bytes;
-        this.after = after
-
+        this.after = after;
+        this.result = null;
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject
+        });
     }
+
 }
 
 module.exports = RequestState;

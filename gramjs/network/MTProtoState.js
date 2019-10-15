@@ -2,6 +2,10 @@ const struct = require("python-struct");
 const Helpers = require("../utils/Helpers");
 const AES = require("../crypto/AES");
 const BinaryReader = require("../extensions/BinaryReader");
+const GZIPPacked = require("../tl/core/GZIPPacked");
+const {TLMessage} = require("../tl/core");
+const {SecurityError} = require("../errors/Common");
+const {InvalidBufferError} = require("../errors/Common");
 
 class MTProtoState {
     /**
@@ -94,26 +98,22 @@ class MTProtoState {
      * @param buffer
      * @param data
      * @param contentRelated
-     * @param opt
+     * @param afterId
      */
-    writeDataAsMessage(buffer, data, contentRelated, opt = {}) {
+    async writeDataAsMessage(buffer, data, contentRelated, afterId) {
         let msgId = this._getNewMsgId();
         let seqNo = this._getSeqNo(contentRelated);
         let body;
-        if (!opt) {
-            body = GzipPacked.gzipIfSmaller(contentRelated, data);
+        if (!afterId) {
+            body = await GZIPPacked.GZIPIfSmaller(contentRelated, data);
         } else {
-            body = GzipPacked.gzipIfSmaller(contentRelated,
-                new InvokeAfterMsgRequest(opt.afterId, data).toBuffer()
+            body = await GZIPPacked.GZIPIfSmaller(contentRelated,
+                new InvokeAfterMsgRequest(afterId, data).toBuffer()
             );
         }
-
-        buffer = Buffer.from([
-            buffer,
-            struct.pack('<qii', msgId, seqNo, body.length),
-            body,
-        ]);
-        return {msgId, buffer}
+        buffer.write(struct.pack('<qii', msgId.toString(), seqNo, body.length));
+        buffer.write(body);
+        return msgId;
     }
 
     /**
@@ -123,23 +123,25 @@ class MTProtoState {
      */
     encryptMessageData(data) {
         data = Buffer.concat([
-            struct.pack('<qq', this.salt, this.id),
+            struct.pack('<qq', this.salt.toString(), this.id.toString()),
             data,
         ]);
-        let padding = Helpers.generateRandomBytes(-(data.length + 12) % 16 + 12);
+        let padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12);
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"
         let msgKeyLarge = Helpers.sha256(
-            Buffer.concat(([
+            Buffer.concat([
                 this.authKey.key.slice(88, 88 + 32),
                 data,
                 padding
-            ]))
+            ])
         );
         // "msg_key = substr (msg_key_large, 8, 16)"
         let msgKey = msgKeyLarge.slice(8, 24);
+
         let {iv, key} = this._calcKey(this.authKey.key, msgKey, true);
-        let keyId = struct.pack('<Q', this.authKey.keyId);
+
+        let keyId = struct.pack('<Q', this.authKey.keyId.toString());
         return Buffer.concat([
             keyId,
             msgKey,
@@ -159,7 +161,7 @@ class MTProtoState {
      */
     decryptMessageData(body) {
         if (body.length < 8) {
-            throw InvalidBufferError(body);
+            throw new InvalidBufferError(body);
         }
 
         // TODO Check salt,sessionId, and sequenceNumber

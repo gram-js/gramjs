@@ -18,6 +18,7 @@
     "csv-parse": "^4.4.6",
     "fast-csv": "^3.4.0",
     "glob": "^7.1.4",
+    "log4js": "^5.2.2",
     "node-gzip": "^1.1.2",
     "node-rsa": "^1.0.6",
     "promise-socket": "^6.0.2",

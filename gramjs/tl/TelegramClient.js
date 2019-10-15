@@ -2,10 +2,13 @@ const Session = require("./Session");
 const doAuthentication = require("../network/Authenticator");
 const MtProtoSender = require("../network/mtprotoSender");
 const MTProtoRequest = require("../tl/MTProtoRequest");
+const {ImportBotAuthorizationRequest} = require("./functions/auth");
 const {ConnectionTCPFull} = require("../network/connection/TCPFull");
+const {TLRequest} = require("./tlobject");
 const {InvokeWithLayerRequest, InitConnectionRequest} = require("./functions/index");
 const {GetConfigRequest} = require("./functions/help");
 const {LAYER} = require("../tl/alltlobjects");
+const log4js = require('log4js');
 
 class TelegramClient {
 
@@ -17,6 +20,7 @@ class TelegramClient {
         this.apiId = apiId;
         this.apiHash = apiHash;
         this._connection = ConnectionTCPFull;
+        this._log = log4js.getLogger("gramjs");
         this._initWith = (x) => {
             return new InvokeWithLayerRequest({
                 layer: LAYER,
@@ -26,7 +30,7 @@ class TelegramClient {
                     systemVersion: "1.8.3",
                     appVersion: "1.8",
                     langCode: "en",
-                    langPack:"en",
+                    langPack: "en",
                     systemLangCode: "en",
                     query: x,
                     proxy: null,
@@ -36,7 +40,9 @@ class TelegramClient {
         this.session = Session.tryLoadOrCreateNew(sessionUserId);
         //These will be set later
         this.dcOptions = null;
-        this._sender = new MtProtoSender(this.session.authKey);
+        this._sender = new MtProtoSender(this.session.authKey, {
+            logger: this._log,
+        });
         this.phoneCodeHashes = Array();
 
     }
@@ -49,11 +55,10 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
-        let connection = new this._connection(this.session.serverAddress, this.session.port, this.session.dcId, null);
+        let connection = new this._connection(this.session.serverAddress, this.session.port, this.session.dcId, this._log);
         if (!await this._sender.connect(connection)) {
             return;
         }
-        console.log("ok");
         this.session.authKey = this._sender.authKey;
         await this.session.save();
         await this._sender.send(this._initWith(
@@ -62,37 +67,14 @@ class TelegramClient {
 
     }
 
-    /**
-     * Reconnects to the specified DC ID. This is automatically called after an InvalidDCError is raised
-     * @param dc_id {number}
-     */
-    async reconnect_to_dc(dc_id) {
-
-        if (this.dcOptions === undefined || this.dcOptions.length === 0) {
-            throw new Error("Can't reconnect. Stabilise an initial connection first.");
-        }
-        let dc;
-        for (dc of this.dcOptions) {
-            if (dc.id === dc_id) {
-                break;
-            }
-        }
-        await this.transport.close();
-        this.transport = new TcpTransport(dc.ipAddress, dc.port);
-        await this.transport.connect();
-        this.session.server_address = dc.ipAddress;
-        this.session.port = dc.port;
-        this.session.save();
-        await this.connect();
-    }
 
     /**
      * Disconnects from the Telegram server
      * @returns {Promise<void>}
      */
     async disconnect() {
-        if (this.sender) {
-            await this.sender.disconnect();
+        if (this._sender) {
+            await this._sender.disconnect();
         }
     }
 
@@ -102,13 +84,37 @@ class TelegramClient {
      * @returns {Promise}
      */
     async invoke(request) {
-        if (!(request instanceof MTProtoRequest)) {
+        if (!(request instanceof TLRequest)) {
             throw new Error("You can only invoke MTProtoRequests");
         }
-        await this.sender.send(request);
+        let res = await this._sender.send(request);
+        return res;
+    }
 
-        await this.sender.receive(request);
-        return request.result;
+
+    /**
+     * Logs in to Telegram to an existing user or bot account.
+
+     You should only use this if you are not authorized yet.
+
+     This method will send the code if it's not provided.
+
+     .. note::
+
+     In most cases, you should simply use `start()` and not this method.
+
+     * @param args {{botToken: string}}
+     * @returns {Promise<void>}
+     */
+    async signIn(args = {phone: null, code: null, password: null, botToken: null, phoneCodeHash: null}) {
+        let botToken = args.botToken;
+        let request = new ImportBotAuthorizationRequest({
+            flags: 0,
+            botAuthToken: botToken,
+            apiId: this.apiId,
+            apiHash: this.apiHash,
+        });
+        let result = await this.invoke(request);
     }
 }
 

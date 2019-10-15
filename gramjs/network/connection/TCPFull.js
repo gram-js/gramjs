@@ -27,20 +27,20 @@ class FullPacketCodec extends PacketCodec {
      * @returns {Promise<*>}
      */
     async readPacket(reader) {
-        console.log("will read soon");
         let packetLenSeq = await reader.read(8); // 4 and 4
         //process.exit(0);
 
         if (packetLenSeq === undefined) {
+            console.log("connection closed. exiting");
+            process.exit(0)
             throw new Error("closed connection");
+
         }
-        console.log("read packet length", packetLenSeq.toString("hex"));
 
         let res = struct.unpack("<ii", packetLenSeq);
         let packetLen = res[0];
         let seq = res[1];
         let body = await reader.read(packetLen - 8);
-        console.log("body", body.toString("hex"));
         let checksum = struct.unpack("<I", body.slice(-4))[0];
         body = body.slice(0, -4);
 
@@ -48,7 +48,6 @@ class FullPacketCodec extends PacketCodec {
         if (!(validChecksum === checksum)) {
             throw new InvalidChecksumError(checksum, validChecksum);
         }
-        console.log("correct checksum");
         return body;
     }
 }

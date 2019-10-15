@@ -11,9 +11,12 @@ class GZIPPacked extends TLObject {
         this.data = data;
     }
 
-    async GZIPIfSmaller(contentRelated, data) {
+    static async GZIPIfSmaller(contentRelated, data) {
         if (contentRelated && data.length > 512) {
             let gzipped = await (new GZIPPacked(data)).toBytes();
+            if (gzipped.length < data.length) {
+                return gzipped;
+            }
         }
         return data;
     }
@@ -38,4 +41,5 @@ class GZIPPacked extends TLObject {
     }
 
 }
+
 module.exports = GZIPPacked;

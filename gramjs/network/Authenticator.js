@@ -32,7 +32,6 @@ async function doAuthentication(sender) {
     let nonce = Helpers.readBigIntFromBuffer(bytes, false);
 
     let resPQ = await sender.send(new ReqPqMultiRequest({nonce: nonce}));
-    console.log(resPQ);
     if (!(resPQ instanceof ResPQ)) {
         throw new Error(`Step 1 answer was ${resPQ}`)
     }
@@ -48,7 +47,6 @@ async function doAuthentication(sender) {
     bytes = Helpers.generateRandomBytes(32);
     let newNonce = Helpers.readBigIntFromBuffer(bytes);
 
-    console.log(newNonce);
 
     let pqInnerData = new PQInnerData({
             pq: getByteArray(pq),
@@ -83,7 +81,6 @@ async function doAuthentication(sender) {
             encryptedData: cipherText
         }
     ));
-    console.log(serverDhParams);
     if (!(serverDhParams instanceof ServerDHParamsOk || serverDhParams instanceof ServerDHParamsFail)) {
         throw new Error(`Step 2.1 answer was ${serverDhParams}`)
     }
@@ -105,7 +102,7 @@ async function doAuthentication(sender) {
         }
     }
     if (!(serverDhParams instanceof ServerDHParamsOk)) {
-        console.log(`Step 2.2 answer was ${serverDhParams}`);
+        throw new Error(`Step 2.2 answer was ${serverDhParams}`);
     }
 
     // Step 3 sending: Complete DH Exchange
@@ -118,7 +115,6 @@ async function doAuthentication(sender) {
     let plainTextAnswer = AES.decryptIge(
         serverDhParams.encryptedAnswer, key, iv
     );
-    console.log(plainTextAnswer.toString("hex"));
 
     let reader = new BinaryReader(plainTextAnswer);
     reader.read(20); // hash sum
@@ -162,7 +158,6 @@ async function doAuthentication(sender) {
             encryptedData: clientDhEncrypted,
         }
     ));
-    console.log(dhGen);
     let nonceTypes = [DhGenOk, DhGenRetry, DhGenFail];
     if (!(dhGen instanceof nonceTypes[0] || dhGen instanceof nonceTypes[1] || dhGen instanceof nonceTypes[2])) {
         throw new Error(`Step 3.1 answer was ${dhGen}`)
@@ -175,21 +170,16 @@ async function doAuthentication(sender) {
         throw new SecurityError(`Step 3 invalid ${name} server nonce from server`)
 
     }
-    console.log("GAB is ", gab);
     let authKey = new AuthKey(getByteArray(gab));
     let nonceNumber = 1 + nonceTypes.indexOf(dhGen.constructor);
-    console.log("nonce number is ", nonceNumber);
-    console.log("newNonce is ", newNonce);
 
     let newNonceHash = authKey.calcNewNonceHash(newNonce, nonceNumber);
-    console.log("newNonceHash is ", newNonceHash);
     let dhHash = dhGen[`newNonceHash${nonceNumber}`];
-    console.log("dhHash is ", dhHash);
-    /*
+
     if (dhHash !== newNonceHash) {
         throw new SecurityError('Step 3 invalid new nonce hash');
     }
- */
+
     if (!(dhGen instanceof DhGenOk)) {
         throw new Error(`Step 3.2 answer was ${dhGen}`)
     }

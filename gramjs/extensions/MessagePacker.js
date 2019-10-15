@@ -1,11 +1,16 @@
 const Helpers = require("../utils/Helpers");
+const MessageContainer = require("../tl/core/MessageContainer");
+const TLMessage = require("../tl/core/TLMessage");
 const {TLRequest} = require("../tl/tlobject");
+const BinaryWriter = require("../extensions/BinaryWriter");
+
 
 class MessagePacker {
-    constructor(state,logger) {
+    constructor(state, logger) {
         this._state = state;
         this._queue = [];
         this._ready = false;
+        this._log = logger;
     }
 
     append(state) {
@@ -28,28 +33,34 @@ class MessagePacker {
             }
         }
         let data;
-        let buffer = [];
+        let buffer = new BinaryWriter(Buffer.alloc(0));
 
         let batch = [];
         let size = 0;
 
-        while (this._queue.length && batch.length <= 100) {
+        while (this._queue.length && batch.length <= MessageContainer.MAXIMUM_LENGTH) {
             let state = this._queue.shift();
-            size += state.length + 12;
-            if (size <= 1044448 - 8) {
-                state.msgId = this._state.writeDataAsMessage(
+            size += state.data.length + TLMessage.SIZE_OVERHEAD;
+            if (size <= MessageContainer.MAXIMUM_SIZE) {
+                let afterId;
+                if (state.after) {
+                    afterId = state.after.msgId;
+                }
+                state.msgId = await this._state.writeDataAsMessage(
                     buffer, state.data, state.request instanceof TLRequest,
-                    state.after.msgId
-                )
+                    afterId
+                );
+
+                this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.constructor.name}`);
                 batch.push(state);
-                //log
                 continue;
             }
             if (batch.length) {
                 this._queue.unshift(state);
                 break;
             }
-
+            this._log.warning(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`);
+            state.promise.reject("Request Payload is too big");
             size = 0;
             continue
         }
@@ -58,10 +69,10 @@ class MessagePacker {
         }
         if (batch.length > 1) {
             data = Buffer.concat([struct.pack(
-                '<Ii', 0x73f1f8dc, batch.length
-            ), buffer[0]]);
-            buffer = [];
-            let containerId = this._state.writeDataAsMessage(
+                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length
+            ), buffer.getValue()]);
+
+            let containerId = await this._state.writeDataAsMessage(
                 buffer, data, false
             );
             for (let s of batch) {
@@ -69,7 +80,7 @@ class MessagePacker {
             }
         }
 
-        data = buffer[0];
+        data = buffer.getValue();
         return {batch, data}
     }
 }

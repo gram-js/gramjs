@@ -37,11 +37,9 @@ class MTProtoPlainSender {
         ]);
 
         await this._connection.send(res);
-        console.log("sent it");
         body = await this._connection.recv();
-        console.log("recived body",body);
         if (body.length < 9) {
-            throw InvalidBufferError(body);
+            throw new InvalidBufferError(body);
         }
         let reader = new BinaryReader(body);
         let authKeyId = reader.readLong();
@@ -67,7 +65,6 @@ class MTProtoPlainSender {
          * the next TLObject without including the padding, but since the
          * reader isn't used for anything else after this, it's unnecessary.
          */
-        console.log("returned object");
         return reader.tgReadObject();
 
     }

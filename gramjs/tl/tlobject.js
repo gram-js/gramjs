@@ -22,7 +22,6 @@ class TLObject {
         }
         let r = [];
         let padding;
-        console.log(data.length)
         if (data.length < 254) {
             padding = (data.length + 1) % 4;
             if (padding !== 0) {
@@ -54,7 +53,6 @@ class TLObject {
         }
         if (dt instanceof Date) {
             dt = Math.floor((Date.now() - dt.getTime()) / 1000);
-            console.log(dt);
         }
         if (typeof dt == "number") {
             return struct.pack('<i', dt)
