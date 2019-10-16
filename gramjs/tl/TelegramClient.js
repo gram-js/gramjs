@@ -115,6 +115,7 @@ class TelegramClient {
             apiHash: this.apiHash,
         });
         let result = await this.invoke(request);
+        return result;
     }
 }
 

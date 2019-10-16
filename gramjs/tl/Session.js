@@ -8,12 +8,16 @@ BigInt.toJSON = function () {
 BigInt.parseJson = function () {
     return {fool: BigInt("0x" + this.fool)}
 };
+const DEFAULT_DC_ID = 4;
+const DEFAULT_IPV4_IP = '149.154.167.92';
+const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]';
+const DEFAULT_PORT = 443;
 
 class Session {
     constructor(sessionUserId) {
         this.sessionUserId = sessionUserId;
-        this.serverAddress = "149.154.167.40";
-        this.port = 443;
+        this.serverAddress = DEFAULT_IPV4_IP;
+        this.port = DEFAULT_PORT;
         //this.serverAddress = "localhost";
         //this.port = 21;
         this.authKey = undefined;

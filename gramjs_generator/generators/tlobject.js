@@ -372,7 +372,7 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
             }
 
             builder.writeln(
-                `this.randomId = randomId !== null ? randomId : ${code}`
+                `this.randomId = args.randomId !== undefined ? args.randomId : ${code};`
             );
         } else {
             throw new Error(`Cannot infer a value for ${arg}`);
@@ -587,12 +587,13 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
             // so we need an extra join here. Note that empty vector flags
             // should NOT be sent either!
             builder.write(
-                "%s === null || %s === false ? Buffer.alloc(0) :Buffer.concat([",
+                "(%s === undefined || %s === false || %s ===null) ? Buffer.alloc(0) :Buffer.concat([",
+                name,
                 name,
                 name
             );
         } else {
-            builder.write("%s === null || %s === false ? Buffer.alloc(0) : [", name, name);
+            builder.write("(%s === undefined || %s === false || %s ===null) ? Buffer.alloc(0) : [", name, name,name);
         }
     }
 
@@ -627,9 +628,9 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
                     .filter(flag => flag.isFlag)
                     .map(
                         flag =>
-                            `(this.${flag.name} === null || this.${
-                                flag.name
-                            } === false ? 0 : ${1 << flag.flagIndex})`
+                            `(this.${variableSnakeToCamelCase(flag.name)} === undefined || this.${
+                                variableSnakeToCamelCase(flag.name)
+                            } === false || this.${variableSnakeToCamelCase(flag.name)} === null) ? 0 : ${1 << flag.flagIndex}`
                     )
                     .join(' | ')
             );
