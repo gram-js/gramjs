@@ -14,7 +14,8 @@ class RPCError extends Error {
     }
 
     static _fmtRequest(request) {
-        return ` (caused by ${request.constructor.name})`
+        // TODO fix this
+        return ` (caused by ${request})`
     }
 }
 

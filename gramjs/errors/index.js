@@ -10,7 +10,7 @@ function RPCMessageToError(rpcError, request) {
     //Try to get the error by direct look-up, otherwise regex
     let cls = rpcErrorsObject[rpcError.errorMessage];
     if (cls) {
-        return cls(request);
+        return new cls(request);
     } else {
         return rpcError.errorMessage;
     }
