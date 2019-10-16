@@ -1,5 +1,5 @@
 const aesjs = require('aes-js');
-
+const Helpers = require("../utils/Helpers");
 
 class AES {
     /**
@@ -46,40 +46,39 @@ class AES {
      * @returns {Buffer}
      */
     static encryptIge(plainText, key, iv) {
-        if (plainText.length % 16 !== 0) {
-            let padding = new Uint8Array(16 - plainText.length % 16);
-            plainText = new Uint8Array([
-                ...plainText,
-                ...padding,
-            ]);
+        let padding = plainText.length % 16;
+        if (padding) {
+            plainText = Buffer.concat([plainText, Helpers.generateRandomBytes(16 - padding)]);
         }
+
         let iv1 = iv.slice(0, Math.floor(iv.length / 2));
         let iv2 = iv.slice(Math.floor(iv.length / 2));
+
         let aes = new aesjs.AES(key);
-        let blocksCount = Math.floor(plainText.length / 16);
-        let cipherText = new Array(plainText.length).fill(0);
-        for (let blockIndex = 0; blockIndex < blocksCount; blockIndex++) {
-            let plainTextBlock = plainText.slice(blockIndex * 16, blockIndex * 16 + 16);
+        let cipherText = Buffer.alloc(0);
+        let blockCount = Math.floor(plainText.length / 16);
+
+        for (let blockIndex = 0; blockIndex < blockCount; blockIndex++) {
+            let plainTextBlock = Buffer.from(plainText.slice(blockIndex * 16, blockIndex * 16 + 16));
 
             for (let i = 0; i < 16; i++) {
                 plainTextBlock[i] ^= iv1[i];
             }
-            let cipherTextBlock = aes.encrypt(plainTextBlock);
+            let cipherTextBlock = Buffer.from(aes.encrypt(plainTextBlock));
+
             for (let i = 0; i < 16; i++) {
                 cipherTextBlock[i] ^= iv2[i];
             }
 
-            iv1 = cipherTextBlock.slice(0, 16);
+            iv1 = cipherTextBlock;
             iv2 = plainText.slice(blockIndex * 16, blockIndex * 16 + 16);
-            cipherText = new Uint8Array([
-                ...cipherText.slice(0, blockIndex * 16),
-                ...cipherTextBlock.slice(0, 16),
-                ...cipherText.slice(blockIndex * 16 + 16)
+            cipherText = Buffer.concat([
+                cipherText,
+                cipherTextBlock,
             ]);
         }
-        return Buffer.from(cipherText);
+        return cipherText;
     }
-
 }
 
 module.exports = AES;

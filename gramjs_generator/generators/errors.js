@@ -56,7 +56,7 @@ const generateErrors = (errors, f) => {
             f.write(`super('${capture}'`);
         }
 
-        f.write(' + this._fmtRequest(args.request));\n');
+        f.write(' + RPCError._fmtRequest(args.request));\n');
 
         if (error.hasCaptures) {
             f.write(
@@ -67,7 +67,7 @@ const generateErrors = (errors, f) => {
         f.write('    }\n}\n');
     }
 
-    f.write('\n\nconst rpcErrorsDict = {\n');
+    f.write('\n\nconst rpcErrorsObject = {\n');
 
     for (const error of exactMatch) {
         f.write(`    ${error.pattern}: ${error.name},\n`);
@@ -80,6 +80,18 @@ const generateErrors = (errors, f) => {
     }
 
     f.write('];');
+    f.write("module.exports = {");
+    for (const error of regexMatch) {
+        f.write(`     ${error.name},\n`);
+    }
+    for (const error of exactMatch) {
+        f.write(`     ${error.name},\n`);
+    }
+    f.write("     rpcErrorsObject,\n");
+    f.write("     rpcErrorRe,\n");
+
+    f.write("}");
+
 };
 
 module.exports = {
