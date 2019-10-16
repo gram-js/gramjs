@@ -3,7 +3,7 @@ const fs = require("fs").promises;
 
 class Helpers {
 
-    static readBigIntFromBuffer(buffer, little = true, signed = true) {
+    static readBigIntFromBuffer(buffer, little = true, signed = false) {
         let randBuffer = Buffer.from(buffer);
         let bytesNumber = randBuffer.length;
         if (little) {
@@ -17,7 +17,7 @@ class Helpers {
     }
 
 
-    static readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = true) {
+    static readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = false) {
         let bitLength = bigInt.toString("2").length;
 
         let bytes = Math.ceil(bitLength / 8);
@@ -63,12 +63,8 @@ class Helpers {
      * Generates a random long integer (8 bytes), which is optionally signed
      * @returns {BigInt}
      */
-    static generateRandomLong(signed) {
-        let buf = Buffer.from(Helpers.generateRandomBytes(8)); // 0x12345678 = 305419896
-        if (signed)
-            return buf.readBigInt64LE(0);
-        else
-            return buf.readBigUInt64LE(0);
+    static generateRandomLong(signed = true) {
+        return this.readBigIntFromBuffer(Helpers.generateRandomBytes(8), true, signed);
     }
 
 
@@ -182,8 +178,8 @@ class Helpers {
      * @returns {{key: Buffer, iv: Buffer}}
      */
     static generateKeyDataFromNonce(serverNonce, newNonce) {
-        serverNonce = Helpers.readBufferFromBigInt(serverNonce, 16);
-        newNonce = Helpers.readBufferFromBigInt(newNonce, 32);
+        serverNonce = Helpers.readBufferFromBigInt(serverNonce, 16, true, true);
+        newNonce = Helpers.readBufferFromBigInt(newNonce, 32, true, true);
         let hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
         let hash2 = Helpers.sha1(Buffer.concat([serverNonce, newNonce]));
         let hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));

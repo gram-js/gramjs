@@ -1,25 +1,29 @@
 const {TLObject} = require("../tlobject");
-const {RpcError} = require("../types")
+const {RpcError} = require("../types");
 const GZIPPacked = require("./GZIPPacked");
+console.log(TLObject);
+console.log(RpcError);
+console.log(GZIPPacked);
 
 class RPCResult extends TLObject {
     static CONSTRUCTOR_ID = 0xf35c6d01;
 
     constructor(reqMsgId, body, error) {
         super();
+        this.CONSTRUCTOR_ID = 0xf35c6d01;
         this.reqMsgId = reqMsgId;
         this.body = body;
         this.error = error;
     }
 
     static async fromReader(reader) {
-        let msgId = reader.readInt();
+        let msgId = reader.readLong();
         let innerCode = reader.readInt(false);
         if (innerCode === RpcError.CONSTRUCTOR_ID) {
-            return RPCResult(msgId, null, RpcError.fromReader(reader));
+            return new RPCResult(msgId, null, RpcError.fromReader(reader));
         }
         if (innerCode === GZIPPacked.CONSTRUCTOR_ID) {
-            return RPCResult(msgId, (await GZIPPacked.fromReader(reader)).data)
+            return new RPCResult(msgId, (await GZIPPacked.fromReader(reader)).data)
         }
         reader.seek(-4);
         // This reader.read() will read more than necessary, but it's okay.

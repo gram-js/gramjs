@@ -142,7 +142,7 @@ class BinaryReader {
      * @returns {string}
      */
     tgReadString() {
-        return this.tgReadByte().toString("utf-8");
+        return this.tgReadBytes().toString("utf-8");
     }
 
     /**
@@ -188,7 +188,8 @@ class BinaryReader {
                 return false;
             } else if (value === 0x1cb5c415) {  // Vector
                 let temp = [];
-                for (let i = 0; i < this.readInt(); i++) {
+                let length = this.readInt();
+                for (let i = 0; i < length; i++) {
                     temp.push(this.tgReadObject());
                 }
                 return temp;

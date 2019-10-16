@@ -22,34 +22,40 @@ const {ReqPqMultiRequest} = require("../tl/functions");
 /**
  * Executes the authentication process with the Telegram servers.
  * @param sender a connected {MTProtoPlainSender}.
+ * @param log
  * @returns {Promise<{authKey: *, timeOffset: *}>}
  */
-async function doAuthentication(sender) {
+async function doAuthentication(sender, log) {
 
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random
     let bytes = Helpers.generateRandomBytes(16);
 
-    let nonce = Helpers.readBigIntFromBuffer(bytes, false);
+    let nonce = Helpers.readBigIntFromBuffer(bytes, false, true);
 
     let resPQ = await sender.send(new ReqPqMultiRequest({nonce: nonce}));
+    log.debug("Starting authKey generation step 1");
+
     if (!(resPQ instanceof ResPQ)) {
         throw new Error(`Step 1 answer was ${resPQ}`)
     }
     if (resPQ.nonce !== nonce) {
         throw new SecurityError("Step 1 invalid nonce from server")
     }
-    let pq = Helpers.readBigIntFromBuffer(resPQ.pq, false);
-
+    let pq = Helpers.readBigIntFromBuffer(resPQ.pq, false, true);
+    log.debug("Finished authKey generation step 1");
+    log.debug("Starting authKey generation step 2");
     // Step 2 sending: DH Exchange
     let {p, q} = Factorizator.factorize(pq);
     p = getByteArray(p);
+
     q = getByteArray(q);
+
     bytes = Helpers.generateRandomBytes(32);
-    let newNonce = Helpers.readBigIntFromBuffer(bytes);
+    let newNonce = Helpers.readBigIntFromBuffer(bytes, true, true);
 
 
     let pqInnerData = new PQInnerData({
-            pq: getByteArray(pq),
+            pq: getByteArray(pq), //unsigned
             p: p,
             q: q,
             nonce: resPQ.nonce,
@@ -73,11 +79,12 @@ async function doAuthentication(sender) {
         throw new SecurityError(
             'Step 2 could not find a valid key for fingerprints');
     }
+
     let serverDhParams = await sender.send(new ReqDHParamsRequest({
             nonce: resPQ.nonce,
             serverNonce: resPQ.serverNonce,
             p: p, q: q,
-            publicKeyFingerprint: getFingerprintText(targetFingerprint),
+            publicKeyFingerprint: targetFingerprint,
             encryptedData: cipherText
         }
     ));
@@ -94,8 +101,8 @@ async function doAuthentication(sender) {
     }
 
     if (serverDhParams instanceof ServerDHParamsFail) {
-        let sh = Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32).slice(4, 20));
-        let nnh = Helpers.readBigIntFromBuffer(sh);
+        let sh = Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32, true, true).slice(4, 20));
+        let nnh = Helpers.readBigIntFromBuffer(sh, true, true);
         if (serverDhParams.newNonceHash !== nnh) {
             throw new SecurityError('Step 2 invalid DH fail nonce from server')
 
@@ -104,10 +111,11 @@ async function doAuthentication(sender) {
     if (!(serverDhParams instanceof ServerDHParamsOk)) {
         throw new Error(`Step 2.2 answer was ${serverDhParams}`);
     }
+    log.debug("Finished authKey generation step 2");
+    log.debug("Starting authKey generation step 3");
 
     // Step 3 sending: Complete DH Exchange
     let {key, iv} = Helpers.generateKeyDataFromNonce(resPQ.serverNonce, newNonce);
-
     if (serverDhParams.encryptedAnswer.length % 16 !== 0) {
         // See PR#453
         throw new SecurityError('Step 3 AES block size mismatch')
@@ -115,7 +123,6 @@ async function doAuthentication(sender) {
     let plainTextAnswer = AES.decryptIge(
         serverDhParams.encryptedAnswer, key, iv
     );
-
     let reader = new BinaryReader(plainTextAnswer);
     reader.read(20); // hash sum
     let serverDhInner = reader.tgReadObject();
@@ -183,6 +190,7 @@ async function doAuthentication(sender) {
     if (!(dhGen instanceof DhGenOk)) {
         throw new Error(`Step 3.2 answer was ${dhGen}`)
     }
+    log.debug("Finished authKey generation step 3");
 
     return {authKey, timeOffset};
 

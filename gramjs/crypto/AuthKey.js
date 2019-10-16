@@ -1,7 +1,8 @@
 const Helpers = require("../utils/Helpers");
 const BinaryReader = require("../extensions/BinaryReader");
 const struct = require("python-struct");
-const bigUintLE  =require("biguintle");
+const bigUintLE = require("biguintle");
+
 class AuthKey {
     constructor(data) {
         this.key = data;
@@ -41,7 +42,7 @@ class AuthKey {
      */
     calcNewNonceHash(new_nonce, number) {
 
-        new_nonce = Helpers.readBufferFromBigInt(new_nonce, 32);
+        new_nonce = Helpers.readBufferFromBigInt(new_nonce, 32, true, true);
         let data = Buffer.concat([
             new_nonce,
             struct.pack("<BQ", number.toString(), this.auxHash.toString())
@@ -49,7 +50,7 @@ class AuthKey {
 
         //Calculates the message key from the given data
         let shaData = Helpers.sha1(data).slice(4, 20);
-        return Helpers.readBigIntFromBuffer(shaData);
+        return Helpers.readBigIntFromBuffer(shaData, true, true);
     }
 
     equals(other) {

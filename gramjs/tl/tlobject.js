@@ -76,7 +76,7 @@ class TLRequest extends TLObject {
      * @param reader {BinaryReader}
      * @returns {boolean}
      */
-    static read_result(reader) {
+    readResult(reader) {
         return reader.tgReadObject();
     }
 

@@ -1,6 +1,7 @@
 const {TLObject} = require("../tlobject");
 const struct = require("python-struct");
-const {TLMessage} = require("./TLMessage");
+const TLMessage = require("./TLMessage");
+console.log("tl message is ", TLMessage);
 
 class MessageContainer extends TLObject {
     static CONSTRUCTOR_ID = 0x73f1f8dc;
@@ -22,19 +23,22 @@ class MessageContainer extends TLObject {
 
     constructor(messages) {
         super();
+        this.CONSTRUCTOR_ID = 0x73f1f8dc;
         this.messages = messages;
     }
 
     static async fromReader(reader) {
         let messages = [];
-        for (let x of reader.readInt()) {
-            let msgId = reader.readInt();
+        let length = reader.readInt();
+        for (let x = 0; x < length; x++) {
+            let msgId = reader.readLong();
             let seqNo = reader.readInt();
             let length = reader.readInt();
             let before = reader.tellPosition();
             let obj = reader.tgReadObject();
             reader.setPosition(before + length);
-            messages.push(new TLMessage(msgId, seqNo, obj))
+            let tlMessage = new TLMessage(msgId, seqNo, obj);
+            messages.push(tlMessage)
         }
         return new MessageContainer(messages);
     }

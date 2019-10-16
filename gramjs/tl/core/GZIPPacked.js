@@ -9,6 +9,7 @@ class GZIPPacked extends TLObject {
     constructor(data) {
         super();
         this.data = data;
+        this.CONSTRUCTOR_ID = 0x3072cfa1;
     }
 
     static async GZIPIfSmaller(contentRelated, data) {

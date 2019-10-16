@@ -27,7 +27,7 @@ function _computeFingerprint(key) {
     let e = TLObject.serializeBytes(getByteArray(key.keyPair.e));
 //Telegram uses the last 8 bytes as the fingerprint
     let sh = Helpers.sha1(Buffer.concat([n, e]));
-    return struct.unpack("<q", sh.slice(-8))[0]
+    return Helpers.readBigIntFromBuffer(sh.slice(-8), true, true);
 }
 
 function addKey(pub) {
@@ -38,17 +38,21 @@ function addKey(pub) {
 
 
 function encrypt(fingerprint, data) {
-
     let key = _serverKeys[fingerprint];
     if (!key) {
         return undefined;
     }
     let buf = Helpers.readBigIntFromBuffer(key.keyPair.n.toBuffer(), false);
-    let nArray = getByteArray(buf);
-    let toEncrypt = Buffer.concat([Helpers.sha1(data), data, Helpers.generateRandomBytes(235 - data.length)]);
-    let encrypted = Helpers.modExp(Helpers.readBigIntFromBuffer(toEncrypt, false), BigInt(key.keyPair.e),
-        buf);
+    let rand = Helpers.generateRandomBytes(235 - data.length);
+    rand = Buffer.from(
+        "66a6f809e0dfd71d9dbbc2d6b5fe5fc0be9f5b2b0f2f85688843eea6b2c6d51329750f020c8de27a0a911b07d2a46600493d1abb7caf24" +
+        "01ccd815d7de7c5ea830cdf6cce8bff12f77db589f233bce436b644c3415f16d073335fdadfe313c603485b3274e8fcd148fd1a5e18bd2" +
+        "4b3e983df94d58b61c150333ab8d614101e7a904dc38af3a3b29e73d62", "hex");
 
+    let toEncrypt = Buffer.concat([Helpers.sha1(data), data, rand]);
+    let payload = Helpers.readBigIntFromBuffer(toEncrypt, false);
+    let encrypted = Helpers.modExp(payload, BigInt(key.keyPair.e),
+        buf);
     let block = Helpers.readBufferFromBigInt(encrypted, 256, false);
     return block;
 }
