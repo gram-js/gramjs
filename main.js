@@ -19,7 +19,7 @@ logger.level = 'debug';
     //let request = new GetConfigRequest();
     //let res =         await client._sender.send(new GetConfigRequest());
     //console.log(res)
-    //await client.signIn({botToken: "773348:AAEL_68PNU0ekQhzpjBKj9U5S4WiINq-voY"});
+    await client.signIn({botToken: "773348:AAEL_68PNU0ekQhzpjBKj9U5S4WiINq-voY"});
     console.log("You should now be connected.");
 })();
 

@@ -122,14 +122,11 @@ class MTProtoState {
      * @param data
      */
     encryptMessageData(data) {
-        console.log("got salt : ", this.salt);
-        console.log("got id : ", this.id);
         data = Buffer.concat([
             struct.pack('<qq', this.salt.toString(), this.id.toString()),
             data,
         ]);
         let padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12);
-        console.log("got padding : ", padding.toString("hex"));
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"
         let msgKeyLarge = Helpers.sha256(
@@ -225,6 +222,7 @@ class MTProtoState {
             newMsgId = this._lastMsgId + 4n;
         }
         this._lastMsgId = newMsgId;
+
         return newMsgId;
     }
 
