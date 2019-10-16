@@ -1,7 +1,6 @@
 const {TLObject} = require("../tlobject");
 const struct = require("python-struct");
 const TLMessage = require("./TLMessage");
-console.log("tl message is ", TLMessage);
 
 class MessageContainer extends TLObject {
     static CONSTRUCTOR_ID = 0x73f1f8dc;

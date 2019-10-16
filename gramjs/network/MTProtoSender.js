@@ -279,8 +279,7 @@ class MTProtoSender {
     async _send_loop() {
         while (this._user_connected && !this._reconnecting) {
             if (this._pending_ack.size) {
-                console.log("adding pending");
-                let ack = new RequestState(new MsgsAck({msgIds: Array(this._pending_ack)}));
+                let ack = new RequestState(new MsgsAck({msgIds: Array(...this._pending_ack)}));
                 this._send_queue.append(ack);
                 this._last_acks.push(ack);
                 this._pending_ack.clear()
@@ -294,14 +293,11 @@ class MTProtoSender {
             if (!res) {
                 continue
             }
-            console.log("res is ", res);
             let data = res.data;
             let batch = res.batch;
             this._log.debug(`Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`);
-            console.log("data to send", data.toString("hex"));
 
             data = this._state.encryptMessageData(data);
-            console.log("encrypted to send", data.toString("hex"));
 
             try {
                 await this._connection.send(data);
@@ -333,7 +329,6 @@ class MTProtoSender {
                 return
             }
             try {
-                console.log("data to decrypt was", body);
                 message = await this._state.decryptMessageData(body);
             } catch (e) {
                 console.log(e);
@@ -471,6 +466,7 @@ class MTProtoSender {
         if (RPCResult.error) {
             let error = RPCMessageToError(RPCResult.error, state.request);
             console.log("error happen", error);
+
             this._send_queue.append(
                 new RequestState(new MsgsAck({msgIds: [state.msgId]}))
             );
@@ -665,14 +661,10 @@ class MTProtoSender {
      */
     async _handleAck(message) {
         let ack = message.obj;
-        console.log("ack is", ack);
         this._log.debug(`Handling acknowledge for ${ack.msgIds}`);
         for (let msgId of ack.msgIds) {
-            console.log("msg id is ", msgId);
             let state = this._pending_state[msgId];
-            console.log("state is : ", state);
             if (state && state.request instanceof LogOutRequest) {
-                console.log("got it");
                 delete this._pending_state[msgId];
                 state.resolve(true)
             }
