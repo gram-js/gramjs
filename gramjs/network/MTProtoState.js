@@ -122,11 +122,14 @@ class MTProtoState {
      * @param data
      */
     encryptMessageData(data) {
+        console.log("got salt : ", this.salt);
+        console.log("got id : ", this.id);
         data = Buffer.concat([
             struct.pack('<qq', this.salt.toString(), this.id.toString()),
             data,
         ]);
         let padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12);
+        console.log("got padding : ", padding.toString("hex"));
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"
         let msgKeyLarge = Helpers.sha256(
@@ -141,7 +144,7 @@ class MTProtoState {
 
         let {iv, key} = this._calcKey(this.authKey.key, msgKey, true);
 
-        let keyId = struct.pack('<Q', this.authKey.keyId.toString());
+        let keyId = Helpers.readBufferFromBigInt(this.authKey.keyId, 8);
         return Buffer.concat([
             keyId,
             msgKey,
@@ -159,13 +162,14 @@ class MTProtoState {
      * Inverse of `encrypt_message_data` for incoming server messages.
      * @param body
      */
-    decryptMessageData(body) {
+    async decryptMessageData(body) {
         if (body.length < 8) {
             throw new InvalidBufferError(body);
         }
 
         // TODO Check salt,sessionId, and sequenceNumber
-        let keyId = struct.unpack('<Q', body.slice(0, 8))[0];
+        let keyId = Helpers.readBigIntFromBuffer(body.slice(0, 8));
+
         if (keyId !== this.authKey.keyId) {
             throw new SecurityError('Server replied with an invalid auth key');
         }
@@ -181,15 +185,17 @@ class MTProtoState {
             this.authKey.key.slice(96, 96 + 32),
             body
         ]));
-        if (msgKey !== ourKey.slice(8, 24)) {
+
+        if (!msgKey.equals(ourKey.slice(8, 24))) {
             throw new SecurityError(
                 "Received msg_key doesn't match with expected one")
         }
 
         let reader = new BinaryReader(body);
         reader.readLong(); // removeSalt
-        if (reader.readLong() !== this.id) {
-            throw new SecurityError('Server replied with a wrong session ID');
+        let serverId = reader.readLong();
+        if (serverId !== this.id) {
+            //throw new SecurityError('Server replied with a wrong session ID');
         }
 
         let remoteMsgId = reader.readLong();
@@ -199,7 +205,7 @@ class MTProtoState {
         // We could read msg_len bytes and use those in a new reader to read
         // the next TLObject without including the padding, but since the
         // reader isn't used for anything else after this, it's unnecessary.
-        let obj = reader.tgReadObject();
+        let obj = await reader.tgReadObject();
 
         return new TLMessage(remoteMsgId, remoteSequence, obj);
 

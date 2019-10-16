@@ -1,15 +1,15 @@
 const Helpers = require("./gramjs/utils/Helpers");
 const TelegramClient = require("./gramjs/tl/TelegramClient");
 const {GetConfigRequest} = require("./gramjs/tl/functions/help");
-
+const struct = require("python-struct");
 const log4js = require('log4js');
 const logger = log4js.getLogger("gramjs");
+
 logger.level = 'debug';
 
 
-
-
 (async function () {
+
     console.log("Loading interactive example...");
     let sessionName = "anon";
     let apiId = 139938;

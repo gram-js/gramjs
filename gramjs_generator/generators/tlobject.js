@@ -252,10 +252,10 @@ const writeReadResult = (tlobject, builder) => {
         return
     }
     //builder.endBlock();
-    builder.writeln('static readResult(reader){');
+    builder.writeln('readResult(reader){');
     builder.writeln('reader.readInt();  // Vector ID');
     builder.writeln('let temp = [];');
-    builder.writeln("len = reader.readInt();");
+    builder.writeln("let len = reader.readInt(); //fix this");
     builder.writeln('for (let i=0;i<len;i++){');
     let read = m[1][0].toUpperCase() + m[1].slice(1);
     builder.writeln('temp.push(reader.read%s())', read);
@@ -304,6 +304,14 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
         return;
     }
 
+    // Note : this is needed to be able to access them
+    // with or without an instance
+    builder.writeln(
+        `static CONSTRUCTOR_ID = 0x${tlobject.id.toString(16).padStart(8, '0')};`
+    );
+    builder.writeln(`static SUBCLASS_OF_ID = 0x${crc32(tlobject.result).toString("16")};`);
+    builder.writeln();
+
     builder.writeln('/**');
 
     if (tlobject.isFunction) {
@@ -343,13 +351,13 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
             builder.writeln(`this.${variableSnakeToCamelCase(arg.name)} = args.${variableSnakeToCamelCase(arg.name)};`);
         }
 
-        // Currently the only argument that can be
+            // Currently the only argument that can be
         // inferred are those called 'random_id'
         else if (arg.name === 'random_id') {
             // Endianness doesn't really matter, and 'big' is shorter
-            let code = `int.from_bytes(Helpers.generateRandomBytes(${
+            let code = `Helpers.readBigIntFromBuffer(Helpers.generateRandomBytes(${
                 arg.type === 'long' ? 8 : 4
-            }))`;
+            }),false,true)`;
 
             if (arg.isVector) {
                 // Currently for the case of "messages.forwardMessages"
@@ -560,9 +568,11 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
     if (arg.genericDefinition) {
         return; // Do nothing, this only specifies a later type
     }
-
     if (name === null) {
         name = `this.${arg.name}`;
+    }
+    if (name =="this.msg_ids"){
+        console.log(name)
     }
     name = variableSnakeToCamelCase(name);
     // The argument may be a flag, only write if it's not None AND
@@ -588,14 +598,14 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
 
     if (arg.isVector) {
         if (arg.useVectorId) {
-            builder.write("'15c4b51c',");
+            builder.write("Buffer.from('15c4b51c','hex'),");
         }
 
         builder.write("struct.pack('<i', %s.length),", name);
 
         // Cannot unpack the values for the outer tuple through *[(
         // since that's a Python >3.5 feature, so add another join.
-        builder.write('Buffer.concat([%s.map(x => ', name);
+        builder.write('Buffer.concat(%s.map(x => ', name);
         // Temporary disable .is_vector, not to enter this if again
         // Also disable .is_flag since it's not needed per element
         const oldFlag = arg.isFlag;
@@ -604,7 +614,7 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
         arg.isVector = true;
         arg.isFlag = oldFlag;
 
-        builder.write(')]),', name);
+        builder.write('))');
     } else if (arg.flagIndicator) {
         // Calculate the flags with those items which are not None
         if (!args.some(f => f.isFlag)) {
@@ -628,13 +638,13 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
     } else if (arg.type === 'int') {
         builder.write("struct.pack('<i', %s)", name);
     } else if (arg.type === 'long') {
-        builder.write("struct.pack('<q', %s)", name);
+        builder.write("Helpers.readBufferFromBigInt(%s,8,true,true)", name);
     } else if (arg.type === 'int128') {
-        builder.write("Helpers.readBufferFromBigInt(%s,16)", name);
+        builder.write("Helpers.readBufferFromBigInt(%s,16,true,true)", name);
     } else if (arg.type === 'int256') {
-        builder.write("Helpers.readBufferFromBigInt(%s,32)", name);
+        builder.write("Helpers.readBufferFromBigInt(%s,32,true,true)", name);
     } else if (arg.type === 'double') {
-        builder.write("struct.pack('<d', %s)", name);
+        builder.write("struct.pack('<d', %s.toString())", name);
     } else if (arg.type === 'string') {
         builder.write('TLObject.serializeBytes(%s)', name);
     } else if (arg.type === 'Bool') {
@@ -809,11 +819,14 @@ const writePatched = (outDir, namespaceTlobjects) => {
                 t.className,
                 PATCHED_TYPES[t.fullname]
             );
-
+            builder.writeln(`static CONSTRUCTOR_ID = 0x${t.id.toString(16)}`);
+            builder.writeln(`static SUBCLASS_OF_ID = 0x${crc32(t.result).toString("16")}`);
+            builder.writeln();
             builder.writeln('constructor() {');
             builder.writeln('super();');
             builder.writeln(`this.CONSTRUCTOR_ID = 0x${t.id.toString(16)}`);
             builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(t.result).toString("16")}`);
+
             builder.endBlock();
 
             //writeToJson(t, builder);

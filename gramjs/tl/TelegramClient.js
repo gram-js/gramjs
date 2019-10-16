@@ -30,7 +30,7 @@ class TelegramClient {
                     systemVersion: "1.8.3",
                     appVersion: "1.8",
                     langCode: "en",
-                    langPack: "en",
+                    langPack: "",
                     systemLangCode: "en",
                     query: x,
                     proxy: null,

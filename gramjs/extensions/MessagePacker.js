@@ -59,7 +59,7 @@ class MessagePacker {
                 this._queue.unshift(state);
                 break;
             }
-            this._log.warning(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`);
+            this._log.warn(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`);
             state.promise.reject("Request Payload is too big");
             size = 0;
             continue
