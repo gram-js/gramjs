@@ -2,20 +2,20 @@
  * Base class for all Remote Procedure Call errors.
  */
 class RPCError extends Error {
-
-
     constructor(request, message, code = null) {
-        super("RPCError {0}: {1}{2}"
-            .replace("{0}", code)
-            .replace("{1}", message)
-            .replace("{2}", RPCError._fmtRequest(request)));
+        super(
+            'RPCError {0}: {1}{2}'
+                .replace('{0}', code)
+                .replace('{1}', message)
+                .replace('{2}', RPCError._fmtRequest(request))
+        );
         this.code = code;
         this.message = message;
     }
 
     static _fmtRequest(request) {
         // TODO fix this
-        return ` (caused by ${request})`
+        return ` (caused by ${request})`;
     }
 }
 
@@ -24,9 +24,8 @@ class RPCError extends Error {
  */
 class InvalidDCError extends RPCError {
     code = 303;
-    message = 'ERROR_SEE_OTHER'
+    message = 'ERROR_SEE_OTHER';
 }
-
 
 /**
  * The query contains errors. In the event that a request was created
@@ -35,7 +34,7 @@ class InvalidDCError extends RPCError {
  */
 class BadRequestError extends RPCError {
     code = 400;
-    message = 'BAD_REQUEST'
+    message = 'BAD_REQUEST';
 }
 
 /**
@@ -44,7 +43,7 @@ class BadRequestError extends RPCError {
  */
 class UnauthorizedError extends RPCError {
     code = 401;
-    message = 'UNAUTHORIZED'
+    message = 'UNAUTHORIZED';
 }
 
 /**
@@ -53,7 +52,7 @@ class UnauthorizedError extends RPCError {
  */
 class ForbiddenError extends RPCError {
     code = 403;
-    message = 'FORBIDDEN'
+    message = 'FORBIDDEN';
 }
 
 /**
@@ -61,7 +60,7 @@ class ForbiddenError extends RPCError {
  */
 class NotFoundError extends RPCError {
     code = 404;
-    message = 'NOT_FOUND'
+    message = 'NOT_FOUND';
 }
 
 /**
@@ -70,7 +69,7 @@ class NotFoundError extends RPCError {
  */
 class AuthKeyError extends RPCError {
     code = 406;
-    message = 'AUTH_KEY'
+    message = 'AUTH_KEY';
 }
 
 /**
@@ -81,9 +80,7 @@ class AuthKeyError extends RPCError {
  */
 class FloodError extends RPCError {
     code = 420;
-    message = 'FLOOD'
-
-
+    message = 'FLOOD';
 }
 
 /**
@@ -92,8 +89,8 @@ class FloodError extends RPCError {
  * storage
  */
 class ServerError extends RPCError {
-    code = 500;  // Also witnessed as -500
-    message = 'INTERNAL'
+    code = 500; // Also witnessed as -500
+    message = 'INTERNAL';
 }
 
 /**
@@ -101,7 +98,7 @@ class ServerError extends RPCError {
  * call ``answerCallbackQuery`` will result in this "special" RPCError.
  */
 class TimedOutError extends RPCError {
-    code = 503;  // Only witnessed as -503
+    code = 503; // Only witnessed as -503
     message = 'Timeout';
 }
 
@@ -115,5 +112,5 @@ module.exports = {
     AuthKeyError,
     FloodError,
     ServerError,
-    TimedOutError
-}
+    TimedOutError,
+};

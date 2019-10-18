@@ -4,53 +4,50 @@ const fmtStrings = (...objects) => {
             if (['null', 'true', 'false'].includes(v)) {
                 object[k] = `<strong>${v}</strong>`;
             } else {
-                object[k] = v.replace(
-                    /((['"]).*\2)/,
-                    (_, g) => `<em>${g}</em>`
-                );
+                object[k] = v.replace(/((['"]).*\2)/, (_, g) => `<em>${g}</em>`);
             }
         }
     }
 };
 
 const KNOWN_NAMED_EXAMPLES = {
-    'message,string': "'Hello there!'",
+    'message,string': '\'Hello there!\'',
     'expires_at,date': 'datetime.timedelta(minutes=5)',
     'until_date,date': 'datetime.timedelta(days=14)',
     'view_messages,true': 'None',
     'send_messages,true': 'None',
     'limit,int': '100',
     'hash,int': '0',
-    'hash,string': "'A4LmkR23G0IGxBE71zZfo1'",
+    'hash,string': '\'A4LmkR23G0IGxBE71zZfo1\'',
     'min_id,int': '0',
     'max_id,int': '0',
     'min_id,long': '0',
     'max_id,long': '0',
     'add_offset,int': '0',
-    'title,string': "'My awesome title'",
-    'device_model,string': "'ASUS Laptop'",
-    'system_version,string': "'Arch Linux'",
-    'app_version,string': "'1.0'",
-    'system_lang_code,string': "'en'",
-    'lang_pack,string': "''",
-    'lang_code,string': "'en'",
+    'title,string': '\'My awesome title\'',
+    'device_model,string': '\'ASUS Laptop\'',
+    'system_version,string': '\'Arch Linux\'',
+    'app_version,string': '\'1.0\'',
+    'system_lang_code,string': '\'en\'',
+    'lang_pack,string': '\'\'',
+    'lang_code,string': '\'en\'',
     'chat_id,int': '478614198',
     'client_id,long': 'random.randrange(-2**63, 2**63)',
 };
 
 const KNOWN_TYPED_EXAMPLES = {
-    int128: "int.from_bytes(crypto.randomBytes(16), 'big')",
-    bytes: "b'arbitrary\\x7f data \\xfa here'",
+    int128: 'int.from_bytes(crypto.randomBytes(16), \'big\')',
+    bytes: 'b\'arbitrary\\x7f data \\xfa here\'',
     long: '-12398745604826',
-    string: "'some string here'",
+    string: '\'some string here\'',
     int: '42',
     date: 'datetime.datetime(2018, 6, 25)',
     double: '7.13',
     Bool: 'False',
     true: 'True',
-    InputChatPhoto: "client.upload_file('/path/to/photo.jpg')",
-    InputFile: "client.upload_file('/path/to/file.jpg')",
-    InputPeer: "'username'",
+    InputChatPhoto: 'client.upload_file(\'/path/to/photo.jpg\')',
+    InputFile: 'client.upload_file(\'/path/to/file.jpg\')',
+    InputPeer: '\'username\'',
 };
 
 fmtStrings(KNOWN_NAMED_EXAMPLES, KNOWN_TYPED_EXAMPLES);
@@ -129,7 +126,7 @@ class TLArg {
                 this.isFlag = true;
                 this.flagIndex = Number(flagMatch[1]);
                 // Update the type to match the exact type, not the "flagged" one
-                this.type = flagMatch[2];
+                [, , this.type] = flagMatch;
             }
 
             // Then check if the type is a Vector<REAL_TYPE>
@@ -143,7 +140,7 @@ class TLArg {
                 this.useVectorId = this.type.charAt(0) === 'V';
 
                 // Update the type to match the one inside the vector
-                this.type = vectorMatch[1];
+                [, this.type] = vectorMatch;
             }
 
             // See use_vector_id. An example of such case is ipPort in
@@ -179,7 +176,7 @@ class TLArg {
         let cls = this.type;
 
         if (cls.includes('.')) {
-            cls = cls.split('.')[1];
+            [, cls] = cls.split('.');
         }
 
         let result = {
@@ -252,7 +249,7 @@ class TLArg {
             return;
         }
 
-        let known =
+        const known =
             KNOWN_NAMED_EXAMPLES[`${this.name},${this.type}`] ||
             KNOWN_TYPED_EXAMPLES[this.type] ||
             KNOWN_TYPED_EXAMPLES[SYNONYMS[this.type]];
@@ -277,10 +274,7 @@ class TLArg {
     }
 
     omitExample() {
-        return (
-            this.isFlag ||
-            (this.canBeInferred && OMITTED_EXAMPLES.includes(this.name))
-        );
+        return this.isFlag || (this.canBeInferred && OMITTED_EXAMPLES.includes(this.name));
     }
 }
 

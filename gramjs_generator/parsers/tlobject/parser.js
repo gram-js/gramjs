@@ -51,9 +51,7 @@ const findall = (regex, str, matches) => {
 };
 
 const fromLine = (line, isFunction, methodInfo, layer) => {
-    const match = line.match(
-        /([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/
-    );
+    const match = line.match(/([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/);
 
     if (!match) {
         // Probably "vector#1cb5c415 {t:Type} # [ t ] = Vector t;"
@@ -64,7 +62,8 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
     const [, name] = match;
     methodInfo = methodInfo[name];
 
-    let usability, friendly;
+    let usability;
+    let friendly;
 
     if (methodInfo) {
         usability = methodInfo.usability;
@@ -77,10 +76,7 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
     return new TLObject(
         name,
         match[2],
-        argsMatch.map(
-            ([brace, name, argType]) =>
-                new TLArg(name, argType, brace !== undefined)
-        ),
+        argsMatch.map(([brace, name, argType]) => new TLArg(name, argType, brace !== undefined)),
         match[3],
         isFunction,
         usability,
@@ -95,11 +91,8 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
  * Note that the file is parsed completely before the function yields
  * because references to other objects may appear later in the file.
  */
-const parseTl = function*(filePath, layer, methods, ignoreIds = CORE_TYPES) {
-    const methodInfo = (methods || []).reduce(
-        (o, m) => ({ ...o, [m.name]: m }),
-        {}
-    );
+const parseTl = function* (filePath, layer, methods, ignoreIds = CORE_TYPES) {
+    const methodInfo = (methods || []).reduce((o, m) => ({ ...o, [m.name]: m }), {});
     const objAll = [];
     const objByName = {};
     const objByType = {};
@@ -165,9 +158,7 @@ const parseTl = function*(filePath, layer, methods, ignoreIds = CORE_TYPES) {
         }
 
         for (const arg of obj.args) {
-            arg.cls =
-                objByType[arg.type] ||
-                (arg.type in objByName ? [objByName[arg.type]] : []);
+            arg.cls = objByType[arg.type] || (arg.type in objByName ? [objByName[arg.type]] : []);
         }
     }
 
@@ -179,7 +170,7 @@ const parseTl = function*(filePath, layer, methods, ignoreIds = CORE_TYPES) {
 /**
  * Finds the layer used on the specified scheme.tl file.
  */
-const findLayer = filePath => {
+const findLayer = (filePath) => {
     const layerRegex = /^\/\/\s*LAYER\s*(\d+)$/;
 
     const file = fs.readFileSync(filePath, { encoding: 'utf-8' });

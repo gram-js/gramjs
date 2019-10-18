@@ -1,33 +1,30 @@
 const crypto = require('crypto');
-const fs = require("fs").promises;
+const fs = require('fs').promises;
 
 class Helpers {
-
     static readBigIntFromBuffer(buffer, little = true, signed = false) {
         let randBuffer = Buffer.from(buffer);
-        let bytesNumber = randBuffer.length;
+        const bytesNumber = randBuffer.length;
         if (little) {
             randBuffer = randBuffer.reverse();
         }
-        let bigInt = BigInt("0x" + randBuffer.toString("hex"));
-        if (signed && Math.floor(bigInt.toString("2").length / 8) >= bytesNumber) {
+        let bigInt = BigInt('0x' + randBuffer.toString('hex'));
+        if (signed && Math.floor(bigInt.toString('2').length / 8) >= bytesNumber) {
             bigInt -= 2n ** BigInt(bytesNumber * 8);
         }
         return bigInt;
     }
 
-
     static readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = false) {
-        let bitLength = bigInt.toString("2").length;
+        const bitLength = bigInt.toString('2').length;
 
-        let bytes = Math.ceil(bitLength / 8);
+        const bytes = Math.ceil(bitLength / 8);
         if (bytesNumber < bytes) {
-            throw new Error("OverflowError: int too big to convert")
+            throw new Error('OverflowError: int too big to convert');
         } else if (bytesNumber > bytes) {
-
         }
         if (!signed && bigInt < 0) {
-            throw new Error("Cannot convert to unsigned");
+            throw new Error('Cannot convert to unsigned');
         }
         let below = false;
         if (bigInt < 0) {
@@ -35,8 +32,8 @@ class Helpers {
             bigInt = -bigInt;
         }
 
-        let hex = bigInt.toString("16").padStart(bytesNumber * 2, "0");
-        let l = Buffer.from(hex, "hex");
+        const hex = bigInt.toString('16').padStart(bytesNumber * 2, '0');
+        let l = Buffer.from(hex, 'hex');
         if (little) {
             l = l.reverse();
         }
@@ -52,9 +49,7 @@ class Helpers {
                 for (let i = 0; i < l.length - 1; i++) {
                     l[i] = 255 - l[i];
                 }
-
             }
-
         }
         return l;
     }
@@ -67,7 +62,6 @@ class Helpers {
         return this.readBigIntFromBuffer(Helpers.generateRandomBytes(8), true, signed);
     }
 
-
     /**
      * .... really javascript
      * @param n {number}
@@ -77,7 +71,6 @@ class Helpers {
     static mod(n, m) {
         return ((n % m) + m) % m;
     }
-
 
     /**
      * Generates a random bytes array
@@ -93,19 +86,21 @@ class Helpers {
      * @param path
      * @returns {Promise<void>}
      */
-    static async loadSettings(path = "api/settings") {
-        let settings = {};
-        let left, right, value_pair;
+    static async loadSettings(path = 'api/settings') {
+        const settings = {};
+        let left;
+        let right;
+        let valuePair;
 
-        let data = await fs.readFile(path, 'utf-8');
+        const data = await fs.readFile(path, 'utf-8');
 
-        for (let line of data.toString().split('\n')) {
-            value_pair = line.split("=");
-            if (value_pair.length !== 2) {
+        for (const line of data.toString().split('\n')) {
+            valuePair = line.split('=');
+            if (valuePair.length !== 2) {
                 break;
             }
-            left = value_pair[0].replace(/ \r?\n|\r/g, '');
-            right = value_pair[1].replace(/ \r?\n|\r/g, '');
+            left = valuePair[0].replace(/ \r?\n|\r/g, '');
+            right = valuePair[1].replace(/ \r?\n|\r/g, '');
             if (!isNaN(right)) {
                 settings[left] = Number.parseInt(right);
             } else {
@@ -113,51 +108,28 @@ class Helpers {
             }
         }
 
-
         return settings;
-
-
     }
 
     /**
      * Calculate the key based on Telegram guidelines, specifying whether it's the client or not
-     * @param shared_key
-     * @param msg_key
+     * @param sharedKey
+     * @param msgKey
      * @param client
      * @returns {{iv: Buffer, key: Buffer}}
      */
 
-    static calcKey(shared_key, msg_key, client) {
-        let x = client === true ? 0 : 8;
-        let iv, key, sha1a, sha1b, sha1c, sha1d;
-        sha1a = Helpers.sha1(Buffer.concat([
-            msg_key,
-            shared_key.slice(x, (x + 32))
-        ]));
-        sha1b = Helpers.sha1(Buffer.concat([
-            shared_key.slice(x + 32, x + 48),
-            msg_key,
-            shared_key.slice(x + 48, x + 64)
-        ]));
-        sha1c = Helpers.sha1(Buffer.concat([
-            shared_key.slice(x + 64, x + 96),
-            msg_key
-        ]));
-        sha1d = Helpers.sha1(Buffer.concat([
-            msg_key,
-            shared_key.slice((x + 96), (x + 128))
-        ]));
-        key = Buffer.concat([
-            sha1a.slice(0, 8),
-            sha1b.slice(8, 20),
-            sha1c.slice(4, 16)]);
-        iv = Buffer.concat([
-            sha1a.slice(8, 20),
-            sha1b.slice(0, 8),
-            sha1c.slice(16, 20),
-            sha1d.slice(0, 8)]);
-        return {key, iv}
-
+    static calcKey(sharedKey, msgKey, client) {
+        const x = client === true ? 0 : 8;
+        const sha1a = Helpers.sha1(Buffer.concat([msgKey, sharedKey.slice(x, x + 32)]));
+        const sha1b = Helpers.sha1(
+            Buffer.concat([sharedKey.slice(x + 32, x + 48), msgKey, sharedKey.slice(x + 48, x + 64)])
+        );
+        const sha1c = Helpers.sha1(Buffer.concat([sharedKey.slice(x + 64, x + 96), msgKey]));
+        const sha1d = Helpers.sha1(Buffer.concat([msgKey, sharedKey.slice(x + 96, x + 128)]));
+        const key = Buffer.concat([sha1a.slice(0, 8), sha1b.slice(8, 20), sha1c.slice(4, 16)]);
+        const iv = Buffer.concat([sha1a.slice(8, 20), sha1b.slice(0, 8), sha1c.slice(16, 20), sha1d.slice(0, 8)]);
+        return { key, iv };
     }
 
     /**
@@ -167,8 +139,6 @@ class Helpers {
      */
     static calcMsgKey(data) {
         return Helpers.sha1(data).slice(4, 20);
-
-
     }
 
     /**
@@ -180,12 +150,12 @@ class Helpers {
     static generateKeyDataFromNonce(serverNonce, newNonce) {
         serverNonce = Helpers.readBufferFromBigInt(serverNonce, 16, true, true);
         newNonce = Helpers.readBufferFromBigInt(newNonce, 32, true, true);
-        let hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
-        let hash2 = Helpers.sha1(Buffer.concat([serverNonce, newNonce]));
-        let hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));
-        let keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)]);
-        let ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)]);
-        return {key: keyBuffer, iv: ivBuffer}
+        const hash1 = Helpers.sha1(Buffer.concat([newNonce, serverNonce]));
+        const hash2 = Helpers.sha1(Buffer.concat([serverNonce, newNonce]));
+        const hash3 = Helpers.sha1(Buffer.concat([newNonce, newNonce]));
+        const keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)]);
+        const ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)]);
+        return { key: keyBuffer, iv: ivBuffer };
     }
 
     /**
@@ -194,10 +164,9 @@ class Helpers {
      * @returns {Buffer}
      */
     static sha1(data) {
-        let shaSum = crypto.createHash('sha1');
+        const shaSum = crypto.createHash('sha1');
         shaSum.update(data);
         return shaSum.digest();
-
     }
 
     /**
@@ -206,12 +175,10 @@ class Helpers {
      * @returns {Buffer}
      */
     static sha256(data) {
-        let shaSum = crypto.createHash('sha256');
+        const shaSum = crypto.createHash('sha256');
         shaSum.update(data);
         return shaSum.digest();
-
     }
-
 
     /**
      * Reads a Telegram-encoded string
@@ -220,10 +187,10 @@ class Helpers {
      * @returns {{string: string, offset: number}}
      */
     static tgReadString(buffer, offset) {
-        let res = Helpers.tgReadByte(buffer, offset);
+        const res = Helpers.tgReadByte(buffer, offset);
         offset = res.offset;
-        let string = res.data.toString("utf8");
-        return {string, offset}
+        const string = res.data.toString('utf8');
+        return { string, offset };
     }
 
     /**
@@ -232,24 +199,23 @@ class Helpers {
      * @param offset {number}
      */
     static tgReadObject(reader, offset) {
-        let constructorId = reader.readUInt32LE(offset);
+        const constructorId = reader.readUInt32LE(offset);
         offset += 4;
-        let clazz = tlobjects[constructorId];
+        const clazz = tlobjects[constructorId];
         if (clazz === undefined) {
             /**
              * The class was None, but there's still a
              *  chance of it being a manually parsed value like bool!
              */
             if (constructorId === 0x997275b5) {
-                return true
+                return true;
             } else if (constructorId === 0xbc799737) {
-                return false
+                return false;
             }
-            throw Error("type not found " + constructorId);
+            throw Error('type not found ' + constructorId);
         }
         return undefined;
     }
-
 
     /**
      *
@@ -258,9 +224,10 @@ class Helpers {
      * @returns {{data: Buffer, offset: Number}}
      */
     static tgReadByte(buffer, offset) {
-        let firstByte = buffer[offset];
+        const firstByte = buffer[offset];
         offset += 1;
-        let padding, length;
+        let padding;
+        let length;
         if (firstByte === 254) {
             length = buffer.readInt8(offset) | (buffer.readInt8(offset + 1) << 8) | (buffer.readInt8(offset + 2) << 16);
             offset += 3;
@@ -270,7 +237,7 @@ class Helpers {
             padding = (length + 1) % 4;
         }
 
-        let data = buffer.slice(offset, offset + length);
+        const data = buffer.slice(offset, offset + length);
 
         offset += length;
 
@@ -279,12 +246,11 @@ class Helpers {
             offset += padding;
         }
 
-        return {data: data, offset: offset}
+        return { data: data, offset: offset };
     }
 
-
     static tgWriteString(string) {
-        return Helpers.tgWriteBytes(Buffer.from(string, "utf8"));
+        return Helpers.tgWriteBytes(Buffer.from(string, 'utf8'));
     }
 
     static tgWriteBytes(data) {
@@ -309,12 +275,9 @@ class Helpers {
                 Buffer.from([(data.length >> 16) % 256]),
                 data,
             ]);
-
         }
 
         return Buffer.concat([buffer, Buffer.alloc(padding).fill(0)]);
-
-
     }
 
     /**
@@ -329,7 +292,7 @@ class Helpers {
         let result = 1n;
         let x = a;
         while (b > 0n) {
-            let leastSignificantBit = b % 2n;
+            const leastSignificantBit = b % 2n;
             b = b / 2n;
             if (leastSignificantBit === 1n) {
                 result = result * x;
@@ -339,7 +302,7 @@ class Helpers {
             x = x % n;
         }
         return result;
-    };
+    }
 
     /**
      * returns a random int from min (inclusive) and max (inclusive)
@@ -358,7 +321,7 @@ class Helpers {
      * @param ms time in milliseconds
      * @returns {Promise}
      */
-    static sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    static sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     /**
      * Checks if the obj is an array
@@ -367,19 +330,17 @@ class Helpers {
      */
     static isArrayLike(obj) {
         if (!obj) return false;
-        let l = obj.length;
+        const l = obj.length;
         if (typeof l != 'number' || l < 0) return false;
         if (Math.floor(l) !== l) return false;
         // fast check
-        if (l > 0 && !((l - 1) in obj)) return false;
+        if (l > 0 && !(l - 1 in obj)) return false;
         // more complete check (optional)
         for (let i = 0; i < l; ++i) {
             if (!(i in obj)) return false;
         }
         return true;
     }
-
 }
 
 module.exports = Helpers;
-

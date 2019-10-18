@@ -22,33 +22,23 @@ const generateErrors = (errors, f) => {
     }
 
     // Imports and new subclass creation
-    f.write(
-        `const { RPCError, ${[...importBase.values()].join(
-            ', '
-        )} } = require('./rpcbaseerrors');`
-    );
+    f.write(`const { RPCError, ${[...importBase.values()].join(', ')} } = require('./rpcbaseerrors');`);
 
-    f.write("\nconst format = require('string-format');");
+    f.write('\nconst format = require(\'string-format\');');
 
     for (const [cls, intCode] of Object.entries(createBase)) {
-        f.write(
-            `\n\nclass ${cls} extends RPCError {\n    constructor() {\n        this.code = ${intCode};\n    }\n}`
-        );
+        f.write(`\n\nclass ${cls} extends RPCError {\n    constructor() {\n        this.code = ${intCode};\n    }\n}`);
     }
 
     // Error classes generation
     for (const error of errors) {
-        f.write(
-            `\n\nclass ${error.name} extends ${error.subclass} {\n    constructor(args) {\n        `
-        );
+        f.write(`\n\nclass ${error.name} extends ${error.subclass} {\n    constructor(args) {\n        `);
 
         if (error.hasCaptures) {
-            f.write(
-                `const ${error.captureName} = Number(args.capture || 0);\n        `
-            );
+            f.write(`const ${error.captureName} = Number(args.capture || 0);\n        `);
         }
 
-        const capture = error.description.replace(/'/g, "\\'");
+        const capture = error.description.replace(/'/g, '\\\'');
 
         if (error.hasCaptures) {
             f.write(`super(format('${capture}', {${error.captureName}})`);
@@ -59,9 +49,7 @@ const generateErrors = (errors, f) => {
         f.write(' + RPCError._fmtRequest(args.request));\n');
 
         if (error.hasCaptures) {
-            f.write(
-                `        this.${error.captureName} = ${error.captureName};\n`
-            );
+            f.write(`        this.${error.captureName} = ${error.captureName};\n`);
         }
 
         f.write('    }\n}\n');
@@ -80,18 +68,17 @@ const generateErrors = (errors, f) => {
     }
 
     f.write('];');
-    f.write("module.exports = {");
+    f.write('module.exports = {');
     for (const error of regexMatch) {
         f.write(`     ${error.name},\n`);
     }
     for (const error of exactMatch) {
         f.write(`     ${error.name},\n`);
     }
-    f.write("     rpcErrorsObject,\n");
-    f.write("     rpcErrorRe,\n");
+    f.write('     rpcErrorsObject,\n');
+    f.write('     rpcErrorRe,\n');
 
-    f.write("}");
-
+    f.write('}');
 };
 
 module.exports = {

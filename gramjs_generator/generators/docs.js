@@ -19,19 +19,19 @@ const CORE_TYPES = new Set([
     'date',
 ]);
 
-const mkdir = path => fs.mkdirSync(path, { recursive: true });
+const mkdir = (path) => fs.mkdirSync(path, { recursive: true });
 
-const titleCase = text =>
+const titleCase = (text) =>
     text
         .toLowerCase()
         .split(/(\W)/)
-        .map(word => `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`)
+        .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`)
         .join('');
 
 /**
  * ``ClassName -> class_name.html``.
  */
-const getFileName = tlobject => {
+const getFileName = (tlobject) => {
     const name = tlobject instanceof TLObject ? tlobject.name : tlobject;
     // Courtesy of http://stackoverflow.com/a/1176023/4759433
     const s1 = name.replace(/(.)([A-Z][a-z]+)/, '$1_$2');
@@ -42,7 +42,7 @@ const getFileName = tlobject => {
 /**
  * ``TLObject -> const { ... } = require(...);``.
  */
-const getImportCode = tlobject => {
+const getImportCode = (tlobject) => {
     const kind = tlobject.isFunction ? 'functions' : 'types';
     const ns = tlobject.namespace ? `/${tlobject.namespace}` : '';
     return `const { ${tlobject.className} } = require('gramjs/tl/${kind}${ns}');`;
@@ -51,7 +51,7 @@ const getImportCode = tlobject => {
 /**
  * Returns the path for the given TLObject.
  */
-const getPathFor = tlobject => {
+const getPathFor = (tlobject) => {
     let outDir = tlobject.isFunction ? 'methods' : 'constructors';
 
     if (tlobject.namespace) {
@@ -64,7 +64,7 @@ const getPathFor = tlobject => {
 /**
  * Similar to `getPathFor` but for only type names.
  */
-const getPathForType = type => {
+const getPathForType = (type) => {
     if (CORE_TYPES.has(type.toLowerCase())) {
         return `index.html#${type.toLowerCase()}`;
     } else if (type.includes('.')) {
@@ -78,7 +78,7 @@ const getPathForType = type => {
 /**
  * Finds the <title> for the given HTML file, or (Unknown).
  */
-const findTitle = htmlFile => {
+const findTitle = (htmlFile) => {
     const f = fs.readFileSync(htmlFile, { encoding: 'utf-8' });
 
     for (const line of f.split('\n')) {
@@ -97,7 +97,7 @@ const findTitle = htmlFile => {
 /**
  * Builds the menu used for the current ``DocumentWriter``.
  */
-const buildMenu = docs => {
+const buildMenu = (docs) => {
     const paths = [];
     let current = docs.filename;
 
@@ -135,9 +135,7 @@ const generateIndex = (folder, paths, botsIndex, botsIndexPaths) => {
     const INDEX = 'index.html';
     const BOT_INDEX = 'botindex.html';
 
-    for (const item of botsIndexPaths.length
-        ? botsIndexPaths
-        : fs.readdirSync(folder)) {
+    for (const item of botsIndexPaths.length ? botsIndexPaths : fs.readdirSync(folder)) {
         const fullPath = botsIndexPaths.length ? item : `${folder}/${item}`;
 
         if (fs.statSync(fullPath).isDirectory()) {
@@ -211,7 +209,7 @@ const generateIndex = (folder, paths, botsIndex, botsIndexPaths) => {
 
     files
         .sort((x, y) => x.localeCompare(y))
-        .forEach(file => {
+        .forEach((file) => {
             docs.addRow(findTitle(file), file);
         });
 
@@ -223,7 +221,7 @@ const generateIndex = (folder, paths, botsIndex, botsIndexPaths) => {
 /**
  * Generates a proper description for the given argument.
  */
-const getDescription = arg => {
+const getDescription = (arg) => {
     const desc = [];
     let otherwise = false;
 
@@ -308,15 +306,15 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
     // * Generating the types documentation, showing available constructors.
     const paths = {
         '404': '404.html',
-        css: 'css',
-        arrow: 'img/arrow.svg',
+        'css': 'css',
+        'arrow': 'img/arrow.svg',
         'search.js': 'js/search.js',
-        indexAll: 'index.html',
-        botIndex: 'botindex.html',
-        indexTypes: 'types/index.html',
-        indexMethods: 'methods/index.html',
-        indexConstructors: 'constructors/index.html',
-        defaultCss: 'light',
+        'indexAll': 'index.html',
+        'botIndex': 'botindex.html',
+        'indexTypes': 'types/index.html',
+        'indexMethods': 'methods/index.html',
+        'indexConstructors': 'constructors/index.html',
+        'defaultCss': 'light',
     };
 
     const typeToConstructors = {};
@@ -383,14 +381,14 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         docs.writeTitle(tlobject.isFunction ? 'Returns' : 'Belongs to', 3);
 
         let [genericArg] = tlobject.args
-            .filter(arg => arg.genericDefinition)
-            .map(arg => arg.name);
+            .filter((arg) => arg.genericDefinition)
+            .map((arg) => arg.name);
 
         if (tlobject.result === genericArg) {
             //  We assume it's a function returning a generic type
             [genericArg] = tlobject.args
-                .filter(arg => arg.isGeneric)
-                .map(arg => arg.name);
+                .filter((arg) => arg.isGeneric)
+                .map((arg) => arg.name);
 
             docs.writeText(
                 `This function returns the result of whatever the result from invoking the request passed through <i>${genericArg}</i> is.`
@@ -433,7 +431,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         // on the generated code (flags go last)
         const args = tlobject
             .sortedArgs()
-            .filter(a => !a.flagIndicator && !a.genericDefinition);
+            .filter((a) => !a.flagIndicator && !a.genericDefinition);
 
         if (args.length) {
             // Writing parameters
@@ -476,7 +474,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
 
             if (!errors || !errors.length) {
                 docs.writeText(
-                    "This request can't cause any RPC error as far as we know."
+                    'This request can\'t cause any RPC error as far as we know.'
                 );
             } else {
                 docs.writeText(
@@ -561,11 +559,10 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         }
 
         // Since we don't have access to the full TLObject, split the type
-        let namespace = null;
         let name = t;
 
         if (t.includes('.')) {
-            [namespace, name] = t.split('.');
+            [, name] = t.split('.');
         }
 
         const docs = new DocsWriter(filename, getPathForType).open();
@@ -625,7 +622,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         // List all the methods which take this type as input
         docs.writeTitle('Methods accepting this type as input', 3);
         const otherMethods = tlobjects
-            .filter(u => u.isFunction && u.args.some(a => a.type === t))
+            .filter((u) => u.isFunction && u.args.some((a) => a.type === t))
             .sort((x, y) => x.name.localeCompare(y.name));
 
         if (!otherMethods.length) {
@@ -652,7 +649,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         // List every other type which has this type as a member
         docs.writeTitle('Other types containing this type', 3);
         const otherTypes = tlobjects
-            .filter(u => !u.isFunction && u.args.some(a => a.type === t))
+            .filter((u) => !u.isFunction && u.args.some((a) => a.type === t))
             .sort((x, y) => x.name.localeCompare(y.name));
 
         if (!otherTypes.length) {
@@ -718,7 +715,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         layer,
     });
 
-    let fmt = xs => {
+    let fmt = (xs) => {
         const zs = []; // create an object to hold those which have duplicated keys
 
         for (const x of xs) {
@@ -726,10 +723,10 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
         }
 
         return xs
-            .map(x =>
-                zs[x.className] && x.namespace
-                    ? `"${x.namespace}.${x.className}"`
-                    : `"${x.className}"`
+            .map((x) =>
+                zs[x.className] && x.namespace ?
+                    `"${x.namespace}.${x.className}"` :
+                    `"${x.className}"`
             )
             .join(', ');
     };
@@ -740,7 +737,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
     fmt = (xs, formatter) => {
         return xs
             .map(
-                x =>
+                (x) =>
                     `"${formatter(x).replace(
                         new RegExp(`\\${path.sep}`, 'g'),
                         '/'
@@ -749,7 +746,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
             .join(', ');
     };
 
-    const typeNames = fmt([...types], x => x);
+    const typeNames = fmt([...types], (x) => x);
 
     const requestUrls = fmt(methods_, getPathFor);
     const typeUrls = fmt([...types], getPathForType);
@@ -766,7 +763,7 @@ const writeHtmlPages = (tlobjects, methods, layer, inputRes) => {
     });
 };
 
-const copyResources = resDir => {
+const copyResources = (resDir) => {
     for (const [dirname, files] of [
         ['css', ['docs.light.css', 'docs.dark.css']],
         ['img', ['arrow.svg']],
@@ -785,7 +782,7 @@ const copyResources = resDir => {
 /**
  * Pre-create the required directory structure.
  */
-const createStructure = tlobjects => {
+const createStructure = (tlobjects) => {
     const typeNs = new Set();
     const methodsNs = new Set();
 

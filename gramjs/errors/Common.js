@@ -2,15 +2,14 @@
  * Errors not related to the Telegram API itself
  */
 
-const {TLRequest} = require("../tl");
-const struct = require("python-struct");
+const struct = require('python-struct');
 
 /**
  * Occurs when a read operation was cancelled.
  */
 class ReadCancelledError extends Error {
     constructor() {
-        super("The read operation was cancelled.");
+        super('The read operation was cancelled.');
     }
 }
 
@@ -19,9 +18,8 @@ class ReadCancelledError extends Error {
  * when trying to read a TLObject with an invalid constructor code.
  */
 class TypeNotFoundError extends Error {
-
     constructor(invalidConstructorId, remaining) {
-        super(`Could not find a matching Constructor ID for the TLObject that was supposed to be 
+        super(`Could not find a matching Constructor ID for the TLObject that was supposed to be
         read with ID ${invalidConstructorId}. Most likely, a TLObject was trying to be read when
          it should not be read. Remaining bytes: ${remaining}`);
         this.invalidConstructorId = invalidConstructorId;
@@ -47,27 +45,25 @@ class InvalidChecksumError extends Error {
  */
 class InvalidBufferError extends Error {
     constructor(payload) {
-        let code = (-struct.unpack("<i", payload)[0]);
-        if ((payload.length === 4)) {
+        const [code] = -struct.unpack('<i', payload);
+        if (payload.length === 4) {
             super(`Invalid response buffer (HTTP code ${code})`);
         } else {
-            this.code = null;
             super(`Invalid response buffer (too short ${payload})`);
+            this.code = null;
         }
         this.code = code;
         this.payload = payload;
-
     }
 }
-
 
 /**
  * Generic security error, mostly used when generating a new AuthKey.
  */
 class SecurityError extends Error {
     constructor(...args) {
-        if (!args) {
-            args = ["A security check failed."];
+        if (!args.length) {
+            args = ['A security check failed.'];
         }
         super(...args);
     }
@@ -79,7 +75,7 @@ class SecurityError extends Error {
  */
 class CdnFileTamperedError extends SecurityError {
     constructor() {
-        super("The CDN file has been altered and its download cancelled.");
+        super('The CDN file has been altered and its download cancelled.');
     }
 }
 
@@ -88,7 +84,7 @@ class CdnFileTamperedError extends SecurityError {
  */
 class AlreadyInConversationError extends Error {
     constructor() {
-        super("Cannot open exclusive conversation in a chat that already has one open conversation");
+        super('Cannot open exclusive conversation in a chat that already has one open conversation');
     }
 }
 
@@ -97,45 +93,49 @@ class AlreadyInConversationError extends Error {
  */
 class BadMessageError extends Error {
     static ErrorMessages = {
-        16: 'msg_id too low (most likely, client time is wrong it would be worthwhile to ' +
+        16:
+            'msg_id too low (most likely, client time is wrong it would be worthwhile to ' +
             'synchronize it using msg_id notifications and re-send the original message ' +
             'with the “correct” msg_id or wrap it in a container with a new msg_id if the ' +
             'original message had waited too long on the client to be transmitted).',
 
-        17: 'msg_id too high (similar to the previous case, the client time has to be ' +
+        17:
+            'msg_id too high (similar to the previous case, the client time has to be ' +
             'synchronized, and the message re-sent with the correct msg_id).',
 
-        18: 'Incorrect two lower order msg_id bits (the server expects client message msg_id ' +
+        18:
+            'Incorrect two lower order msg_id bits (the server expects client message msg_id ' +
             'to be divisible by 4).',
 
-        19: 'Container msg_id is the same as msg_id of a previously received message ' +
-            '(this must never happen).',
+        19: 'Container msg_id is the same as msg_id of a previously received message ' + '(this must never happen).',
 
-        20: 'Message too old, and it cannot be verified whether the server has received a ' +
+        20:
+            'Message too old, and it cannot be verified whether the server has received a ' +
             'message with this msg_id or not.',
 
-        32: 'msg_seqno too low (the server has already received a message with a lower ' +
+        32:
+            'msg_seqno too low (the server has already received a message with a lower ' +
             'msg_id but with either a higher or an equal and odd seqno).',
 
-        33: 'msg_seqno too high (similarly, there is a message with a higher msg_id but with ' +
+        33:
+            'msg_seqno too high (similarly, there is a message with a higher msg_id but with ' +
             'either a lower or an equal and odd seqno).',
 
         34: 'An even msg_seqno expected (irrelevant message), but odd received.',
 
         35: 'Odd msg_seqno expected (relevant message), but even received.',
 
-        48: 'Incorrect server salt (in this case, the bad_server_salt response is received with ' +
+        48:
+            'Incorrect server salt (in this case, the bad_server_salt response is received with ' +
             'the correct salt, and the message is to be re-sent with it).',
 
-        64: 'Invalid container.'
+        64: 'Invalid container.',
     };
 
     constructor(code) {
         super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`);
         this.code = code;
-
     }
-
 }
 
 // TODO : Support multi errors.
@@ -148,5 +148,5 @@ module.exports = {
     SecurityError,
     CdnFileTamperedError,
     AlreadyInConversationError,
-    BadMessageError
+    BadMessageError,
 };

@@ -136,7 +136,7 @@ const generate = (which, action = 'gen') => {
         console.log(action, 'JSON schema...');
 
         const jsonFiles = TLOBJECT_IN_TLS.map(
-            x => x.slice(0, x.lastIndexOf('.')) + '.json'
+            (x) => x.slice(0, x.lastIndexOf('.')) + '.json'
         );
 
         if (clean) {

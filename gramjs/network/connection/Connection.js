@@ -1,6 +1,6 @@
-const {PromiseSocket, TimeoutError} = require("promise-socket");
-const {Socket} = require("net");
-const Helpers = require("../../utils/Helpers");
+const { PromiseSocket } = require('promise-socket');
+const { Socket } = require('net');
+const Helpers = require('../../utils/Helpers');
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -14,7 +14,7 @@ const Helpers = require("../../utils/Helpers");
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    packetCodec = null;
+    PacketCodecClass = null;
 
     constructor(ip, port, dcId, loggers) {
         this._ip = ip;
@@ -27,18 +27,17 @@ class Connection {
         this._sendTask = null;
         this._recvTask = null;
         this._codec = null;
-        this._obfuscation = null;  // TcpObfuscated and MTProxy
+        this._obfuscation = null; // TcpObfuscated and MTProxy
         this._sendArray = [];
         this._recvArray = [];
         this.socket = new PromiseSocket(new Socket());
-
     }
 
     async _connect() {
         await this.socket.connect(this._port, this._ip);
 
-        //await this.socket.connect({host: this._ip, port: this._port});
-        this._codec = new this.packetCodec(this);
+        // await this.socket.connect({host: this._ip, port: this._port});
+        this._codec = new this.PacketCodecClass(this);
         this._initConn();
     }
 
@@ -56,7 +55,7 @@ class Connection {
 
     async send(data) {
         if (!this._connected) {
-            throw new Error("Not connected");
+            throw new Error('Not connected');
         }
         while (this._sendArray.length !== 0) {
             await Helpers.sleep(1000);
@@ -66,35 +65,31 @@ class Connection {
 
     async recv() {
         while (this._connected) {
-
             while (this._recvArray.length === 0) {
                 await Helpers.sleep(1000);
             }
-            let result = this._recvArray.pop();
+            const result = this._recvArray.pop();
 
-            if (result) { // null = sentinel value = keep trying
-                return result
+            // null = sentinel value = keep trying
+            if (result) {
+                return result;
             }
         }
-        throw new Error("Not connected");
+        throw new Error('Not connected');
     }
 
     async _sendLoop() {
         // TODO handle errors
         try {
-
-
             while (this._connected) {
                 while (this._sendArray.length === 0) {
                     await Helpers.sleep(1000);
                 }
                 await this._send(this._sendArray.pop());
-
             }
         } catch (e) {
             console.log(e);
-            this._log.info('The server closed the connection while sending')
-
+            this._log.info('The server closed the connection while sending');
         }
     }
 
@@ -105,7 +100,7 @@ class Connection {
                 data = await this._recv();
             } catch (e) {
                 console.log(e);
-                this._log.info("The server closed the connection")
+                this._log.info('The server closed the connection');
             }
             while (this._recvArray.length !== 0) {
                 await Helpers.sleep(1000);
@@ -122,9 +117,8 @@ class Connection {
     }
 
     async _send(data) {
-        let encodedPacket = this._codec.encodePacket(data);
+        const encodedPacket = this._codec.encodePacket(data);
         await this.socket.write(encodedPacket);
-
     }
 
     async _recv() {
@@ -132,9 +126,8 @@ class Connection {
     }
 
     toString() {
-        return `${this._ip}:${this._port}/${this.constructor.name.replace("Connection", "")}`
+        return `${this._ip}:${this._port}/${this.constructor.name.replace('Connection', '')}`;
     }
-
 }
 
 class PacketCodec {
@@ -143,18 +136,18 @@ class PacketCodec {
     }
 
     encodePacket(data) {
-        throw new Error("Not Implemented")
+        throw new Error('Not Implemented');
 
-        //Override
+        // Override
     }
 
     async readPacket(reader) {
-        //override
-        throw new Error("Not Implemented")
+        // override
+        throw new Error('Not Implemented');
     }
 }
 
 module.exports = {
     Connection,
-    PacketCodec
+    PacketCodec,
 };

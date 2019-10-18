@@ -1,9 +1,6 @@
-const {TLObject} = require("../tlobject");
-const {RpcError} = require("../types");
-const GZIPPacked = require("./GZIPPacked");
-console.log(TLObject);
-console.log(RpcError);
-console.log(GZIPPacked);
+const { TLObject } = require('../tlobject');
+const { RpcError } = require('../types');
+const GZIPPacked = require('./GZIPPacked');
 
 class RPCResult extends TLObject {
     static CONSTRUCTOR_ID = 0xf35c6d01;
@@ -17,22 +14,20 @@ class RPCResult extends TLObject {
     }
 
     static async fromReader(reader) {
-        let msgId = reader.readLong();
-        let innerCode = reader.readInt(false);
+        const msgId = reader.readLong();
+        const innerCode = reader.readInt(false);
         if (innerCode === RpcError.CONSTRUCTOR_ID) {
             return new RPCResult(msgId, null, RpcError.fromReader(reader));
         }
         if (innerCode === GZIPPacked.CONSTRUCTOR_ID) {
-            return new RPCResult(msgId, (await GZIPPacked.fromReader(reader)).data)
+            return new RPCResult(msgId, (await GZIPPacked.fromReader(reader)).data);
         }
         reader.seek(-4);
         // This reader.read() will read more than necessary, but it's okay.
         // We could make use of MessageContainer's length here, but since
         // it's not necessary we don't need to care about it.
-        return new RPCResult(msgId, reader.read(), null)
-
+        return new RPCResult(msgId, reader.read(), null);
     }
-
 }
 
 module.exports = RPCResult;

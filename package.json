@@ -28,8 +28,11 @@
     "string-format": "^2.0.0"
   },
   "devDependencies": {
+    "babel-eslint": "^10.0.3",
     "bigint-buffer": "^1.1.2",
     "biguintle": "^1.0.3",
+    "eslint": "^6.5.1",
+    "eslint-config-google": "^0.14.0",
     "leemon": "^6.2.0"
   }
 }

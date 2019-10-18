@@ -19,7 +19,7 @@ class DocsWriter {
         this.menuSeparatorTag = null;
 
         // Utility functions
-        this.typeToPath = t => this._rel(typeToPath(t));
+        this.typeToPath = (t) => this._rel(typeToPath(t));
 
         // Control signals
         this.menuBegan = false;
@@ -212,8 +212,8 @@ class DocsWriter {
         // Now write the resulting type (result from a function/type)
         this.write(' = ');
         const [genericName] = tlobject.args
-            .filter(arg => arg.genericDefinition)
-            .map(arg => arg.name);
+            .filter((arg) => arg.genericDefinition)
+            .map((arg) => arg.name);
 
         if (tlobject.result === genericName) {
             // Generic results cannot have any link
@@ -324,7 +324,7 @@ class DocsWriter {
         this.write(
             `<button onclick="cp('${textToCopy.replace(
                 /'/g,
-                "\\'"
+                '\\\''
             )}');">${text}</button>`
         );
     }
@@ -337,7 +337,7 @@ class DocsWriter {
         }
     }
 
-    /***
+    /**
      * Ends the whole document. This should be called the last
      */
     endBody() {

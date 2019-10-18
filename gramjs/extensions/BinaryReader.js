@@ -1,10 +1,10 @@
-const unpack = require("python-struct").unpack;
-const {TypeNotFoundError} = require("../errors/Common");
-const {coreObjects} = require("../tl/core");
-const {tlobjects} = require("../tl/alltlobjects");
-const Helpers = require("../utils/Helpers");
-class BinaryReader {
+const { unpack } = require('python-struct');
+const { TypeNotFoundError } = require('../errors/Common');
+const { coreObjects } = require('../tl/core');
+const { tlobjects } = require('../tl/alltlobjects');
+const Helpers = require('../utils/Helpers');
 
+class BinaryReader {
     /**
      * Small utility class to read binary data.
      * @param data {Buffer}
@@ -80,7 +80,7 @@ class BinaryReader {
      * @param signed {Boolean}
      */
     readLargeInt(bits, signed = true) {
-        let buffer = this.read(Math.floor(bits / 8));
+        const buffer = this.read(Math.floor(bits / 8));
         return Helpers.readBigIntFromBuffer(buffer, true, signed);
     }
 
@@ -92,10 +92,12 @@ class BinaryReader {
         if (length === -1) {
             length = this.stream.length - this.offset;
         }
-        let result = this.stream.slice(this.offset, this.offset + length);
+        const result = this.stream.slice(this.offset, this.offset + length);
         this.offset += length;
         if (result.length !== length) {
-            throw Error(`No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`)
+            throw Error(
+                `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`
+            );
         }
         this._last = result;
         return result;
@@ -118,16 +120,17 @@ class BinaryReader {
      * @returns {Buffer}
      */
     tgReadBytes() {
-        let firstByte = this.readByte();
-        let padding, length;
+        const firstByte = this.readByte();
+        let padding;
+        let length;
         if (firstByte === 254) {
-            length = this.readByte() | this.readByte() << 8 | this.readByte() << 16;
+            length = this.readByte() | (this.readByte() << 8) | (this.readByte() << 16);
             padding = length % 4;
         } else {
             length = firstByte;
             padding = (length + 1) % 4;
         }
-        let data = this.read(length);
+        const data = this.read(length);
 
         if (padding > 0) {
             padding = 4 - padding;
@@ -142,7 +145,7 @@ class BinaryReader {
      * @returns {string}
      */
     tgReadString() {
-        return this.tgReadBytes().toString("utf-8");
+        return this.tgReadBytes().toString('utf-8');
     }
 
     /**
@@ -150,13 +153,15 @@ class BinaryReader {
      * @returns {boolean}
      */
     tgReadBool() {
-        let value = this.readInt(false);
-        if (value === 0x997275b5) { // boolTrue
+        const value = this.readInt(false);
+        if (value === 0x997275b5) {
+            // boolTrue
             return true;
-        } else if (value === 0xbc799737) { //boolFalse
+        } else if (value === 0xbc799737) {
+            // boolFalse
             return false;
         } else {
-            throw new Error(`Invalid boolean code ${value.toString("16")}`);
+            throw new Error(`Invalid boolean code ${value.toString('16')}`);
         }
     }
 
@@ -166,7 +171,7 @@ class BinaryReader {
      * @returns {Date}
      */
     tgReadDate() {
-        let value = this.readInt();
+        const value = this.readInt();
         return new Date(value * 1000);
     }
 
@@ -174,21 +179,24 @@ class BinaryReader {
      * Reads a Telegram object.
      */
     tgReadObject() {
-        let constructorId = this.readInt(false);
+        const constructorId = this.readInt(false);
         let clazz = tlobjects[constructorId];
         if (clazz === undefined) {
             /**
              * The class was None, but there's still a
              * chance of it being a manually parsed value like bool!
              */
-            let value = constructorId;
-            if (value === 0x997275b5) { // boolTrue
-                return true
-            } else if (value === 0xbc799737) {  // boolFalse
+            const value = constructorId;
+            if (value === 0x997275b5) {
+                // boolTrue
+                return true;
+            } else if (value === 0xbc799737) {
+                // boolFalse
                 return false;
-            } else if (value === 0x1cb5c415) {  // Vector
-                let temp = [];
-                let length = this.readInt();
+            } else if (value === 0x1cb5c415) {
+                // Vector
+                const temp = [];
+                const length = this.readInt();
                 for (let i = 0; i < length; i++) {
                     temp.push(this.tgReadObject());
                 }
@@ -200,15 +208,13 @@ class BinaryReader {
             if (clazz === undefined) {
                 // If there was still no luck, give up
                 this.seek(-4); // Go back
-                let pos = this.tellPosition();
-                let error = new TypeNotFoundError(constructorId, this.read());
+                const pos = this.tellPosition();
+                const error = new TypeNotFoundError(constructorId, this.read());
                 this.setPosition(pos);
                 throw error;
             }
-
         }
         return clazz.fromReader(this);
-
     }
 
     /**
@@ -219,8 +225,8 @@ class BinaryReader {
         if (this.readInt(false) !== 0x1cb5c415) {
             throw new Error('Invalid constructor code, vector was expected');
         }
-        let count = this.readInt();
-        let temp = [];
+        const count = this.readInt();
+        const temp = [];
         for (let i = 0; i < count; i++) {
             temp.push(this.tgReadObject());
         }
@@ -263,8 +269,7 @@ class BinaryReader {
         this.offset += offset;
     }
 
-    //endregion
-
+    // endregion
 }
 
 module.exports = BinaryReader;
