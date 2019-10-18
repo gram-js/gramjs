@@ -1,35 +1,37 @@
-const Helpers = require('../utils/Helpers');
-const MessageContainer = require('../tl/core/MessageContainer');
-const TLMessage = require('../tl/core/TLMessage');
-const { TLRequest } = require('../tl/tlobject');
-const BinaryWriter = require('../extensions/BinaryWriter');
+const MessageContainer = require("../tl/core/MessageContainer");
+const TLMessage = require("../tl/core/TLMessage");
+const {TLRequest} = require("../tl/tlobject");
+const BinaryWriter = require("../extensions/BinaryWriter");
+
 
 class MessagePacker {
     constructor(state, logger) {
         this._state = state;
         this._queue = [];
-        this._ready = false;
+        this._ready = new Promise((resolve => {
+            this.setReady = resolve;
+        }));
         this._log = logger;
     }
 
     append(state) {
         this._queue.push(state);
-        this._ready = true;
+        this.setReady(true);
     }
 
     extend(states) {
         for (const state of states) {
             this._queue.push(state);
         }
-        this._ready = true;
+        this.setReady(true);
     }
 
     async get() {
         if (!this._queue.length) {
-            this._ready = false;
-            while (!this._ready) {
-                await Helpers.sleep(100);
-            }
+            this._ready = new Promise((resolve => {
+                this.setReady = resolve;
+            }));
+            await this._ready;
         }
         let data;
         const buffer = new BinaryWriter(Buffer.alloc(0));
@@ -46,9 +48,7 @@ class MessagePacker {
                     afterId = state.after.msgId;
                 }
                 state.msgId = await this._state.writeDataAsMessage(
-                    buffer,
-                    state.data,
-                    state.request instanceof TLRequest,
+                    buffer, state.data, state.request instanceof TLRequest,
                     afterId
                 );
 
@@ -60,30 +60,29 @@ class MessagePacker {
                 this._queue.unshift(state);
                 break;
             }
-            this._log.warn(
-                `Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`
-            );
-            state.promise.reject('Request Payload is too big');
+            this._log.warn(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`);
+            state.promise.reject("Request Payload is too big");
             size = 0;
-            continue;
+            continue
         }
         if (!batch.length) {
             return null;
         }
         if (batch.length > 1) {
-            data = Buffer.concat([
-                struct.pack('<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length),
-                buffer.getValue(),
-            ]);
+            data = Buffer.concat([struct.pack(
+                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length
+            ), buffer.getValue()]);
 
-            const containerId = await this._state.writeDataAsMessage(buffer, data, false);
+            const containerId = await this._state.writeDataAsMessage(
+                buffer, data, false
+            );
             for (const s of batch) {
                 s.containerId = containerId;
             }
         }
 
         data = buffer.getValue();
-        return { batch, data };
+        return {batch, data}
     }
 }
 
