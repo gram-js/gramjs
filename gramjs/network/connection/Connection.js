@@ -1,7 +1,7 @@
 const { PromiseSocket } = require('promise-socket');
 const { Socket } = require('net');
 const Helpers = require('../../utils/Helpers');
-
+const AsyncQueue = require("../../extensions/AsyncQueue");
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
  *
@@ -28,8 +28,8 @@ class Connection {
         this._recvTask = null;
         this._codec = null;
         this._obfuscation = null; // TcpObfuscated and MTProxy
-        this._sendArray = [];
-        this._recvArray = [];
+        this._sendArray = new AsyncQueue();
+        this._recvArray = new AsyncQueue();
         this.socket = new PromiseSocket(new Socket());
     }
 
@@ -50,25 +50,19 @@ class Connection {
 
     async disconnect() {
         this._connected = false;
-        this.socket.close();
+        await this.socket.end();
     }
 
     async send(data) {
         if (!this._connected) {
             throw new Error('Not connected');
         }
-        while (this._sendArray.length !== 0) {
-            await Helpers.sleep(1000);
-        }
-        this._sendArray.push(data);
+        await this._sendArray.push(data);
     }
 
     async recv() {
         while (this._connected) {
-            while (this._recvArray.length === 0) {
-                await Helpers.sleep(1000);
-            }
-            const result = this._recvArray.pop();
+            const result = await this._recvArray.pop();
 
             // null = sentinel value = keep trying
             if (result) {
@@ -82,10 +76,8 @@ class Connection {
         // TODO handle errors
         try {
             while (this._connected) {
-                while (this._sendArray.length === 0) {
-                    await Helpers.sleep(1000);
-                }
-                await this._send(this._sendArray.pop());
+
+                await this._send(await this._sendArray.pop());
             }
         } catch (e) {
             console.log(e);
@@ -102,11 +94,7 @@ class Connection {
                 console.log(e);
                 this._log.info('The server closed the connection');
             }
-            while (this._recvArray.length !== 0) {
-                await Helpers.sleep(1000);
-            }
-
-            this._recvArray.push(data);
+            await this._recvArray.push(data);
         }
     }
 
@@ -123,6 +111,7 @@ class Connection {
 
     async _recv() {
         return await this._codec.readPacket(this.socket);
+
     }
 
     toString() {
