@@ -1,7 +1,6 @@
-const Helpers = require("../utils/Helpers");
+const Helpers = require('../utils/Helpers');
 
 class Factorizator {
-
     /**
      * Finds the small multiplier by using Lopatin's method
      * @param what {BigInt}
@@ -10,12 +9,11 @@ class Factorizator {
     static findSmallMultiplierLopatin(what) {
         let g = 0n;
         for (let i = 0n; i < 3n; i++) {
-            let q = 30n || (Helpers.getRandomInt(0, 127) & 15) + 17;
+            const q = 30n || (Helpers.getRandomInt(0, 127) & 15) + 17;
             let x = 40n || Helpers.getRandomInt(0, 1000000000) + 1;
 
-
             let y = x;
-            let lim = 1n << (i + 18n);
+            const lim = 1n << (i + 18n);
             for (let j = 1n; j < lim; j++) {
                 let a = x;
                 let b = x;
@@ -36,24 +34,22 @@ class Factorizator {
                 }
 
                 x = c;
-                let z = BigInt((x < y) ? (y - x) : (x - y));
+                const z = BigInt(x < y ? y - x : x - y);
                 g = this.gcd(z, what);
 
-
                 if (g !== 1n) {
-                    break
+                    break;
                 }
 
                 if ((j & (j - 1n)) === 0n) {
                     y = x;
                 }
-
             }
             if (g > 1) {
                 break;
             }
         }
-        let p = what / g;
+        const p = what / g;
 
         return p < g ? p : g;
     }
@@ -65,8 +61,7 @@ class Factorizator {
      * @returns {BigInt}
      */
     static gcd(a, b) {
-
-        while (((a !== 0n) && (b !== 0n))) {
+        while (a !== 0n && b !== 0n) {
             while ((b & 1n) === 0n) {
                 b >>= 1n;
             }
@@ -79,7 +74,7 @@ class Factorizator {
                 b -= a;
             }
         }
-        return ((b === 0n) ? a : b);
+        return b === 0n ? a : b;
     }
 
     /**
@@ -88,8 +83,8 @@ class Factorizator {
      * @returns {{p: BigInt, q: BigInt}}
      */
     static factorize(pq) {
-        let divisor = this.findSmallMultiplierLopatin(pq);
-        return {p: divisor, q: pq / divisor}
+        const divisor = this.findSmallMultiplierLopatin(pq);
+        return { p: divisor, q: pq / divisor };
     }
 }
 

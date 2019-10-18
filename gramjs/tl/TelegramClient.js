@@ -1,52 +1,47 @@
-const Session = require("./Session");
-const doAuthentication = require("../network/Authenticator");
-const MtProtoSender = require("../network/mtprotoSender");
-const MTProtoRequest = require("../tl/MTProtoRequest");
-const {ImportBotAuthorizationRequest} = require("./functions/auth");
-const {ConnectionTCPFull} = require("../network/connection/TCPFull");
-const {TLRequest} = require("./tlobject");
-const {InvokeWithLayerRequest, InitConnectionRequest} = require("./functions/index");
-const {GetConfigRequest} = require("./functions/help");
-const {LAYER} = require("../tl/alltlobjects");
+const Session = require('./Session');
+const MtProtoSender = require('../network/mtprotoSender');
+const { ImportBotAuthorizationRequest } = require('./functions/auth');
+const { ConnectionTCPFull } = require('../network/connection/TCPFull');
+const { TLRequest } = require('./tlobject');
+const { InvokeWithLayerRequest, InitConnectionRequest } = require('./functions/index');
+const { GetConfigRequest } = require('./functions/help');
+const { LAYER } = require('../tl/alltlobjects');
 const log4js = require('log4js');
 
 class TelegramClient {
-
     constructor(sessionUserId, apiId, apiHash, connection = ConnectionTCPFull) {
         if (apiId === undefined || apiHash === undefined) {
-            throw Error("Your API ID or Hash are invalid. Please read \"Requirements\" on README.md");
+            throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md');
         }
 
         this.apiId = apiId;
         this.apiHash = apiHash;
         this._connection = ConnectionTCPFull;
-        this._log = log4js.getLogger("gramjs");
+        this._log = log4js.getLogger('gramjs');
         this._initWith = (x) => {
             return new InvokeWithLayerRequest({
                 layer: LAYER,
                 query: new InitConnectionRequest({
                     apiId: this.apiId,
-                    deviceModel: "Windows",
-                    systemVersion: "1.8.3",
-                    appVersion: "1.8",
-                    langCode: "en",
-                    langPack: "",
-                    systemLangCode: "en",
+                    deviceModel: 'Windows',
+                    systemVersion: '1.8.3',
+                    appVersion: '1.8',
+                    langCode: 'en',
+                    langPack: '',
+                    systemLangCode: 'en',
                     query: x,
                     proxy: null,
-                })
-            })
+                }),
+            });
         };
         this.session = Session.tryLoadOrCreateNew(sessionUserId);
-        //These will be set later
+        // These will be set later
         this.dcOptions = null;
         this._sender = new MtProtoSender(this.session.authKey, {
             logger: this._log,
         });
-        this.phoneCodeHashes = Array();
-
+        this.phoneCodeHashes = [];
     }
-
 
     /**
      * Connects to the Telegram servers, executing authentication if required.
@@ -55,18 +50,19 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
-        let connection = new this._connection(this.session.serverAddress, this.session.port, this.session.dcId, this._log);
-        if (!await this._sender.connect(connection)) {
+        const connection = new this._connection(
+            this.session.serverAddress,
+            this.session.port,
+            this.session.dcId,
+            this._log
+        );
+        if (!(await this._sender.connect(connection))) {
             return;
         }
         this.session.authKey = this._sender.authKey;
         await this.session.save();
-        await this._sender.send(this._initWith(
-            new GetConfigRequest()
-        ));
-
+        await this._sender.send(this._initWith(new GetConfigRequest()));
     }
-
 
     /**
      * Disconnects from the Telegram server
@@ -85,12 +81,11 @@ class TelegramClient {
      */
     async invoke(request) {
         if (!(request instanceof TLRequest)) {
-            throw new Error("You can only invoke MTProtoRequests");
+            throw new Error('You can only invoke MTProtoRequests');
         }
-        let res = await this._sender.send(request);
+        const res = await this._sender.send(request);
         return res;
     }
-
 
     /**
      * Logs in to Telegram to an existing user or bot account.
@@ -106,15 +101,15 @@ class TelegramClient {
      * @param args {{botToken: string}}
      * @returns {Promise<void>}
      */
-    async signIn(args = {phone: null, code: null, password: null, botToken: null, phoneCodeHash: null}) {
-        let botToken = args.botToken;
-        let request = new ImportBotAuthorizationRequest({
+    async signIn(args = { phone: null, code: null, password: null, botToken: null, phoneCodeHash: null }) {
+        const botToken = args.botToken;
+        const request = new ImportBotAuthorizationRequest({
             flags: 0,
             botAuthToken: botToken,
             apiId: this.apiId,
             apiHash: this.apiHash,
         });
-        let result = await this.invoke(request);
+        const result = await this.invoke(request);
         return result;
     }
 }

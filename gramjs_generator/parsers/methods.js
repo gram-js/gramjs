@@ -17,9 +17,7 @@ class MethodInfo {
         if (usability.toUpperCase() in Usability) {
             this.usability = Usability[usability.toUpperCase()];
         } else {
-            throw new Error(
-                `Usability must be either user, bot, both or unknown, not ${usability}`
-            );
+            throw new Error(`Usability must be either user, bot, both or unknown, not ${usability}`);
         }
     }
 }
@@ -28,11 +26,9 @@ class MethodInfo {
  * Parses the input CSV file with columns (method, usability, errors)
  * and yields `MethodInfo` instances as a result.
  */
-const parseMethods = function*(csvFile, friendlyCsvFile, errorsDict) {
+const parseMethods = function* (csvFile, friendlyCsvFile, errorsDict) {
     const rawToFriendly = {};
-    const f1 = csvParse(
-        fs.readFileSync(friendlyCsvFile, { encoding: 'utf-8' })
-    );
+    const f1 = csvParse(fs.readFileSync(friendlyCsvFile, { encoding: 'utf-8' }));
 
     for (const [ns, friendly, rawList] of f1.slice(1)) {
         for (const raw of rawList.split(' ')) {
@@ -40,9 +36,7 @@ const parseMethods = function*(csvFile, friendlyCsvFile, errorsDict) {
         }
     }
 
-    const f2 = csvParse(fs.readFileSync(csvFile, { encoding: 'utf-8' })).slice(
-        1
-    );
+    const f2 = csvParse(fs.readFileSync(csvFile, { encoding: 'utf-8' })).slice(1);
 
     for (let line = 0; line < f2.length; line++) {
         let [method, usability, errors] = f2[line];
@@ -50,11 +44,9 @@ const parseMethods = function*(csvFile, friendlyCsvFile, errorsDict) {
         errors = errors
             .split(' ')
             .filter(Boolean)
-            .map(x => {
+            .map((x) => {
                 if (x && !(x in errorsDict)) {
-                    throw new Error(
-                        `Method ${method} references unknown errors ${errors}`
-                    );
+                    throw new Error(`Method ${method} references unknown errors ${errors}`);
                 }
 
                 return errorsDict[x];

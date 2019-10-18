@@ -1,4 +1,4 @@
-const {TLObject} = require("../tlobject");
+const { TLObject } = require('../tlobject');
 
 class TLMessage extends TLObject {
     static SIZE_OVERHEAD = 12;

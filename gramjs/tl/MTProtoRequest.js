@@ -1,8 +1,7 @@
 class MTProtoRequest {
-
     constructor() {
         this.sent = false;
-        this.msgId = 0; //long
+        this.msgId = 0; // long
         this.sequence = 0;
 
         this.dirty = false;
@@ -32,16 +31,12 @@ class MTProtoRequest {
 
     // These should be overrode
     onSend() {
-        throw Error("Not overload " + this.constructor.name);
+        throw Error('Not overload ' + this.constructor.name);
     }
 
-    onResponse(buffer) {
+    onResponse(buffer) {}
 
-    }
-
-    onException(exception) {
-
-    }
+    onException(exception) {}
 }
 
 module.exports = MTProtoRequest;

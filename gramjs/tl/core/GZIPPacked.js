@@ -1,7 +1,7 @@
-const {TLObject} = require("../tlobject");
-const struct = require("python-struct");
-const {ungzip} = require("node-gzip");
-const {gzip} = require("node-gzip");
+const { TLObject } = require('../tlobject');
+const struct = require('python-struct');
+const { ungzip } = require('node-gzip');
+const { gzip } = require('node-gzip');
 
 class GZIPPacked extends TLObject {
     static CONSTRUCTOR_ID = 0x3072cfa1;
@@ -12,9 +12,9 @@ class GZIPPacked extends TLObject {
         this.CONSTRUCTOR_ID = 0x3072cfa1;
     }
 
-    static async GZIPIfSmaller(contentRelated, data) {
+    static async gzipIfSmaller(contentRelated, data) {
         if (contentRelated && data.length > 512) {
-            let gzipped = await (new GZIPPacked(data)).toBytes();
+            const gzipped = await new GZIPPacked(data).toBytes();
             if (gzipped.length < data.length) {
                 return gzipped;
             }
@@ -24,15 +24,15 @@ class GZIPPacked extends TLObject {
 
     async toBytes() {
         return Buffer.concat([
-            struct.pack("<I", GZIPPacked.CONSTRUCTOR_ID),
-            TLObject.serializeBytes(await gzip(this.data))
-        ])
+            struct.pack('<I', GZIPPacked.CONSTRUCTOR_ID),
+            TLObject.serializeBytes(await gzip(this.data)),
+        ]);
     }
 
     static async read(reader) {
-        let constructor = reader.readInt(false);
+        const constructor = reader.readInt(false);
         if (constructor !== GZIPPacked.CONSTRUCTOR_ID) {
-            throw new Error("not equal");
+            throw new Error('not equal');
         }
         return await gzip(reader.tgReadBytes());
     }
@@ -40,7 +40,6 @@ class GZIPPacked extends TLObject {
     static async fromReader(reader) {
         return new GZIPPacked(await ungzip(reader.tgReadBytes()));
     }
-
 }
 
 module.exports = GZIPPacked;

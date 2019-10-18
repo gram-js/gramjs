@@ -18,12 +18,9 @@ const KNOWN_BASE_CLASSES = {
  * Gets the corresponding class name for the given error code,
  * this either being an integer (thus base error name) or str.
  */
-const getClassName = errorCode => {
+const getClassName = (errorCode) => {
     if (typeof errorCode === 'number') {
-        return (
-            KNOWN_BASE_CLASSES[Math.abs(errorCode)] ||
-            'RPCError' + errorCode.toString().replace('-', 'Neg')
-        );
+        return KNOWN_BASE_CLASSES[Math.abs(errorCode)] || 'RPCError' + errorCode.toString().replace('-', 'Neg');
     }
 
     return snakeToCamelCase(
@@ -40,7 +37,7 @@ class TelegramError {
         // TODO Some errors have the same name but different integer codes
         // Should these be split into different files or doesn't really matter?
         // Telegram isn't exactly consistent with returned errors anyway.
-        this.intCode = codes[0];
+        [this.intCode] = codes;
         this.stringCode = name;
         this.subclass = getClassName(codes[0]);
         this.subclassExists = Math.abs(codes[0]) in KNOWN_BASE_CLASSES;
@@ -51,7 +48,7 @@ class TelegramError {
         if (this.hasCaptures) {
             this.name = getClassName(name.replace('_X', ''));
             this.pattern = name.replace('_X', '_(\\d+)');
-            this.captureName = description.match(/{(\w+)}/)[1];
+            [this.captureName] = description.match(/{(\w+)}/);
         } else {
             this.name = getClassName(name);
             this.pattern = name;
@@ -64,33 +61,26 @@ class TelegramError {
  * Parses the input CSV file with columns (name, error codes, description)
  * and yields `Error` instances as a result.
  */
-const parseErrors = function*(csvFile) {
-    const f = csvParse(fs.readFileSync(csvFile, { encoding: 'utf-8' })).slice(
-        1
-    );
+const parseErrors = function* (csvFile) {
+    const f = csvParse(fs.readFileSync(csvFile, { encoding: 'utf-8' })).slice(1);
 
     for (let line = 0; line < f.length; line++) {
         if (f[line].length !== 3) {
-            throw new Error(
-                `Columns count mismatch, unquoted comma in desc? (line ${line +
-                    2})`
-            );
+            throw new Error(`Columns count mismatch, unquoted comma in desc? (line ${line + 2})`);
         }
 
         let [name, codes, description] = f[line];
 
         codes =
-            codes === ''
-                ? [400]
-                : codes.split(' ').map(x => {
-                      if (isNaN(x)) {
-                          throw new Error(
-                              `Not all codes are integers (line ${line + 2})`
-                          );
-                      }
+            codes === '' ?
+                [400] :
+                codes.split(' ').map((x) => {
+                    if (isNaN(x)) {
+                        throw new Error(`Not all codes are integers (line ${line + 2})`);
+                    }
 
-                      return Number(x);
-                  });
+                    return Number(x);
+                });
 
         yield new TelegramError(codes, name, description);
     }

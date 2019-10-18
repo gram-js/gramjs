@@ -27,16 +27,7 @@ const WHITELISTED_MISMATCHING_IDS = {
  * :param layer: The layer this TLObject belongs to.
  */
 class TLObject {
-    constructor(
-        fullname,
-        objectId,
-        args,
-        result,
-        isFunction,
-        usability,
-        friendly,
-        layer
-    ) {
+    constructor(fullname, objectId, args, result, isFunction, usability, friendly, layer) {
         // The name can or not have a namespace
         this.fullname = fullname;
 
@@ -75,14 +66,9 @@ class TLObject {
             }
         }
 
-        this.className = snakeToCamelCase(
-            this.name,
-            this.isFunction ? 'Request' : ''
-        );
+        this.className = snakeToCamelCase(this.name, this.isFunction ? 'Request' : '');
 
-        this.realArgs = this.sortedArgs().filter(
-            a => !(a.flagIndicator || a.genericDefinition)
-        );
+        this.realArgs = this.sortedArgs().filter((a) => !(a.flagIndicator || a.genericDefinition));
     }
 
     get innermostResult() {
@@ -96,11 +82,12 @@ class TLObject {
      * can be inferred will go last so they can default =None)
      */
     sortedArgs() {
-        return this.args.sort(x => x.isFlag || x.canBeInferred);
+        return this.args.sort((x) => x.isFlag || x.canBeInferred);
     }
 
     repr(ignoreId) {
-        let hexId, args;
+        let hexId;
+        let args;
 
         if (this.id === null || ignoreId) {
             hexId = '';
@@ -109,7 +96,7 @@ class TLObject {
         }
 
         if (this.args.length) {
-            args = ` ${this.args.map(arg => arg.toString()).join(' ')}`;
+            args = ` ${this.args.map((arg) => arg.toString()).join(' ')}`;
         } else {
             args = '';
         }
@@ -136,9 +123,7 @@ class TLObject {
         return {
             id: struct.unpack('i', struct.pack('I', this.id))[0].toString(),
             [this.isFunction ? 'method' : 'predicate']: this.fullname,
-            param: this.args
-                .filter(x => !x.genericDefinition)
-                .map(x => x.toJson()),
+            param: this.args.filter((x) => !x.genericDefinition).map((x) => x.toJson()),
             type: this.result,
         };
     }
@@ -160,7 +145,7 @@ class TLObject {
         f.write(this.className);
         f.write('(');
 
-        const args = this.realArgs.filter(arg => !arg.omitExample());
+        const args = this.realArgs.filter((arg) => !arg.omitExample());
 
         if (!args.length) {
             f.write(')');

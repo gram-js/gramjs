@@ -10,7 +10,6 @@ class BinaryWriter {
     getValue() {
         return this._stream;
     }
-
 }
 
 module.exports = BinaryWriter;

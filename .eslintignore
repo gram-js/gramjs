@@ -1,8 +1,1 @@
 gramjs_generator/data/html/js/search.js
-gramjs/tl/functions
-gramjs/tl/patched
-gramjs/tl/types
-gramjs/tl/AllTLObjects.js
-gramjs/errors/RPCErrorList.js
-browser/
-example.js

@@ -2,12 +2,10 @@
     "env": {
         "commonjs": true,
         "es6": true,
-        "node": true,
-        "jest": true
+        "node": true
     },
-    "extends": ["eslint:recommended"],
+    "extends": ["google"],
     "globals": {
-        "BigInt": true,
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
@@ -16,17 +14,7 @@
         "ecmaVersion": 2018
     },
     "rules": {
-        "arrow-parens": ["error", "as-needed"],
-        "brace-style": ["error", "1tbs"],
-        "comma-dangle": ["error", "always-multiline"],
-        "curly": ["error", "all"],
         "indent": ["error", 4],
-        "linebreak-style": ["error", "unix"],
-        "no-var": "error",
-        "operator-linebreak": ["error", "after"],
-        "prefer-const": ["error", { "destructuring": "any" }],
-        "quotes": ["error", "single", { "avoidEscape": true }],
-        "semi": ["error", "never"],
         "max-len": [
             "error",
             {
@@ -35,6 +23,9 @@
                 "ignoreStrings": true,
                 "ignoreTemplateLiterals": true
             }
-        ]
+        ],
+        "object-curly-spacing": ["error", "always"],
+        "require-jsdoc": "off",
+        "valid-jsdoc": "off"
     }
 }
