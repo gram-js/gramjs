@@ -1,32 +1,32 @@
-const Helpers = require('../utils/Helpers');
-const BinaryReader = require('../extensions/BinaryReader');
-const struct = require('python-struct');
+const Helpers = require('../utils/Helpers')
+const BinaryReader = require('../extensions/BinaryReader')
+const struct = require('python-struct')
 
 class AuthKey {
     constructor(data) {
-        this.key = data;
+        this.key = data
     }
 
     set key(value) {
         if (!value) {
-            this._key = this.auxHash = this.keyId = null;
-            return;
+            this._key = this.auxHash = this.keyId = null
+            return
         }
         if (value instanceof AuthKey) {
-            this._key = value._key;
-            this.auxHash = value.auxHash;
-            this.keyId = value.keyId;
-            return;
+            this._key = value._key
+            this.auxHash = value.auxHash
+            this.keyId = value.keyId
+            return
         }
-        this._key = value;
-        const reader = new BinaryReader(Helpers.sha1(this._key));
-        this.auxHash = reader.readLong(false);
-        reader.read(4);
-        this.keyId = reader.readLong(false);
+        this._key = value
+        const reader = new BinaryReader(Helpers.sha1(this._key))
+        this.auxHash = reader.readLong(false)
+        reader.read(4)
+        this.keyId = reader.readLong(false)
     }
 
     get key() {
-        return this._key;
+        return this._key
     }
 
     // TODO : This doesn't really fit here, it's only used in authentication
@@ -38,17 +38,17 @@ class AuthKey {
      * @returns {bigint}
      */
     calcNewNonceHash(newNonce, number) {
-        newNonce = Helpers.readBufferFromBigInt(newNonce, 32, true, true);
-        const data = Buffer.concat([newNonce, struct.pack('<BQ', number.toString(), this.auxHash.toString())]);
+        newNonce = Helpers.readBufferFromBigInt(newNonce, 32, true, true)
+        const data = Buffer.concat([newNonce, struct.pack('<BQ', number.toString(), this.auxHash.toString())])
 
         // Calculates the message key from the given data
-        const shaData = Helpers.sha1(data).slice(4, 20);
-        return Helpers.readBigIntFromBuffer(shaData, true, true);
+        const shaData = Helpers.sha1(data).slice(4, 20)
+        return Helpers.readBigIntFromBuffer(shaData, true, true)
     }
 
     equals(other) {
-        return other instanceof this.constructor && other.key === this._key;
+        return other instanceof this.constructor && other.key === this._key
     }
 }
 
-module.exports = AuthKey;
+module.exports = AuthKey

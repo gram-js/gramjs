@@ -4,8 +4,9 @@
         "es6": true,
         "node": true
     },
-    "extends": ["google"],
+    "extends": ["google","eslint:recommended"],
     "globals": {
+        "BigInt": true,
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
@@ -14,6 +15,7 @@
         "ecmaVersion": 2018
     },
     "rules": {
+        "semi": [1,"never"],
         "indent": ["error", 4],
         "max-len": [
             "error",

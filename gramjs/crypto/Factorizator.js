@@ -1,4 +1,4 @@
-const Helpers = require('../utils/Helpers');
+const Helpers = require('../utils/Helpers')
 
 class Factorizator {
     /**
@@ -7,51 +7,51 @@ class Factorizator {
      * @return {BigInt}
      */
     static findSmallMultiplierLopatin(what) {
-        let g = 0n;
+        let g = 0n
         for (let i = 0n; i < 3n; i++) {
-            const q = 30n || (Helpers.getRandomInt(0, 127) & 15) + 17;
-            let x = 40n || Helpers.getRandomInt(0, 1000000000) + 1;
+            const q = 30n || (Helpers.getRandomInt(0, 127) & 15) + 17
+            let x = 40n || Helpers.getRandomInt(0, 1000000000) + 1
 
-            let y = x;
-            const lim = 1n << (i + 18n);
+            let y = x
+            const lim = 1n << (i + 18n)
             for (let j = 1n; j < lim; j++) {
-                let a = x;
-                let b = x;
+                let a = x
+                let b = x
 
-                let c = q;
+                let c = q
                 while (b !== 0n) {
                     if (BigInt(b & 1n) !== 0n) {
-                        c += a;
+                        c += a
                         if (c >= what) {
-                            c -= what;
+                            c -= what
                         }
                     }
-                    a += a;
+                    a += a
                     if (a >= what) {
-                        a -= what;
+                        a -= what
                     }
-                    b >>= 1n;
+                    b >>= 1n
                 }
 
-                x = c;
-                const z = BigInt(x < y ? y - x : x - y);
-                g = this.gcd(z, what);
+                x = c
+                const z = BigInt(x < y ? y - x : x - y)
+                g = this.gcd(z, what)
 
                 if (g !== 1n) {
-                    break;
+                    break
                 }
 
                 if ((j & (j - 1n)) === 0n) {
-                    y = x;
+                    y = x
                 }
             }
             if (g > 1) {
-                break;
+                break
             }
         }
-        const p = what / g;
+        const p = what / g
 
-        return p < g ? p : g;
+        return p < g ? p : g
     }
 
     /**
@@ -63,18 +63,18 @@ class Factorizator {
     static gcd(a, b) {
         while (a !== 0n && b !== 0n) {
             while ((b & 1n) === 0n) {
-                b >>= 1n;
+                b >>= 1n
             }
             while ((a & 1n) === 0n) {
-                a >>= 1n;
+                a >>= 1n
             }
             if (a > b) {
-                a -= b;
+                a -= b
             } else {
-                b -= a;
+                b -= a
             }
         }
-        return b === 0n ? a : b;
+        return b === 0n ? a : b
     }
 
     /**
@@ -83,9 +83,9 @@ class Factorizator {
      * @returns {{p: BigInt, q: BigInt}}
      */
     static factorize(pq) {
-        const divisor = this.findSmallMultiplierLopatin(pq);
-        return { p: divisor, q: pq / divisor };
+        const divisor = this.findSmallMultiplierLopatin(pq)
+        return { p: divisor, q: pq / divisor }
     }
 }
 
-module.exports = Factorizator;
+module.exports = Factorizator

@@ -8,14 +8,14 @@ class RPCError extends Error {
                 .replace('{0}', code)
                 .replace('{1}', message)
                 .replace('{2}', RPCError._fmtRequest(request))
-        );
-        this.code = code;
-        this.message = message;
+        )
+        this.code = code
+        this.message = message
     }
 
     static _fmtRequest(request) {
         // TODO fix this
-        return ` (caused by ${request})`;
+        return ` (caused by ${request})`
     }
 }
 
@@ -113,4 +113,4 @@ module.exports = {
     FloodError,
     ServerError,
     TimedOutError,
-};
+}

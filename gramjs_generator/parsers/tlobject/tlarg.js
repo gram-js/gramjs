@@ -2,13 +2,13 @@ const fmtStrings = (...objects) => {
     for (const object of objects) {
         for (const [k, v] of Object.entries(object)) {
             if (['null', 'true', 'false'].includes(v)) {
-                object[k] = `<strong>${v}</strong>`;
+                object[k] = `<strong>${v}</strong>`
             } else {
-                object[k] = v.replace(/((['"]).*\2)/, (_, g) => `<em>${g}</em>`);
+                object[k] = v.replace(/((['"]).*\2)/, (_, g) => `<em>${g}</em>`)
             }
         }
     }
-};
+}
 
 const KNOWN_NAMED_EXAMPLES = {
     'message,string': '\'Hello there!\'',
@@ -33,7 +33,7 @@ const KNOWN_NAMED_EXAMPLES = {
     'lang_code,string': '\'en\'',
     'chat_id,int': '478614198',
     'client_id,long': 'random.randrange(-2**63, 2**63)',
-};
+}
 
 const KNOWN_TYPED_EXAMPLES = {
     int128: 'int.from_bytes(crypto.randomBytes(16), \'big\')',
@@ -48,9 +48,9 @@ const KNOWN_TYPED_EXAMPLES = {
     InputChatPhoto: 'client.upload_file(\'/path/to/photo.jpg\')',
     InputFile: 'client.upload_file(\'/path/to/file.jpg\')',
     InputPeer: '\'username\'',
-};
+}
 
-fmtStrings(KNOWN_NAMED_EXAMPLES, KNOWN_TYPED_EXAMPLES);
+fmtStrings(KNOWN_NAMED_EXAMPLES, KNOWN_TYPED_EXAMPLES)
 
 const SYNONYMS = {
     InputUser: 'InputPeer',
@@ -58,7 +58,7 @@ const SYNONYMS = {
     InputDialogPeer: 'InputPeer',
     InputNotifyPeer: 'InputPeer',
     InputMessage: 'int',
-};
+}
 
 // These are flags that are cleaner to leave off
 const OMITTED_EXAMPLES = [
@@ -79,7 +79,7 @@ const OMITTED_EXAMPLES = [
     'admins',
     'edit',
     'delete',
-];
+]
 
 /**
  * Initializes a new .tl argument
@@ -90,57 +90,57 @@ const OMITTED_EXAMPLES = [
  */
 class TLArg {
     constructor(name, argType, genericDefinition) {
-        this.name = name === 'self' ? 'is_self' : name;
+        this.name = name === 'self' ? 'is_self' : name
 
         // Default values
-        this.isVector = false;
-        this.isFlag = false;
-        this.skipConstructorId = false;
-        this.flagIndex = -1;
-        this.cls = null;
+        this.isVector = false
+        this.isFlag = false
+        this.skipConstructorId = false
+        this.flagIndex = -1
+        this.cls = null
 
         // Special case: some types can be inferred, which makes it
         // less annoying to type. Currently the only type that can
         // be inferred is if the name is 'random_id', to which a
         // random ID will be assigned if left as None (the default)
-        this.canBeInferred = name === 'random_id';
+        this.canBeInferred = name === 'random_id'
 
         // The type can be an indicator that other arguments will be flags
         if (argType === '#') {
-            this.flagIndicator = true;
-            this.type = null;
-            this.isGeneric = false;
+            this.flagIndicator = true
+            this.type = null
+            this.isGeneric = false
         } else {
-            this.flagIndicator = false;
-            this.isGeneric = argType.startsWith('!');
+            this.flagIndicator = false
+            this.isGeneric = argType.startsWith('!')
             // Strip the exclamation mark always to have only the name
-            this.type = argType.replace(/^!+/, '');
+            this.type = argType.replace(/^!+/, '')
 
             // The type may be a flag (flags.IDX?REAL_TYPE)
             // Note that 'flags' is NOT the flags name; this
             // is determined by a previous argument
             // However, we assume that the argument will always be called 'flags'
-            const flagMatch = this.type.match(/flags.(\d+)\?([\w<>.]+)/);
+            const flagMatch = this.type.match(/flags.(\d+)\?([\w<>.]+)/)
 
             if (flagMatch) {
-                this.isFlag = true;
+                this.isFlag = true
                 this.flagIndex = Number(flagMatch[1]);
                 // Update the type to match the exact type, not the "flagged" one
-                [, , this.type] = flagMatch;
+                [, , this.type] = flagMatch
             }
 
             // Then check if the type is a Vector<REAL_TYPE>
-            const vectorMatch = this.type.match(/[Vv]ector<([\w\d.]+)>/);
+            const vectorMatch = this.type.match(/[Vv]ector<([\w\d.]+)>/)
 
             if (vectorMatch) {
-                this.isVector = true;
+                this.isVector = true
 
                 // If the type's first letter is not uppercase, then
                 // it is a constructor and we use (read/write) its ID.
                 this.useVectorId = this.type.charAt(0) === 'V';
 
                 // Update the type to match the one inside the vector
-                [, this.type] = vectorMatch;
+                [, this.type] = vectorMatch
             }
 
             // See use_vector_id. An example of such case is ipPort in
@@ -150,10 +150,10 @@ class TLArg {
                     this.type
                         .split('.')
                         .pop()
-                        .charAt(0)
+                        .charAt(0),
                 )
             ) {
-                this.skipConstructorId = true;
+                this.skipConstructorId = true
             }
 
             // The name may contain "date" in it, if this is the case and
@@ -169,14 +169,14 @@ class TLArg {
             // }
         }
 
-        this.genericDefinition = genericDefinition;
+        this.genericDefinition = genericDefinition
     }
 
     typeHint() {
-        let cls = this.type;
+        let cls = this.type
 
         if (cls.includes('.')) {
-            [, cls] = cls.split('.');
+            [, cls] = cls.split('.')
         }
 
         let result = {
@@ -190,49 +190,49 @@ class TLArg {
             bytes: 'bytes',
             Bool: 'bool',
             true: 'bool',
-        };
+        }
 
-        result = result[cls] || `'Type${cls}'`;
+        result = result[cls] || `'Type${cls}'`
 
         if (this.isVector) {
-            result = `List[${result}]`;
+            result = `List[${result}]`
         }
 
         if (this.isFlag && cls !== 'date') {
-            result = `Optional[${result}]`;
+            result = `Optional[${result}]`
         }
 
-        return result;
+        return result
     }
 
     realType() {
         // Find the real type representation by updating it as required
-        let realType = this.flagIndicator ? '#' : this.type;
+        let realType = this.flagIndicator ? '#' : this.type
 
         if (this.isVector) {
             if (this.useVectorId) {
-                realType = `Vector<${realType}>`;
+                realType = `Vector<${realType}>`
             } else {
-                realType = `vector<${realType}>`;
+                realType = `vector<${realType}>`
             }
         }
 
         if (this.isGeneric) {
-            realType = `!${realType}`;
+            realType = `!${realType}`
         }
 
         if (this.isFlag) {
-            realType = `flags.${this.flagIndex}?${realType}`;
+            realType = `flags.${this.flagIndex}?${realType}`
         }
 
-        return realType;
+        return realType
     }
 
     toString() {
         if (this.genericDefinition) {
-            return `{${this.name}:${this.realType()}}`;
+            return `{${this.name}:${this.realType()}}`
         } else {
-            return `${this.name}:${this.realType()}`;
+            return `${this.name}:${this.realType()}`
         }
     }
 
@@ -240,23 +240,23 @@ class TLArg {
         return {
             name: this.name.replace('is_self', 'self'),
             type: this.realType().replace(/\bdate$/, 'int'),
-        };
+        }
     }
 
     asExample(f, indent) {
         if (this.isGeneric) {
-            f.write('other_request');
-            return;
+            f.write('other_request')
+            return
         }
 
         const known =
             KNOWN_NAMED_EXAMPLES[`${this.name},${this.type}`] ||
             KNOWN_TYPED_EXAMPLES[this.type] ||
-            KNOWN_TYPED_EXAMPLES[SYNONYMS[this.type]];
+            KNOWN_TYPED_EXAMPLES[SYNONYMS[this.type]]
 
         if (known) {
-            f.write(known);
-            return;
+            f.write(known)
+            return
         }
 
         // assert self.omit_example() or self.cls, 'TODO handle ' + str(self)
@@ -264,17 +264,17 @@ class TLArg {
         // Pick an interesting example if any
         for (const cls of this.cls) {
             if (cls.isGoodExample()) {
-                cls.asExample(f, indent || 0);
-                return;
+                cls.asExample(f, indent || 0)
+                return
             }
         }
 
         // If no example is good, just pick the first
-        this.cls[0].asExample(f, indent || 0);
+        this.cls[0].asExample(f, indent || 0)
     }
 
     omitExample() {
-        return this.isFlag || (this.canBeInferred && OMITTED_EXAMPLES.includes(this.name));
+        return this.isFlag || (this.canBeInferred && OMITTED_EXAMPLES.includes(this.name))
     }
 }
 
@@ -284,4 +284,4 @@ module.exports = {
     SYNONYMS,
     OMITTED_EXAMPLES,
     TLArg,
-};
+}

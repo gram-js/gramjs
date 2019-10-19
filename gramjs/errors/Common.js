@@ -2,14 +2,14 @@
  * Errors not related to the Telegram API itself
  */
 
-const struct = require('python-struct');
+const struct = require('python-struct')
 
 /**
  * Occurs when a read operation was cancelled.
  */
 class ReadCancelledError extends Error {
     constructor() {
-        super('The read operation was cancelled.');
+        super('The read operation was cancelled.')
     }
 }
 
@@ -21,9 +21,9 @@ class TypeNotFoundError extends Error {
     constructor(invalidConstructorId, remaining) {
         super(`Could not find a matching Constructor ID for the TLObject that was supposed to be
         read with ID ${invalidConstructorId}. Most likely, a TLObject was trying to be read when
-         it should not be read. Remaining bytes: ${remaining}`);
-        this.invalidConstructorId = invalidConstructorId;
-        this.remaining = remaining;
+         it should not be read. Remaining bytes: ${remaining}`)
+        this.invalidConstructorId = invalidConstructorId
+        this.remaining = remaining
     }
 }
 
@@ -33,9 +33,9 @@ class TypeNotFoundError extends Error {
  */
 class InvalidChecksumError extends Error {
     constructor(checksum, validChecksum) {
-        super(`Invalid checksum (${checksum} when ${validChecksum} was expected). This packet should be skipped.`);
-        this.checksum = checksum;
-        this.validChecksum = validChecksum;
+        super(`Invalid checksum (${checksum} when ${validChecksum} was expected). This packet should be skipped.`)
+        this.checksum = checksum
+        this.validChecksum = validChecksum
     }
 }
 
@@ -45,15 +45,15 @@ class InvalidChecksumError extends Error {
  */
 class InvalidBufferError extends Error {
     constructor(payload) {
-        const [code] = -struct.unpack('<i', payload);
+        const [code] = -struct.unpack('<i', payload)
         if (payload.length === 4) {
-            super(`Invalid response buffer (HTTP code ${code})`);
+            super(`Invalid response buffer (HTTP code ${code})`)
         } else {
-            super(`Invalid response buffer (too short ${payload})`);
-            this.code = null;
+            super(`Invalid response buffer (too short ${payload})`)
+            this.code = null
         }
-        this.code = code;
-        this.payload = payload;
+        this.code = code
+        this.payload = payload
     }
 }
 
@@ -63,9 +63,9 @@ class InvalidBufferError extends Error {
 class SecurityError extends Error {
     constructor(...args) {
         if (!args.length) {
-            args = ['A security check failed.'];
+            args = ['A security check failed.']
         }
-        super(...args);
+        super(...args)
     }
 }
 
@@ -75,7 +75,7 @@ class SecurityError extends Error {
  */
 class CdnFileTamperedError extends SecurityError {
     constructor() {
-        super('The CDN file has been altered and its download cancelled.');
+        super('The CDN file has been altered and its download cancelled.')
     }
 }
 
@@ -84,7 +84,7 @@ class CdnFileTamperedError extends SecurityError {
  */
 class AlreadyInConversationError extends Error {
     constructor() {
-        super('Cannot open exclusive conversation in a chat that already has one open conversation');
+        super('Cannot open exclusive conversation in a chat that already has one open conversation')
     }
 }
 
@@ -133,8 +133,8 @@ class BadMessageError extends Error {
     };
 
     constructor(code) {
-        super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`);
-        this.code = code;
+        super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`)
+        this.code = code
     }
 }
 
@@ -149,4 +149,4 @@ module.exports = {
     CdnFileTamperedError,
     AlreadyInConversationError,
     BadMessageError,
-};
+}
