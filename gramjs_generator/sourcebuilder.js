@@ -1,17 +1,17 @@
-const util = require('util');
+const util = require('util')
 
 /**
  * This class should be used to build .py source files
  */
 class SourceBuilder {
     constructor(stream, indentSize) {
-        this.currentIndent = 0;
-        this.onNewLine = false;
-        this.indentSize = indentSize || 4;
-        this.stream = stream;
+        this.currentIndent = 0
+        this.onNewLine = false
+        this.indentSize = indentSize || 4
+        this.stream = stream
 
         // Was a new line added automatically before? If so, avoid it
-        this.autoAddedLine = false;
+        this.autoAddedLine = false
     }
 
     /**
@@ -19,7 +19,7 @@ class SourceBuilder {
      * by the current indentation level
      */
     indent() {
-        this.write(' '.repeat(Math.abs(this.currentIndent * this.indentSize)));
+        this.write(' '.repeat(Math.abs(this.currentIndent * this.indentSize)))
     }
 
     /**
@@ -28,18 +28,18 @@ class SourceBuilder {
      */
     write(string, ...args) {
         if (this.onNewLine) {
-            this.onNewLine = false; // We're not on a new line anymore
+            this.onNewLine = false // We're not on a new line anymore
 
             // If the string was not empty, indent; Else probably a new line
             if (string.trim()) {
-                this.indent();
+                this.indent()
             }
         }
 
         if (args.length) {
-            this.stream.write(util.format(string, ...args));
+            this.stream.write(util.format(string, ...args))
         } else {
-            this.stream.write(string);
+            this.stream.write(string)
         }
     }
 
@@ -48,30 +48,30 @@ class SourceBuilder {
      * applying indentation if required
      */
     writeln(string, ...args) {
-        this.write(`${string || ''}\n`, ...args);
-        this.onNewLine = true;
+        this.write(`${string || ''}\n`, ...args)
+        this.onNewLine = true
 
         // If we're writing a block, increment indent for the next time
         if (string && string.endsWith('{')) {
-            this.currentIndent++;
+            this.currentIndent++
         }
 
         // Clear state after the user adds a new line
-        this.autoAddedLine = false;
+        this.autoAddedLine = false
     }
 
     /**
      * Ends an indentation block, leaving an empty line afterwards
      */
     endBlock(semiColon = false) {
-        this.currentIndent--;
+        this.currentIndent--
 
         // If we did not add a new line automatically yet, now it's the time!
         if (!this.autoAddedLine) {
-            this.writeln('}%s', semiColon ? ';' : '');
-            this.autoAddedLine = true;
+            this.writeln('}%s', semiColon ? ';' : '')
+            this.autoAddedLine = true
         }
     }
 }
 
-module.exports = SourceBuilder;
+module.exports = SourceBuilder

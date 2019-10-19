@@ -1,6 +1,6 @@
-const { crc32 } = require('crc');
-const struct = require('python-struct');
-const { snakeToCamelCase } = require('../../utils');
+const { crc32 } = require('crc')
+const struct = require('python-struct')
+const { snakeToCamelCase } = require('../../utils')
 
 // https://github.com/telegramdesktop/tdesktop/blob/4bf66cb6e93f3965b40084771b595e93d0b11bcd/Telegram/SourceFiles/codegen/scheme/codegen_scheme.py#L57-L62
 const WHITELISTED_MISMATCHING_IDS = {
@@ -11,7 +11,7 @@ const WHITELISTED_MISMATCHING_IDS = {
         'accessPointRule',
         'help.configSimple',
     ]),
-};
+}
 
 /**
  * Initializes a new TLObject, given its properties.
@@ -29,51 +29,51 @@ const WHITELISTED_MISMATCHING_IDS = {
 class TLObject {
     constructor(fullname, objectId, args, result, isFunction, usability, friendly, layer) {
         // The name can or not have a namespace
-        this.fullname = fullname;
+        this.fullname = fullname
 
         if (fullname.includes('.')) {
-            [this.namespace, this.name] = fullname.split(/\.(.+)/);
+            [this.namespace, this.name] = fullname.split(/\.(.+)/)
             // console.log(fullname.split(/\.(.+)/));
             // const [namespace, ...name] = fullname.split('.');
             // this.namespace = namespace;
             // this.name = name.join('.');
         } else {
-            this.namespace = null;
-            this.name = fullname;
+            this.namespace = null
+            this.name = fullname
         }
 
-        this.args = args;
-        this.result = result;
-        this.isFunction = isFunction;
-        this.usability = usability;
-        this.friendly = friendly;
-        this.id = null;
+        this.args = args
+        this.result = result
+        this.isFunction = isFunction
+        this.usability = usability
+        this.friendly = friendly
+        this.id = null
 
         if (!objectId) {
-            this.id = this.inferId();
+            this.id = this.inferId()
         } else {
-            this.id = parseInt(objectId, 16);
+            this.id = parseInt(objectId, 16)
 
             const whitelist = new Set([
                 ...WHITELISTED_MISMATCHING_IDS[0],
                 ...(WHITELISTED_MISMATCHING_IDS[layer] || []),
-            ]);
+            ])
 
             if (!whitelist.has(this.fullname)) {
                 if (this.id !== this.inferId()) {
-                    throw new Error(`Invalid inferred ID for ${this.repr()}`);
+                    throw new Error(`Invalid inferred ID for ${this.repr()}`)
                 }
             }
         }
 
-        this.className = snakeToCamelCase(this.name, this.isFunction ? 'Request' : '');
+        this.className = snakeToCamelCase(this.name, this.isFunction ? 'Request' : '')
 
-        this.realArgs = this.sortedArgs().filter((a) => !(a.flagIndicator || a.genericDefinition));
+        this.realArgs = this.sortedArgs().filter((a) => !(a.flagIndicator || a.genericDefinition))
     }
 
     get innermostResult() {
-        const index = this.result.indexOf('<');
-        return index === -1 ? this.result : this.result.slice(index + 1, -1);
+        const index = this.result.indexOf('<')
+        return index === -1 ? this.result : this.result.slice(index + 1, -1)
     }
 
     /**
@@ -82,26 +82,26 @@ class TLObject {
      * can be inferred will go last so they can default =None)
      */
     sortedArgs() {
-        return this.args.sort((x) => x.isFlag || x.canBeInferred);
+        return this.args.sort((x) => x.isFlag || x.canBeInferred)
     }
 
     repr(ignoreId) {
-        let hexId;
-        let args;
+        let hexId
+        let args
 
         if (this.id === null || ignoreId) {
-            hexId = '';
+            hexId = ''
         } else {
-            hexId = `#${this.id.toString(16).padStart(8, '0')}`;
+            hexId = `#${this.id.toString(16).padStart(8, '0')}`
         }
 
         if (this.args.length) {
-            args = ` ${this.args.map((arg) => arg.toString()).join(' ')}`;
+            args = ` ${this.args.map((arg) => arg.toString()).join(' ')}`
         } else {
-            args = '';
+            args = ''
         }
 
-        return `${this.fullname}${hexId}${args} = ${this.result}`;
+        return `${this.fullname}${hexId}${args} = ${this.result}`
     }
 
     inferId() {
@@ -109,14 +109,15 @@ class TLObject {
             .replace(/(:|\?)bytes /g, '$1string ')
             .replace(/</g, ' ')
             .replace(/>|{|}/g, '')
-            .replace(/ \w+:flags\.\d+\?true/g, '');
+            .replace(/ \w+:flags\.\d+\?true/g, '')
 
         if (this.fullname === 'inputMediaInvoice') {
+            // eslint-disable-next-line no-empty
             if (this.fullname === 'inputMediaInvoice') {
             }
         }
 
-        return crc32(Buffer.from(representation, 'utf8'));
+        return crc32(Buffer.from(representation, 'utf8'))
     }
 
     toJson() {
@@ -125,66 +126,66 @@ class TLObject {
             [this.isFunction ? 'method' : 'predicate']: this.fullname,
             param: this.args.filter((x) => !x.genericDefinition).map((x) => x.toJson()),
             type: this.result,
-        };
+        }
     }
 
     isGoodExample() {
-        return !this.className.endsWith('Empty');
+        return !this.className.endsWith('Empty')
     }
 
     asExample(f, indent) {
-        f.write('<strong>new</strong> ');
-        f.write(this.isFunction ? 'functions' : 'types');
+        f.write('<strong>new</strong> ')
+        f.write(this.isFunction ? 'functions' : 'types')
 
         if (this.namespace) {
-            f.write('.');
-            f.write(this.namespace);
+            f.write('.')
+            f.write(this.namespace)
         }
 
-        f.write('.');
-        f.write(this.className);
-        f.write('(');
+        f.write('.')
+        f.write(this.className)
+        f.write('(')
 
-        const args = this.realArgs.filter((arg) => !arg.omitExample());
+        const args = this.realArgs.filter((arg) => !arg.omitExample())
 
         if (!args.length) {
-            f.write(')');
-            return;
+            f.write(')')
+            return
         }
 
-        f.write('\n');
-        indent++;
-        let remaining = args.length;
+        f.write('\n')
+        indent++
+        let remaining = args.length
 
         for (const arg of args) {
-            remaining--;
-            f.write('    '.repeat(indent));
-            f.write(arg.name);
-            f.write('=');
+            remaining--
+            f.write('    '.repeat(indent))
+            f.write(arg.name)
+            f.write('=')
 
             if (arg.isVector) {
-                f.write('[');
+                f.write('[')
             }
 
-            arg.asExample(f, indent || 0);
+            arg.asExample(f, indent || 0)
 
             if (arg.isVector) {
-                f.write(']');
+                f.write(']')
             }
 
             if (remaining) {
-                f.write(',');
+                f.write(',')
             }
 
-            f.write('\n');
+            f.write('\n')
         }
 
-        indent--;
-        f.write('    '.repeat(indent));
-        f.write(')');
+        indent--
+        f.write('    '.repeat(indent))
+        f.write(')')
     }
 }
 
 module.exports = {
     TLObject,
-};
+}

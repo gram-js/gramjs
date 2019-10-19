@@ -1,6 +1,6 @@
-const { TelegramError, parseErrors } = require('./errors');
-const { MethodInfo, Usability, parseMethods } = require('./methods');
-const { TLObject, parseTl, findLayer } = require('./tlobject');
+const { TelegramError, parseErrors } = require('./errors')
+const { MethodInfo, Usability, parseMethods } = require('./methods')
+const { TLObject, parseTl, findLayer } = require('./tlobject')
 
 module.exports = {
     TelegramError,
@@ -11,4 +11,4 @@ module.exports = {
     TLObject,
     parseTl,
     findLayer,
-};
+}

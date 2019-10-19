@@ -1,4 +1,4 @@
-const struct = require('python-struct');
+const struct = require('python-struct')
 
 class TLObject {
     CONSTRUCTOR_ID = null;
@@ -15,47 +15,47 @@ class TLObject {
     static serializeBytes(data) {
         if (!(data instanceof Buffer)) {
             if (typeof data == 'string') {
-                data = Buffer.from(data);
+                data = Buffer.from(data)
             } else {
-                throw Error(`Bytes or str expected, not ${data.constructor.name}`);
+                throw Error(`Bytes or str expected, not ${data.constructor.name}`)
             }
         }
-        const r = [];
-        let padding;
+        const r = []
+        let padding
         if (data.length < 254) {
-            padding = (data.length + 1) % 4;
+            padding = (data.length + 1) % 4
             if (padding !== 0) {
-                padding = 4 - padding;
+                padding = 4 - padding
             }
-            r.push(Buffer.from([data.length]));
-            r.push(data);
+            r.push(Buffer.from([data.length]))
+            r.push(data)
         } else {
-            padding = data.length % 4;
+            padding = data.length % 4
             if (padding !== 0) {
-                padding = 4 - padding;
+                padding = 4 - padding
             }
-            r.push(Buffer.from([254, data.length % 256, (data.length >> 8) % 256, (data.length >> 16) % 256]));
-            r.push(data);
+            r.push(Buffer.from([254, data.length % 256, (data.length >> 8) % 256, (data.length >> 16) % 256]))
+            r.push(data)
         }
-        r.push(Buffer.alloc(padding).fill(0));
-        return Buffer.concat(r);
+        r.push(Buffer.alloc(padding).fill(0))
+        return Buffer.concat(r)
     }
 
     static serializeDate(dt) {
         if (!dt) {
-            return Buffer.alloc(4).fill(0);
+            return Buffer.alloc(4).fill(0)
         }
         if (dt instanceof Date) {
-            dt = Math.floor((Date.now() - dt.getTime()) / 1000);
+            dt = Math.floor((Date.now() - dt.getTime()) / 1000)
         }
         if (typeof dt == 'number') {
-            return struct.pack('<i', dt);
+            return struct.pack('<i', dt)
         }
-        throw Error(`Cannot interpret "${dt}" as a date`);
+        throw Error(`Cannot interpret "${dt}" as a date`)
     }
 
     fromReader(reader) {
-        throw Error('not implemented');
+        throw Error('not implemented')
     }
 }
 
@@ -69,7 +69,7 @@ class TLRequest extends TLObject {
      * @returns {boolean}
      */
     readResult(reader) {
-        return reader.tgReadObject();
+        return reader.tgReadObject()
     }
 
     async resolve(self, client, utils) {}
@@ -78,4 +78,4 @@ class TLRequest extends TLObject {
 module.exports = {
     TLObject,
     TLRequest,
-};
+}

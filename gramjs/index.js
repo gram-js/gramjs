@@ -1,4 +1,4 @@
-const TelegramClient = require("./client/TelegramClient");
+const TelegramClient = require('./client/TelegramClient')
 module.exports = {
-    TelegramClient
-};
+    TelegramClient,
+}

@@ -1,7 +1,7 @@
-const fs = require('fs');
-const { TLArg } = require('./tlarg');
-const { TLObject } = require('./tlobject');
-const { Usability } = require('../methods');
+const fs = require('fs')
+const { TLArg } = require('./tlarg')
+const { TLObject } = require('./tlobject')
+const { Usability } = require('../methods')
 
 const CORE_TYPES = new Set([
     0xbc799737, // boolFalse#bc799737 = Bool;
@@ -9,7 +9,7 @@ const CORE_TYPES = new Set([
     0x3fedd339, // true#3fedd339 = True;
     0xc4b9f9bb, // error#c4b9f9bb code:int text:string = Error;
     0x56730bcc, // null#56730bcc = Null;
-]);
+])
 
 // Telegram Desktop (C++) doesn't care about string/bytes, and the .tl files
 // don't either. However in Python we *do*, and we want to deal with bytes
@@ -29,48 +29,48 @@ const AUTH_KEY_TYPES = new Set([
     0xd712e4be, // req_DH_params
     0xf5045f1f, // set_client_DH_params
     0x3072cfa1, // gzip_packed
-]);
+])
 
 const findall = (regex, str, matches) => {
     if (!matches) {
-        matches = [];
+        matches = []
     }
 
     if (!regex.flags.includes(`g`)) {
-        regex = new RegExp(regex.source, `g`);
+        regex = new RegExp(regex.source, `g`)
     }
 
-    const res = regex.exec(str);
+    const res = regex.exec(str)
 
     if (res) {
-        matches.push(res.slice(1));
-        findall(regex, str, matches);
+        matches.push(res.slice(1))
+        findall(regex, str, matches)
     }
 
-    return matches;
-};
+    return matches
+}
 
 const fromLine = (line, isFunction, methodInfo, layer) => {
-    const match = line.match(/([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/);
+    const match = line.match(/([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/)
 
     if (!match) {
         // Probably "vector#1cb5c415 {t:Type} # [ t ] = Vector t;"
-        throw new Error(`Cannot parse TLObject ${line}`);
+        throw new Error(`Cannot parse TLObject ${line}`)
     }
 
-    const argsMatch = findall(/({)?(\w+):([\w\d<>#.?!]+)}?/, line);
-    const [, name] = match;
-    methodInfo = methodInfo[name];
+    const argsMatch = findall(/({)?(\w+):([\w\d<>#.?!]+)}?/, line)
+    const [, name] = match
+    methodInfo = methodInfo[name]
 
-    let usability;
-    let friendly;
+    let usability
+    let friendly
 
     if (methodInfo) {
-        usability = methodInfo.usability;
-        friendly = methodInfo.friendly;
+        usability = methodInfo.usability
+        friendly = methodInfo.friendly
     } else {
-        usability = Usability.UNKNOWN;
-        friendly = null;
+        usability = Usability.UNKNOWN
+        friendly = null
     }
 
     return new TLObject(
@@ -81,9 +81,9 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
         isFunction,
         usability,
         friendly,
-        layer
-    );
-};
+        layer,
+    )
+}
 
 /**
  * This method yields TLObjects from a given .tl file.
@@ -92,56 +92,56 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
  * because references to other objects may appear later in the file.
  */
 const parseTl = function* (filePath, layer, methods, ignoreIds = CORE_TYPES) {
-    const methodInfo = (methods || []).reduce((o, m) => ({ ...o, [m.name]: m }), {});
-    const objAll = [];
-    const objByName = {};
-    const objByType = {};
+    const methodInfo = (methods || []).reduce((o, m) => ({ ...o, [m.name]: m }), {})
+    const objAll = []
+    const objByName = {}
+    const objByType = {}
 
-    const file = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    const file = fs.readFileSync(filePath, { encoding: 'utf-8' })
 
-    let isFunction = false;
+    let isFunction = false
 
     for (let line of file.split('\n')) {
-        const commentIndex = line.indexOf('//');
+        const commentIndex = line.indexOf('//')
 
         if (commentIndex !== -1) {
-            line = line.slice(0, commentIndex);
+            line = line.slice(0, commentIndex)
         }
 
-        line = line.trim();
+        line = line.trim()
 
         if (!line) {
-            continue;
+            continue
         }
 
-        const match = line.match(/---(\w+)---/);
+        const match = line.match(/---(\w+)---/)
 
         if (match) {
-            const [, followingTypes] = match;
-            isFunction = followingTypes === 'functions';
-            continue;
+            const [, followingTypes] = match
+            isFunction = followingTypes === 'functions'
+            continue
         }
 
         try {
-            const result = fromLine(line, isFunction, methodInfo, layer);
+            const result = fromLine(line, isFunction, methodInfo, layer)
 
             if (ignoreIds.has(result.id)) {
-                continue;
+                continue
             }
 
-            objAll.push(result);
+            objAll.push(result)
 
             if (!result.isFunction) {
                 if (!objByType[result.result]) {
-                    objByType[result.result] = [];
+                    objByType[result.result] = []
                 }
 
-                objByName[result.fullname] = result;
-                objByType[result.result].push(result);
+                objByName[result.fullname] = result
+                objByType[result.result].push(result)
             }
         } catch (e) {
             if (!e.toString().includes('vector#1cb5c415')) {
-                throw e;
+                throw e
             }
         }
     }
@@ -152,39 +152,37 @@ const parseTl = function* (filePath, layer, methods, ignoreIds = CORE_TYPES) {
         if (AUTH_KEY_TYPES.has(obj.id)) {
             for (const arg of obj.args) {
                 if (arg.type === 'string') {
-                    arg.type = 'bytes';
+                    arg.type = 'bytes'
                 }
             }
         }
 
         for (const arg of obj.args) {
-            arg.cls = objByType[arg.type] || (arg.type in objByName ? [objByName[arg.type]] : []);
+            arg.cls = objByType[arg.type] || (arg.type in objByName ? [objByName[arg.type]] : [])
         }
     }
 
     for (const obj of objAll) {
-        yield obj;
+        yield obj
     }
-};
+}
 
 /**
  * Finds the layer used on the specified scheme.tl file.
  */
 const findLayer = (filePath) => {
-    const layerRegex = /^\/\/\s*LAYER\s*(\d+)$/;
+    const layerRegex = /^\/\/\s*LAYER\s*(\d+)/
 
-    const file = fs.readFileSync(filePath, { encoding: 'utf-8' });
-
+    const file = fs.readFileSync(filePath, { encoding: 'utf-8' })
     for (const line of file.split('\n')) {
-        const match = line.match(layerRegex);
-
+        const match = line.match(layerRegex)
         if (match) {
-            return Number(match[1]);
+            return Number(match[1])
         }
     }
-};
+}
 
 module.exports = {
     parseTl,
     findLayer,
-};
+}
