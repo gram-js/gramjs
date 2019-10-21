@@ -32,7 +32,7 @@ class TelegramClient {
         appVersion: null,
         langCode: 'en',
         systemLangCode: 'en',
-        baseLogger: null,
+        baseLogger: 'gramjs',
     }
 
     constructor(sessionName, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
@@ -40,6 +40,7 @@ class TelegramClient {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
         }
         const args = { ...TelegramClient.DEFAULT_OPTIONS, ...opts }
+        console.log("actual args are : ",args)
         this.apiId = apiId
         this.apiHash = apiHash
         this._useIPV6 = args.useIPV6
@@ -50,9 +51,9 @@ class TelegramClient {
             this._log = args.baseLogger
         }
         const session = Session.tryLoadOrCreateNew(sessionName)
-
+        console.log(session.serverAddress)
         if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
-            session.setDc(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
+            session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
         }
         this.floodSleepLimit = args.floodSleepLimit
 
@@ -81,12 +82,12 @@ class TelegramClient {
                 layer: LAYER,
                 query: new functions.InitConnectionRequest({
                     apiId: this.apiId,
-                    deviceModel: args.deviceModel | os.type() | 'Unkown',
-                    systemVersion: args.systemVersion | os.release() | '1.0',
-                    appVersion: args.appVersion | '1.0',
+                    deviceModel: args.deviceModel || os.type().toString() || 'Unknown',
+                    systemVersion: args.systemVersion || os.release().toString() || '1.0',
+                    appVersion: args.appVersion || '1.0',
                     langCode: args.langCode,
                     langPack: '', // this should be left empty.
-                    systemLangCode: args.systemVersion,
+                    systemLangCode: args.systemLangCode,
                     query: x,
                     proxy: null, // no proxies yet.
                 }),
@@ -94,7 +95,6 @@ class TelegramClient {
         }
         // These will be set later
         this._config = null
-
         this._sender = new MTProtoSender(this.session.authKey, {
             logger: this._log,
         })

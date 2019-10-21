@@ -48,32 +48,33 @@ format.extend(String.prototype, {})
  * key exists yet.
  */
 class MTProtoSender {
+
+    static DEFAULT_OPTIONS = {
+        logger: null,
+        retries: 5,
+        delay: 1,
+        autoReconnect: true,
+        connectTimeout: null,
+        authKeyCallback: null,
+        updateCallback: null,
+        autoReconnectCallback: null,
+    }
+
     /**
      * @param authKey
-     * @param opt
+     * @param opts
      */
-    constructor(
-        authKey,
-        opt = {
-            logger: null,
-            retries: 5,
-            delay: 1,
-            autoReconnect: true,
-            connectTimeout: null,
-            authKeyCallback: null,
-            updateCallback: null,
-            autoReconnectCallback: null,
-        },
-    ) {
+    constructor(authKey, opts) {
+        const args = { ...MTProtoSender.DEFAULT_OPTIONS, ...opts }
         this._connection = null
-        this._log = opt.logger
-        this._retries = opt.retries
-        this._delay = opt.delay
-        this._autoReconnect = opt.autoReconnect
-        this._connectTimeout = opt.connectTimeout
-        this._authKeyCallback = opt.authKeyCallback
-        this._updateCallback = opt.updateCallback
-        this._autoReconnectCallback = opt.autoReconnectCallback
+        this._log = args.logger
+        this._retries = args.retries
+        this._delay = args.delay
+        this._autoReconnect = args.autoReconnect
+        this._connectTimeout = args.connectTimeout
+        this._authKeyCallback = args.authKeyCallback
+        this._updateCallback = args.updateCallback
+        this._autoReconnectCallback = args.autoReconnectCallback
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -152,6 +153,7 @@ class MTProtoSender {
      * @returns {Promise<boolean>}
      */
     async connect(connection) {
+        console.log("the connc is : ",connection);
         if (this._user_connected) {
             this._log.info('User is already connected!')
             return false
