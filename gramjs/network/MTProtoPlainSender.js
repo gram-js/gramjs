@@ -19,8 +19,11 @@ class MTProtoPlainSender {
      * @param loggers
      */
     constructor(connection, loggers) {
+        console.log("plz?")
         this._state = new MTProtoState(connection, loggers)
+        console.log("dud?")
         this._connection = connection
+        console.log("ok connection is ",connection)
     }
 
     /**

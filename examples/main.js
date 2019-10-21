@@ -25,14 +25,7 @@ console.log(message.bytes.toString('hex'));
     const client = new TelegramClient(sessionName, apiId, apiHash)
     await client.connect()
 
-
-    client._authorized = true
-
-    const message = new SendMessageRequest({
-        peer: inputPeer,
-        message: 'hi from GramJS',
-    })
-    const r = await client.invoke(message)
-    console.log(r)
     console.log('You should now be connected.')
+    await client.disconnect()
+    await client.connect()
 })()

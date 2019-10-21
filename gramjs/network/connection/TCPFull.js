@@ -29,9 +29,7 @@ class FullPacketCodec extends PacketCodec {
         // process.exit(0);
 
         if (packetLenSeq === undefined) {
-            console.log('connection closed. exiting')
-            process.exit(0)
-            throw new Error('closed connection')
+            return false
         }
 
         const res = struct.unpack('<ii', packetLenSeq)

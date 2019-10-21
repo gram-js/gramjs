@@ -14,8 +14,9 @@ BigInt.parseJson = function() {
 class Session {
     constructor(sessionUserId) {
         this.sessionUserId = sessionUserId
-        this.serverAddress = 0
-        this.port = 0
+        this._serverAddress = null
+        this.__dcId = 0
+        this._port = null
         // this.serverAddress = "localhost";
         // this.port = 21;
         this.authKey = undefined
@@ -44,6 +45,24 @@ class Session {
         }
     }
 
+    setDC(dcId, serverAddress, port) {
+        this._dcId = dcId | 0
+        this._serverAddress = serverAddress
+        this._port = port
+    }
+
+    get serverAddress() {
+        return this._serverAddress
+    }
+
+    get port() {
+        return this._port
+    }
+
+    get dcId() {
+        return this._dcId
+    }
+
     static tryLoadOrCreateNew(sessionUserId) {
         if (sessionUserId === undefined) {
             return new Session()
@@ -60,8 +79,8 @@ class Session {
 
             const authKey = new AuthKey(Buffer.from(ob.authKey._key.data))
             const session = new Session(ob.sessionUserId)
-            session.serverAddress = ob.serverAddress
-            session.port = ob.port
+            session._serverAddress = ob.serverAddress
+            session._port = ob.port
             // this.serverAddress = "localhost";
             // this.port = 21;
             session.authKey = authKey

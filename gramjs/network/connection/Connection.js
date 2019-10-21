@@ -1,6 +1,7 @@
 const { PromiseSocket } = require('promise-socket')
 const { Socket } = require('net')
 const AsyncQueue = require('../../extensions/AsyncQueue')
+
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
  *
@@ -13,7 +14,7 @@ const AsyncQueue = require('../../extensions/AsyncQueue')
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    PacketCodecClass = null;
+    PacketCodecClass = null
 
     constructor(ip, port, dcId, loggers) {
         this._ip = ip
@@ -88,9 +89,12 @@ class Connection {
         while (this._connected) {
             try {
                 data = await this._recv()
+                if (!data) {
+                    return
+                }
             } catch (e) {
                 console.log(e)
-                this._log.info('The server closed the connection')
+                this._log.info('an error occured')
             }
             await this._recvArray.push(data)
         }
