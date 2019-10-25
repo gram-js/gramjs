@@ -153,7 +153,6 @@ class MTProtoSender {
      * @returns {Promise<boolean>}
      */
     async connect(connection) {
-        console.log("the connc is : ",connection);
         if (this._user_connected) {
             this._log.info('User is already connected!')
             return false
@@ -265,7 +264,7 @@ class MTProtoSender {
             this._log.info('Not disconnecting (already have no connection)')
             return
         }
-        this._log.info('Disconnecting from %s...', this._connection)
+        this._log.info('Disconnecting from %s...', this._connection.toString())
         this._user_connected = false
         this._log.debug('Closing current connection...')
         await this._connection.disconnect()
@@ -465,8 +464,6 @@ class MTProtoSender {
         if (RPCResult.error) {
             // eslint-disable-next-line new-cap
             const error = RPCMessageToError(RPCResult.error, state.request)
-            console.log('error happen', error)
-
             this._send_queue.append(new RequestState(new MsgsAck({ msgIds: [state.msgId] })))
             state.reject(error)
         } else {
@@ -507,7 +504,6 @@ class MTProtoSender {
     async _handleUpdate(message) {
         if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {
             // crc32(b'Updates')
-            // TODO fix this. currently getting an error about this not being defined.
             logger.warn(`Note: ${message.obj.constructor.name} is not an update, not dispatching it`)
             return
         }

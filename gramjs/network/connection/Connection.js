@@ -44,7 +44,9 @@ class Connection {
     async connect() {
         await this._connect()
         this._connected = true
-        this._sendTask = this._sendLoop()
+        if (!this._sendTask) {
+            this._sendTask = this._sendLoop()
+        }
         this._recvTask = this._recvLoop()
     }
 
@@ -90,6 +92,7 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
+                    console.log('ended')
                     return
                 }
             } catch (e) {
