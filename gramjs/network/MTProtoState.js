@@ -36,7 +36,6 @@ class MTProtoState {
     constructor(authKey, loggers) {
         this.authKey = authKey
         this._log = loggers
-        console.log("creating state ?");
         this.timeOffset = 0
         this.salt = 0
 

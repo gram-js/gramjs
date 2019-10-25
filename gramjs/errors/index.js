@@ -4,7 +4,7 @@
  * @param request the request that caused this error
  * @constructor the RPCError as a Python exception that represents this error
  */
-const { rpcErrorsObject } = require('./rpcerrorlist')
+const { rpcErrorsObject, rpcErrorRe } = require('./RPCErrorList')
 
 function RPCMessageToError(rpcError, request) {
     // Try to get the error by direct look-up, otherwise regex
@@ -12,8 +12,13 @@ function RPCMessageToError(rpcError, request) {
     if (cls) {
         // eslint-disable-next-line new-cap
         return new cls(request)
-    } else {
-        return rpcError.errorMessage
+    }
+    for (const [msgRegex, Cls] of rpcErrorRe) {
+        const m = rpcError.errorMessage.match(msgRegex)
+        if (m) {
+            const capture = m.length === 2 ? parseInt(m[1]) : null
+            return new Cls({ request: request, capture: capture })
+        }
     }
 }
 
@@ -24,5 +29,5 @@ module.exports = {
     ...module.exports,
     ...require('./Common'),
     ...require('./RPCBaseErrors'),
-    ...require('./rpcerrorlist'),
+    ...require('./RPCErrorList'),
 }

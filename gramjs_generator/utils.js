@@ -9,6 +9,7 @@ const variableSnakeToCamelCase = (str) => str.replace(
         .replace('_', '')
 )
 
+
 module.exports = {
     snakeToCamelCase,
     variableSnakeToCamelCase,

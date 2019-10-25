@@ -1,7 +1,7 @@
 class EventBuilder {
     constructor(args = {
-        chats: null, blacklistChats: null, func: null,
-    },
+            chats: null, blacklistChats: null, func: null,
+        },
     ) {
         this.chats = args.chats
         this.blacklistChats = Boolean(args.blacklistChats)
@@ -14,9 +14,5 @@ class EventBuilder {
     }
 }
 
-class EventCommon {
 
-}
-
-
-module.exports = { EventBuilder, EventCommon }
+module.exports = { EventBuilder }

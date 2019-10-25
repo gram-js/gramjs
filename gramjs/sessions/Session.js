@@ -68,29 +68,35 @@ class Session {
             return new Session()
         }
         const filepath = `${sessionUserId}.session`
-        if (existsSync(filepath)) {
-            const ob = JSON.parse(readFileSync(filepath, 'utf-8'), function(key, value) {
-                if (typeof value == 'string' && value.match(/(\d+)n/)) {
-                    return BigInt(value.slice(0, -1))
-                } else {
-                    return value
-                }
-            })
 
-            const authKey = new AuthKey(Buffer.from(ob.authKey._key.data))
-            const session = new Session(ob.sessionUserId)
-            session._serverAddress = ob.serverAddress
-            session._port = ob.port
-            // this.serverAddress = "localhost";
-            // this.port = 21;
-            session.authKey = authKey
-            session.id = ob.id
-            session.sequence = ob.sequence
-            session.salt = ob.salt // Unsigned long
-            session.timeOffset = ob.timeOffset
-            session.lastMessageId = ob.lastMessageId
-            session.user = ob.user
-            return session
+
+        if (existsSync(filepath)) {
+            try {
+                const ob = JSON.parse(readFileSync(filepath, 'utf-8'), function(key, value) {
+                    if (typeof value == 'string' && value.match(/(\d+)n/)) {
+                        return BigInt(value.slice(0, -1))
+                    } else {
+                        return value
+                    }
+                })
+
+                const authKey = new AuthKey(Buffer.from(ob.authKey._key.data))
+                const session = new Session(ob.sessionUserId)
+                session._serverAddress = ob.serverAddress
+                session._port = ob.port
+                // this.serverAddress = "localhost";
+                // this.port = 21;
+                session.authKey = authKey
+                session.id = ob.id
+                session.sequence = ob.sequence
+                session.salt = ob.salt // Unsigned long
+                session.timeOffset = ob.timeOffset
+                session.lastMessageId = ob.lastMessageId
+                session.user = ob.user
+                return session
+            } catch (e) {
+                return new Session(sessionUserId)
+            }
         } else {
             return new Session(sessionUserId)
         }
@@ -108,6 +114,10 @@ class Session {
         }
         this.lastMessageId = newMessageId
         return newMessageId
+    }
+
+    processEntities(result) {
+        console.log('saving entities')
     }
 }
 
