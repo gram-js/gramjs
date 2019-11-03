@@ -1,5 +1,5 @@
 const struct = require('python-struct')
-const Helpers = require('../utils/Helpers')
+const Helpers = require('../Helpers')
 const AES = require('../crypto/AES')
 const BinaryReader = require('../extensions/BinaryReader')
 const GZIPPacked = require('../tl/core/GZIPPacked')

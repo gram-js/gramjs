@@ -1,4 +1,4 @@
-const Helpers = require('../utils/Helpers')
+const { sha1, readBufferFromBigInt, readBigIntFromBuffer } = require('../Helpers')
 const BinaryReader = require('../extensions/BinaryReader')
 const struct = require('python-struct')
 
@@ -19,7 +19,7 @@ class AuthKey {
             return
         }
         this._key = value
-        const reader = new BinaryReader(Helpers.sha1(this._key))
+        const reader = new BinaryReader(sha1(this._key))
         this.auxHash = reader.readLong(false)
         reader.read(4)
         this.keyId = reader.readLong(false)
@@ -38,12 +38,12 @@ class AuthKey {
      * @returns {bigint}
      */
     calcNewNonceHash(newNonce, number) {
-        newNonce = Helpers.readBufferFromBigInt(newNonce, 32, true, true)
+        newNonce = readBufferFromBigInt(newNonce, 32, true, true)
         const data = Buffer.concat([newNonce, struct.pack('<BQ', number.toString(), this.auxHash.toString())])
 
         // Calculates the message key from the given data
-        const shaData = Helpers.sha1(data).slice(4, 20)
-        return Helpers.readBigIntFromBuffer(shaData, true, true)
+        const shaData = sha1(data).slice(4, 20)
+        return readBigIntFromBuffer(shaData, true, true)
     }
 
     equals(other) {

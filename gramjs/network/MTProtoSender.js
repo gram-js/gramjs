@@ -1,6 +1,6 @@
 const MtProtoPlainSender = require('./MTProtoPlainSender')
 const MTProtoState = require('./MTProtoState')
-const Helpers = require('../utils/Helpers')
+const Helpers = require('../Helpers')
 const AuthKey = require('../crypto/AuthKey')
 const doAuthentication = require('./Authenticator')
 const RPCResult = require('../tl/core/RPCResult')

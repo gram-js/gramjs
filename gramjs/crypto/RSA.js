@@ -1,6 +1,6 @@
 const NodeRSA = require('node-rsa')
 const { TLObject } = require('../tl/tlobject')
-const Helpers = require('../utils/Helpers')
+const { readBigIntFromBuffer, sha1, modExp, readBufferFromBigInt, generateRandomBytes } = require('../Helpers')
 const _serverKeys = {}
 
 /**
@@ -12,18 +12,18 @@ const _serverKeys = {}
 function getByteArray(integer, signed = false) {
     const { length: bits } = integer.toString(2)
     const byteLength = Math.floor((bits + 8 - 1) / 8)
-    return Helpers.readBufferFromBigInt(BigInt(integer), byteLength, false, signed)
+    return readBufferFromBigInt(BigInt(integer), byteLength, false, signed)
 }
 
 function _computeFingerprint(key) {
-    const buf = Helpers.readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
+    const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
     const nArray = getByteArray(buf)
 
     const n = TLObject.serializeBytes(nArray)
     const e = TLObject.serializeBytes(getByteArray(key.keyPair.e))
     // Telegram uses the last 8 bytes as the fingerprint
-    const sh = Helpers.sha1(Buffer.concat([n, e]))
-    return Helpers.readBigIntFromBuffer(sh.slice(-8), true, true)
+    const sh = sha1(Buffer.concat([n, e]))
+    return readBigIntFromBuffer(sh.slice(-8), true, true)
 }
 
 function addKey(pub) {
@@ -36,8 +36,8 @@ function encrypt(fingerprint, data) {
     if (!key) {
         return undefined
     }
-    const buf = Helpers.readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
-    let rand = Helpers.generateRandomBytes(235 - data.length)
+    const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
+    let rand = generateRandomBytes(235 - data.length)
     rand = Buffer.from(
         '66a6f809e0dfd71d9dbbc2d6b5fe5fc0be9f5b2b0f2f85688843eea6b2c6d51329750f020c8de27a0a911b07d2a46600493d1abb7caf24' +
         '01ccd815d7de7c5ea830cdf6cce8bff12f77db589f233bce436b644c3415f16d073335fdadfe313c603485b3274e8fcd148fd1a5e18bd2' +
@@ -45,10 +45,10 @@ function encrypt(fingerprint, data) {
         'hex',
     )
 
-    const toEncrypt = Buffer.concat([Helpers.sha1(data), data, rand])
-    const payload = Helpers.readBigIntFromBuffer(toEncrypt, false)
-    const encrypted = Helpers.modExp(payload, BigInt(key.keyPair.e), buf)
-    const block = Helpers.readBufferFromBigInt(encrypted, 256, false)
+    const toEncrypt = Buffer.concat([sha1(data), data, rand])
+    const payload = readBigIntFromBuffer(toEncrypt, false)
+    const encrypted = modExp(payload, BigInt(key.keyPair.e), buf)
+    const block = readBufferFromBigInt(encrypted, 256, false)
     return block
 }
 

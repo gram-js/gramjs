@@ -1,5 +1,5 @@
 const aesjs = require('aes-js')
-const Helpers = require('../utils/Helpers')
+const { generateRandomBytes } = require('../Helpers')
 
 class AES {
     /**
@@ -47,7 +47,7 @@ class AES {
     static encryptIge(plainText, key, iv) {
         const padding = plainText.length % 16
         if (padding) {
-            plainText = Buffer.concat([plainText, Helpers.generateRandomBytes(16 - padding)])
+            plainText = Buffer.concat([plainText, generateRandomBytes(16 - padding)])
         }
 
         let iv1 = iv.slice(0, Math.floor(iv.length / 2))

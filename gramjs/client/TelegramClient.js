@@ -1,5 +1,5 @@
 const log4js = require('log4js')
-const Helpers = require('../utils/Helpers')
+const { sleep } = require('../Helpers')
 const errors = require('../errors')
 const { addKey } = require('../crypto/RSA')
 const { TLRequest } = require('../tl/tlobject')
@@ -207,7 +207,7 @@ class TelegramClient {
                 delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
             } else if (diff <= this.floodSleepLimit) {
                 this._log.info(`Sleeping early for ${diff}s on flood wait`)
-                await Helpers.sleep(diff)
+                await sleep(diff)
                 delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
             } else {
                 throw new errors.FloodWaitError({
@@ -231,12 +231,12 @@ class TelegramClient {
                 if (e instanceof errors.ServerError || e instanceof errors.RpcCallFailError ||
                     e instanceof errors.RpcMcgetFailError) {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
-                    await Helpers.sleep(2)
+                    await Helpers.sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
                     this._floodWaitedRequests = new Date().getTime() / 1000 + e.seconds
                     if (e.seconds <= this.floodSleepLimit) {
                         this._log.info(`Sleeping for ${e.seconds}s on flood wait`)
-                        await Helpers.sleep(e.seconds)
+                        await Helpers.sleep(e.seconds * 1000)
                     } else {
                         throw e
                     }
@@ -328,7 +328,7 @@ class TelegramClient {
 
     async sendCodeRequest(phone, forceSMS = false) {
         let result
-        phone = Helpers.parsePhone(phone) || this._phone
+        phone = parsePhone(phone) || this._phone
         let phoneHash = this._phoneCodeHash[phone]
 
         if (!phoneHash) {
