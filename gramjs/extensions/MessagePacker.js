@@ -14,6 +14,10 @@ class MessagePacker {
         this._log = logger
     }
 
+    values() {
+        return this._queue
+    }
+
     append(state) {
         this._queue.push(state)
         this.setReady(true)
@@ -49,7 +53,7 @@ class MessagePacker {
                 }
                 state.msgId = await this._state.writeDataAsMessage(
                     buffer, state.data, state.request instanceof TLRequest,
-                    afterId
+                    afterId,
                 )
 
                 this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.constructor.name}`)
@@ -70,11 +74,11 @@ class MessagePacker {
         }
         if (batch.length > 1) {
             data = Buffer.concat([struct.pack(
-                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length
+                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length,
             ), buffer.getValue()])
 
             const containerId = await this._state.writeDataAsMessage(
-                buffer, data, false
+                buffer, data, false,
             )
             for (const s of batch) {
                 s.containerId = containerId

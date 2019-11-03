@@ -45,7 +45,8 @@ class InvalidChecksumError extends Error {
  */
 class InvalidBufferError extends Error {
     constructor(payload) {
-        const [code] = -struct.unpack('<i', payload)
+        console.log('payload is ', payload.toString('hex'))
+        const code = -(struct.unpack('<i', payload)[0])
         if (payload.length === 4) {
             super(`Invalid response buffer (HTTP code ${code})`)
         } else {
@@ -130,7 +131,7 @@ class BadMessageError extends Error {
             'the correct salt, and the message is to be re-sent with it).',
 
         64: 'Invalid container.',
-    };
+    }
 
     constructor(code) {
         super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`)

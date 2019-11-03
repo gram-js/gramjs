@@ -99,6 +99,13 @@ class TelegramClient {
         this._config = null
         this._sender = new MTProtoSender(this.session.authKey, {
             logger: this._log,
+            retries: this._connectionRetries,
+            delay: this._retryDelay,
+            autoReconnect: this._autoReconnect,
+            connectTimeout: this._timeout,
+            authKeyCallback: this._authKeyCallback.bind(this),
+            updateCallback: this._handleUpdate.bind(this),
+
         })
         this.phoneCodeHashes = []
     }
@@ -113,13 +120,14 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
-
         const connection = new this._connection(this.session.serverAddress
             , this.session.port, this.session.dcId, this._log)
         if (!await this._sender.connect(connection)) {
+            console.log('already connected returning')
             return
         }
         this.session.authKey = this._sender.authKey
+        console.log('auth key is ', this.session.authKey)
         await this.session.save()
         await this._sender.send(this._initWith(
             new GetConfigRequest(),
@@ -141,21 +149,18 @@ class TelegramClient {
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
         const DC = await this._getDC(newDc)
-        console.log('dc is ?????????')
         this.session.setDC(DC.id, DC.ipAddress, DC.port)
-        console.log('the dc is ', DC)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
         this._sender.authKey.key = null
         this.session.authKey = null
         await this.session.save()
         await this.disconnect()
-        console.log('hayyyyyyyyyy')
         return await this.connect()
     }
 
     async _authKeyCallback(authKey) {
-        this.session.auth_key = authKey
+        this.session.authKey = authKey
         await this.session.save()
     }
 
@@ -164,11 +169,10 @@ class TelegramClient {
     // region Working with different connections/Data Centers
 
     async _getDC(dcId, cdn = false) {
-        console.log('hi dc ?')
         if (!this._config) {
             this._config = await this.invoke(new functions.help.GetConfigRequest())
+
         }
-        console.log('h')
         if (cdn && !this._cdnConfig) {
             this._cdnConfig = await this.invoke(new functions.help.GetCdnConfigRequest())
             for (const pk of this._cdnConfig.publicKeys) {
@@ -177,8 +181,7 @@ class TelegramClient {
         }
         console.log('ok')
         for (const DC of this._config.dcOptions) {
-            console.log(DC)
-            if (DC.id === dcId && DC.ipv6 === this._useIPV6 && DC.cdn === cdn) {
+            if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
                 return DC
             }
         }
@@ -215,13 +218,12 @@ class TelegramClient {
         }
         this._last_request = new Date().getTime()
         let attempt = 0
+        console.log('request retries is ,', this._requestRetries)
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
-                console.log('sending promise')
+                console.log('curernt attepmt is ', attempt)
                 const promise = this._sender.send(request)
-                console.log(promise)
                 const result = await promise
-                console.log('the res is : ', result)
                 this.session.processEntities(result)
                 this._entityCache.add(result)
                 return result
@@ -245,6 +247,7 @@ class TelegramClient {
                     if (shouldRaise && await this.isUserAuthorized()) {
                         throw e
                     }
+                    await Helpers.sleep(1000)
                     await this._switchDC(e.newDc)
                 } else {
                     throw e
@@ -374,7 +377,6 @@ class TelegramClient {
                 this._processUpdate(u, update.updates)
             }
         } else if (update instanceof types.UpdateShort) {
-
             this._processUpdate(update.update, null)
         } else {
             this._processUpdate(update, null)

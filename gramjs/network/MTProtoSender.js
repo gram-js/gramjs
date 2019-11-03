@@ -48,7 +48,6 @@ format.extend(String.prototype, {})
  * key exists yet.
  */
 class MTProtoSender {
-
     static DEFAULT_OPTIONS = {
         logger: null,
         retries: 5,
@@ -225,7 +224,7 @@ class MTProtoSender {
         await this._connection.connect()
         this._log.debug('Connection success!')
         if (!this.authKey._key) {
-            const plain = new MtProtoPlainSender(this._connection, this._loggers)
+            const plain = new MtProtoPlainSender(this._connection, this._log)
             this._log.debug('New auth_key attempt ...')
             const res = await doAuthentication(plain, this._log)
             this._log.debug('Generated new auth_key successfully')
@@ -348,6 +347,8 @@ class MTProtoSender {
                     if (this._authKeyCallback) {
                         this._authKeyCallback(null)
                     }
+                    this._startReconnect(e)
+
                     return
                 } else {
                     this._log.error('Unhandled error while receiving data')
@@ -705,6 +706,37 @@ class MTProtoSender {
      * @private
      */
     async _handleMsgAll(message) {
+    }
+
+    _startReconnect(e) {
+        if (this._user_connected && !this._reconnecting) {
+            this._reconnecting = true
+            this._reconnect(e)
+
+        }
+
+    }
+
+    async _reconnect(e) {
+        this._log.debug('Closing current connection...')
+        await this._connection.disconnect()
+        this._reconnecting = false
+        this._state.reset()
+        const retries = this._retries
+        for (let attempt = 0; attempt < retries; attempt++) {
+            try {
+                await this._connect()
+                this._send_queue.extend(Object.values(this._pending_state))
+                this._pending_state = {}
+                if (this._autoReconnectCallback) {
+                    this._autoReconnectCallback()
+                }
+                break
+            } catch (e) {
+                this._log.error(e)
+                await Helpers.sleep(this._delay)
+            }
+        }
     }
 }
 
