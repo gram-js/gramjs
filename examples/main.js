@@ -18,6 +18,4 @@ console.log(message.bytes.toString('hex'));
     await client.connect()
 
     console.log('You should now be connected.')
-    await client.disconnect()
-    await client.connect()
 })()

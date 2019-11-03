@@ -98,6 +98,7 @@ class Connection {
             } catch (e) {
                 console.log(e)
                 this._log.info('an error occured')
+                return
             }
             await this._recvArray.push(data)
         }

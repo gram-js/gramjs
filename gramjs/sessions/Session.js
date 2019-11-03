@@ -15,7 +15,7 @@ class Session {
     constructor(sessionUserId) {
         this.sessionUserId = sessionUserId
         this._serverAddress = null
-        this.__dcId = 0
+        this._dcId = 0
         this._port = null
         // this.serverAddress = "localhost";
         // this.port = 21;
@@ -40,7 +40,7 @@ class Session {
                     return value
                 }
             })
-
+            console.log('current auth key will be ', this.authKey)
             await fs.writeFile(`${this.sessionUserId}.session`, str)
         }
     }
@@ -82,8 +82,10 @@ class Session {
 
                 const authKey = new AuthKey(Buffer.from(ob.authKey._key.data))
                 const session = new Session(ob.sessionUserId)
-                session._serverAddress = ob.serverAddress
-                session._port = ob.port
+                session._serverAddress = ob._serverAddress
+                session._port = ob._port
+                session._dcId = ob._dcId
+
                 // this.serverAddress = "localhost";
                 // this.port = 21;
                 session.authKey = authKey
