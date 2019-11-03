@@ -364,10 +364,11 @@ class TelegramClient {
 
     // event region
     addEventHandler(callback, event) {
-        this._eventBuilders.append([event, callback])
+        this._eventBuilders.push([event, callback])
     }
 
     _handleUpdate(update) {
+        console.log('got the update')
         this.session.processEntities(update)
         this._entityCache.add(update)
 
@@ -381,7 +382,8 @@ class TelegramClient {
         } else {
             this._processUpdate(update, null)
         }
-        this._stateCache.update(update)
+        // TODO add caching
+        // this._stateCache.update(update)
     }
 
     _processUpdate(update, others, entities) {
@@ -403,7 +405,7 @@ class TelegramClient {
         ptsDate: null,
     }) {
         for (const [builder, callback] of this._eventBuilders) {
-            const event = builder.build()
+            const event = builder.build(args.update)
             await callback(event)
         }
     }

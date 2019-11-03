@@ -11,7 +11,7 @@ function RPCMessageToError(rpcError, request) {
     const cls = rpcErrorsObject[rpcError.errorMessage]
     if (cls) {
         // eslint-disable-next-line new-cap
-        return new cls(request)
+        return new cls({ request: request })
     }
     for (const [msgRegex, Cls] of rpcErrorRe) {
         const m = rpcError.errorMessage.match(msgRegex)
