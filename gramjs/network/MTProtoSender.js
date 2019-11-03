@@ -380,7 +380,7 @@ class MTProtoSender {
         message.obj = await message.obj
         let handler = this._handlers[message.obj.CONSTRUCTOR_ID]
         if (!handler) {
-            handler = this._handleUpdate
+            handler = this._handleUpdate.bind(this)
         }
 
         await handler(message)
