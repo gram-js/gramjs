@@ -2,7 +2,7 @@ const { unpack } = require('python-struct')
 const { TypeNotFoundError } = require('../errors/Common')
 const { coreObjects } = require('../tl/core')
 const { tlobjects } = require('../tl/AllTLObjects')
-const Helpers = require('../utils/Helpers')
+const { readBigIntFromBuffer } = require('../Helpers')
 
 class BinaryReader {
     /**
@@ -81,7 +81,7 @@ class BinaryReader {
      */
     readLargeInt(bits, signed = true) {
         const buffer = this.read(Math.floor(bits / 8))
-        return Helpers.readBigIntFromBuffer(buffer, true, signed)
+        return readBigIntFromBuffer(buffer, true, signed)
     }
 
     /**
@@ -96,7 +96,7 @@ class BinaryReader {
         this.offset += length
         if (result.length !== length) {
             throw Error(
-                `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`
+                `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`,
             )
         }
         this._last = result

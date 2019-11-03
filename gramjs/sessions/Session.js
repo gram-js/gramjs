@@ -1,4 +1,4 @@
-const Helpers = require('../utils/Helpers')
+const { generateRandomLong, getRandomInt } = require('../Helpers')
 const fs = require('fs').promises
 const { existsSync, readFileSync } = require('fs')
 const AuthKey = require('../crypto/AuthKey')
@@ -20,7 +20,7 @@ class Session {
         // this.serverAddress = "localhost";
         // this.port = 21;
         this.authKey = undefined
-        this.id = Helpers.generateRandomLong(false)
+        this.id = generateRandomLong(false)
         this.sequence = 0
         this.salt = 0n // Unsigned long
         this.timeOffset = 0n
@@ -109,7 +109,7 @@ class Session {
         let newMessageId =
             (BigInt(BigInt(Math.floor(msTime / 1000)) + this.timeOffset) << 32n) |
             (BigInt(msTime % 1000) << 22n) |
-            (BigInt(Helpers.getRandomInt(0, 524288)) << 2n) // 2^19
+            (BigInt(getRandomInt(0, 524288)) << 2n) // 2^19
 
         if (this.lastMessageId >= newMessageId) {
             newMessageId = this.lastMessageId + 4n

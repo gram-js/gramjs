@@ -2,7 +2,7 @@
  *  This module contains the class used to communicate with Telegram's servers
  *  in plain text, when no authorization key has been created yet.
  */
-const Helpers = require('../utils/Helpers')
+const Helpers = require('../Helpers')
 const MTProtoState = require('./MTProtoState')
 const struct = require('python-struct')
 const BinaryReader = require('../extensions/BinaryReader')
