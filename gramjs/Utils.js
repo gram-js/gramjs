@@ -1,5 +1,13 @@
 const { types } = require('./tl')
 
+const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
+    '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?')
+
+
+const TG_JOIN_RE = new RegExp('tg:\\/\\/(join)\\?invite=')
+
+const VALID_USERNAME_RE = new RegExp('^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|' +
+    'pic|bing|wiki|imdb|bold|vote|like|coub)$')
 
 function _raiseCastFail(entity, target) {
     throw new Error(`Cannot cast ${entity.constructor.name} to any kind of ${target}`)
@@ -24,6 +32,7 @@ function _raiseCastFail(entity, target) {
  */
 function getInputPeer(entity, allowSelf = true, checkHash = true) {
     if (entity.SUBCLASS_OF_ID === undefined) {
+        console.log('undefined')
         // e.g. custom.Dialog (can't cyclic import).
 
         if (allowSelf && 'inputEntity' in entity) {
@@ -34,8 +43,9 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
             _raiseCastFail(entity, 'InputPeer')
         }
     }
-
     if (entity.SUBCLASS_OF_ID === 0xc91c90b6) { // crc32(b'InputPeer')
+        console.log('returningt entity')
+        console.log(entity)
         return entity
     }
 
@@ -56,6 +66,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         return new types.InputPeerChat({ chatId: entity.id })
     }
     if (entity instanceof types.Channel) {
+        console.log('it\'s a channel')
         if ((entity.accessHash !== undefined && !entity.min) || checkHash) {
             return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
         } else {
@@ -72,7 +83,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         return new types.InputPeerUser({ userId: entity.userId, accessHash: entity.accessHash })
     }
     if (entity instanceof types.InputChannel) {
-        return new types.InputPeerChannel({ userId: entity.channelId, accessHash: entity.accessHash })
+        return new types.InputPeerChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
     }
     if (entity instanceof types.UserEmpty) {
         return new types.InputPeerEmpty()
@@ -82,7 +93,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     }
 
     if (entity instanceof types.ChatFull) {
-        return new types.InputPeerChat(entity.id)
+        return new types.InputPeerChat({ chatId: entity.id })
     }
 
     if (entity instanceof types.PeerChat) {
@@ -214,6 +225,137 @@ function getInputMessage(message) {
     _raiseCastFail(message, 'InputMessage')
 }
 
+
+function getPeer(peer) {
+    try {
+        if (typeof peer === 'number') {
+            const res = resolveId(peer)
+            if (res[1] === types.PeerChannel) {
+                return new res[1]({ channelId: res[0] })
+            } else {
+                return new res[1]({ chatId: res[0] })
+            }
+        }
+        if (peer.SUBCLASS_OF_ID === undefined) {
+            throw new Error()
+        }
+        if (peer.SUBCLASS_OF_ID === 0x2d45687) {
+            return peer
+        } else if (peer instanceof types.contacts || peer instanceof types.ResolvedPeer ||
+            peer instanceof types.InputNotifyPeer || peer instanceof types.TopPeer ||
+            peer instanceof types.Dialog || peer instanceof types.DialogPeer) {
+            return peer.peer
+        } else if (peer instanceof types.ChannelFull) {
+            return new types.PeerChannel({ channelId: peer.id })
+        }
+        if (peer.SUBCLASS_OF_ID === 0x7d7c6f86 || peer.SUBCLASS_OF_ID === 0xd9c7fc18) {
+            // ChatParticipant, ChannelParticipant
+            return new types.PeerUser({ userId: peer.userId })
+        }
+
+        peer = getInputPeer(peer, false, false)
+        if (peer instanceof types.InputPeerUser) {
+            return new types.PeerUser({ userId: peer.userId })
+        } else if (peer instanceof types.InputPeerChat) {
+            return new types.PeerChat({ chatId: peer.chatId })
+        } else if (peer instanceof types.InputPeerChannel) {
+            return new types.PeerChannel({ channelId: peer.channelId })
+        }
+        // eslint-disable-next-line no-empty
+    } catch (e) {
+    }
+    _raiseCastFail(peer, 'peer')
+}
+
+
+/**
+ Convert the given peer into its marked ID by default.
+
+ This "mark" comes from the "bot api" format, and with it the peer type
+ can be identified back. User ID is left unmodified, chat ID is negated,
+ and channel ID is prefixed with -100:
+
+ * ``user_id``
+ * ``-chat_id``
+ * ``-100channel_id``
+
+ The original ID and the peer type class can be returned with
+ a call to :meth:`resolve_id(marked_id)`.
+ * @param peer
+ * @param addMark
+ */
+function getPeerId(peer, addMark = true) {
+    // First we assert it's a Peer TLObject, or early return for integers
+    if (typeof peer == 'number') {
+        return addMark ? peer : resolveId(peer)[0]
+    }
+
+    // Tell the user to use their client to resolve InputPeerSelf if we got one
+    if (peer instanceof types.InputPeerSelf) {
+        _raiseCastFail(peer, 'int (you might want to use client.get_peer_id)')
+    }
+
+    try {
+        peer = getPeer(peer)
+    } catch (e) {
+        _raiseCastFail(peer, 'int')
+    }
+    if (peer instanceof types.PeerUser) {
+        return peer.userId
+    } else if (peer instanceof types.PeerChat) {
+        // Check in case the user mixed things up to avoid blowing up
+        if (!(0 < peer.chatId <= 0x7fffffff)) {
+            peer.chatId = resolveId(peer.chatId)[0]
+        }
+
+        return addMark ? -(peer.chatId) : peer.chatId
+    } else { // if (peer instanceof types.PeerChannel)
+        // Check in case the user mixed things up to avoid blowing up
+        if (!(0 < peer.channelId <= 0x7fffffff)) {
+            peer.channelId = resolveId(peer.channelId)[0]
+        }
+        if (!addMark) {
+            return peer.channelId
+        }
+        // Concat -100 through math tricks, .to_supergroup() on
+        // Madeline IDs will be strictly positive -> log works.
+        try {
+            return -(peer.channelId + Math.pow(10, Math.floor(Math.log10(peer.channelId) + 3)))
+        } catch (e) {
+            throw new Error('Cannot get marked ID of a channel unless its ID is strictly positive')
+        }
+    }
+}
+
+/**
+ * Given a marked ID, returns the original ID and its :tl:`Peer` type.
+ * @param markedId
+ */
+function resolveId(markedId) {
+    if (markedId >= 0) {
+        return [markedId, types.PeerUser]
+    }
+
+    // There have been report of chat IDs being 10000xyz, which means their
+    // marked version is -10000xyz, which in turn looks like a channel but
+    // it becomes 00xyz (= xyz). Hence, we must assert that there are only
+    // two zeroes.
+    const m = markedId.toString().match(/-100([^0]\d*)/)
+    if (m) {
+        return [parseInt(m[1]), types.PeerChannel]
+    }
+    return [-markedId, types.PeerChat]
+}
+
+/**
+ * returns an entity pair
+ * @param entityId
+ * @param entities
+ * @param cache
+ * @param getInputPeer
+ * @returns {{inputEntity: *, entity: *}}
+ * @private
+ */
 function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) {
     const entity = entities.get(entityId)
     let inputEntity = cache[entityId]
@@ -238,4 +380,112 @@ function getMessageId(message) {
         return message.id
     }
     throw new Error(`Invalid message type: ${message.constructor.name}`)
+}
+
+/**
+ * Parses the given phone, or returns `None` if it's invalid.
+ * @param phone
+ */
+function parsePhone(phone) {
+    if (typeof phone === 'number') {
+        return phone.toString()
+    } else {
+        phone = phone.toString().replace(/[+()\s-]/gm, '')
+        if (!isNaN(phone)) {
+            return phone
+        }
+    }
+}
+
+/**
+ Parses the given username or channel access hash, given
+ a string, username or URL. Returns a tuple consisting of
+ both the stripped, lowercase username and whether it is
+ a joinchat/ hash (in which case is not lowercase'd).
+
+ Returns ``(None, False)`` if the ``username`` or link is not valid.
+
+ * @param username {string}
+ */
+function parseUsername(username) {
+    username = username.trim()
+    const m = username.match(USERNAME_RE) || username.match(TG_JOIN_RE)
+    if (m) {
+        username = username.replace(m[0], '')
+        if (m[1]) {
+            return { username: username, isInvite: true }
+        } else {
+            username = rtrim(username, '/')
+        }
+    }
+    if (username.match(VALID_USERNAME_RE)) {
+        return { username: username.toLowerCase(), isInvite: false }
+    } else {
+        return { username: null, isInvite: false }
+    }
+}
+
+function rtrim(s, mask) {
+    while (~mask.indexOf(s[s.length - 1])) {
+        s = s.slice(0, -1)
+    }
+    return s
+}
+
+/**
+ * Gets the display name for the given :tl:`User`,
+ :tl:`Chat` or :tl:`Channel`. Returns an empty string otherwise
+ * @param entity
+ */
+function getDisplayName(entity) {
+    if (entity instanceof types.User) {
+        if (entity.lastName && entity.firstName) {
+            return `${entity.firstName} ${entity.lastName}`
+        } else if (entity.firstName) {
+            return entity.firstName
+        } else if (entity.lastName) {
+            return entity.lastName
+        } else {
+            return ''
+        }
+    } else if (entity instanceof types.Chat || entity instanceof types.Channel) {
+        return entity.title
+    }
+    return ''
+}
+
+/**
+ * check if a given item is an array like or not
+ * @param item
+ * @returns {boolean}
+ */
+function isListLike(item) {
+    return (
+        Array.isArray(item) ||
+        (!!item &&
+            typeof item === 'object' &&
+            typeof (item.length) === 'number' &&
+            (item.length === 0 ||
+                (item.length > 0 &&
+                    (item.length - 1) in item)
+            )
+        )
+    )
+}
+
+module.exports = {
+    getMessageId,
+    _getEntityPair,
+    getInputMessage,
+    getInputDialog,
+    getInputUser,
+    getInputChannel,
+    getInputPeer,
+    parsePhone,
+    parseUsername,
+    getPeer,
+    getPeerId,
+    getDisplayName,
+    resolveId,
+    isListLike,
 }
