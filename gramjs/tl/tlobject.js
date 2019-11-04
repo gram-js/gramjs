@@ -72,7 +72,7 @@ class TLRequest extends TLObject {
         return reader.tgReadObject()
     }
 
-    async resolve(self, client, utils) {}
+    async resolve(client, utils) {}
 }
 
 module.exports = {
