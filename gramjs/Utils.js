@@ -32,7 +32,6 @@ function _raiseCastFail(entity, target) {
  */
 function getInputPeer(entity, allowSelf = true, checkHash = true) {
     if (entity.SUBCLASS_OF_ID === undefined) {
-        console.log('undefined')
         // e.g. custom.Dialog (can't cyclic import).
 
         if (allowSelf && 'inputEntity' in entity) {
@@ -44,8 +43,6 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         }
     }
     if (entity.SUBCLASS_OF_ID === 0xc91c90b6) { // crc32(b'InputPeer')
-        console.log('returningt entity')
-        console.log(entity)
         return entity
     }
 
@@ -66,7 +63,6 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         return new types.InputPeerChat({ chatId: entity.id })
     }
     if (entity instanceof types.Channel) {
-        console.log('it\'s a channel')
         if ((entity.accessHash !== undefined && !entity.min) || checkHash) {
             return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
         } else {
@@ -163,8 +159,9 @@ function getInputUser(entity) {
             })
         }
     }
-
+    console.log(entity)
     if (entity instanceof types.InputPeerSelf) {
+
         return new types.InputPeerSelf()
     }
     if (entity instanceof types.UserEmpty || entity instanceof types.InputPeerEmpty) {
@@ -230,10 +227,13 @@ function getPeer(peer) {
     try {
         if (typeof peer === 'number') {
             const res = resolveId(peer)
+
             if (res[1] === types.PeerChannel) {
                 return new res[1]({ channelId: res[0] })
-            } else {
+            } else if (res[1] === types.PeerChat) {
                 return new res[1]({ chatId: res[0] })
+            } else {
+                return new res[1]({ userId: res[0] })
             }
         }
         if (peer.SUBCLASS_OF_ID === undefined) {
@@ -241,7 +241,7 @@ function getPeer(peer) {
         }
         if (peer.SUBCLASS_OF_ID === 0x2d45687) {
             return peer
-        } else if (peer instanceof types.contacts || peer instanceof types.ResolvedPeer ||
+        } else if (peer instanceof types.contacts.ResolvedPeer ||
             peer instanceof types.InputNotifyPeer || peer instanceof types.TopPeer ||
             peer instanceof types.Dialog || peer instanceof types.DialogPeer) {
             return peer.peer
@@ -252,8 +252,8 @@ function getPeer(peer) {
             // ChatParticipant, ChannelParticipant
             return new types.PeerUser({ userId: peer.userId })
         }
-
         peer = getInputPeer(peer, false, false)
+
         if (peer instanceof types.InputPeerUser) {
             return new types.PeerUser({ userId: peer.userId })
         } else if (peer instanceof types.InputPeerChat) {
@@ -263,6 +263,7 @@ function getPeer(peer) {
         }
         // eslint-disable-next-line no-empty
     } catch (e) {
+        console.log(e)
     }
     _raiseCastFail(peer, 'peer')
 }
@@ -298,6 +299,7 @@ function getPeerId(peer, addMark = true) {
     try {
         peer = getPeer(peer)
     } catch (e) {
+        console.log(e)
         _raiseCastFail(peer, 'int')
     }
     if (peer instanceof types.PeerUser) {

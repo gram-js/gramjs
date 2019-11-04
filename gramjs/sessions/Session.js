@@ -45,7 +45,6 @@ class Session {
                     return value
                 }
             })
-            console.log('current auth key will be ', this.authKey)
             await fs.writeFile(`${this.sessionUserId}.session`, str)
         }
     }

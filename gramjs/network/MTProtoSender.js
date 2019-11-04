@@ -8,9 +8,8 @@ const MessageContainer = require('../tl/core/MessageContainer')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
 const format = require('string-format')
-const { MsgsAck, File, MsgsStateInfo } = require('../tl/types')
+const { MsgsAck, File, MsgsStateInfo,Pong } = require('../tl/types')
 const MessagePacker = require('../extensions/MessagePacker')
-const Pong = require('../tl/core/GZIPPacked')
 const BinaryReader = require('../extensions/BinaryReader')
 const {
     BadServerSalt,
@@ -375,9 +374,11 @@ class MTProtoSender {
      * @private
      */
     async _processMessage(message) {
+        console.log('got message : ', message)
         this._pending_ack.add(message.msgId)
         // eslint-disable-next-line require-atomic-updates
         message.obj = await message.obj
+        console.log('obj is ', message.obj)
         let handler = this._handlers[message.obj.CONSTRUCTOR_ID]
         if (!handler) {
             handler = this._handleUpdate.bind(this)
@@ -523,6 +524,7 @@ class MTProtoSender {
      * @private
      */
     async _handlePong(message) {
+        console.log(message)
         const pong = message.obj
         this._log.debug(`Handling pong for message ${pong.msgId}`)
         const state = this._pending_state[pong.msgId]

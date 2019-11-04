@@ -52,7 +52,6 @@ class TelegramClient {
             this._log = args.baseLogger
         }
         const session = Session.tryLoadOrCreateNew(sessionName)
-        console.log(session.serverAddress)
         if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
             session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
         }
@@ -124,11 +123,9 @@ class TelegramClient {
         const connection = new this._connection(this.session.serverAddress
             , this.session.port, this.session.dcId, this._log)
         if (!await this._sender.connect(connection)) {
-            console.log('already connected returning')
             return
         }
         this.session.authKey = this._sender.authKey
-        console.log('auth key is ', this.session.authKey)
         await this.session.save()
         await this._sender.send(this._initWith(
             new GetConfigRequest(),
@@ -179,7 +176,6 @@ class TelegramClient {
                 addKey(pk.publicKey)
             }
         }
-        console.log('ok')
         for (const DC of this._config.dcOptions) {
             if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
                 return DC
@@ -220,10 +216,8 @@ class TelegramClient {
         }
         this._last_request = new Date().getTime()
         let attempt = 0
-        console.log('request retries is ,', this._requestRetries)
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
-                console.log('curernt attepmt is ', attempt)
                 const promise = this._sender.send(request)
                 const result = await promise
                 this.session.processEntities(result)
@@ -370,14 +364,18 @@ class TelegramClient {
     }
 
     _handleUpdate(update) {
-        console.log('got the update')
+
         this.session.processEntities(update)
         this._entityCache.add(update)
 
         if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
             // TODO deal with entities
+            const entities = {}
+            for (const x of [...update.users, ...update.chats]) {
+                entities[utils.getPeerId(x)] = x
+            }
             for (const u of update.updates) {
-                this._processUpdate(u, update.updates)
+                this._processUpdate(u, update.updates, entities)
             }
         } else if (update instanceof types.UpdateShort) {
             this._processUpdate(update.update, null)
@@ -581,12 +579,14 @@ class TelegramClient {
         // will work with access_hash = 0. Similar for channels.getChannels.
         // If we're not a bot but the user is in our contacts, it seems to work
         // regardless. These are the only two special-cased requests.
+        console.log('the peer i will get is ', peer)
         peer = utils.getPeer(peer)
+        console.log('the peer i got was ', peer)
         if (peer instanceof types.PeerUser) {
             const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: new types.InputUser({
+                id: [new types.InputUser({
                     userId: peer.userId, accessHash: 0,
-                }),
+                })],
             }))
             if (users && !(users[0] instanceof types.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
@@ -634,9 +634,12 @@ class TelegramClient {
         channelId: null,
         ptsDate: null,
     }) {
+        console.log('event args are ', args)
         for (const [builder, callback] of this._eventBuilders) {
             const event = builder.build(args.update)
-            await callback(event)
+            if (event) {
+                await callback(event)
+            }
         }
     }
 }
