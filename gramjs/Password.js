@@ -1,6 +1,6 @@
 const Factorizator = require('./crypto/Factorizator')
 const { types } = require('./tl')
-const { readBigIntFromBuffer, readBufferFromBigInt, sha256, modExp } = require('./Helpers')
+const { readBigIntFromBuffer, readBufferFromBigInt, sha256, modExp, generateRandomBytes, sleep } = require('./Helpers')
 const crypto = require('crypto')
 const SIZE_FOR_HASH = 256
 
@@ -75,13 +75,11 @@ function checkPrimeAndGood(primeBytes, g) {
         0x0D, 0x81, 0x15, 0xF6, 0x35, 0xB1, 0x05, 0xEE, 0x2E, 0x4E, 0x15, 0xD0, 0x4B, 0x24, 0x54, 0xBF,
         0x6F, 0x4F, 0xAD, 0xF0, 0x34, 0xB1, 0x04, 0x03, 0x11, 0x9C, 0xD8, 0xE3, 0xB9, 0x2F, 0xCC, 0x5B,
     ])
-    console.log('the good prime is end')
     if (goodPrime.equals(primeBytes)) {
         if ([3, 4, 5, 7].includes(g)) {
             return // It's good
         }
     }
-    console.log()
     checkPrimeAndGoodCheck(readBigIntFromBuffer(primeBytes, false), g)
 }
 
@@ -121,11 +119,13 @@ function bigNumForHash(g) {
  */
 function isGoodModExpFirst(modexp, prime) {
     const diff = prime - modexp
+
     const minDiffBitsCount = 2048 - 64
     const maxModExpSize = 256
+
     return !(diff < 0 || diff.toString('2').length < minDiffBitsCount ||
         modexp.toString('2').length < minDiffBitsCount ||
-        Math.floor(modexp.toString('2').length + 7) / 8 > maxModExpSize)
+        Math.floor((modexp.toString('2').length + 7) / 8) > maxModExpSize)
 }
 
 function xor(a, b) {
@@ -169,9 +169,7 @@ function computeHash(algo, password) {
  */
 function computeDigest(algo, password) {
     try {
-        console.log('checking good')
         checkPrimeAndGood(algo.p, algo.g)
-        console.log('is good')
     } catch (e) {
         throw new Error('bad p/g in password')
     }
@@ -210,13 +208,53 @@ function computeCheck(request, password) {
     const pForHash = numBytesForHash(algo.p)
     const gForHash = bigNumForHash(g)
     const bForHash = numBytesForHash(request.srp_B)
-    const g_x = modExp(g, x, p)
+    const g_x = modExp(BigInt(g), x, p)
     const k = readBigIntFromBuffer(sha256(Buffer.concat([pForHash, gForHash])), false)
     const kg_x = (k * g_x) % p
+    const generateAndCheckRandom = () => {
+        const randomSize = 256
+        while (true) {
+            const random = Buffer.from('eef192e0074abd694fcc0d1d65d65e6675161e84903ca81e1515bb22bbae9d69e2b4a2193650fb16ff204873ec34a18faab1999e77c167c4459e48332965966210e846219b2c32c338309cf5094d826bd676f684e9428b03757e499ff6da9aebc5d92bfba8fcf3cb5f9f316644503f256714c2af31e6432a9ff7327999f4ec98a4e63ca171dddfc513f513db3f359da7b535240eb250d45c4e9ce6934ff806944eab4302d83d37283760cc0e35ec8df7213d5abc5cf8a625d9c0834f6e4994c2a98ec810c810f7dfebb4feb9381d71d53dee97fcedbbd9221de67140c76fd1b8e9c40d0c6156168399053a538a681941d69f14afe96bdc48347f3a9755b96006', 'hex') // generateRandomBytes(randomSize)
+            const a = readBigIntFromBuffer(random, false)
+            const A = modExp(BigInt(g), a, p)
+            if (isGoodModExpFirst(A, p)) {
+                const aForHash = bigNumForHash(A)
+                const u = readBigIntFromBuffer(sha256(Buffer.concat([aForHash, bForHash])), false)
+                if (u > 0n) {
+                    return [a, aForHash, u]
+                }
+            }
+        }
+    }
+    const [a, aForHash, u] = generateAndCheckRandom()
+    const g_b = (B - kg_x) % p
+    if (!isGoodModExpFirst(g_b, p)) {
+        throw new Error('bad g_b')
+    }
 
+    const ux = u * x
+    const a_ux = a + ux
+    const S = modExp(g_b, a_ux, p)
+    const K = sha256(bigNumForHash(S))
+    const M1 = sha256(Buffer.concat([
+        xor(sha256(pForHash), sha256(gForHash)),
+        sha256(algo.salt1),
+        sha256(algo.salt2),
+        aForHash,
+        bForHash,
+        K,
+    ]))
+    return new types.InputCheckPasswordSRP({
+        srpId: request.srpId,
+        A: Buffer.from(aForHash),
+        M1: Buffer.from([M1]),
+
+    })
 }
 
 module.exports = {
     computeHash,
     computeDigest,
+    computeCheck,
+    isGoodModExpFirst,
 }
