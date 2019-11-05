@@ -99,7 +99,7 @@ function isGoodLarge(number, p) {
  * @returns {Buffer}
  */
 function numBytesForHash(number) {
-    return Buffer.concat([Buffer.from([SIZE_FOR_HASH - number.length]), number])
+    return Buffer.concat([Buffer.alloc(SIZE_FOR_HASH - number.length), number])
 }
 
 /**
@@ -192,7 +192,6 @@ function computeCheck(request, password) {
     }
 
     const pwHash = computeHash(algo, password)
-
     const p = readBigIntFromBuffer(algo.p, false)
     const g = algo.g
     const B = readBigIntFromBuffer(request.srp_B, false)
@@ -244,10 +243,12 @@ function computeCheck(request, password) {
         bForHash,
         K,
     ]))
+
+
     return new types.InputCheckPasswordSRP({
         srpId: request.srpId,
         A: Buffer.from(aForHash),
-        M1: Buffer.from([M1]),
+        M1: M1,
 
     })
 }
