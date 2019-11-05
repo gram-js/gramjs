@@ -270,6 +270,7 @@ class TelegramClient {
         lastName: null,
         maxAttempts: 5,
     }) {
+        args.maxAttempts = args.maxAttempts || 5
 
         if (!this.isConnected()) {
             await this.connect()
@@ -292,8 +293,11 @@ class TelegramClient {
         let twoStepDetected = false
 
         await this.sendCodeRequest(args.phone, args.forceSMS)
+        console.log('you  got sent the code')
+
         let signUp = false
         while (attempts < args.maxAttempts) {
+            console.log('try nummber', attempts)
             try {
                 const value = args.code
                 if (!value) {
@@ -316,6 +320,7 @@ class TelegramClient {
                 }
                 break
             } catch (e) {
+
                 if (e instanceof errors.SessionPasswordNeededError) {
                     twoStepDetected = true
                     break
@@ -340,6 +345,7 @@ class TelegramClient {
             throw new Error(`${args.maxAttempts} consecutive sign-in attempts failed. Aborting`)
         }
         if (twoStepDetected) {
+            console.log('two steps baby')
             if (!args.password) {
                 throw new Error('Two-step verification is enabled for this account. ' +
                     'Please provide the \'password\' argument to \'start()\'.')
@@ -350,6 +356,7 @@ class TelegramClient {
             })
         }
         const name = utils.getDisplayName(me)
+        console.log(me)
         console.log('Signed in successfully as', name)
         return this
     }
@@ -361,16 +368,21 @@ class TelegramClient {
         botToken: null,
         phoneCodeHash: null,
     }) {
+        console.log('signing in now')
         let result
         if (args.phone && !args.code && !args.password) {
+            console.log('first sign in')
             return await this.sendCodeRequest(args.phone)
         } else if (args.code) {
             const [phone, phoneCodeHash] =
                 this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
-            result = await this.invoke(new functions.auth.SignInRequest(
-                phone, phoneCodeHash, args.code.toString()))
+            result = await this.invoke(new functions.auth.SignInRequest({
+                phoneNumber: phone,
+                phoneCodeHash: phoneCodeHash,
+                phoneCode: args.code.toString(),
+            }))
         } else if (args.password) {
             const pwd = await this.invoke(new functions.account.GetPasswordRequest())
             result = await this.invoke(new functions.auth.CheckPasswordRequest({
@@ -440,7 +452,7 @@ class TelegramClient {
         if (!phoneHash) {
             try {
                 result = await this.invoke(new functions.auth.SendCodeRequest({
-                    phone: phone,
+                    phoneNumber: phone,
                     apiId: this.apiId,
                     apiHash: this.apiHash,
                     settings: new types.CodeSettings(),
@@ -458,6 +470,7 @@ class TelegramClient {
             }
             console.log('got result', result)
             if (result.phoneCodeHash) {
+                console.log('appending hash')
                 this._phoneCodeHash[phone] = phoneHash = result.phoneCodeHash
             }
         } else {
@@ -469,6 +482,7 @@ class TelegramClient {
                 phone: phone,
                 phoneHash: phoneHash,
             }))
+
             this._phoneCodeHash[phone] = result.phoneCodeHash
         }
         return result
