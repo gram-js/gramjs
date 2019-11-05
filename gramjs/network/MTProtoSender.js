@@ -374,11 +374,9 @@ class MTProtoSender {
      * @private
      */
     async _processMessage(message) {
-        console.log('got message : ', message)
         this._pending_ack.add(message.msgId)
         // eslint-disable-next-line require-atomic-updates
         message.obj = await message.obj
-        console.log('obj is ', message.obj)
         let handler = this._handlers[message.obj.CONSTRUCTOR_ID]
         if (!handler) {
             handler = this._handleUpdate.bind(this)

@@ -299,7 +299,7 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
     builder.writeln('*/')
     builder.writeln(`constructor(args) {`)
     builder.writeln(`super();`)
-
+    builder.writeln(`args = args || {}`)
     // Class-level variable to store its Telegram's constructor ID
     builder.writeln(`this.CONSTRUCTOR_ID = 0x${tlobject.id.toString(16).padStart(8, '0')};`)
     builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(tlobject.result).toString(16)};`)
