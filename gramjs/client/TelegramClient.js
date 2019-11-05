@@ -9,6 +9,7 @@ const os = require('os')
 const { GetConfigRequest } = require('../tl/functions/help')
 const { LAYER } = require('../tl/AllTLObjects')
 const { functions, types } = require('../tl')
+const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
 const { ConnectionTCPFull } = require('../network/connection/TCPFull')
 const DEFAULT_DC_ID = 4
@@ -259,6 +260,100 @@ class TelegramClient {
         return me
     }
 
+    async start(args = {
+        phone: null,
+        code: null,
+        password: null,
+        botToken: null,
+        forceSMS: null,
+        firstName: null,
+        lastName: null,
+        maxAttempts: 5,
+    }) {
+
+        if (!this.isConnected()) {
+            await this.connect()
+        }
+        if (await this.isUserAuthorized()) {
+            return this
+        }
+        if (!args.botToken) {
+            args.phone = utils.parsePhone(args.phone) || args.phone
+        }
+        if (args.botToken) {
+            await this.signIn({
+                botToken: args.botToken,
+            })
+            return this
+        }
+
+        let me
+        let attempts = 0
+        let twoStepDetected = false
+
+        await this.sendCodeRequest(args.phone, args.forceSMS)
+        let signUp = false
+        while (attempts < args.maxAttempts) {
+            try {
+                const value = args.code
+                if (!value) {
+                    throw new errors.PhoneCodeEmptyError({
+                        request: null,
+                    })
+                }
+                if (signUp) {
+                    me = await this.signUp({
+                        code: value,
+                        firstName: args.firstName,
+                        lastName: args.lastName,
+                    })
+                } else {
+                    // this throws SessionPasswordNeededError if 2FA enabled
+                    me = await this.signIn({
+                        phone: args.phone,
+                        code: value,
+                    })
+                }
+                break
+            } catch (e) {
+                if (e instanceof errors.SessionPasswordNeededError) {
+                    twoStepDetected = true
+                    break
+                } else if (e instanceof errors.PhoneNumberOccupiedError) {
+                    signUp = true
+
+                } else if (e instanceof errors.PhoneNumberUnoccupiedError) {
+                    signUp = true
+
+                } else if (e instanceof errors.PhoneCodeEmptyError ||
+                    e instanceof errors.PhoneCodeExpiredError ||
+                    e instanceof errors.PhoneCodeHashEmptyError ||
+                    e instanceof errors.PhoneCodeInvalidError) {
+                    console.log('Invalid code. Please try again.')
+                } else {
+                    throw e
+                }
+            }
+            attempts++
+        }
+        if (attempts >= args.maxAttempts) {
+            throw new Error(`${args.maxAttempts} consecutive sign-in attempts failed. Aborting`)
+        }
+        if (twoStepDetected) {
+            if (!args.password) {
+                throw new Error('Two-step verification is enabled for this account. ' +
+                    'Please provide the \'password\' argument to \'start()\'.')
+            }
+            me = await this.signIn({
+                phone: args.phone,
+                password: args.password,
+            })
+        }
+        const name = utils.getDisplayName(me)
+        console.log('Signed in successfully as', name)
+        return this
+    }
+
     async signIn(args = {
         phone: null,
         code: null,
@@ -270,7 +365,7 @@ class TelegramClient {
         if (args.phone && !args.code && !args.password) {
             return await this.sendCodeRequest(args.phone)
         } else if (args.code) {
-            const { phone, phoneCodeHash } =
+            const [phone, phoneCodeHash] =
                 this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
@@ -278,8 +373,9 @@ class TelegramClient {
                 phone, phoneCodeHash, args.code.toString()))
         } else if (args.password) {
             const pwd = await this.invoke(new functions.account.GetPasswordRequest())
-            result = await this.invoke(new functions.auth.CheckPasswordRequest(
-                pwdMod.computeCheck(pwd, args.password),
+            result = await this.invoke(new functions.auth.CheckPasswordRequest({
+                    password: computeCheck(pwd, args.password),
+                },
             ))
         } else if (args.botToken) {
             result = await this.invoke(new functions.auth.ImportBotAuthorizationRequest(
@@ -295,6 +391,20 @@ class TelegramClient {
                 'and a password only if an RPCError was raised before.')
         }
         return this._onLogin(result.user)
+    }
+
+
+    _parsePhoneAndHash(phone, phoneHash) {
+        phone = utils.parsePhone(phone) || this._phone
+        if (!phone) {
+            throw new Error('Please make sure to call send_code_request first.')
+        }
+        phoneHash = phoneHash || this._phoneCodeHash[phone]
+        if (!phoneHash) {
+            throw new Error('You also need to provide a phone_code_hash.')
+        }
+
+        return [phone, phoneHash]
     }
 
     // endregion
@@ -341,8 +451,15 @@ class TelegramClient {
                 }
                 throw e
             }
-            this._tos = result.termsOfService
-            this._phoneCodeHash[phone] = phoneHash = result.phoneCodeHash
+
+            // If we already sent a SMS, do not resend the code (hash may be empty)
+            if (result.type instanceof types.auth.SentCodeTypeSms) {
+                forceSMS = false
+            }
+            console.log('got result', result)
+            if (result.phoneCodeHash) {
+                this._phoneCodeHash[phone] = phoneHash = result.phoneCodeHash
+            }
         } else {
             forceSMS = true
         }
@@ -641,6 +758,20 @@ class TelegramClient {
                 await callback(event)
             }
         }
+    }
+
+    isConnected() {
+        if (this._sender) {
+            if (this._sender.isConnected()) {
+                return true
+            }
+        }
+        return false
+
+    }
+
+    async signUp() {
+
     }
 }
 
