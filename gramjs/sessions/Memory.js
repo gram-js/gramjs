@@ -1,5 +1,6 @@
+const { TLObject } = require('../tl/tlobject')
 const utils = require('../Utils')
-const types = require('../tl').constructors
+const types = require('../tl/types')
 const Session = require('./Abstract')
 
 class MemorySession extends Session {
@@ -9,6 +10,7 @@ class MemorySession extends Session {
         this._serverAddress = null
         this._dcId = 0
         this._port = null
+        this._authKey = null
         this._takeoutId = null
 
         this._entities = new Set()
@@ -40,7 +42,7 @@ class MemorySession extends Session {
     set authKey(value) {
         this._authKey = value
     }
-    /* CONTEST
+
     get takeoutId() {
         return this._takeoutId
     }
@@ -64,10 +66,6 @@ class MemorySession extends Session {
     save() {
     }
 
-    async load() {
-
-    }
-
     delete() {
     }
 
@@ -79,7 +77,7 @@ class MemorySession extends Session {
     }
 
     _entityToRow(e) {
-        if (!(e.classType === "constructor")) {
+        if (!(e instanceof TLObject)) {
             return
         }
         let p
@@ -88,9 +86,9 @@ class MemorySession extends Session {
             p = utils.getInputPeer(e, false)
             markedId = utils.getPeerId(p)
         } catch (e) {
-            // Note: `get_input_peer` already checks for non-zero `accessHash`.
+            // Note: `get_input_peer` already checks for non-zero `access_hash`.
             // See issues #354 and #392. It also checks that the entity
-            // is not `min`, because its `accessHash` cannot be used
+            // is not `min`, because its `access_hash` cannot be used
             // anywhere (since layer 102, there are two access hashes).
             return
         }
@@ -114,20 +112,18 @@ class MemorySession extends Session {
 
     _entitiesToRows(tlo) {
         let entities = []
-        if (tlo.classType === "constructor" && utils.isListLike(tlo)) {
+        if (tlo instanceof TLObject && utils.isListLike(tlo)) {
             // This may be a list of users already for instance
             entities = tlo
         } else {
-            if (tlo instanceof Object) {
-                if ('user' in tlo) {
-                    entities.push(tlo.user)
-                }
-                if ('chats' in tlo && utils.isListLike(tlo.chats)) {
-                    entities.concat(tlo.chats)
-                }
-                if ('users' in tlo && utils.isListLike(tlo.users)) {
-                    entities.concat(tlo.users)
-                }
+            if ('user' in tlo) {
+                entities.push(tlo.user)
+            }
+            if ('chats' in tlo && utils.isListLike(tlo.chats)) {
+                entities.concat(tlo.chats)
+            }
+            if ('users' in tlo && utils.isListLike(tlo.users)) {
+                entities.concat(tlo.users)
             }
         }
         const rows = [] // Rows to add (id, hash, username, phone, name)
@@ -203,7 +199,7 @@ class MemorySession extends Session {
             return utils.getInputPeer(key)
         } else {
             // Not a TLObject or can't be cast into InputPeer
-            if (key.classType === 'constructor') {
+            if (key instanceof TLObject) {
                 key = utils.getPeerId(key)
                 exact = true
             } else {
@@ -250,7 +246,7 @@ class MemorySession extends Session {
         } else {
             throw new Error('Could not find input entity with key ' + key)
         }
-    }*/
+    }
 }
 
 module.exports = MemorySession
