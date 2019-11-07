@@ -30,9 +30,9 @@ class StringSession extends MemorySession {
             const ipLen = session.length === 352 ? 4 : 16
             const r = StringSession.decode(session)
             const reader = new BinaryReader(r)
-            this._dcId = reader.read(1).readUInt8()
+            this._dcId = reader.read(1).readUInt8(0)
             const ip = reader.read(ipLen)
-            this._port = reader.read(2).readInt16BE()
+            this._port = reader.read(2).readInt16BE(0)
             const key = reader.read(-1)
             this._serverAddress = ip.readUInt8(0) + '.' +
                 ip.readUInt8(1) + '.' + ip.readUInt8(2) +
@@ -67,7 +67,8 @@ class StringSession extends MemorySession {
         const dcBuffer = Buffer.from([this.dcId])
         const ipBuffer = Buffer.alloc(4)
         const portBuffer = Buffer.alloc(2)
-        portBuffer.writeInt16BE(this.port)
+
+        portBuffer.writeInt16BE(this.port, 0)
         for (let i = 0; i < ip.length; i++) {
             ipBuffer.writeUInt8(parseInt(ip[i]), i)
         }

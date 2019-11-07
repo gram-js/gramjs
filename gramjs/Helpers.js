@@ -1,5 +1,21 @@
 const crypto = require('crypto')
 
+/**
+ * use this instead of ** because of webpack
+ * @param a {bigint}
+ * @param b {bigint}
+ * @returns {bigint}
+ */
+function bigIntPower(a, b) {
+    let i
+    let pow = BigInt(1)
+
+    for (i = BigInt(0); i < b; i++) {
+        pow = pow * a
+    }
+
+    return pow
+}
 
 /**
  * converts a buffer to big int
@@ -16,7 +32,7 @@ function readBigIntFromBuffer(buffer, little = true, signed = false) {
     }
     let bigInt = BigInt('0x' + randBuffer.toString('hex'))
     if (signed && Math.floor(bigInt.toString('2').length / 8) >= bytesNumber) {
-        bigInt -= 2n ** BigInt(bytesNumber * 8)
+        bigInt -= bigIntPower(BigInt(2), BigInt(bytesNumber * 8))
     }
     return bigInt
 }
@@ -173,12 +189,12 @@ function sha256(data) {
  */
 function modExp(a, b, n) {
     a = a % n
-    let result = 1n
+    let result = BigInt(1)
     let x = a
-    while (b > 0n) {
-        const leastSignificantBit = b % 2n
-        b = b / 2n
-        if (leastSignificantBit === 1n) {
+    while (b > BigInt(0)) {
+        const leastSignificantBit = b % BigInt(2)
+        b = b / BigInt(2)
+        if (leastSignificantBit === BigInt(1)) {
             result = result * x
             result = result % n
         }

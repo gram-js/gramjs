@@ -7,20 +7,20 @@ class Factorizator {
      * @return {BigInt}
      */
     static findSmallMultiplierLopatin(what) {
-        let g = 0n
-        for (let i = 0n; i < 3n; i++) {
-            const q = 30n || (getRandomInt(0, 127) & 15) + 17
-            let x = 40n || getRandomInt(0, 1000000000) + 1
+        let g = BigInt(0)
+        for (let i = BigInt(0); i < BigInt(3); i++) {
+            const q = BigInt(0) || (getRandomInt(0, 127) & 15) + 17
+            let x = BigInt(0) || getRandomInt(0, 1000000000) + 1
 
             let y = x
-            const lim = 1n << (i + 18n)
-            for (let j = 1n; j < lim; j++) {
+            const lim = BigInt(1) << (i + BigInt(8))
+            for (let j = BigInt(1); j < lim; j++) {
                 let a = x
                 let b = x
 
                 let c = q
-                while (b !== 0n) {
-                    if (BigInt(b & 1n) !== 0n) {
+                while (b !== BigInt(0)) {
+                    if (BigInt(b & BigInt(1)) !== BigInt(0)) {
                         c += a
                         if (c >= what) {
                             c -= what
@@ -30,18 +30,18 @@ class Factorizator {
                     if (a >= what) {
                         a -= what
                     }
-                    b >>= 1n
+                    b >>= BigInt(1)
                 }
 
                 x = c
                 const z = BigInt(x < y ? y - x : x - y)
                 g = this.gcd(z, what)
 
-                if (g !== 1n) {
+                if (g !== BigInt(1)) {
                     break
                 }
 
-                if ((j & (j - 1n)) === 0n) {
+                if ((j & (j - BigInt(1))) === BigInt(0)) {
                     y = x
                 }
             }
@@ -61,12 +61,12 @@ class Factorizator {
      * @returns {BigInt}
      */
     static gcd(a, b) {
-        while (a !== 0n && b !== 0n) {
-            while ((b & 1n) === 0n) {
-                b >>= 1n
+        while (a !== BigInt(0) && b !== BigInt(0)) {
+            while ((b & BigInt(1)) === BigInt(0)) {
+                b >>= BigInt(1)
             }
-            while ((a & 1n) === 0n) {
-                a >>= 1n
+            while ((a & BigInt(1)) === BigInt(0)) {
+                a >>= BigInt(1)
             }
             if (a > b) {
                 a -= b
@@ -74,7 +74,7 @@ class Factorizator {
                 b -= a
             }
         }
-        return b === 0n ? a : b
+        return b === BigInt(0) ? a : b
     }
 
     /**

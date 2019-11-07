@@ -1,6 +1,6 @@
 const Factorizator = require('./crypto/Factorizator')
 const { types } = require('./tl')
-const { readBigIntFromBuffer, readBufferFromBigInt, sha256, modExp, generateRandomBytes, sleep } = require('./Helpers')
+const { readBigIntFromBuffer, readBufferFromBigInt, sha256, modExp, generateRandomBytes } = require('./Helpers')
 const crypto = require('crypto')
 const SIZE_FOR_HASH = 256
 
@@ -19,33 +19,33 @@ function checkPrimeAndGoodCheck(prime, g) {
     if (Factorizator.factorize(prime)[0] !== 1) {
         throw new Error('give "prime" is not prime')
     }
-    if (g === 2n) {
-        if (prime % 8n !== 7n) {
+    if (g === BigInt(2)) {
+        if (prime % BigInt(8) !== BigInt(7)) {
             throw new Error(`bad g ${g}, mod8 ${prime % 8}`)
         }
-    } else if (g === 3n) {
-        if (prime % 3n !== 2n) {
+    } else if (g === BigInt(3)) {
+        if (prime % BigInt(3) !== BigInt(2)) {
             throw new Error(`bad g ${g}, mod3 ${prime % 3}`)
         }
         // eslint-disable-next-line no-empty
-    } else if (g === 4n) {
+    } else if (g === BigInt(4)) {
 
-    } else if (g === 5n) {
-        if (!([1n, 4n].includes(prime % 5n))) {
+    } else if (g === BigInt(5)) {
+        if (!([BigInt(1), BigInt(4)].includes(prime % BigInt(5)))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 5}`)
         }
-    } else if (g === 6n) {
-        if (!([19n, 23n].includes(prime % 24n))) {
+    } else if (g === BigInt(6)) {
+        if (!([BigInt(9), BigInt(3)].includes(prime % BigInt(4)))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 24}`)
         }
-    } else if (g === 7n) {
-        if (!([3n, 5n, 6n].includes(prime % 7n))) {
+    } else if (g === BigInt(7)) {
+        if (!([BigInt(3), BigInt(5), BigInt(6)].includes(prime % BigInt(7)))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 7}`)
         }
     } else {
         throw new Error(`bad g ${g}`)
     }
-    const primeSub1Div2 = (prime - 1n) / 2n
+    const primeSub1Div2 = (prime - BigInt(1)) / BigInt(2)
     if (Factorizator.factorize(primeSub1Div2)[0] !== 1) {
         throw new Error('(prime - 1) // 2 is not prime')
     }
@@ -90,7 +90,7 @@ function checkPrimeAndGood(primeBytes, g) {
  * @returns {boolean}
  */
 function isGoodLarge(number, p) {
-    return (number > 0n && (p - number) > 0n)
+    return (number > BigInt(0) && (p - number) > BigInt(0))
 }
 
 /**
@@ -207,33 +207,34 @@ function computeCheck(request, password) {
     const pForHash = numBytesForHash(algo.p)
     const gForHash = bigNumForHash(g)
     const bForHash = numBytesForHash(request.srp_B)
-    const g_x = modExp(BigInt(g), x, p)
+    const gX = modExp(BigInt(g), x, p)
     const k = readBigIntFromBuffer(sha256(Buffer.concat([pForHash, gForHash])), false)
-    const kg_x = (k * g_x) % p
+    const kgX = (k * gX) % p
     const generateAndCheckRandom = () => {
         const randomSize = 256
+        // eslint-disable-next-line no-constant-condition
         while (true) {
-            const random = Buffer.from('eef192e0074abd694fcc0d1d65d65e6675161e84903ca81e1515bb22bbae9d69e2b4a2193650fb16ff204873ec34a18faab1999e77c167c4459e48332965966210e846219b2c32c338309cf5094d826bd676f684e9428b03757e499ff6da9aebc5d92bfba8fcf3cb5f9f316644503f256714c2af31e6432a9ff7327999f4ec98a4e63ca171dddfc513f513db3f359da7b535240eb250d45c4e9ce6934ff806944eab4302d83d37283760cc0e35ec8df7213d5abc5cf8a625d9c0834f6e4994c2a98ec810c810f7dfebb4feb9381d71d53dee97fcedbbd9221de67140c76fd1b8e9c40d0c6156168399053a538a681941d69f14afe96bdc48347f3a9755b96006', 'hex') // generateRandomBytes(randomSize)
+            const random = generateRandomBytes(randomSize)
             const a = readBigIntFromBuffer(random, false)
             const A = modExp(BigInt(g), a, p)
             if (isGoodModExpFirst(A, p)) {
                 const aForHash = bigNumForHash(A)
                 const u = readBigIntFromBuffer(sha256(Buffer.concat([aForHash, bForHash])), false)
-                if (u > 0n) {
+                if (u > BigInt(0)) {
                     return [a, aForHash, u]
                 }
             }
         }
     }
     const [a, aForHash, u] = generateAndCheckRandom()
-    const g_b = (B - kg_x) % p
-    if (!isGoodModExpFirst(g_b, p)) {
-        throw new Error('bad g_b')
+    const gB = (B - kgX) % p
+    if (!isGoodModExpFirst(gB, p)) {
+        throw new Error('bad gB')
     }
 
     const ux = u * x
-    const a_ux = a + ux
-    const S = modExp(g_b, a_ux, p)
+    const aUx = a + ux
+    const S = modExp(gB, aUx, p)
     const K = sha256(bigNumForHash(S))
     const M1 = sha256(Buffer.concat([
         xor(sha256(pForHash), sha256(gForHash)),
@@ -254,8 +255,7 @@ function computeCheck(request, password) {
 }
 
 module.exports = {
-    computeHash,
-    computeDigest,
     computeCheck,
-    isGoodModExpFirst,
+    computeDigest,
 }
+

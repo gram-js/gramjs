@@ -39,11 +39,11 @@ class MTProtoPlainSender {
         }
         const reader = new BinaryReader(body)
         const authKeyId = reader.readLong()
-        if (authKeyId !== 0n) {
+        if (authKeyId !== BigInt(0)) {
             throw new Error('Bad authKeyId')
         }
         msgId = reader.readLong()
-        if (msgId === 0n) {
+        if (msgId === BigInt(0)) {
             throw new Error('Bad msgId')
         }
         /** ^ We should make sure that the read ``msg_id`` is greater
@@ -77,7 +77,7 @@ class MTProtoPlainSender {
             (BigInt(Helpers.getRandomInt(0, 524288)) << BigInt(2)) // "message identifiers are divisible by 4"
         // Ensure that we always return a message ID which is higher than the previous one
         if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + 4n
+            newMsgId = this._lastMsgId + BigInt(4)
         }
         this._lastMsgId = newMsgId
         return BigInt(newMsgId)

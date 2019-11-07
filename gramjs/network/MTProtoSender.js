@@ -8,7 +8,7 @@ const MessageContainer = require('../tl/core/MessageContainer')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
 const format = require('string-format')
-const { MsgsAck, File, MsgsStateInfo,Pong } = require('../tl/types')
+const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl/types')
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
 const {
@@ -25,10 +25,8 @@ const {
 const { SecurityError } = require('../errors/Common')
 const { InvalidBufferError } = require('../errors/Common')
 const { LogOutRequest } = require('../tl/functions/auth')
-const log4js = require('log4js')
 const { RPCMessageToError } = require('../errors')
 const { TypeNotFoundError } = require('../errors/Common')
-const logger = log4js.getLogger('gramjs')
 
 // const { tlobjects } = require("../gramjs/tl/alltlobjects");
 format.extend(String.prototype, {})
@@ -219,6 +217,7 @@ class MTProtoSender {
      * @private
      */
     async _connect() {
+
         this._log.info('Connecting to {0}...'.replace('{0}', this._connection))
         await this._connection.connect()
         this._log.debug('Connection success!')
@@ -323,7 +322,7 @@ class MTProtoSender {
                 body = await this._connection.recv()
             } catch (e) {
                 // this._log.info('Connection closed while receiving data');
-                this._log.debug('Connection closed while receiving data')
+                this._log.warn('Connection closed while receiving data')
                 return
             }
             try {
@@ -712,9 +711,7 @@ class MTProtoSender {
         if (this._user_connected && !this._reconnecting) {
             this._reconnecting = true
             this._reconnect(e)
-
         }
-
     }
 
     async _reconnect(e) {

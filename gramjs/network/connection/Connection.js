@@ -1,5 +1,4 @@
-const { PromiseSocket } = require('promise-socket')
-const { Socket } = require('net')
+const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
 
 /**
@@ -30,15 +29,16 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        this.socket = new PromiseSocket(new Socket())
+        this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
-        await this.socket.connect(this._port, this._ip)
-
+        this._log.debug('Connecting')
+        await this.socket.connect(this._ip, this._port)
+        this._log.debug('Finished connecting')
         // await this.socket.connect({host: this._ip, port: this._port});
         this._codec = new this.PacketCodecClass(this)
-        this._initConn()
+        await this._initConn()
     }
 
     async connect() {
@@ -52,7 +52,7 @@ class Connection {
 
     async disconnect() {
         this._connected = false
-        await this.socket.end()
+        await this.socket.close()
     }
 
     async send(data) {
@@ -65,7 +65,6 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop()
-
             // null = sentinel value = keep trying
             if (result) {
                 return result
@@ -92,7 +91,6 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
-                    console.log('ended')
                     return
                 }
             } catch (e) {
@@ -106,13 +104,13 @@ class Connection {
 
     async _initConn() {
         if (this._codec.tag) {
-            await this.socket.write(this._codec.tag)
+            await this.socket.send(this._codec.tag)
         }
     }
 
     async _send(data) {
         const encodedPacket = this._codec.encodePacket(data)
-        await this.socket.write(encodedPacket)
+        await this.socket.send(encodedPacket)
     }
 
     async _recv() {
@@ -121,6 +119,24 @@ class Connection {
 
     toString() {
         return `${this._ip}:${this._port}/${this.constructor.name.replace('Connection', '')}`
+    }
+}
+
+class ObfuscatedConnection extends Connection {
+    ObfuscatedIO = null
+
+    async _initConn() {
+        this._obfuscation = new this.ObfuscatedIO(this)
+        this.socket.send(this._obfuscation.header)
+    }
+
+    _send(data) {
+        this._obfuscation.write(this._codec.encodePacket(data))
+    }
+
+
+    async _recv() {
+        return await this._codec.readPacket(this._obfuscation)
     }
 }
 
@@ -144,4 +160,5 @@ class PacketCodec {
 module.exports = {
     Connection,
     PacketCodec,
+    ObfuscatedConnection,
 }

@@ -10,27 +10,46 @@
     "type": "git",
     "url": "git+https://github.com/gram-js/gramjs.git"
   },
+  "browser": {
+    "fs": false
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/gram-js/gramjs/issues"
   },
   "homepage": "https://github.com/gram-js/gramjs#readme",
   "dependencies": {
+    "@babel/core": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/preset-env": "^7.7.0",
     "aes-js": "^3.1.2",
+    "babel-loader": "^8.0.6",
+    "babel-register": "^6.26.0",
     "crc": "^3.8.0",
     "csv-parse": "^4.4.6",
     "fast-csv": "^3.4.0",
     "glob": "^7.1.4",
-    "log4js": "^5.2.2",
+    "loglevel": "^1.6.4",
+    "net": "^1.0.2",
     "node-gzip": "^1.1.2",
     "node-rsa": "^1.0.6",
     "promise-socket": "^6.0.2",
     "python-struct": "^1.1.1",
-    "string-format": "^2.0.0"
+    "regenerator-runtime": "^0.13.3",
+    "stack-trace": "0.0.10",
+    "string-format": "^2.0.0",
+    "tunnel": "0.0.6",
+    "websocket": "^1.0.30"
   },
   "devDependencies": {
+    "@babel/plugin-transform-async-to-generator": "^7.7.0",
     "babel-eslint": "^10.0.3",
     "eslint": "^6.5.1",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-google": "^0.14.0",
+    "log4js": "^5.3.0",
+    "loglevelnext": "^3.0.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "websocket-as-promised": "^0.10.1"
   }
 }

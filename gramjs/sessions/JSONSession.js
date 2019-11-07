@@ -24,9 +24,9 @@ class Session {
         this.authKey = undefined
         this.id = generateRandomLong(false)
         this.sequence = 0
-        this.salt = 0n // Unsigned long
-        this.timeOffset = 0n
-        this.lastMessageId = 0n
+        this.salt = BigInt(0) // Unsigned long
+        this.timeOffset = BigInt(0)
+        this.lastMessageId = BigInt(0)
         this.user = undefined
         this._files = {}
         this._entities = new Set()
@@ -193,12 +193,12 @@ class Session {
     getNewMsgId() {
         const msTime = new Date().getTime()
         let newMessageId =
-            (BigInt(BigInt(Math.floor(msTime / 1000)) + this.timeOffset) << 32n) |
-            (BigInt(msTime % 1000) << 22n) |
-            (BigInt(getRandomInt(0, 524288)) << 2n) // 2^19
+            (BigInt(BigInt(Math.floor(msTime / 1000)) + this.timeOffset) << BigInt(32)) |
+            (BigInt(msTime % 1000) << BigInt(22)) |
+            (BigInt(getRandomInt(0, 524288)) << BigInt(2)) // 2^19
 
         if (this.lastMessageId >= newMessageId) {
-            newMessageId = this.lastMessageId + 4n
+            newMessageId = this.lastMessageId + BigInt(4)
         }
         this.lastMessageId = newMessageId
         return newMessageId
@@ -315,7 +315,6 @@ class Session {
             throw new Error('Could not find input entity with key ' + key)
         }
     }
-
 }
 
 module.exports = Session
