@@ -1,43 +1,31 @@
-const Mutex = require('async-mutex').Mutex
-const mutex = new Mutex()
-
-const WebSocketClient = require('websocket').w3cwebsocket
+const WebSocketClient = require('websocket').client
+const tunnel = require('tunnel')
 
 const closeError = new Error('WebSocket was closed')
 
 class PromisedWebSockets {
-    constructor() {
-        /*CONTEST
-        this.isBrowser = typeof process === 'undefined' ||
-            process.type === 'renderer' ||
-            process.browser === true ||
-            process.__nwjs
+    constructor(website) {
+        this.website = website
+        this.stream = Buffer.alloc(0)
+        this.connection = null
+        this.client = new WebSocketClient()
 
-         */
-        this.client = null
-        this.closed = true
-    }
-
-    async readExactly(number) {
-        let readData = Buffer.alloc(0)
-        while (true) {
-            const thisTime = await this.read(number)
-            readData = Buffer.concat([readData, thisTime])
-            number = number - thisTime.length
-            if (!number) {
-                return readData
-            }
-        }
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve
+        })
+        this.closed = false
+        this.client.on('close', function() {
+            this.resolveRead(false)
+            this.closed = true
+        }.bind(this))
     }
 
     async read(number) {
-        if (this.closed) {
+        if (this.closed || !await this.canRead) {
+            console.log('wops ccouln\'t read')
             throw closeError
         }
-        await this.canRead
-        if (this.closed) {
-            throw closeError
-        }
+
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
@@ -63,67 +51,66 @@ class PromisedWebSockets {
 
     getWebSocketLink(ip, port) {
         if (port === 443) {
-            return `wss://${ip}:${port}/apiws`
+            return 'wss://' + ip
         } else {
-            return `ws://${ip}:${port}/apiws`
+            return 'ws://' + ip
         }
     }
 
-    async connect(port, ip) {
-        this.stream = Buffer.alloc(0)
-        this.canRead = new Promise((resolve) => {
-            this.resolveRead = resolve
+    async connect(ip, port) {
+        const tunnelingAgent = tunnel.httpOverHttp({
+            proxy: {
+                host: '127.0.0.1',
+                port: 8888,
+            },
         })
-        this.closed = false
+
+        const requestOptions = {
+            agent: tunnelingAgent,
+        }
+
         this.website = this.getWebSocketLink(ip, port)
-        this.client = new WebSocketClient(this.website, 'binary')
-        return new Promise((resolve, reject) => {
-            this.client.onopen = () => {
+        //this.website = 'ws://echo.websocket.org'
+        return new Promise(function(resolve, reject) {
+            this.client.on('connect', function(connection) {
+                this.connection = connection
                 this.receive()
-                resolve(this)
-            }
-            this.client.onerror = (error) => {
+                resolve(connection)
+            }.bind(this))
+            this.client.on('connectFailed', function(error) {
                 reject(error)
-            }
-            this.client.onclose = () => {
-                    this.resolveRead(false)
-                    this.closed = true
-            }
-            //CONTEST
-            if (typeof window !== 'undefined'){
-                window.addEventListener('offline', async () => {
-                    await this.close()
-                    this.resolveRead(false)
-                });
-            }
-        })
+            })
+            this.client.connect(this.website, null, null, null, requestOptions)
+        }.bind(this))
     }
 
-    write(data) {
+    send(data) {
         if (this.closed) {
             throw closeError
         }
-        this.client.send(data)
+        this.connection.send(data)
     }
 
     async close() {
-        await this.client.close()
+        console.log('something happened. clsong')
+        await this.connection.close()
+        this.resolveRead(false)
         this.closed = true
     }
 
     async receive() {
-        this.client.onmessage = async (message) => {
-            const release = await mutex.acquire()
-            try {
-                let data
-                //CONTEST BROWSER
-                    data = Buffer.from(await new Response(message.data).arrayBuffer())
-                this.stream = Buffer.concat([this.stream, data])
-                this.resolveRead(true)
-            } finally {
-                release()
+        this.connection.on('message', function(message) {
+            console.log(message)
+            let data
+            if (message.binaryData) {
+                data = Buffer.from(message.binaryData)
+            } else {
+                data = Buffer.from(message.utf8Data, 'utf-8')
             }
-        }
+
+            this.stream = Buffer.concat([this.stream, data])
+            this.resolveRead(true)
+        }.bind(this))
     }
 }
 

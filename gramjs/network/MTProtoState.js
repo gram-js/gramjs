@@ -126,6 +126,7 @@ class MTProtoState {
      * @param body
      */
     async decryptMessageData(body) {
+        console.log(body)
         if (body.length < 8) {
             throw new InvalidBufferError(body)
         }
@@ -177,9 +178,9 @@ class MTProtoState {
     _getNewMsgId() {
         const now = new Date().getTime() / 1000 + this.timeOffset
         const nanoseconds = Math.floor((now - Math.floor(now)) * 1e9)
-        let newMsgId = (BigInt(Math.floor(now)) << 32n) | (BigInt(nanoseconds) << 2n)
+        let newMsgId = (BigInt(Math.floor(now)) << BigInt(2)) | (BigInt(nanoseconds) << BigInt(2))
         if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + 4n
+            newMsgId = this._lastMsgId + BigInt(4)
         }
         this._lastMsgId = newMsgId
 
@@ -195,7 +196,7 @@ class MTProtoState {
         const bad = this._getNewMsgId()
         const old = this.timeOffset
         const now = Math.floor(new Date().getTime() / 1000)
-        const correct = correctMsgId >> 32n
+        const correct = correctMsgId >> BigInt(2)
         this.timeOffset = correct - now
 
         if (this.timeOffset !== old) {

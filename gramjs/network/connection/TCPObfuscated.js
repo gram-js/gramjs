@@ -1,7 +1,7 @@
 const { generateRandomBytes } = require('../../Helpers')
 const { ObfuscatedConnection } = require('./Connection')
 const { AbridgedPacketCodec } = require('./TCPAbridged')
-const CTR = require('../../crypto/CTR')
+const AESModeCTR = require('../../crypto/AESCTR')
 
 class ObfuscatedIO {
     header = null
@@ -10,7 +10,6 @@ class ObfuscatedIO {
         this.connection = connection.socket
         const res = this.initHeader(connection.PacketCodecClass)
         this.header = res.random
-
         this._encrypt = res.encryptor
         this._decrypt = res.decryptor
     }
@@ -38,32 +37,31 @@ class ObfuscatedIO {
             }
         }
         random = random.toJSON().data
+        const randomReversed = Buffer.from(random.slice(7, 55)).reverse()
 
-        const randomReversed = Buffer.from(random.slice(8, 56)).reverse()
         // Encryption has "continuous buffer" enabled
         const encryptKey = Buffer.from(random.slice(8, 40))
         const encryptIv = Buffer.from(random.slice(40, 56))
         const decryptKey = Buffer.from(randomReversed.slice(0, 32))
         const decryptIv = Buffer.from(randomReversed.slice(32, 48))
-        const encryptor = new CTR(encryptKey, encryptIv)
-        const decryptor = new CTR(decryptKey, decryptIv)
-
+        const encryptor = new AESModeCTR(encryptKey, encryptIv)
+        const decryptor = new AESModeCTR(decryptKey, decryptIv)
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)), packetCodec.obfuscateTag, Buffer.from(random.slice(60)),
         ])
         random = Buffer.concat([
-            Buffer.from(random.slice(0, 56)), Buffer.from(encryptor.encrypt(random).slice(56, 64)),Buffer.from(random.slice(64)) ,
+            random.slice(0, 56), encryptor.encrypt(random).slice(56, 64), random.slice(64),
         ])
         return { random, encryptor, decryptor }
     }
 
     async read(n) {
-        const data = await this.connection.readExactly(n)
+        const data = await this.connection.read(n)
         return this._decrypt.encrypt(data)
     }
 
     write(data) {
-        this.connection.write(this._encrypt.encrypt(data))
+        this.connection.send(this._encrypt.encrypt(data))
     }
 }
 
@@ -75,4 +73,3 @@ class ConnectionTCPObfuscated extends ObfuscatedConnection {
 module.exports = {
     ConnectionTCPObfuscated,
 }
-

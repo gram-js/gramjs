@@ -113,7 +113,6 @@ class Session {
      */
     save() {
         throw new Error('Not Implemented')
-
     }
 
     /**
@@ -122,7 +121,6 @@ class Session {
      */
     delete() {
         throw new Error('Not Implemented')
-
     }
 
     /**
@@ -130,7 +128,6 @@ class Session {
      */
     listSessions() {
         throw new Error('Not Implemented')
-
     }
 
     /**
@@ -150,7 +147,6 @@ class Session {
      */
     getInputEntity(key) {
         throw new Error('Not Implemented')
-
     }
 }
 

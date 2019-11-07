@@ -159,9 +159,7 @@ function getInputUser(entity) {
             })
         }
     }
-    console.log(entity)
     if (entity instanceof types.InputPeerSelf) {
-
         return new types.InputPeerSelf()
     }
     if (entity instanceof types.UserEmpty || entity instanceof types.InputPeerEmpty) {

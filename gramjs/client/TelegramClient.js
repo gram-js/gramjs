@@ -1,17 +1,19 @@
-const log4js = require('log4js')
+const logger = require('log4js').getLogger()
 const { sleep } = require('../Helpers')
 const errors = require('../errors')
+const MemorySession = require('../sessions/Memory')
 const { addKey } = require('../crypto/RSA')
 const { TLRequest } = require('../tl/tlobject')
 const utils = require('../Utils')
-const Session = require('../sessions/Session')
+const Session = require('../sessions/Abstract')
+const JSONSession = require('../sessions/JSONSession')
 const os = require('os')
 const { GetConfigRequest } = require('../tl/functions/help')
 const { LAYER } = require('../tl/AllTLObjects')
 const { functions, types } = require('../tl')
 const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
-const { ConnectionTCPFull } = require('../network/connection/TCPFull')
+const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
@@ -19,7 +21,7 @@ const DEFAULT_PORT = 443
 
 class TelegramClient {
     static DEFAULT_OPTIONS = {
-        connection: ConnectionTCPFull,
+        connection: ConnectionTCPObfuscated,
         useIPV6: false,
         proxy: null,
         timeout: 10,
@@ -38,7 +40,7 @@ class TelegramClient {
     }
 
 
-    constructor(sessionName, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
+    constructor(session, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
         }
@@ -48,11 +50,21 @@ class TelegramClient {
         this._useIPV6 = args.useIPV6
         this._entityCache = new Set()
         if (typeof args.baseLogger == 'string') {
-            this._log = log4js.getLogger(args.baseLogger)
+            this._log = logger
         } else {
             this._log = args.baseLogger
         }
-        const session = Session.tryLoadOrCreateNew(sessionName)
+        // Determine what session we will use
+        if (typeof session === 'string' || !session) {
+            try {
+                session = JSONSession.tryLoadOrCreateNew(session)
+            } catch (e) {
+                console.log(e)
+                session = new MemorySession()
+            }
+        } else if (!(session instanceof Session)) {
+            throw new Error('The given session must be str or a session instance')
+        }
         if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
             session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
         }
@@ -196,7 +208,6 @@ class TelegramClient {
         if (!(request instanceof TLRequest)) {
             throw new Error('You can only invoke MTProtoRequests')
         }
-        console.log('sending request..', request)
         await request.resolve(this, utils)
 
         if (request.CONSTRUCTOR_ID in this._floodWaitedRequests) {
@@ -278,8 +289,9 @@ class TelegramClient {
         if (await this.isUserAuthorized()) {
             return this
         }
+        let phone
         if (!args.botToken) {
-            args.phone = utils.parsePhone(args.phone) || args.phone
+            phone = utils.parsePhone(args.phone) || args.phone
         }
         if (args.botToken) {
             await this.signIn({
@@ -292,7 +304,7 @@ class TelegramClient {
         let attempts = 0
         let twoStepDetected = false
 
-        await this.sendCodeRequest(args.phone, args.forceSMS)
+        await this.sendCodeRequest(phone, args.forceSMS)
         console.log('you  got sent the code')
 
         let signUp = false
@@ -314,22 +326,19 @@ class TelegramClient {
                 } else {
                     // this throws SessionPasswordNeededError if 2FA enabled
                     me = await this.signIn({
-                        phone: args.phone,
+                        phone: phone,
                         code: value,
                     })
                 }
                 break
             } catch (e) {
-
                 if (e instanceof errors.SessionPasswordNeededError) {
                     twoStepDetected = true
                     break
                 } else if (e instanceof errors.PhoneNumberOccupiedError) {
                     signUp = true
-
                 } else if (e instanceof errors.PhoneNumberUnoccupiedError) {
                     signUp = true
-
                 } else if (e instanceof errors.PhoneCodeEmptyError ||
                     e instanceof errors.PhoneCodeExpiredError ||
                     e instanceof errors.PhoneCodeHashEmptyError ||
@@ -345,18 +354,16 @@ class TelegramClient {
             throw new Error(`${args.maxAttempts} consecutive sign-in attempts failed. Aborting`)
         }
         if (twoStepDetected) {
-            console.log('two steps baby')
             if (!args.password) {
                 throw new Error('Two-step verification is enabled for this account. ' +
                     'Please provide the \'password\' argument to \'start()\'.')
             }
             me = await this.signIn({
-                phone: args.phone,
+                phone: phone,
                 password: args.password,
             })
         }
         const name = utils.getDisplayName(me)
-        console.log(me)
         console.log('Signed in successfully as', name)
         return this
     }
@@ -495,7 +502,6 @@ class TelegramClient {
     }
 
     _handleUpdate(update) {
-
         this.session.processEntities(update)
         this._entityCache.add(update)
 
@@ -781,7 +787,6 @@ class TelegramClient {
             }
         }
         return false
-
     }
 
     async signUp() {

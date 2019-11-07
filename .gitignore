@@ -8,6 +8,7 @@
 /gramjs/tl/patched/
 /gramjs/tl/AllTLObjects.js
 /gramjs/errors/RPCErrorList.js
+/dist/
 
 # User session
 *.session

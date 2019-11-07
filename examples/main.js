@@ -1,13 +1,6 @@
 const { TelegramClient } = require('../gramjs')
-const log4js = require('log4js')
-const { InputPeerChat } = require('../gramjs/tl/types')
-const { SendMessageRequest } = require('../gramjs/tl/functions/messages')
-const logger = log4js.getLogger('gramjs')
-
-logger.level = 'debug'
-
-
-console.log(message.bytes.toString('hex'));
+const logger = require('log4js').getLogger()
+logger.level = 'debug';
 
 (async () => {
     console.log('Loading interactive example...')

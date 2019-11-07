@@ -21,13 +21,12 @@ class FullPacketCodec extends PacketCodec {
 
     /**
      *
-     * @param reader {Socket}
+     * @param reader {PromisedWebSockets}
      * @returns {Promise<*>}
      */
     async readPacket(reader) {
         const packetLenSeq = await reader.read(8) // 4 and 4
         // process.exit(0);
-
         if (packetLenSeq === undefined) {
             return false
         }

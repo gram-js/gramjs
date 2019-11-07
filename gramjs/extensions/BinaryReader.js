@@ -47,15 +47,7 @@ class BinaryReader {
      * @returns {bigint}
      */
     readLong(signed = true) {
-        let res
-        if (signed) {
-            res = this.stream.readBigInt64LE(this.offset)
-        } else {
-            res = this.stream.readBigUInt64LE(this.offset)
-        }
-        this.offset += 8
-
-        return res
+        return this.readLargeInt(8, signed)
     }
 
     /**

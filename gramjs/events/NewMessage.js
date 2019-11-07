@@ -2,8 +2,6 @@ const { EventBuilder, EventCommon } = require('./common')
 const { types } = require('../tl')
 
 class NewMessage extends EventBuilder {
-
-
     constructor(args = {
         chats: null,
         func: null,
@@ -17,7 +15,7 @@ class NewMessage extends EventBuilder {
 
     async _resolve(client) {
         await super._resolve(client)
-        this.fromUsers = await _intoIdSet(client, this.fromUsers)
+        // this.fromUsers = await _intoIdSet(client, this.fromUsers)
     }
 
     build(update, others = null, thisId = null) {
@@ -27,7 +25,6 @@ class NewMessage extends EventBuilder {
                 return
             }
             event = new Event(update.message)
-
         } else if (update instanceof types.UpdateShortMessage) {
             event = new Event(new types.Message({
                 out: update.out,
@@ -75,7 +72,6 @@ class NewMessage extends EventBuilder {
             }
         }
         return event
-
     }
 
     filter(event) {
@@ -84,7 +80,6 @@ class NewMessage extends EventBuilder {
         }
         return event
     }
-
 }
 
 class Event extends EventCommon {
@@ -93,4 +88,5 @@ class Event extends EventCommon {
         this.message = message
     }
 }
+
 module.exports = NewMessage
