@@ -35,7 +35,7 @@ function checkPrimeAndGoodCheck(prime, g) {
             throw new Error(`bad g ${g}, mod8 ${prime % 5}`)
         }
     } else if (g === BigInt(6)) {
-        if (!([BigInt(9), BigInt(3)].includes(prime % BigInt(4)))) {
+        if (!([BigInt(19), BigInt(23)].includes(prime % BigInt(24)))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 24}`)
         }
     } else if (g === BigInt(7)) {

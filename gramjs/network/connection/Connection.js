@@ -29,9 +29,9 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        this.socket = new PromiseSocket(new Socket())
+        //this.socket = new PromiseSocket(new Socket())
 
-        //this.socket = new PromisedWebSockets()
+        this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
@@ -80,7 +80,6 @@ class Connection {
         try {
             while (this._connected) {
                 const data = await this._sendArray.pop()
-                console.log("data to send",data)
                 await this._send(data)
             }
         } catch (e) {
@@ -135,7 +134,6 @@ class ObfuscatedConnection extends Connection {
     }
 
     _send(data) {
-        console.log('i am here first', data.toString('hex'))
         this._obfuscation.write(this._codec.encodePacket(data))
     }
 

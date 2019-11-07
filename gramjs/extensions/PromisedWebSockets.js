@@ -22,7 +22,7 @@ class PromisedWebSockets {
 
     async read(number) {
         if (this.closed || !await this.canRead) {
-            console.log('wops ccouln\'t read')
+            console.log('couldn\'t read')
             throw closeError
         }
 
@@ -57,7 +57,7 @@ class PromisedWebSockets {
         }
     }
 
-    async connect(ip, port) {
+    async connect(port, ip) {
         const tunnelingAgent = tunnel.httpOverHttp({
             proxy: {
                 host: '127.0.0.1',
@@ -92,7 +92,7 @@ class PromisedWebSockets {
     }
 
     async close() {
-        console.log('something happened. clsong')
+        console.log('something happened. closing')
         await this.connection.close()
         this.resolveRead(false)
         this.closed = true
@@ -100,7 +100,6 @@ class PromisedWebSockets {
 
     async receive() {
         this.connection.on('message', function(message) {
-            console.log(message)
             let data
             if (message.binaryData) {
                 data = Buffer.from(message.binaryData)

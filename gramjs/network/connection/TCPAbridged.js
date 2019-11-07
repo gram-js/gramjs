@@ -24,17 +24,12 @@ class AbridgedPacketCodec extends PacketCodec {
 
     async readPacket(reader) {
         const readData = await reader.read(1)
-        console.log('aeraer', readData)
-
         let length = struct.unpack('<B', readData)[0]
-        console.log('len is ', length)
-
-        if (length > 127) {
+        if (length >= 127) {
             length = struct.unpack(
                 '<i', Buffer.concat([await reader.read(3), Buffer.alloc(1)]))[0]
         }
-        console.log(length)
-        console.log('gonna read ', length << 2)
+
         return await reader.read(length << 2)
     }
 }
