@@ -25,7 +25,6 @@ const { ReqPqMultiRequest } = require('../tl/functions')
  * @returns {Promise<{authKey: *, timeOffset: *}>}
  */
 async function doAuthentication(sender, log) {
-    console.log('starting auth')
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random
     let bytes = Helpers.generateRandomBytes(16)
 

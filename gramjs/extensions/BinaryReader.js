@@ -47,7 +47,7 @@ class BinaryReader {
      * @returns {bigint}
      */
     readLong(signed = true) {
-        return this.readLargeInt(8, signed)
+        return this.readLargeInt(64, signed)
     }
 
     /**

@@ -10,8 +10,6 @@ class ObfuscatedIO {
         this.connection = connection.socket
         const res = this.initHeader(connection.PacketCodecClass)
         this.header = res.random
-        console.log(this.header.toString('hex'))
-        console.log(this.header.toString('hex').length)
 
         this._encrypt = res.encryptor
         this._decrypt = res.decryptor
@@ -42,7 +40,6 @@ class ObfuscatedIO {
         random = random.toJSON().data
 
         const randomReversed = Buffer.from(random.slice(8, 56)).reverse()
-        console.log(randomReversed.toString('hex'))
         // Encryption has "continuous buffer" enabled
         const encryptKey = Buffer.from(random.slice(8, 40))
         const encryptIv = Buffer.from(random.slice(40, 56))
@@ -50,10 +47,6 @@ class ObfuscatedIO {
         const decryptIv = Buffer.from(randomReversed.slice(32, 48))
         const encryptor = new AESModeCTR(encryptKey, encryptIv)
         const decryptor = new AESModeCTR(decryptKey, decryptIv)
-        console.log('decryptor data ', decryptKey.toString('hex'), decryptIv.toString('hex'))
-        console.log('encryptor data ', encryptKey.toString('hex'), encryptIv.toString('hex'))
-
-        process.exit(0)
 
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)), packetCodec.obfuscateTag, Buffer.from(random.slice(60)),
@@ -66,9 +59,6 @@ class ObfuscatedIO {
 
     async read(n) {
         const data = await this.connection.read(n)
-        console.log('read raw data is ', data.toString('hex'))
-        console.log('obfuscated adata is ', this._decrypt.encrypt(data))
-        process.exit(0)
         return this._decrypt.encrypt(data)
     }
 

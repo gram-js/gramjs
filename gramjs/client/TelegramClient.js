@@ -14,6 +14,8 @@ const { functions, types } = require('../tl')
 const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
+const { ConnectionTCPFull } = require('../network/connection/TCPFull')
+
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
@@ -305,11 +307,9 @@ class TelegramClient {
         let twoStepDetected = false
 
         await this.sendCodeRequest(phone, args.forceSMS)
-        console.log('you  got sent the code')
 
         let signUp = false
         while (attempts < args.maxAttempts) {
-            console.log('try nummber', attempts)
             try {
                 const value = args.code
                 if (!value) {
@@ -475,9 +475,7 @@ class TelegramClient {
             if (result.type instanceof types.auth.SentCodeTypeSms) {
                 forceSMS = false
             }
-            console.log('got result', result)
             if (result.phoneCodeHash) {
-                console.log('appending hash')
                 this._phoneCodeHash[phone] = phoneHash = result.phoneCodeHash
             }
         } else {
@@ -716,9 +714,7 @@ class TelegramClient {
         // will work with access_hash = 0. Similar for channels.getChannels.
         // If we're not a bot but the user is in our contacts, it seems to work
         // regardless. These are the only two special-cased requests.
-        console.log('the peer i will get is ', peer)
         peer = utils.getPeer(peer)
-        console.log('the peer i got was ', peer)
         if (peer instanceof types.PeerUser) {
             const users = await this.invoke(new functions.users.GetUsersRequest({
                 id: [new types.InputUser({
@@ -771,7 +767,6 @@ class TelegramClient {
         channelId: null,
         ptsDate: null,
     }) {
-        console.log('event args are ', args)
         for (const [builder, callback] of this._eventBuilders) {
             const event = builder.build(args.update)
             if (event) {

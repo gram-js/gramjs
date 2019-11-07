@@ -10,7 +10,6 @@ class AESModeCTR {
     }
 
     encrypt(data) {
-        console.log('first data to encrypt is ', data.toString('hex'))
         const res = this.cipher.encrypt(data)
         return Buffer.from(res)
     }

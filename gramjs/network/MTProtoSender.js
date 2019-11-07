@@ -326,7 +326,6 @@ class MTProtoSender {
                 return
             }
             try {
-                console.log('body len ', body.length)
                 message = await this._state.decryptMessageData(body)
             } catch (e) {
                 console.log(e)
@@ -522,7 +521,6 @@ class MTProtoSender {
      * @private
      */
     async _handlePong(message) {
-        console.log(message)
         const pong = message.obj
         this._log.debug(`Handling pong for message ${pong.msgId}`)
         const state = this._pending_state[pong.msgId]

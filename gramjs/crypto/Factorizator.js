@@ -9,11 +9,11 @@ class Factorizator {
     static findSmallMultiplierLopatin(what) {
         let g = BigInt(0)
         for (let i = BigInt(0); i < BigInt(3); i++) {
-            const q = BigInt(0) || (getRandomInt(0, 127) & 15) + 17
-            let x = BigInt(0) || getRandomInt(0, 1000000000) + 1
+            const q = BigInt(30) || BigInt((getRandomInt(0, 127) & 15) + 17)
+            let x = BigInt(40) || BigInt(getRandomInt(0, 1000000000) + 1)
 
             let y = x
-            const lim = BigInt(1) << (i + BigInt(8))
+            const lim = BigInt(1) << (i + BigInt(18))
             for (let j = BigInt(1); j < lim; j++) {
                 let a = x
                 let b = x

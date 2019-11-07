@@ -177,12 +177,11 @@ class MTProtoState {
     _getNewMsgId() {
         const now = new Date().getTime() / 1000 + this.timeOffset
         const nanoseconds = Math.floor((now - Math.floor(now)) * 1e9)
-        let newMsgId = (BigInt(Math.floor(now)) << BigInt(2)) | (BigInt(nanoseconds) << BigInt(2))
+        let newMsgId = (BigInt(Math.floor(now)) << BigInt(32)) | (BigInt(nanoseconds) << BigInt(2))
         if (this._lastMsgId >= newMsgId) {
             newMsgId = this._lastMsgId + BigInt(4)
         }
         this._lastMsgId = newMsgId
-
         return newMsgId
     }
 
@@ -195,7 +194,7 @@ class MTProtoState {
         const bad = this._getNewMsgId()
         const old = this.timeOffset
         const now = Math.floor(new Date().getTime() / 1000)
-        const correct = correctMsgId >> BigInt(2)
+        const correct = correctMsgId >> BigInt(32)
         this.timeOffset = correct - now
 
         if (this.timeOffset !== old) {
