@@ -84,7 +84,7 @@ class PromisedWebSockets {
         }.bind(this))
     }
 
-    send(data) {
+    write(data) {
         if (this.closed) {
             throw closeError
         }

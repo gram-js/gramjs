@@ -326,6 +326,7 @@ class MTProtoSender {
                 return
             }
             try {
+                console.log('body len ', body.length)
                 message = await this._state.decryptMessageData(body)
             } catch (e) {
                 console.log(e)

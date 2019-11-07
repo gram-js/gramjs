@@ -10,6 +10,9 @@ class ObfuscatedIO {
         this.connection = connection.socket
         const res = this.initHeader(connection.PacketCodecClass)
         this.header = res.random
+        console.log(this.header.toString('hex'))
+        console.log(this.header.toString('hex').length)
+
         this._encrypt = res.encryptor
         this._decrypt = res.decryptor
     }
@@ -22,7 +25,7 @@ class ObfuscatedIO {
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            random = generateRandomBytes(64)
+            random = Buffer.from('dbf538959e7eed8a5b432e6b6c446424a126f29fcfea79ccefd803923b7d70c2118f86ecfc922e5e7e1938df06c956dab0b51ded5110ec598dc7fefcacd0b514', 'hex')// generateRandomBytes(64)
             if (random[0] !== 0xef && !(random.slice(4, 8).equals(Buffer.alloc(4)))) {
                 let ok = true
                 for (const key of keywords) {
@@ -37,8 +40,9 @@ class ObfuscatedIO {
             }
         }
         random = random.toJSON().data
-        const randomReversed = Buffer.from(random.slice(7, 55)).reverse()
 
+        const randomReversed = Buffer.from(random.slice(8, 56)).reverse()
+        console.log(randomReversed.toString('hex'))
         // Encryption has "continuous buffer" enabled
         const encryptKey = Buffer.from(random.slice(8, 40))
         const encryptIv = Buffer.from(random.slice(40, 56))
@@ -46,6 +50,11 @@ class ObfuscatedIO {
         const decryptIv = Buffer.from(randomReversed.slice(32, 48))
         const encryptor = new AESModeCTR(encryptKey, encryptIv)
         const decryptor = new AESModeCTR(decryptKey, decryptIv)
+        console.log('decryptor data ', decryptKey.toString('hex'), decryptIv.toString('hex'))
+        console.log('encryptor data ', encryptKey.toString('hex'), encryptIv.toString('hex'))
+
+        process.exit(0)
+
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)), packetCodec.obfuscateTag, Buffer.from(random.slice(60)),
         ])
@@ -57,11 +66,14 @@ class ObfuscatedIO {
 
     async read(n) {
         const data = await this.connection.read(n)
+        console.log('read raw data is ', data.toString('hex'))
+        console.log('obfuscated adata is ', this._decrypt.encrypt(data))
+        process.exit(0)
         return this._decrypt.encrypt(data)
     }
 
     write(data) {
-        this.connection.send(this._encrypt.encrypt(data))
+        this.connection.write(this._encrypt.encrypt(data))
     }
 }
 

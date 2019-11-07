@@ -25,6 +25,7 @@ const { ReqPqMultiRequest } = require('../tl/functions')
  * @returns {Promise<{authKey: *, timeOffset: *}>}
  */
 async function doAuthentication(sender, log) {
+    console.log('starting auth')
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random
     let bytes = Helpers.generateRandomBytes(16)
 
@@ -82,7 +83,7 @@ async function doAuthentication(sender, log) {
             q: q,
             publicKeyFingerprint: targetFingerprint,
             encryptedData: cipherText,
-        })
+        }),
     )
     if (!(serverDhParams instanceof ServerDHParamsOk || serverDhParams instanceof ServerDHParamsFail)) {
         throw new Error(`Step 2.1 answer was ${serverDhParams}`)
@@ -152,7 +153,7 @@ async function doAuthentication(sender, log) {
             nonce: resPQ.nonce,
             serverNonce: resPQ.serverNonce,
             encryptedData: clientDhEncrypted,
-        })
+        }),
     )
     const nonceTypes = [DhGenOk, DhGenRetry, DhGenFail]
     if (!(dhGen instanceof nonceTypes[0] || dhGen instanceof nonceTypes[1] || dhGen instanceof nonceTypes[2])) {

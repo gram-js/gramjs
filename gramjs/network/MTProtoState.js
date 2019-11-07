@@ -126,7 +126,6 @@ class MTProtoState {
      * @param body
      */
     async decryptMessageData(body) {
-        console.log(body)
         if (body.length < 8) {
             throw new InvalidBufferError(body)
         }
