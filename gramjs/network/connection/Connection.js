@@ -1,5 +1,7 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
+const Socket = require('net').Socket
+const { PromiseSocket } = require('promise-socket')
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -20,8 +22,6 @@ class Connection {
         this._port = port
         this._dcId = dcId
         this._log = loggers
-        this._reader = null
-        this._writer = null
         this._connected = false
         this._sendTask = null
         this._recvTask = null
@@ -29,12 +29,14 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        this.socket = new PromisedWebSockets()
+        this.socket = new PromiseSocket(new Socket())
+
+        //this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
         this._log.debug('Connecting')
-        await this.socket.connect(this._ip, this._port)
+        await this.socket.connect(this._port, this._ip)
         this._log.debug('Finished connecting')
         // await this.socket.connect({host: this._ip, port: this._port});
         this._codec = new this.PacketCodecClass(this)
@@ -77,7 +79,9 @@ class Connection {
         // TODO handle errors
         try {
             while (this._connected) {
-                await this._send(await this._sendArray.pop())
+                const data = await this._sendArray.pop()
+                console.log("data to send",data)
+                await this._send(data)
             }
         } catch (e) {
             console.log(e)
@@ -104,13 +108,13 @@ class Connection {
 
     async _initConn() {
         if (this._codec.tag) {
-            await this.socket.send(this._codec.tag)
+            await this.socket.write(this._codec.tag)
         }
     }
 
     async _send(data) {
         const encodedPacket = this._codec.encodePacket(data)
-        await this.socket.send(encodedPacket)
+        this.socket.write(encodedPacket)
     }
 
     async _recv() {
@@ -127,10 +131,11 @@ class ObfuscatedConnection extends Connection {
 
     async _initConn() {
         this._obfuscation = new this.ObfuscatedIO(this)
-        this.socket.send(this._obfuscation.header)
+        this.socket.write(this._obfuscation.header)
     }
 
     _send(data) {
+        console.log('i am here first', data.toString('hex'))
         this._obfuscation.write(this._codec.encodePacket(data))
     }
 
