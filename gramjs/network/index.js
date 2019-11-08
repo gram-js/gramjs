@@ -1,19 +1,6 @@
 const MTProtoPlainSender = require('./MTProtoPlainSender')
 const doAuthentication = require('./Authenticator')
 const MTProtoSender = require('./MTProtoSender')
-
-class UpdateConnectionState {
-    static states = {
-        disconnected: -1,
-        connected: 1,
-        broken: 0,
-    }
-
-    constructor(state) {
-        this.state = state
-    }
-}
-
 const {
     Connection,
     ConnectionTCPFull,
@@ -28,5 +15,4 @@ module.exports = {
     MTProtoPlainSender,
     doAuthentication,
     MTProtoSender,
-    UpdateConnectionState,
 }
