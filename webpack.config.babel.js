@@ -23,6 +23,7 @@ module.exports = {
         ],
     },
     output: {
+        path: __dirname + '/browser',
         filename: 'gramjs.js',
         libraryTarget: 'var',
         library: 'gramjs',
