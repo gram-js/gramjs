@@ -14,7 +14,6 @@ const { functions, types } = require('../tl')
 const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
-const { ConnectionTCPFull } = require('../network/connection/TCPFull')
 
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
@@ -273,6 +272,7 @@ class TelegramClient {
         return me
     }
 
+
     async start(args = {
         phone: null,
         code: null,
@@ -284,16 +284,27 @@ class TelegramClient {
         maxAttempts: 5,
     }) {
         args.maxAttempts = args.maxAttempts || 5
-
         if (!this.isConnected()) {
             await this.connect()
         }
         if (await this.isUserAuthorized()) {
             return this
         }
-        let phone
+        if (args.code == null && !args.botToken) {
+            throw new Error('Please pass a promise to the code arg')
+        }
+        if (!args.botToken && !args.phone) {
+            throw new Error('Please provide either a phone or a bot token')
+        }
         if (!args.botToken) {
-            phone = utils.parsePhone(args.phone) || args.phone
+            while (typeof args.phone == 'function') {
+                const value = await args.phone()
+                if (value.indexOf(':') !== -1) {
+                    args.botToken = value
+                    break
+                }
+                args.phone = utils.parsePhone(value) || args.phone
+            }
         }
         if (args.botToken) {
             await this.signIn({
@@ -306,17 +317,18 @@ class TelegramClient {
         let attempts = 0
         let twoStepDetected = false
 
-        await this.sendCodeRequest(phone, args.forceSMS)
+        await this.sendCodeRequest(args.phone, args.forceSMS)
 
         let signUp = false
         while (attempts < args.maxAttempts) {
             try {
-                const value = args.code
+                const value = await args.code()
                 if (!value) {
                     throw new errors.PhoneCodeEmptyError({
                         request: null,
                     })
                 }
+
                 if (signUp) {
                     me = await this.signUp({
                         code: value,
@@ -326,7 +338,7 @@ class TelegramClient {
                 } else {
                     // this throws SessionPasswordNeededError if 2FA enabled
                     me = await this.signIn({
-                        phone: phone,
+                        phone: args.phone,
                         code: value,
                     })
                 }
@@ -358,13 +370,29 @@ class TelegramClient {
                 throw new Error('Two-step verification is enabled for this account. ' +
                     'Please provide the \'password\' argument to \'start()\'.')
             }
-            me = await this.signIn({
-                phone: phone,
-                password: args.password,
-            })
+            if (typeof args.password == 'function') {
+                for (let i = 0; i < args.maxAttempts; i++) {
+                    try {
+                        const pass = await args.password()
+                        me = await this.signIn({
+                            phone: args.phone,
+                            password: pass,
+                        })
+                        break
+                    } catch (e) {
+                        console.log('Invalid password. Please try again')
+                    }
+                }
+            } else {
+                me = await this.signIn({
+                    phone: args.phone,
+                    password: args.password,
+                })
+            }
+
         }
         const name = utils.getDisplayName(me)
-        console.log('Signed in successfully as', name)
+        console.log('Signed in successfully as'+ name)
         return this
     }
 
