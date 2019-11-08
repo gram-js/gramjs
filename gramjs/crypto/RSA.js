@@ -37,14 +37,7 @@ function encrypt(fingerprint, data) {
         return undefined
     }
     const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
-    let rand = generateRandomBytes(235 - data.length)
-    rand = Buffer.from(
-        '66a6f809e0dfd71d9dbbc2d6b5fe5fc0be9f5b2b0f2f85688843eea6b2c6d51329750f020c8de27a0a911b07d2a46600493d1abb7caf24' +
-        '01ccd815d7de7c5ea830cdf6cce8bff12f77db589f233bce436b644c3415f16d073335fdadfe313c603485b3274e8fcd148fd1a5e18bd2' +
-        '4b3e983df94d58b61c150333ab8d614101e7a904dc38af3a3b29e73d62',
-        'hex',
-    )
-
+    const rand = generateRandomBytes(235 - data.length)
     const toEncrypt = Buffer.concat([sha1(data), data, rand])
     const payload = readBigIntFromBuffer(toEncrypt, false)
     const encrypted = modExp(payload, BigInt(key.keyPair.e), buf)

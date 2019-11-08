@@ -24,9 +24,6 @@ function RPCMessageToError(rpcError, request) {
 
 module.exports = {
     RPCMessageToError,
-}
-module.exports = {
-    ...module.exports,
     ...require('./Common'),
     ...require('./RPCBaseErrors'),
     ...require('./RPCErrorList'),

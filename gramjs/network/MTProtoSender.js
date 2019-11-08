@@ -253,7 +253,7 @@ class MTProtoSender {
         // or errors after which the sender cannot continue such
         // as failing to reconnect or any unexpected error.
 
-        this._log.info('Connection to %s complete!', this._connection.toString())
+        this._log.info('Connection to %s complete!'.replace('%s', this._connection.toString()))
     }
 
     async _disconnect(error = null) {
@@ -261,7 +261,7 @@ class MTProtoSender {
             this._log.info('Not disconnecting (already have no connection)')
             return
         }
-        this._log.info('Disconnecting from %s...', this._connection.toString())
+        this._log.info('Disconnecting from %s...'.replace('%s', this._connection.toString()))
         this._user_connected = false
         this._log.debug('Closing current connection...')
         await this._connection.disconnect()

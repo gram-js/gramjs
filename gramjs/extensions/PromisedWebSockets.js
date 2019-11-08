@@ -1,30 +1,28 @@
-const WebSocketClient = require('websocket').client
-const tunnel = require('tunnel')
+const WebSocketClient = require('websocket').w3cwebsocket
 
 const closeError = new Error('WebSocket was closed')
 
 class PromisedWebSockets {
-    constructor(website) {
-        this.website = website
+    constructor() {
+        this.isBrowser = typeof process === 'undefined' ||
+            process.type === 'renderer' ||
+            process.browser === true ||
+            process.__nwjs
         this.stream = Buffer.alloc(0)
-        this.connection = null
-        this.client = new WebSocketClient()
+        this.client = null
 
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve
         })
         this.closed = false
-        this.client.on('close', function() {
-            this.resolveRead(false)
-            this.closed = true
-        }.bind(this))
     }
 
     async read(number) {
-        if (this.closed || !await this.canRead) {
+        if (this.closed) {
             console.log('couldn\'t read')
             throw closeError
         }
+        const canWe = await this.canRead
 
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
@@ -51,36 +49,30 @@ class PromisedWebSockets {
 
     getWebSocketLink(ip, port) {
         if (port === 443) {
-            return 'wss://' + ip
+            return 'wss://' + ip + '/apiws'
         } else {
-            return 'ws://' + ip
+            return 'ws://' + ip + '/apiws'
         }
     }
 
     async connect(port, ip) {
-        const tunnelingAgent = tunnel.httpOverHttp({
-            proxy: {
-                host: '127.0.0.1',
-                port: 8888,
-            },
-        })
-
-        const requestOptions = {
-            agent: tunnelingAgent,
-        }
-
+        console.log('trying to connect')
         this.website = this.getWebSocketLink(ip, port)
-        //this.website = 'ws://echo.websocket.org'
+        this.client = new WebSocketClient(this.website, 'binary')
         return new Promise(function(resolve, reject) {
-            this.client.on('connect', function(connection) {
-                this.connection = connection
+            this.client.onopen = function() {
                 this.receive()
-                resolve(connection)
-            }.bind(this))
-            this.client.on('connectFailed', function(error) {
+                resolve(this)
+            }.bind(this)
+            this.client.onerror = function(error) {
                 reject(error)
-            })
-            this.client.connect(this.website, null, null, null, requestOptions)
+            }
+            this.client.onclose = function() {
+                if (this.client.closed) {
+                    this.resolveRead(false)
+                    this.closed = true
+                }
+            }.bind(this)
         }.bind(this))
     }
 
@@ -88,28 +80,27 @@ class PromisedWebSockets {
         if (this.closed) {
             throw closeError
         }
-        this.connection.send(data)
+        this.client.send(data)
     }
 
     async close() {
         console.log('something happened. closing')
-        await this.connection.close()
+        await this.client.close()
         this.resolveRead(false)
         this.closed = true
     }
 
     async receive() {
-        this.connection.on('message', function(message) {
+        this.client.onmessage = async function(message) {
             let data
-            if (message.binaryData) {
-                data = Buffer.from(message.binaryData)
+            if (this.isBrowser) {
+                data = Buffer.from(await new Response(message.data).arrayBuffer())
             } else {
-                data = Buffer.from(message.utf8Data, 'utf-8')
+                data = Buffer.from(message.data)
             }
-
             this.stream = Buffer.concat([this.stream, data])
             this.resolveRead(true)
-        }.bind(this))
+        }.bind(this)
     }
 }
 

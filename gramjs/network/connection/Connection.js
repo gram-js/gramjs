@@ -1,7 +1,5 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
-const Socket = require('net').Socket
-const { PromiseSocket } = require('promise-socket')
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.

@@ -1,4 +1,4 @@
-const logger = require('log4js').getLogger()
+const Logger = require('../extensions/Logger')
 const { sleep } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
@@ -52,7 +52,7 @@ class TelegramClient {
         this._useIPV6 = args.useIPV6
         this._entityCache = new Set()
         if (typeof args.baseLogger == 'string') {
-            this._log = logger
+            this._log = new Logger()
         } else {
             this._log = args.baseLogger
         }
@@ -375,10 +375,8 @@ class TelegramClient {
         botToken: null,
         phoneCodeHash: null,
     }) {
-        console.log('signing in now')
         let result
         if (args.phone && !args.code && !args.password) {
-            console.log('first sign in')
             return await this.sendCodeRequest(args.phone)
         } else if (args.code) {
             const [phone, phoneCodeHash] =
