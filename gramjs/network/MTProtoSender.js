@@ -217,7 +217,6 @@ class MTProtoSender {
      * @private
      */
     async _connect() {
-
         this._log.info('Connecting to {0}...'.replace('{0}', this._connection))
         await this._connection.connect()
         this._log.debug('Connection success!')
@@ -503,10 +502,10 @@ class MTProtoSender {
     async _handleUpdate(message) {
         if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {
             // crc32(b'Updates')
-            logger.warn(`Note: ${message.obj.constructor.name} is not an update, not dispatching it`)
+            this._log.warn(`Note: ${message.obj.constructor.name} is not an update, not dispatching it`)
             return
         }
-        this._log.debug('Handling update %s', message.obj.constructor.name)
+        this._log.debug('Handling update ' + message.obj.constructor.name)
         if (this._updateCallback) {
             this._updateCallback(message.obj)
         }

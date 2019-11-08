@@ -49,7 +49,7 @@ class PromisedWebSockets {
 
     getWebSocketLink(ip, port) {
         if (port === 443) {
-            return 'wss://' + ip + '/apiws'
+            return 'ws://' + ip + '/apiws'
         } else {
             return 'ws://' + ip + '/apiws'
         }

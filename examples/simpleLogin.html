@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Telegram Login</title>
+    <style>
+        #log-container {
+            overflow: auto;
+            height: 150px;
+            width: 20%;
+            resize: both;
+        }
+    </style>
+</head>
+
+<body>
+    <form>
+        <div id="phoneDiv">
+            <label>phone number</label> <input disabled type="text" id="phone"> <button type="button" disabled id="phoneSend">Send</button>
+        </div>
+        <div id="codeDiv" style="visibility: hidden;">
+            <label>code you recieved</label> <input type="text" id="code"> <button type="button" id="codeSend">Send</button>
+        </div>
+        <div id="passDiv" style="visibility: hidden;">
+            <label>password</label> <input type="text" id="pass"> <button type="button" id="passSend">Send</button>
+        </div>
+        <div id="log-container">
+            <pre id="log"></pre>
+        </div>
+
+
+    </form>
+</body>
+<script src="../browser/gramjs.js"></script>
+<!--Loading the library-->
+<script src="betterLogging.js"></script>
+<!--beautifies the ouput (this rewrites console.log)-->
+
+<script src="simpleLogin.js"></script>
+
+</html>

@@ -1,6 +1,5 @@
 const { TelegramClient } = require('../gramjs')
-const logger = require('log4js').getLogger()
-logger.level = 'debug';
+
 
 (async () => {
     console.log('Loading interactive example...')
