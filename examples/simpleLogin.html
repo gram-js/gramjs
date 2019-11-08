@@ -17,24 +17,27 @@
 </head>
 
 <body>
-    <form>
-        <div id="phoneDiv">
-            <label>phone number</label> <input disabled type="text" id="phone"> <button type="button" disabled id="phoneSend">Send</button>
-        </div>
-        <div id="codeDiv" style="visibility: hidden;">
-            <label>code you recieved</label> <input type="text" id="code"> <button type="button" id="codeSend">Send</button>
-        </div>
-        <div id="passDiv" style="visibility: hidden;">
-            <label>password</label> <input type="text" id="pass"> <button type="button" id="passSend">Send</button>
-        </div>
-        <div id="log-container">
-            <pre id="log"></pre>
-        </div>
+<form>
+    <div id="phoneDiv">
+        <label>phone number</label> <input disabled type="text" id="phone">
+        <button type="button" disabled id="phoneSend">Send</button>
+    </div>
+    <div id="codeDiv" style="visibility: hidden;">
+        <label>code you recieved</label> <input type="text" id="code">
+        <button type="button" id="codeSend">Send</button>
+    </div>
+    <div id="passDiv" style="visibility: hidden;">
+        <label>password</label> <input type="text" id="pass">
+        <button type="button" id="passSend">Send</button>
+    </div>
+    <div id="log-container">
+        <pre id="log"></pre>
+    </div>
 
 
-    </form>
+</form>
 </body>
-<script src="../browser/gramjs.js"></script>
+<script src="https://painor.dev/gramjs.js?version=0.0.2"></script>
 <!--Loading the library-->
 <script src="betterLogging.js"></script>
 <!--beautifies the ouput (this rewrites console.log)-->
