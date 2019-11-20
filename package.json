@@ -4,7 +4,8 @@
   "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "postinstall": "node index.js gen tl"
   },
   "repository": {
     "type": "git",
