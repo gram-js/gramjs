@@ -1,0 +1,27 @@
+/node_modules/
+/.vscode/
+/.idea/
+# Generated code
+/docs/
+/dist/
+
+# User session
+*.session
+usermedia/
+
+# Quick tests should live in this file
+example.js
+
+# dotenv
+.env
+
+settings
+
+/browser/
+
+.babelrc
+.eslintignore
+.eslintrc.json
+webpack.config.babel.js
+/gramjs_generator/
+/examples/
