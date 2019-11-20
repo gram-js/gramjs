@@ -36,6 +36,7 @@
     "node-rsa": "^1.0.6",
     "python-struct": "^1.1.1",
     "regenerator-runtime": "^0.13.3",
+    "sqlite3": "^4.1.0",
     "stack-trace": "0.0.10",
     "string-format": "^2.0.0",
     "websocket": "^1.0.30"

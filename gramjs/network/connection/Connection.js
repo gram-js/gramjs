@@ -1,4 +1,6 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
+const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
+
 const AsyncQueue = require('../../extensions/AsyncQueue')
 
 /**
@@ -15,7 +17,7 @@ const AsyncQueue = require('../../extensions/AsyncQueue')
 class Connection {
     PacketCodecClass = null
 
-    constructor(ip, port, dcId, loggers) {
+    constructor(ip, port, dcId, loggers, browser = false) {
         this._ip = ip
         this._port = port
         this._dcId = dcId
@@ -27,9 +29,11 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        //this.socket = new PromiseSocket(new Socket())
-
-        this.socket = new PromisedWebSockets()
+        if (browser) {
+            this.socket = new PromisedWebSockets()
+        } else {
+            this.socket = new PromisedNetSockets()
+        }
     }
 
     async _connect() {

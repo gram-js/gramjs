@@ -1,35 +1,25 @@
 const Socket = require('net').Socket
-const Mutex = require('async-mutex').Mutex
-const mutex = new Mutex()
 
-const closeError = new Error('NetSocket was closed')
+const closeError = new Error('WebSocket was closed')
 
 class PromisedNetSockets {
     constructor() {
+        this.stream = Buffer.alloc(0)
         this.client = null
-        this.closed = true
-    }
 
-    async readExactly(number) {
-        let readData = Buffer.alloc(0)
-        while (true) {
-            const thisTime = await this.read(number)
-            readData = Buffer.concat([readData, thisTime])
-            number = number - thisTime.length
-            if (!number) {
-                return readData
-            }
-        }
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve
+        })
+        this.closed = false
     }
 
     async read(number) {
         if (this.closed) {
+            console.log('couldn\'t read')
             throw closeError
         }
-        await this.canRead
-        if (this.closed) {
-            throw closeError
-        }
+        const canWe = await this.canRead
+
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
@@ -60,26 +50,22 @@ class PromisedNetSockets {
      * @returns {Promise<void>}
      */
     async connect(port, ip) {
-        this.stream = Buffer.alloc(0)
-
         this.client = new Socket()
-        this.canRead = new Promise((resolve) => {
-            this.resolveRead = resolve
-        })
-        this.closed = false
-        return new Promise((resolve, reject) => {
-            this.client.connect(port, ip, () => {
+        return new Promise(function(resolve, reject) {
+            this.client.connect(port, ip, function() {
                 this.receive()
                 resolve(this)
+            }.bind(this))
+            this.client.on('error', function(error) {
+                reject(error)
             })
-            this.client.on('error', reject)
-            this.client.on('close', () => {
+            this.client.on('close', function() {
                 if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
                 }
-            })
-        })
+            }.bind(this))
+        }.bind(this))
     }
 
     write(data) {
@@ -89,29 +75,19 @@ class PromisedNetSockets {
         this.client.write(data)
     }
 
-
-
     async close() {
         await this.client.destroy()
-        this.client.unref()
+        this.resolveRead(false)
         this.closed = true
     }
 
     async receive() {
-        this.client.on('data', async (message) => {
-
-            const release = await mutex.acquire()
-            try {
-                let data
-                //CONTEST BROWSER
-                this.stream = Buffer.concat([this.stream, message])
-                this.resolveRead(true)
-            } finally {
-                release()
-            }
-        })
+        this.client.on('data', async function(message) {
+            const data = Buffer.from(message)
+            this.stream = Buffer.concat([this.stream, data])
+            this.resolveRead(true)
+        }.bind(this))
     }
 }
 
 module.exports = PromisedNetSockets
-
