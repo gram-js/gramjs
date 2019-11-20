@@ -23,5 +23,4 @@ settings
 .eslintignore
 .eslintrc.json
 webpack.config.babel.js
-/gramjs_generator/
 /examples/
