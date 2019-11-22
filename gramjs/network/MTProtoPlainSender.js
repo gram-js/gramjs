@@ -28,14 +28,13 @@ class MTProtoPlainSender {
      * @param request
      */
     async send(request) {
-
         let body = request.bytes
         let msgId = this._state._getNewMsgId()
         const res = Buffer.concat([struct.pack('<qqi', [0, msgId.toString(), body.length]), body])
 
         await this._connection.send(res)
         body = await this._connection.recv()
-        if (body.length < 9) {
+        if (body.length < 8) {
             throw new InvalidBufferError(body)
         }
         const reader = new BinaryReader(body)

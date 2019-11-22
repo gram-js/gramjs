@@ -26,6 +26,7 @@
     "aes-js": "^3.1.2",
     "babel-loader": "^8.0.6",
     "babel-register": "^6.26.0",
+    "better-sqlite3": "^5.4.3",
     "chalk": "^2.4.2",
     "crc": "^3.8.0",
     "csv-parse": "^4.4.6",

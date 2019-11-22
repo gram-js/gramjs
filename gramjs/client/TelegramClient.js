@@ -6,7 +6,7 @@ const { addKey } = require('../crypto/RSA')
 const { TLRequest } = require('../tl/tlobject')
 const utils = require('../Utils')
 const Session = require('../sessions/Abstract')
-const JSONSession = require('../sessions/JSONSession')
+const SQLiteSession = require('../sessions/SQLiteSession')
 const os = require('os')
 const { GetConfigRequest } = require('../tl/functions/help')
 const { LAYER } = require('../tl/AllTLObjects')
@@ -58,7 +58,7 @@ class TelegramClient {
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
             try {
-                session = JSONSession.tryLoadOrCreateNew(session)
+                session = new SQLiteSession(session)
             } catch (e) {
                 console.log(e)
                 session = new MemorySession()
@@ -253,10 +253,10 @@ class TelegramClient {
                     e instanceof errors.UserMigrateError) {
                     this._log.info(`Phone migrated to ${e.newDc}`)
                     const shouldRaise = e instanceof errors.PhoneMigrateError || e instanceof errors.NetworkMigrateError
+                    console.log('should I raise ? ', shouldRaise)
                     if (shouldRaise && await this.isUserAuthorized()) {
                         throw e
                     }
-                    await sleep(1000)
                     await this._switchDC(e.newDc)
                 } else {
                     throw e
@@ -392,7 +392,7 @@ class TelegramClient {
 
         }
         const name = utils.getDisplayName(me)
-        console.log('Signed in successfully as'+ name)
+        console.log('Signed in successfully as' + name)
         return this
     }
 

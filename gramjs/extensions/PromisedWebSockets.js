@@ -8,13 +8,7 @@ class PromisedWebSockets {
             process.type === 'renderer' ||
             process.browser === true ||
             process.__nwjs
-        this.stream = Buffer.alloc(0)
-        this.client = null
-
-        this.canRead = new Promise((resolve) => {
-            this.resolveRead = resolve
-        })
-        this.closed = false
+        this.closed = true
     }
 
     async read(number) {
@@ -57,6 +51,15 @@ class PromisedWebSockets {
 
     async connect(port, ip) {
         console.log('trying to connect')
+
+        this.stream = Buffer.alloc(0)
+        this.client = null
+
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve
+        })
+
+        this.closed = false
         this.website = this.getWebSocketLink(ip, port)
         this.client = new WebSocketClient(this.website, 'binary')
         return new Promise(function(resolve, reject) {
@@ -86,7 +89,6 @@ class PromisedWebSockets {
     async close() {
         console.log('something happened. closing')
         await this.client.close()
-        this.resolveRead(false)
         this.closed = true
     }
 
