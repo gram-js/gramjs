@@ -8,6 +8,7 @@ class AuthKey {
     }
 
     set key(value) {
+
         if (!value) {
             this._key = this.auxHash = this.keyId = null
             return
@@ -18,6 +19,7 @@ class AuthKey {
             this.keyId = value.keyId
             return
         }
+
         this._key = value
         const reader = new BinaryReader(sha1(this._key))
         this.auxHash = reader.readLong(false)

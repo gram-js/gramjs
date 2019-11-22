@@ -1,16 +1,13 @@
 const Socket = require('net').Socket
 
-const closeError = new Error('WebSocket was closed')
+const closeError = new Error('NetSocket was closed')
 
 class PromisedNetSockets {
     constructor() {
-        this.stream = Buffer.alloc(0)
         this.client = null
 
-        this.canRead = new Promise((resolve) => {
-            this.resolveRead = resolve
-        })
-        this.closed = false
+
+        this.closed = true
     }
 
     async read(number) {
@@ -50,7 +47,13 @@ class PromisedNetSockets {
      * @returns {Promise<void>}
      */
     async connect(port, ip) {
+        this.stream = Buffer.alloc(0)
+
         this.client = new Socket()
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve
+        })
+        this.closed = false
         return new Promise(function(resolve, reject) {
             this.client.connect(port, ip, function() {
                 this.receive()
@@ -77,7 +80,7 @@ class PromisedNetSockets {
 
     async close() {
         await this.client.destroy()
-        this.resolveRead(false)
+        this.client.unref()
         this.closed = true
     }
 
