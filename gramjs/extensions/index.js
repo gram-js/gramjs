@@ -4,7 +4,7 @@ const BinaryReader = require('./BinaryReader')
 const PromisedWebSockets = require('./PromisedWebSockets')
 const MessagePacker = require('./MessagePacker')
 const AsyncQueue = require('./AsyncQueue')
-const PromisedNetSocket = require('./PromisedNetSocket')
+const PromisedNetSocket = require('./PromisedNetSockets')
 module.exports = {
     BinaryWriter,
     BinaryReader,

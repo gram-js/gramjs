@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const fs = require('fs')
 
 /**
  * use this instead of ** because of webpack
@@ -159,6 +160,14 @@ function generateKeyDataFromNonce(serverNonce, newNonce) {
 }
 
 /**
+ * ensures that the parent directory exists
+ * @param filePath
+ */
+function ensureParentDirExists(filePath) {
+    fs.mkdirSync(filePath, { recursive: true })
+}
+
+/**
  * Calculates the SHA1 digest for the given data
  * @param data
  * @returns {Buffer}
@@ -258,4 +267,5 @@ module.exports = {
     getRandomInt,
     sleep,
     isArrayLike,
+    ensureParentDirExists,
 }
