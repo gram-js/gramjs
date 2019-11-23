@@ -209,18 +209,14 @@ class SQLiteSession extends MemorySession {
         if (!this.saveEntities) {
             return
         }
-        console.log(tlo)
         const rows = this._entitiesToRows(tlo)
-        console.log(rows)
         if (!rows) {
             return
         }
         for (const row of rows) {
             row[1] = Database.Integer(row[1].toString())
-            console.log('row to be added', row)
             const stmt = this.db.prepare('insert or replace into entities values (?,?,?,?,?)')
             stmt.run(...row)
-            console.log('row added :D', ...row)
         }
     }
 

@@ -131,7 +131,6 @@ class MemorySession extends Session {
         }
         const rows = [] // Rows to add (id, hash, username, phone, name)
         for (const e of entities) {
-            console.log('enttiy is ', e)
             const row = this._entityToRow(e)
             if (row) {
                 rows.push(row)

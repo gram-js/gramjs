@@ -45,7 +45,6 @@ class InvalidChecksumError extends Error {
  */
 class InvalidBufferError extends Error {
     constructor(payload) {
-        console.log('payload is ', payload)
         if (payload.length === 4) {
             const code = -(struct.unpack('<i', payload)[0])
             super(`Invalid response buffer (HTTP code ${code})`)

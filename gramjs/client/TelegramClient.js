@@ -60,7 +60,6 @@ class TelegramClient {
             try {
                 session = new SQLiteSession(session)
             } catch (e) {
-                console.log(e)
                 session = new MemorySession()
             }
         } else if (!(session instanceof Session)) {
@@ -253,7 +252,6 @@ class TelegramClient {
                     e instanceof errors.UserMigrateError) {
                     this._log.info(`Phone migrated to ${e.newDc}`)
                     const shouldRaise = e instanceof errors.PhoneMigrateError || e instanceof errors.NetworkMigrateError
-                    console.log('should I raise ? ', shouldRaise)
                     if (shouldRaise && await this.isUserAuthorized()) {
                         throw e
                     }
@@ -454,7 +452,7 @@ class TelegramClient {
 
     // endregion
     async isUserAuthorized() {
-        if (!this._authorized) {
+        if (this._authorized === undefined || this._authorized === null) {
             try {
                 await this.invoke(new functions.updates.GetStateRequest())
                 this._authorized = true

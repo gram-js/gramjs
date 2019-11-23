@@ -29,10 +29,8 @@ async function doAuthentication(sender, log) {
     let bytes = Helpers.generateRandomBytes(16)
 
     const nonce = Helpers.readBigIntFromBuffer(bytes, false, true)
-    console.log('our nonce is ', nonce)
     const resPQ = await sender.send(new ReqPqMultiRequest({ nonce: nonce }))
     log.debug('Starting authKey generation step 1')
-    console.log('got result is ', resPQ)
     if (!(resPQ instanceof ResPQ)) {
         throw new Error(`Step 1 answer was ${resPQ}`)
     }
