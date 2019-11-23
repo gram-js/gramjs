@@ -30,7 +30,7 @@ class TelegramClient {
         retryDelay: 1,
         autoReconnect: true,
         sequentialUpdates: false,
-        FloodSleepLimit: 60,
+        floodSleepLimit: 60,
         deviceModel: null,
         systemVersion: null,
         appVersion: null,
@@ -258,7 +258,7 @@ class TelegramClient {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
-                    this._floodWaitedRequests = new Date().getTime() / 1000 + e.seconds
+                    this._floodWaitedRequests[request.CONSTRUCTOR_ID] = new Date().getTime() / 1000 + e.seconds
                     if (e.seconds <= this.floodSleepLimit) {
                         this._log.info(`Sleeping for ${e.seconds}s on flood wait`)
                         await sleep(e.seconds * 1000)
