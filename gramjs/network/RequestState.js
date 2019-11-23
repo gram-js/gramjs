@@ -3,7 +3,7 @@ class RequestState {
         this.containerId = null
         this.msgId = null
         this.request = request
-        this.data = request.bytes
+        this.data = request.getBytes()
         this.after = after
         this.result = null
         this.promise = new Promise((resolve, reject) => {
