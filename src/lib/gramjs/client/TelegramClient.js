@@ -161,7 +161,7 @@ class TelegramClient {
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
         const DC = await this._getDC(newDc)
-        this.session.setDC(DC.id, DC.ipAddress, DC.port)
+        this.session.setDC(newDc, DC, 443)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
         this._sender.authKey.key = null
@@ -181,6 +181,22 @@ class TelegramClient {
     // region Working with different connections/Data Centers
 
     async _getDC(dcId, cdn = false) {
+        switch (dcId) {
+            case 1:
+                return 'pluto.web.telegram.org'
+            case 2:
+                return 'venus.web.telegram.org'
+            case 3:
+                return 'aurora.web.telegram.org'
+            case 4:
+                return 'vesta.web.telegram.org'
+            case 5:
+                return 'flora.web.telegram.org'
+            default:
+                throw new Error(`Cannot find the DC with the ID of ${dcId}`)
+        }
+        // TODO chose based on current connection method
+        /*
         if (!this._config) {
             this._config = await this.invoke(new functions.help.GetConfigRequest())
         }
@@ -194,7 +210,7 @@ class TelegramClient {
             if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
                 return DC
             }
-        }
+        }*/
     }
 
     // endregion
