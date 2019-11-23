@@ -131,6 +131,26 @@ function getInputChannel(entity) {
 }
 
 /**
+ *     Adds the JPG header and footer to a stripped image.
+ Ported from https://github.com/telegramdesktop/tdesktop/blob/bec39d89e19670eb436dc794a8f20b657cb87c71/Telegram/SourceFiles/ui/image/image.cpp#L225
+
+ * @param stripped{Buffer}
+ * @returns {Buffer}
+ */
+function strippedPhotoToJpg(stripped) {
+    // Note: Changes here should update _stripped_real_length
+    if (stripped.length < 3 || stripped[0] !== 1) {
+        return stripped
+    }
+    const header = Buffer.from('ffd8ffe000104a46494600010100000100010000ffdb004300281c1e231e19282321232d2b28303c64413c37373c7b585d4964918099968f808c8aa0b4e6c3a0aadaad8a8cc8ffcbdaeef5ffffff9bc1fffffffaffe6fdfff8ffdb0043012b2d2d3c353c76414176f8a58ca5f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8ffc00011080000000003012200021101031101ffc4001f0000010501010101010100000000000000000102030405060708090a0bffc400b5100002010303020403050504040000017d01020300041105122131410613516107227114328191a1082342b1c11552d1f02433627282090a161718191a25262728292a3435363738393a434445464748494a535455565758595a636465666768696a737475767778797a838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffc4001f0100030101010101010101010000000000000102030405060708090a0bffc400b51100020102040403040705040400010277000102031104052131061241510761711322328108144291a1b1c109233352f0156272d10a162434e125f11718191a262728292a35363738393a434445464748494a535455565758595a636465666768696a737475767778797a82838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae2e3e4e5e6e7e8e9eaf2f3f4f5f6f7f8f9faffda000c03010002110311003f00', 'hex')
+    const footer = Buffer.from('ffd9', 'hex')
+    header[164] = stripped[1]
+    header[166] = stripped[2]
+    return Buffer.concat([header, stripped.slice(3), footer])
+}
+
+
+/**
  Similar to :meth:`get_input_peer`, but for :tl:`InputUser`'s alone.
 
  .. important::
@@ -175,6 +195,53 @@ function getInputUser(entity) {
     }
 
     _raiseCastFail(entity, 'InputUser')
+}
+
+function getInputLocation(location) {
+    try {
+        if (!location.SUBCLASS_OF_ID) {
+            throw new Error()
+        }
+        if (location.SUBCLASS_OF_ID === 0x1523d462) {
+            return { dcId: null, inputLocation: location }
+        }
+    } catch (e) {
+        _raiseCastFail(location, 'InputFileLocation')
+    }
+    if (location instanceof types.Message) {
+        location = location.media
+    }
+
+    if (location instanceof types.MessageMediaDocument) {
+        location = location.document
+    } else if (location instanceof types.MessageMediaPhoto) {
+        location = location.photo
+    }
+
+    if (location instanceof types.Document) {
+        return {
+            dcId: location.dcId, inputLocation: new types.InputDocumentFileLocation({
+                id: location.id,
+                accessHash: location.accessHash,
+                fileReference: location.fileReference,
+                thumbSize: '', // Presumably to download one of its thumbnails
+            }),
+        }
+    } else if (location instanceof types.Photo) {
+        return {
+            dcId: location.dcId, inputLocation: new types.InputPhotoFileLocation({
+                id: location.id,
+                accessHash: location.accessHash,
+                fileReference: location.fileReference,
+                thumbSize: location.sizes[location.sizes.length - 1].type,
+            }),
+        }
+    }
+
+    if (location instanceof types.FileLocationToBeDeprecated) {
+        throw new Error('Unavailable location cannot be used as input')
+    }
+    _raiseCastFail(location, 'InputFileLocation')
 }
 
 /**
@@ -433,6 +500,26 @@ function rtrim(s, mask) {
 }
 
 /**
+ * Gets the appropriated part size when uploading or downloading files,
+ * given an initial file size.
+ * @param fileSize
+ * @returns {Number}
+ */
+function getAppropriatedPartSize(fileSize) {
+    if (fileSize <= 104857600) { // 100MB
+        return 128
+    }
+    if (fileSize <= 786432000) { // 750MB
+        return 256
+    }
+    if (fileSize <= 1572864000) { // 1500MB
+        return 512
+    }
+
+    throw new Error('File size too large')
+}
+
+/**
  * Gets the display name for the given :tl:`User`,
  :tl:`Chat` or :tl:`Channel`. Returns an empty string otherwise
  * @param entity
@@ -488,4 +575,6 @@ module.exports = {
     getDisplayName,
     resolveId,
     isListLike,
+    getAppropriatedPartSize,
+    getInputLocation, strippedPhotoToJpg,
 }
