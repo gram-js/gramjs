@@ -343,7 +343,6 @@ class MTProtoSender {
                     this._log.info('Broken authorization key; resetting')
                     this.authKey.key = null
                     if (this._authKeyCallback) {
-                        console.log('called auth callback')
                         await this._authKeyCallback(null)
                     }
                     this._startReconnect(e)
@@ -452,7 +451,6 @@ class MTProtoSender {
                     throw new TypeNotFoundError('Not an upload.File')
                 }
             } catch (e) {
-                console.log(e)
                 if (e instanceof TypeNotFoundError) {
                     this._log.info(`Received response without parent request: ${RPCResult.body}`)
                     return
@@ -719,11 +717,10 @@ class MTProtoSender {
         await this._connection.disconnect()
         this._reconnecting = false
         this._state.reset()
-        const retries = 1 //this._retries
+        const retries = this._retries
         for (let attempt = 0; attempt < retries; attempt++) {
             try {
                 await this._connect()
-                console.log('fiinsihed connecting')
                 this._send_queue.extend(Object.values(this._pending_state))
                 this._pending_state = {}
                 if (this._autoReconnectCallback) {
@@ -731,9 +728,6 @@ class MTProtoSender {
                 }
                 break
             } catch (e) {
-                console.log(e.stack)
-
-                console.log('ok why did i get this error ?')
                 this._log.error(e)
                 await Helpers.sleep(this._delay)
             }
