@@ -434,7 +434,7 @@ const writeResolve = (tlobject, builder) => {
 };
  */
 const writeToBytes = (tlobject, builder) => {
-    builder.writeln('get bytes() {')
+    builder.writeln('getBytes() {')
 
     // Some objects require more than one flag parameter to be set
     // at the same time. In this case, add an assertion.
@@ -615,7 +615,7 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
         builder.write('TLObject.serializeDatetime(%s)', name)
     } else {
         // Else it may be a custom type
-        builder.write('%s.bytes', name)
+        builder.write('%s.getBytes()', name)
 
         // If the type is not boxed (i.e. starts with lowercase) we should
         // not serialize the constructor ID (so remove its first 4 bytes).

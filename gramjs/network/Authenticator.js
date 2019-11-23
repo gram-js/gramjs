@@ -62,7 +62,7 @@ async function doAuthentication(sender, log) {
     let cipherText = null
     let targetFingerprint = null
     for (const fingerprint of resPQ.serverPublicKeyFingerprints) {
-        cipherText = RSA.encrypt(fingerprint.toString(), pqInnerData.bytes)
+        cipherText = RSA.encrypt(fingerprint.toString(), pqInnerData.getBytes())
         if (cipherText !== null && cipherText !== undefined) {
             targetFingerprint = fingerprint
             break
@@ -135,12 +135,12 @@ async function doAuthentication(sender, log) {
     const gab = Helpers.modExp(ga, b, dhPrime)
 
     // Prepare client DH Inner Data
-    const { bytes: clientDhInner } = new ClientDHInnerData({
+    const clientDhInner = new ClientDHInnerData({
         nonce: resPQ.nonce,
         serverNonce: resPQ.serverNonce,
         retryId: 0, // TODO Actual retry ID
         gB: getByteArray(gb, false),
-    })
+    }).getBytes()
 
     const clientDdhInnerHashed = Buffer.concat([Helpers.sha1(clientDhInner), clientDhInner])
     // Encryption

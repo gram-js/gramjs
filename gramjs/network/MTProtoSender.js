@@ -732,7 +732,6 @@ class MTProtoSender {
                 await Helpers.sleep(this._delay)
             }
         }
-        process.exit()
     }
 }
 

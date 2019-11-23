@@ -42,11 +42,20 @@ const generateErrors = (errors, f) => {
 
         if (error.hasCaptures) {
             f.write(`super(format('${capture}', {${error.captureName}})`)
+            f.write(' + RPCError._fmtRequest(args.request));\n')
+
+            f.write(`this.message = format('${capture}', {${error.captureName}})`)
+            f.write(' + RPCError._fmtRequest(args.request);\n')
+
         } else {
             f.write(`super('${capture}'`)
+            f.write(' + RPCError._fmtRequest(args.request));\n')
+
+            f.write(`this.message = '${capture}'`)
+            f.write(' + RPCError._fmtRequest(args.request);\n')
+
         }
 
-        f.write(' + RPCError._fmtRequest(args.request));\n')
 
         if (error.hasCaptures) {
             f.write(`        this.${error.captureName} = ${error.captureName};\n`)

@@ -63,7 +63,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         return new types.InputPeerChat({ chatId: entity.id })
     }
     if (entity instanceof types.Channel) {
-        if ((entity.accessHash !== undefined && !entity.min) || checkHash) {
+        if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
             return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
         } else {
             throw new TypeError('Channel without access_hash or min info cannot be input')

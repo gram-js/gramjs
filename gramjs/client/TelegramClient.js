@@ -31,7 +31,7 @@ class TelegramClient {
         retryDelay: 1,
         autoReconnect: true,
         sequentialUpdates: false,
-        FloodSleepLimit: 60,
+        floodSleepLimit: 60,
         deviceModel: null,
         systemVersion: null,
         appVersion: null,
@@ -121,6 +121,7 @@ class TelegramClient {
 
         })
         this.phoneCodeHashes = []
+        this._borrowedSenders = {}
     }
 
 
@@ -213,7 +214,9 @@ class TelegramClient {
         if (request.CONSTRUCTOR_ID in this._floodWaitedRequests) {
             const due = this._floodWaitedRequests[request.CONSTRUCTOR_ID]
             const diff = Math.round(due - new Date().getTime() / 1000)
-            if (diff <= 3) {
+            console.log('diff is ', diff)
+            console.log('limit is ', this.floodSleepLimit)
+            if (diff <= 3) { // Flood waits below 3 seconds are 'ignored'
                 delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
             } else if (diff <= this.floodSleepLimit) {
                 this._log.info(`Sleeping early for ${diff}s on flood wait`)
@@ -241,7 +244,7 @@ class TelegramClient {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
-                    this._floodWaitedRequests = new Date().getTime() / 1000 + e.seconds
+                    this._floodWaitedRequests[request.CONSTRUCTOR_ID] = new Date().getTime() / 1000 + e.seconds
                     if (e.seconds <= this.floodSleepLimit) {
                         this._log.info(`Sleeping for ${e.seconds}s on flood wait`)
                         await sleep(e.seconds * 1000)
@@ -378,6 +381,7 @@ class TelegramClient {
                         })
                         break
                     } catch (e) {
+                        console.log(e)
                         console.log('Invalid password. Please try again')
                     }
                 }
@@ -811,6 +815,38 @@ class TelegramClient {
     async signUp() {
 
     }
+
+    // export region
+
+    async _borrowExportedSender(dcId) {
+        let sender = this._borrowedSenders(dcId)
+        if (!sender) {
+            sender = await this._createExportedSender(dcId)
+            sender.dcId = dcId
+            this._borrowedSenders[dcId] = sender
+        }
+        return sender
+    }
+
+    async _createExportedSender(dcId) {
+        const dc = await this._getDC(dcId)
+        const sender = new MTProtoSender(null, { logger: this._log })
+        await sender.connect(new this._connection(
+            dc.ipAddress,
+            dc.port,
+            dcId,
+            this._log,
+        ))
+        this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+        const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
+        const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
+                id: auth.id, bytes: auth.bytes,
+            },
+        ))
+        await sender.send(req)
+        return sender
+    }
+
 }
 
 module.exports = TelegramClient
