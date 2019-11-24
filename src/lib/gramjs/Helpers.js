@@ -31,7 +31,7 @@ function readBigIntFromBuffer(buffer, little = true, signed = false) {
  * @returns {Buffer}
  */
 function readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = false) {
-    console.log("will read ", BigInt)
+    bigInt = BigInt(bigInt)
     const bitLength = bigInt.bitLength()
 
     const bytes = Math.ceil(bitLength / 8)
