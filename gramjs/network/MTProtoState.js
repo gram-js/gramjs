@@ -154,7 +154,7 @@ class MTProtoState {
         reader.readLong() // removeSalt
         const serverId = reader.readLong()
         if (serverId !== this.id) {
-            // throw new SecurityError('Server replied with a wrong session ID');
+            throw new SecurityError('Server replied with a wrong session ID')
         }
 
         const remoteMsgId = reader.readLong()
