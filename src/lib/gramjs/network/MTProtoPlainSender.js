@@ -30,7 +30,7 @@ class MTProtoPlainSender {
      */
     async send(request) {
 
-        let body = request.bytes
+        let body = request.getBytes()
         let msgId = this._state._getNewMsgId()
         const res = Buffer.concat([struct.pack('<qqi', [0, msgId.toString(), body.length]), body])
 

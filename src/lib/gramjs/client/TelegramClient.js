@@ -3,6 +3,8 @@ const { sleep } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
 const { addKey } = require('../crypto/RSA')
+const Helpers = require('../Helpers')
+const { BinaryWriter } = require('../extensions')
 const { TLRequest } = require('../tl/tlobject')
 const utils = require('../Utils')
 const Session = require('../sessions/Abstract')
@@ -18,6 +20,11 @@ const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated
 const DEFAULT_DC_ID = 2
 const DEFAULT_IPV4_IP = 'venus.web.telegram.org'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
+
+// Chunk sizes for upload.getFile must be multiples of the smallest size
+const MIN_CHUNK_SIZE = 4096
+const MAX_CHUNK_SIZE = 512 * 1024
+
 
 class TelegramClient {
     static DEFAULT_OPTIONS = {
@@ -122,6 +129,8 @@ class TelegramClient {
 
         })
         this.phoneCodeHashes = []
+        this._borrowedSenders = {}
+
     }
 
 
@@ -161,7 +170,7 @@ class TelegramClient {
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
         const DC = await this._getDC(newDc)
-        this.session.setDC(newDc, DC, 443)
+        this.session.setDC(newDc, DC.ipAddress, DC.port)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
         this._sender.authKey.key = null
@@ -177,21 +186,350 @@ class TelegramClient {
     }
 
     // endregion
+    // export region
+
+    async _borrowExportedSender(dcId) {
+        let sender = this._borrowedSenders[dcId]
+        if (!sender) {
+            sender = await this._createExportedSender(dcId)
+            sender.dcId = dcId
+            this._borrowedSenders[dcId] = sender
+        }
+        return sender
+    }
+
+    async _createExportedSender(dcId) {
+        const dc = await this._getDC(dcId)
+        const sender = new MTProtoSender(null, { logger: this._log })
+        await sender.connect(new this._connection(
+            dc.ipAddress,
+            dc.port,
+            dcId,
+            this._log,
+        ))
+        this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+        const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
+        const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
+                id: auth.id, bytes: auth.bytes,
+            },
+        ))
+        await sender.send(req)
+        return sender
+    }
+
+    // end region
+
+    // download region
+
+
+    async downloadFile(inputLocation, file, args = {
+        partSizeKb: null,
+        fileSize: null,
+        progressCallback: null,
+        dcId: null,
+    }) {
+        if (!args.partSizeKb) {
+            if (!args.fileSize) {
+                args.partSizeKb = 64
+            } else {
+                args.partSizeKb = utils.getAppropriatedPartSize(args.fileSize)
+            }
+        }
+        const partSize = parseInt(args.partSizeKb * 1024)
+        if (partSize % MIN_CHUNK_SIZE !== 0) {
+            throw new Error('The part size must be evenly divisible by 4096')
+        }
+        const inMemory = !file || file === Buffer
+        let f
+        if (inMemory) {
+            f = new BinaryWriter(Buffer.alloc(0))
+        } else {
+            throw new Error('not supported')
+        }
+        const res = utils.getInputLocation(inputLocation)
+        let exported = args.dcId && this.session.dcId !== args.dcId
+
+        let sender
+        if (exported) {
+            try {
+                sender = await this._borrowExportedSender(args.dcId)
+            } catch (e) {
+                if (e instanceof errors.DcIdInvalidError) {
+                    // Can't export a sender for the ID we are currently in
+                    sender = this._sender
+                    exported = false
+                } else {
+                    throw e
+                }
+            }
+        } else {
+            sender = this._sender
+        }
+
+        this._log.info(`Downloading file in chunks of ${partSize} bytes`)
+
+        try {
+            let offset = 0
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                let result
+                try {
+                    result = await sender.send(new functions.upload.GetFileRequest({
+                        location: res.inputLocation,
+                        offset: offset,
+                        limit: partSize,
+                    }))
+                    if (result instanceof types.upload.FileCdnRedirect) {
+                        throw new Error('not implemented')
+                    }
+                } catch (e) {
+                    if (e instanceof errors.FileMigrateError) {
+                        this._log.info('File lives in another DC')
+                        sender = await this._borrowExportedSender(e.newDc)
+                        exported = true
+                        continue
+                    } else {
+                        throw e
+                    }
+                }
+                offset += partSize
+
+                if (!result.bytes.length) {
+                    if (inMemory) {
+                        return f.getValue()
+                    } else {
+                        // Todo implement
+                    }
+                }
+                this._log.debug(`Saving ${result.bytes.length} more bytes`)
+                f.write(result.bytes)
+                if (args.progressCallback) {
+                    await args.progressCallback(f.getValue().length, args.fileSize)
+                }
+            }
+        } finally {
+            // TODO
+        }
+    }
+
+    async downloadMedia(message, file, args = {
+        thumb: null,
+        progressCallback: null,
+    }) {
+        let date
+        let media
+        if (message instanceof types.Message) {
+            date = message.date
+            media = message.media
+        } else {
+            date = new Date().getTime()
+            media = message
+        }
+        if (typeof media == 'string') {
+            throw new Error('not implemented')
+        }
+
+        if (media instanceof types.MessageMediaWebPage) {
+            if (media.webpage instanceof types.WebPage) {
+                media = media.webpage.document || media.webpage.photo
+            }
+        }
+        if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
+            return await this._downloadPhoto(media, file, date, args.thumb, args.progressCallback)
+        } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
+            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
+        } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
+            return this._downloadContact(media, file)
+        } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
+            return await this._downloadWebDocument(media, file, args.progressCallback)
+        }
+    }
+
+    async downloadProfilePhoto(entity, file, downloadBig = false) {
+        // ('User', 'Chat', 'UserFull', 'ChatFull')
+        const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
+        // ('InputPeer', 'InputUser', 'InputChannel')
+        // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
+        // Todo account for input methods
+        const thumb = downloadBig ? -1 : 0
+        let photo
+        if (!(ENTITIES.includes(entity.SUBCLASS_OF_ID))) {
+            photo = entity
+        } else {
+            if (!entity.photo) {
+                // Special case: may be a ChatFull with photo:Photo
+                if (!entity.chatPhoto) {
+                    return null
+                }
+
+                return await this._downloadPhoto(
+                    entity.chatPhoto, file, null, thumb, null,
+                )
+            }
+            photo = entity.photo
+        }
+        let dcId
+        let which
+        let loc
+        if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
+            console.log('i am ere')
+            dcId = photo.dcId
+            which = downloadBig ? photo.photoBig : photo.photoSmall
+            loc = new types.InputPeerPhotoFileLocation({
+                peer: await this.getInputEntity(entity),
+                localId: which.localId,
+                volumeId: which.volumeId,
+                big: downloadBig,
+            })
+            console.log(loc)
+        } else {
+            // It doesn't make any sense to check if `photo` can be used
+            // as input location, because then this method would be able
+            // to "download the profile photo of a message", i.e. its
+            // media which should be done with `download_media` instead.
+            return null
+        }
+        file = file ? file : Buffer
+        try {
+            const result = await this.downloadFile(loc, file, {
+                dcId: dcId,
+            })
+            return result
+        } catch (e) {
+            if (e instanceof errors.LocationInvalidError) {
+                const ie = await this.getInputEntity(entity)
+                if (ie instanceof types.InputPeerChannel) {
+                    const full = await this.invoke(new functions.channels.GetFullChannelRequest({
+                        channel: ie,
+                    }))
+                    return await this._downloadPhoto(full.fullChat.chatPhoto, file, null, null, thumb)
+                } else {
+                    return null
+                }
+            } else {
+                throw e
+            }
+        }
+
+
+    }
+
+    _getThumb(thumbs, thumb) {
+        if (thumb === null || thumb === undefined) {
+            return thumbs[thumbs.length - 1]
+        } else if (typeof thumb === 'number') {
+            return thumbs[thumb]
+        } else if (thumb instanceof types.PhotoSize ||
+            thumb instanceof types.PhotoCachedSize ||
+            thumb instanceof types.PhotoStrippedSize) {
+            return thumb
+        } else {
+            return null
+        }
+    }
+
+    _downloadCachedPhotoSize(size, file) {
+        // No need to download anything, simply write the bytes
+        let data
+        if (size instanceof types.PhotoStrippedSize) {
+            data = utils.strippedPhotoToJpg(size.bytes)
+        } else {
+            data = size.bytes
+        }
+        return data
+    }
+
+    async _downloadPhoto(photo, file, date, thumb, progressCallback) {
+        if (photo instanceof types.MessageMediaPhoto) {
+            photo = photo.photo
+        }
+        if (!(photo instanceof types.Photo)) {
+            return
+        }
+        const size = this._getThumb(photo.sizes, thumb)
+        if (!size || (size instanceof types.PhotoSizeEmpty)) {
+            return
+        }
+
+        file = file ? file : Buffer
+        if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
+            return this._downloadCachedPhotoSize(size, file)
+        }
+
+        const result = await this.downloadFile(
+            new types.InputPhotoFileLocation({
+                id: photo.id,
+                accessHash: photo.accessHash,
+                fileReference: photo.fileReference,
+                thumbSize: size.type,
+            }),
+            file,
+            {
+                dcId: photo.dcId,
+                fileSize: size.size,
+                progressCallback: progressCallback,
+            },
+        )
+        return result
+    }
+
+    async _downloadDocument(document, file, date, thumb, progressCallback, dcId) {
+        if (document instanceof types.MessageMediaPhoto) {
+            document = document.document
+        }
+        if (!(document instanceof types.Document)) {
+            return
+        }
+        let size
+        file = file ? file : Buffer
+
+        if (thumb === null || thumb === undefined) {
+            size = null
+        } else {
+            size = this._getThumb(document.thumbs, thumb)
+            if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
+                return this._downloadCachedPhotoSize(size, file)
+            }
+        }
+        const result = await this.downloadFile(
+            new types.InputDocumentFileLocation({
+                id: document.id,
+                accessHash: document.accessHash,
+                fileReference: document.fileReference,
+                thumbSize: size ? size.type : '',
+            }),
+            file,
+            {
+                fileSize: size ? size.size : document.size,
+                progressCallback: progressCallback,
+                dcId,
+            },
+        )
+        return result
+    }
+
+    _downloadContact(media, file) {
+        throw new Error('not implemented')
+    }
+
+    async _downloadWebDocument(media, file, progressCallback) {
+        throw new Error('not implemented')
+    }
 
     // region Working with different connections/Data Centers
 
     async _getDC(dcId, cdn = false) {
         switch (dcId) {
             case 1:
-                return 'pluto.web.telegram.org'
+                return { id: 1, ipAddress: 'pluto.web.telegram.org', port: 443 }
             case 2:
-                return 'venus.web.telegram.org'
+                return { id: 2, ipAddress: 'venus.web.telegram.org', port: 443 }
             case 3:
-                return 'aurora.web.telegram.org'
+                return { id: 3, ipAddress: 'aurora.web.telegram.org', port: 443 }
             case 4:
-                return 'vesta.web.telegram.org'
+                return { id: 4, ipAddress: 'vesta.web.telegram.org', port: 443 }
             case 5:
-                return 'flora.web.telegram.org'
+                return { id: 5, ipAddress: 'flora.web.telegram.org', port: 443 }
             default:
                 throw new Error(`Cannot find the DC with the ID of ${dcId}`)
         }
@@ -395,6 +733,7 @@ class TelegramClient {
                         })
                         break
                     } catch (e) {
+                        console.log(e)
                         console.log('Invalid password. Please try again')
                     }
                 }
@@ -438,9 +777,9 @@ class TelegramClient {
                     result = await this.invoke(new functions.auth.CheckPasswordRequest({
                         password: computeCheck(pwd, args.password),
                     }))
-                    break;
+                    break
                 } catch (err) {
-                    console.error(`Password check attempt ${i + 1} of 5 failed. Reason: `, err);
+                    console.error(`Password check attempt ${i + 1} of 5 failed. Reason: `, err)
                 }
             }
         } else if (args.botToken) {
@@ -475,7 +814,7 @@ class TelegramClient {
 
     // endregion
     async isUserAuthorized() {
-        if (this._authorized===undefined || this._authorized===null) {
+        if (this._authorized === undefined || this._authorized === null) {
             try {
                 await this.invoke(new functions.updates.GetStateRequest())
                 this._authorized = true
@@ -723,9 +1062,11 @@ class TelegramClient {
      chat = await client.get_input_entity(-123456789)
 
      * @param peer
-     * @returns {Promise<void>}
+     * @returns {Promise<>}
      */
     async getInputEntity(peer) {
+        console.log('trying to read ', peer)
+        console.log('trying to read ', peer)
         // Short-circuit if the input parameter directly maps to an InputPeer
         try {
             return utils.getInputPeer(peer)
