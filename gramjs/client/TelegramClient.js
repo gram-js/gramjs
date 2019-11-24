@@ -128,7 +128,7 @@ class TelegramClient {
         })
         this.phoneCodeHashes = []
         this._borrowedSenders = {}
-        this.__updatesHandle = null
+        this._updatesHandle = null
     }
 
 
@@ -152,9 +152,40 @@ class TelegramClient {
             new GetConfigRequest(),
         ))
 
-        this.__updatesHandle = this._updateLoop()
+        this._updatesHandle = this._updateLoop()
     }
 
+    async _updateLoop() {
+        while (this.isConnected()) {
+            const rnd = Helpers.getRandomInt(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+            console.log('rnd is ', rnd)
+            await Helpers.sleep(1000 * 60)
+            // We don't care about the result we just want to send it every
+            // 60 seconds so telegram doesn't stop the connection
+            try {
+                this._sender.send(new functions.PingRequest({
+                    pingId: rnd,
+                }))
+            } catch (e) {
+                console.log('err is ', e)
+            }
+
+            // this.session.save()
+
+            // We need to send some content-related request at least hourly
+            // for Telegram to keep delivering updates, otherwise they will
+            // just stop even if we're connected. Do so every 30 minutes.
+
+            // TODO Call getDifference instead since it's more relevant
+            if (new Date().getTime() - this._lastRequest > 30 * 60 * 1000) {
+                try {
+                    await this.invoke(new functions.updates.GetStateRequest())
+                } catch (e) {
+                    console.log('err is ', e)
+                }
+            }
+        }
+    }
 
     /**
      * Disconnects from the Telegram server
@@ -237,7 +268,7 @@ class TelegramClient {
                 })
             }
         }
-        this._last_request = new Date().getTime()
+        this._lastRequest = new Date().getTime()
         let attempt = 0
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
