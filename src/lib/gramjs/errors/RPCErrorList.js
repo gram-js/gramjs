@@ -1,4 +1,4 @@
-const { RPCError, BadRequestError, UnauthorizedError, AuthKeyError, ServerError, ForbiddenError, InvalidDCError, FloodError, TimedOutError } = require('./rpcbaseerrors');
+const { RPCError, BadRequestError, UnauthorizedError, AuthKeyError, ServerError, ForbiddenError, InvalidDCError, FloodError, TimedOutError } = require('./RPCBaseErrors');
 const format = require('string-format');
 
 class AboutTooLongError extends BadRequestError {
