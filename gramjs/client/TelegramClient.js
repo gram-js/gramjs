@@ -128,6 +128,7 @@ class TelegramClient {
         })
         this.phoneCodeHashes = []
         this._borrowedSenders = {}
+        this.__updatesHandle = null
     }
 
 
@@ -150,6 +151,8 @@ class TelegramClient {
         await this._sender.send(this._initWith(
             new GetConfigRequest(),
         ))
+
+        this.__updatesHandle = this._updateLoop()
     }
 
 
@@ -187,8 +190,8 @@ class TelegramClient {
     // region Working with different connections/Data Centers
 
     async _getDC(dcId, cdn = false) {
+        await Helpers.sleep(1000)
         if (!this._config) {
-            console.log('no config getting new')
             this._config = await this.invoke(new functions.help.GetConfigRequest())
         }
         if (cdn && !this._cdnConfig) {
@@ -239,7 +242,6 @@ class TelegramClient {
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
                 const promise = this._sender.send(request)
-                console.log('promise is ', promise)
                 const result = await promise
                 this.session.processEntities(result)
                 this._entityCache.add(result)
@@ -264,7 +266,6 @@ class TelegramClient {
                     if (shouldRaise && await this.isUserAuthorized()) {
                         throw e
                     }
-                    await Helpers.sleep(1000)
                     await this._switchDC(e.newDc)
                 } else {
                     throw e
@@ -481,7 +482,6 @@ class TelegramClient {
      * @private
      */
     _onLogin(user) {
-        console.log('on login')
         this._bot = Boolean(user.bot)
         this._authorized = true
         return user
@@ -651,14 +651,19 @@ class TelegramClient {
 
     // users region
 
-
-
-
-
-
-
-
-
+    async getEntity(entity) {
+        entity = await this.getInputEntity(entity)
+        if (entity instanceof types.InputPeerUser || entity instanceof types.InputPeerSelf) {
+            const user = await this.invoke(new functions.users.GetUsersRequest({ id: [entity] }))
+            return user[0]
+        } else if (entity instanceof types.InputPeerChat) {
+            const chat = await this.invoke(new functions.messages.GetChatsRequest({ id: [entity] }))
+            return chat[0]
+        } else if (entity instanceof types.InputPeerChannel) {
+            const channel = await this.invoke(new functions.channels.GetChannelsRequest({ id: [entity] }))
+            return channel[0]
+        }
+    }
 
 
     /**
@@ -838,7 +843,7 @@ class TelegramClient {
     // export region
 
     async _borrowExportedSender(dcId) {
-        let sender = this._borrowedSenders(dcId)
+        let sender = this._borrowedSenders[dcId]
         if (!sender) {
             sender = await this._createExportedSender(dcId)
             sender.dcId = dcId
@@ -896,11 +901,12 @@ class TelegramClient {
             throw new Error('not supported')
         }
         const res = utils.getInputLocation(inputLocation)
-        let exported = res.dcId && this.session.dcId !== res.dc
+        let exported = args.dcId && this.session.dcId !== args.dcId
+
         let sender
         if (exported) {
             try {
-                sender = await this._borrowExportedSender(res.dcId)
+                sender = await this._borrowExportedSender(args.dcId)
             } catch (e) {
                 if (e instanceof errors.DcIdInvalidError) {
                     // Can't export a sender for the ID we are currently in
@@ -983,10 +989,9 @@ class TelegramClient {
             }
         }
         if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
-            console.log('is a photo')
             return await this._downloadPhoto(media, file, date, args.thumb, args.progressCallback)
         } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
-            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback)
+            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
         } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
             return this._downloadContact(media, file)
         } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
@@ -994,16 +999,15 @@ class TelegramClient {
         }
     }
 
-    async downloadProfilePhoto(entity, file, downloadBig = true) {
+    async downloadProfilePhoto(entity, file, downloadBig = false) {
         // ('User', 'Chat', 'UserFull', 'ChatFull')
         const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
         // ('InputPeer', 'InputUser', 'InputChannel')
         // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
         // Todo account for input methods
         const thumb = downloadBig ? -1 : 0
-
         let photo
-        if (!(entity.SUBCLASS_OF_ID in ENTITIES)) {
+        if (!(ENTITIES.includes(entity.SUBCLASS_OF_ID))) {
             photo = entity
         } else {
             if (!entity.photo) {
@@ -1022,14 +1026,16 @@ class TelegramClient {
         let which
         let loc
         if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
+            console.log('i am ere')
             dcId = photo.dcId
             which = downloadBig ? photo.photoBig : photo.photoSmall
             loc = new types.InputPeerPhotoFileLocation({
-                peer: await this.getInputEntity({ entity: entity }),
+                peer: await this.getInputEntity(entity),
                 localId: which.localId,
                 volumeId: which.volumeId,
                 big: downloadBig,
             })
+            console.log(loc)
         } else {
             // It doesn't make any sense to check if `photo` can be used
             // as input location, because then this method would be able
@@ -1113,6 +1119,7 @@ class TelegramClient {
             }),
             file,
             {
+                dcId: photo.dcId,
                 fileSize: size.size,
                 progressCallback: progressCallback,
             },
@@ -1120,7 +1127,7 @@ class TelegramClient {
         return result
     }
 
-    async _downloadDocument(document, file, date, thumb, progressCallback) {
+    async _downloadDocument(document, file, date, thumb, progressCallback, dcId) {
         if (document instanceof types.MessageMediaPhoto) {
             document = document.document
         }
@@ -1149,6 +1156,7 @@ class TelegramClient {
             {
                 fileSize: size ? size.size : document.size,
                 progressCallback: progressCallback,
+                dcId,
             },
         )
         return result
@@ -1158,10 +1166,12 @@ class TelegramClient {
         throw new Error('not implemented')
     }
 
-    // endregion
     async _downloadWebDocument(media, file, progressCallback) {
         throw new Error('not implemented')
     }
+
+    // endregion
+
 }
 
 module.exports = TelegramClient

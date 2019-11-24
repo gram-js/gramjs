@@ -94,7 +94,7 @@ class Logger {
                 console.log(this.colors.start + this.format(message, level), color)
             }
         } else {
-            console.log('can\'t send')
+            // console.log('can\'t send')
         }
     }
 }
