@@ -7,7 +7,7 @@ const MTProtoState = require('./MTProtoState')
 const struct = require('python-struct')
 const BinaryReader = require('../extensions/BinaryReader')
 const { InvalidBufferError } = require('../errors/Common')
-const JSBI = require('jsbi')
+const BigInt = require('big-integer')
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)
@@ -32,7 +32,7 @@ class MTProtoPlainSender {
 
         let body = request.getBytes()
         let msgId = this._state._getNewMsgId()
-        const res = Buffer.concat([struct.pack('<qqi', [0, msgId.toString(), body.length]), body])
+        const res = Buffer.concat([ struct.pack('<qqi', [ 0, msgId.toString(), body.length ]), body ])
 
         await this._connection.send(res)
         body = await this._connection.recv()
@@ -41,11 +41,11 @@ class MTProtoPlainSender {
         }
         const reader = new BinaryReader(body)
         const authKeyId = reader.readLong()
-        if (JSBI.notEqual(authKeyId, JSBI.BigInt(0))) {
+        if (authKeyId.neq(BigInt(0))) {
             throw new Error('Bad authKeyId')
         }
         msgId = reader.readLong()
-        if (JSBI.equal(msgId, JSBI.BigInt(0))) {
+        if (msgId.eq(BigInt(0))) {
             throw new Error('Bad msgId')
         }
         /** ^ We should make sure that the read ``msg_id`` is greater
@@ -66,24 +66,6 @@ class MTProtoPlainSender {
         return reader.tgReadObject()
     }
 
-    /**
-     * Generates a new message ID based on the current time (in ms) since epoch
-     * @returns {JSBI.BigInt}
-     */
-    getNewMsgId() {
-        // See https://core.telegram.org/mtproto/description#message-identifier-msg-id
-        const msTime = Date.now()
-        let newMsgId =
-            (JSBI.BigInt(Math.floor(msTime / 1000)) << JSBI.BigInt(32)) | // "must approximately equal unixtime*2^32"
-            (JSBI.BigInt(msTime % 1000) << JSBI.BigInt(32)) | // "approximate moment in time the message was created"
-            (JSBI.BigInt(Helpers.getRandomInt(0, 524288)) << JSBI.BigInt(2)) // "message identifiers are divisible by 4"
-        // Ensure that we always return a message ID which is higher than the previous one
-        if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + JSBI.BigInt(4)
-        }
-        this._lastMsgId = newMsgId
-        return JSBI.BigInt(newMsgId)
-    }
 }
 
 module.exports = MTProtoPlainSender

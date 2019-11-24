@@ -46,7 +46,7 @@ export async function init(sessionId: string) {
       if (x !== client.session.dcId) {
         // Todo Better logic
         // eslint-disable-next-line no-underscore-dangle
-        await client._borrowExportedSender(x);
+        // await client._borrowExportedSender(x);
       }
     }
     const newSessionId = stringSession.save();
