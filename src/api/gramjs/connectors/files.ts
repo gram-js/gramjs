@@ -6,9 +6,9 @@ export function init() {
 }
 
 export async function loadFile(id: any, fileLocation: ApiFileLocation): Promise<string | null> {
-  const result = null; // await downloadFile(id, fileLocation);
-  // eslint-disable-next-line no-underscore-dangle
-  return result ? bytesToUrl(result) : null;
+  const fileBuffer = await downloadFile(id, fileLocation);
+
+  return fileBuffer ? bytesToUrl(fileBuffer) : null;
 }
 
 function bytesToUrl(bytes: Uint8Array, mimeType?: string) {

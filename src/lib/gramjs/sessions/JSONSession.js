@@ -191,19 +191,6 @@ class Session {
         }
     }
 
-    getNewMsgId() {
-        const msTime = new Date().getTime()
-        let newMessageId =
-            (BigInt(BigInt(Math.floor(msTime / 1000)) + this.timeOffset) << BigInt(32)) |
-            (BigInt(msTime % 1000) << BigInt(22)) |
-            (BigInt(getRandomInt(0, 524288)) << BigInt(2)) // 2^19
-
-        if (this.lastMessageId >= newMessageId) {
-            newMessageId = this.lastMessageId + BigInt(4)
-        }
-        this.lastMessageId = newMessageId
-        return newMessageId
-    }
 
     processEntities(tlo) {
         const entitiesSet = this._entitiesToRows(tlo)

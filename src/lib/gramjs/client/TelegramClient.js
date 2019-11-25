@@ -129,8 +129,7 @@ class TelegramClient {
 
         })
         this.phoneCodeHashes = []
-        this._borrowedSenders = {}
-        this._updatesHandle = null
+        this._borrowedSenderPromises = {}
     }
 
 
@@ -153,7 +152,7 @@ class TelegramClient {
         await this._sender.send(this._initWith(
             new GetConfigRequest(),
         ))
-        this._updatesHandle = this._updateLoop()
+        this._updateLoop()
     }
 
     async _updateLoop() {
@@ -220,71 +219,98 @@ class TelegramClient {
     // endregion
     // export region
 
-    async _borrowExportedSender(dcId) {
-        let sender = this._borrowedSenders[dcId]
+    _onAuth() {
+        this._setupAdditionalDcConnections()
+    }
+
+    _setupAdditionalDcConnections() {
+        for (let i = 1; i <= 5; i++) {
+            if (i !== this.session.dcId) {
+                this._borrowExportedSender(i)
+            }
+        }
+    }
+
+    async _borrowExportedSender(dcId, retries = 5) {
+        let sender = this._borrowedSenderPromises[dcId]
         if (!sender) {
-            sender = await this._createExportedSender(dcId)
-            sender.dcId = dcId
-            this._borrowedSenders[dcId] = sender
+            sender = this._createExportedSender(dcId, retries)
+            this._borrowedSenderPromises[dcId] = sender
         }
         return sender
     }
 
-    async _createExportedSender(dcId) {
+    async _createExportedSender(dcId, retries) {
         const dc = await this._getDC(dcId)
         const sender = new MTProtoSender(null, { logger: this._log })
-        await sender.connect(new this._connection(
-            dc.ipAddress,
-            dc.port,
-            dcId,
-            this._log,
-        ))
-        this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
-        const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
-        const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
-                id: auth.id, bytes: auth.bytes,
-            },
-        ))
-        await sender.send(req)
-        return sender
+        for (let i = 0; i < retries; i++) {
+            try {
+                await sender.connect(new this._connection(
+                    dc.ipAddress,
+                    dc.port,
+                    dcId,
+                    this._log,
+                ))
+                this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+                const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
+                const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
+                        id: auth.id, bytes: auth.bytes,
+                    },
+                ))
+                await sender.send(req)
+                sender.dcId = dcId
+                return sender
+            } catch (e) {
+                console.log(e)
+                await sender.disconnect()
+            }
+        }
+        return null
     }
 
     // end region
 
     // download region
 
+    /**
+     * Complete flow to download a file.
+     * @param inputLocation {types.InputFileLocation}
+     * @param [saveToMemory=true {boolean}] Whether or not to return a buffer.
+     * @param [args[partSizeKb] {number}]
+     * @param [args[fileSize] {number}]
+     * @param [args[progressCallback] {Function}]
+     * @param [args[dcId] {number}]
+     * @returns {Promise<Buffer>}
+     */
+    async downloadFile(inputLocation, saveToMemory = true, args = {}) {
+        let { partSizeKb, fileSize } = args
+        const { dcId } = args
 
-    async downloadFile(inputLocation, file, args = {
-        partSizeKb: null,
-        fileSize: null,
-        progressCallback: null,
-        dcId: null,
-    }) {
-        if (!args.partSizeKb) {
-            if (!args.fileSize) {
-                args.partSizeKb = 64
+        if (!partSizeKb) {
+            if (!fileSize) {
+                partSizeKb = 64
             } else {
-                args.partSizeKb = utils.getAppropriatedPartSize(args.fileSize)
+                partSizeKb = utils.getAppropriatedPartSize(partSizeKb)
             }
         }
-        const partSize = parseInt(args.partSizeKb * 1024)
+        const partSize = parseInt(partSizeKb * 1024)
         if (partSize % MIN_CHUNK_SIZE !== 0) {
             throw new Error('The part size must be evenly divisible by 4096')
         }
-        const inMemory = !file || file === Buffer
+
         let f
-        if (inMemory) {
+        if (saveToMemory) {
             f = new BinaryWriter(Buffer.alloc(0))
         } else {
             throw new Error('not supported')
         }
         const res = utils.getInputLocation(inputLocation)
-        let exported = args.dcId && this.session.dcId !== args.dcId
+        let exported = dcId && this.session.dcId !== dcId
 
         let sender
         if (exported) {
             try {
-                sender = await this._borrowExportedSender(args.dcId)
+                sender = await this._borrowExportedSender(dcId)
             } catch (e) {
                 if (e instanceof errors.DcIdInvalidError) {
                     // Can't export a sender for the ID we are currently in
@@ -326,17 +352,24 @@ class TelegramClient {
                 }
                 offset += partSize
 
-                if (!result.bytes.length) {
-                    if (inMemory) {
+                if (result.bytes.length) {
+                    this._log.debug(`Saving ${result.bytes.length} more bytes`)
+
+                    f.write(result.bytes)
+
+                    if (args.progressCallback) {
+                        await args.progressCallback(f.getValue().length, fileSize)
+                    }
+                }
+
+                // Last chunk.
+                if (result.bytes.length < partSize) {
+                    if (saveToMemory) {
                         return f.getValue()
                     } else {
                         // Todo implement
+                        throw new Error('Saving to files is not implemented yet')
                     }
-                }
-                this._log.debug(`Saving ${result.bytes.length} more bytes`)
-                f.write(result.bytes)
-                if (args.progressCallback) {
-                    await args.progressCallback(f.getValue().length, args.fileSize)
                 }
             }
         } finally {
@@ -344,7 +377,7 @@ class TelegramClient {
         }
     }
 
-    async downloadMedia(message, file, args = {
+    async downloadMedia(message, saveToMemory, args = {
         thumb: null,
         progressCallback: null,
     }) {
@@ -367,19 +400,19 @@ class TelegramClient {
             }
         }
         if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
-            return await this._downloadPhoto(media, file, date, args.thumb, args.progressCallback)
+            return await this._downloadPhoto(media, saveToMemory, date, args.thumb, args.progressCallback)
         } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
-            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
+            return await this._downloadDocument(media, saveToMemory, date, args.thumb, args.progressCallback, media.dcId)
         } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
-            return this._downloadContact(media, file)
+            return this._downloadContact(media, saveToMemory)
         } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
-            return await this._downloadWebDocument(media, file, args.progressCallback)
+            return await this._downloadWebDocument(media, saveToMemory, args.progressCallback)
         }
     }
 
-    async downloadProfilePhoto(entity, file, downloadBig = false) {
+    async downloadProfilePhoto(entity, saveToMemory, downloadBig = false) {
         // ('User', 'Chat', 'UserFull', 'ChatFull')
-        const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
+        const ENTITIES = [ 0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697 ]
         // ('InputPeer', 'InputUser', 'InputChannel')
         // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
         // Todo account for input methods
@@ -395,7 +428,7 @@ class TelegramClient {
                 }
 
                 return await this._downloadPhoto(
-                    entity.chatPhoto, file, null, thumb, null,
+                    entity.chatPhoto, saveToMemory, null, thumb, null,
                 )
             }
             photo = entity.photo
@@ -421,9 +454,8 @@ class TelegramClient {
             // media which should be done with `download_media` instead.
             return null
         }
-        file = file ? file : Buffer
         try {
-            const result = await this.downloadFile(loc, file, {
+            const result = await this.downloadFile(loc, saveToMemory, {
                 dcId: dcId,
             })
             return result
@@ -434,7 +466,7 @@ class TelegramClient {
                     const full = await this.invoke(new functions.channels.GetFullChannelRequest({
                         channel: ie,
                     }))
-                    return await this._downloadPhoto(full.fullChat.chatPhoto, file, null, null, thumb)
+                    return await this._downloadPhoto(full.fullChat.chatPhoto, saveToMemory, null, null, thumb)
                 } else {
                     return null
                 }
@@ -460,7 +492,7 @@ class TelegramClient {
         }
     }
 
-    _downloadCachedPhotoSize(size, file) {
+    _downloadCachedPhotoSize(size, saveToMemory) {
         // No need to download anything, simply write the bytes
         let data
         if (size instanceof types.PhotoStrippedSize) {
@@ -471,7 +503,7 @@ class TelegramClient {
         return data
     }
 
-    async _downloadPhoto(photo, file, date, thumb, progressCallback) {
+    async _downloadPhoto(photo, saveToMemory, date, thumb, progressCallback) {
         if (photo instanceof types.MessageMediaPhoto) {
             photo = photo.photo
         }
@@ -483,9 +515,9 @@ class TelegramClient {
             return
         }
 
-        file = file ? file : Buffer
+
         if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-            return this._downloadCachedPhotoSize(size, file)
+            return this._downloadCachedPhotoSize(size, saveToMemory)
         }
 
         const result = await this.downloadFile(
@@ -495,7 +527,7 @@ class TelegramClient {
                 fileReference: photo.fileReference,
                 thumbSize: size.type,
             }),
-            file,
+            saveToMemory,
             {
                 dcId: photo.dcId,
                 fileSize: size.size,
@@ -505,34 +537,33 @@ class TelegramClient {
         return result
     }
 
-    async _downloadDocument(document, file, date, thumb, progressCallback, dcId) {
-        if (document instanceof types.MessageMediaPhoto) {
-            document = document.document
+    async _downloadDocument(doc, saveToMemory, date, thumb, progressCallback, dcId) {
+        if (doc instanceof types.MessageMediaPhoto) {
+            doc = document.document
         }
-        if (!(document instanceof types.Document)) {
+        if (!(doc instanceof types.Document)) {
             return
         }
         let size
-        file = file ? file : Buffer
 
         if (thumb === null || thumb === undefined) {
             size = null
         } else {
-            size = this._getThumb(document.thumbs, thumb)
+            size = this._getThumb(doc.thumbs, thumb)
             if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-                return this._downloadCachedPhotoSize(size, file)
+                return this._downloadCachedPhotoSize(size, saveToMemory)
             }
         }
         const result = await this.downloadFile(
             new types.InputDocumentFileLocation({
-                id: document.id,
-                accessHash: document.accessHash,
-                fileReference: document.fileReference,
+                id: doc.id,
+                accessHash: doc.accessHash,
+                fileReference: doc.fileReference,
                 thumbSize: size ? size.type : '',
             }),
-            file,
+            saveToMemory,
             {
-                fileSize: size ? size.size : document.size,
+                fileSize: size ? size.size : doc.size,
                 progressCallback: progressCallback,
                 dcId,
             },
@@ -540,11 +571,11 @@ class TelegramClient {
         return result
     }
 
-    _downloadContact(media, file) {
+    _downloadContact(media, saveToMemory) {
         throw new Error('not implemented')
     }
 
-    async _downloadWebDocument(media, file, progressCallback) {
+    async _downloadWebDocument(media, saveToMemory, progressCallback) {
         throw new Error('not implemented')
     }
 
@@ -653,7 +684,7 @@ class TelegramClient {
 
     async getMe() {
         const me = (await this.invoke(new functions.users
-            .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
+            .GetUsersRequest({ id: [ new types.InputUserSelf() ] })))[0]
         return me
     }
 
@@ -673,6 +704,8 @@ class TelegramClient {
             await this.connect()
         }
         if (await this.isUserAuthorized()) {
+            this._onAuth()
+
             return this
         }
         if (args.code == null && !args.botToken) {
@@ -779,6 +812,9 @@ class TelegramClient {
         }
         const name = utils.getDisplayName(me)
         console.log('Signed in successfully as', name)
+
+        this._onAuth()
+
         return this
     }
 
@@ -793,7 +829,7 @@ class TelegramClient {
         if (args.phone && !args.code && !args.password) {
             return await this.sendCodeRequest(args.phone)
         } else if (args.code) {
-            const [phone, phoneCodeHash] =
+            const [ phone, phoneCodeHash ] =
                 this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
@@ -841,7 +877,7 @@ class TelegramClient {
             throw new Error('You also need to provide a phone_code_hash.')
         }
 
-        return [phone, phoneHash]
+        return [ phone, phoneHash ]
     }
 
     // endregion
@@ -914,7 +950,7 @@ class TelegramClient {
 
     // event region
     addEventHandler(callback, event) {
-        this._eventBuilders.push([event, callback])
+        this._eventBuilders.push([ event, callback ])
     }
 
     _handleUpdate(update) {
@@ -924,7 +960,7 @@ class TelegramClient {
         if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
             // TODO deal with entities
             const entities = {}
-            for (const x of [...update.users, ...update.chats]) {
+            for (const x of [ ...update.users, ...update.chats ]) {
                 entities[utils.getPeerId(x)] = x
             }
             for (const u of update.updates) {
@@ -984,7 +1020,7 @@ class TelegramClient {
                 }
                 throw e
             }
-        } else if (['me', 'this'].includes(string.toLowerCase())) {
+        } else if ([ 'me', 'this' ].includes(string.toLowerCase())) {
             return await this.getMe()
         } else {
             const { username, isJoinChat } = utils.parseUsername(string)
@@ -1117,7 +1153,7 @@ class TelegramClient {
         } catch (e) {
         }
         // Then come known strings that take precedence
-        if (['me', 'this'].includes(peer)) {
+        if ([ 'me', 'this' ].includes(peer)) {
             return new types.InputPeerSelf()
         }
         // No InputPeer, cached peer, or known string. Fetch from disk cache
@@ -1137,9 +1173,9 @@ class TelegramClient {
         peer = utils.getPeer(peer)
         if (peer instanceof types.PeerUser) {
             const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: [new types.InputUser({
+                id: [ new types.InputUser({
                     userId: peer.userId, accessHash: 0,
-                })],
+                }) ],
             }))
             if (users && !(users[0] instanceof types.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
@@ -1158,10 +1194,10 @@ class TelegramClient {
         } else if (peer instanceof types.PeerChannel) {
             try {
                 const channels = await this.invoke(new functions.channels.GetChannelsRequest({
-                    id: [new types.InputChannel({
+                    id: [ new types.InputChannel({
                         channelId: peer.channelId,
                         accessHash: 0,
-                    })],
+                    }) ],
                 }))
 
                 return utils.getInputPeer(channels.chats[0])
@@ -1187,7 +1223,7 @@ class TelegramClient {
         channelId: null,
         ptsDate: null,
     }) {
-        for (const [builder, callback] of this._eventBuilders) {
+        for (const [ builder, callback ] of this._eventBuilders) {
             const event = builder.build(args.update)
             if (event) {
                 await callback(event)

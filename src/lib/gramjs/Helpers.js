@@ -171,16 +171,16 @@ function sha256(data) {
  * @param a
  * @param b
  * @param n
- * @returns {BigInteger}
+ * @returns {bigInt.BigInteger}
  */
 function modExp(a, b, n) {
     a = a.remainder(n)
-    let result = BigInt(1)
+    let result = BigInt.one
     let x = a
-    while (b.greater(BigInt(0))) {
+    while (b.greater(BigInt.zero)) {
         const leastSignificantBit = b.remainder(BigInt(2))
         b = b.divide(BigInt(2))
-        if (leastSignificantBit.eq(BigInt(1))) {
+        if (leastSignificantBit.eq(BigInt.one)) {
             result = result.multiply(x)
             result = result.remainder(n)
         }
@@ -190,6 +190,18 @@ function modExp(a, b, n) {
     return result
 }
 
+
+/**
+ * Gets the arbitrary-length byte array corresponding to the given integer
+ * @param integer {number,BigInteger}
+ * @param signed {boolean}
+ * @returns {Buffer}
+ */
+function getByteArray(integer, signed = false) {
+    const bits = integer.toString(2).length
+    const byteLength = Math.floor((bits + 8 - 1) / 8)
+    return readBufferFromBigInt(BigInt(integer), byteLength, false, signed)
+}
 /**
  * returns a random int from min (inclusive) and max (inclusive)
  * @param min
@@ -243,5 +255,6 @@ module.exports = {
     modExp,
     getRandomInt,
     sleep,
+    getByteArray,
     isArrayLike,
 }

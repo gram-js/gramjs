@@ -1,22 +1,9 @@
 const NodeRSA = require('node-rsa')
 const { TLObject } = require('../tl/tlobject')
-const { readBigIntFromBuffer, sha1, readBufferFromBigInt, generateRandomBytes } = require('../Helpers')
-const modExp = require('./modPowLeemon')
+const { readBigIntFromBuffer, readBufferFromBigInt, getByteArray, sha1, generateRandomBytes, modExp } = require('../Helpers')
 const _serverKeys = {}
 const BigInt = require('big-integer')
 
-/**
- * Gets the arbitrary-length byte array corresponding to the given integer
- * @param integer {number,BigInteger}
- * @param signed {boolean}
- * @returns {Buffer}
- */
-function getByteArray(integer, signed = false) {
-    console.log("the integer is ", integer)
-    integer = BigInt(integer)
-    const byteLength = Math.floor((integer.bitLength() + 8 - 1) / 8)
-    return readBufferFromBigInt(integer, byteLength, false, signed)
-}
 
 function _computeFingerprint(key) {
     const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
@@ -39,10 +26,12 @@ function encrypt(fingerprint, data) {
     if (!key) {
         return undefined
     }
+    const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
     const rand = generateRandomBytes(235 - data.length)
-    const toEncrypt = Buffer.concat([ sha1(data), data, rand ])
-    const encrypted = modExp(toEncrypt, getByteArray(BigInt(key.keyPair.e)), key.keyPair.n.toBuffer())
-    const block = Buffer.from(encrypted, undefined, 256)
+    const toEncrypt = Buffer.concat([sha1(data), data, rand])
+    const payload = readBigIntFromBuffer(toEncrypt, false)
+    const encrypted = modExp(payload, BigInt(key.keyPair.e), buf)
+    const block = readBufferFromBigInt(encrypted, 256, false)
     return block
 }
 

@@ -1,8 +1,8 @@
+const BigInt = require('big-integer');
 const AES = require('../crypto/AES')
 const AuthKey = require('../crypto/AuthKey')
-const Factorizator = require('../crypto/FactorizatorLeemon')
+const Factorizator = require('../crypto/Factorizator')
 const RSA = require('../crypto/RSA')
-const modExp = require('../crypto/modPowLeemon')
 const Helpers = require('../Helpers')
 const { ServerDHParamsFail } = require('../tl/types')
 const { ServerDHParamsOk } = require('../tl/types')
@@ -18,7 +18,6 @@ const { SetClientDHParamsRequest } = require('../tl/functions')
 const { ServerDHInnerData } = require('../tl/types')
 const { ResPQ } = require('../tl/types')
 const { ReqPqMultiRequest } = require('../tl/functions')
-const BigInt = require('big-integer')
 
 /**
  * Executes the authentication process with the Telegram servers.
@@ -45,16 +44,17 @@ async function doAuthentication(sender, log) {
     log.debug('Finished authKey generation step 1')
     log.debug('Starting authKey generation step 2')
     // Step 2 sending: DH Exchange
-    let { p, q } = Factorizator.factorize(resPQ.pq)
+    let { p, q } = Factorizator.factorize(pq)
 
-    p = Buffer.from(p)
-    q = Buffer.from(q)
+    // TODO Bring back after `Factorizator` fix.
+    // p = Helpers.getByteArray(p)
+    // q = Helpers.getByteArray(q)
 
     bytes = Helpers.generateRandomBytes(32)
     const newNonce = Helpers.readBigIntFromBuffer(bytes, true, true)
 
     const pqInnerData = new PQInnerData({
-        pq: getByteArray(pq), // unsigned
+        pq: Helpers.getByteArray(pq), // unsigned
         p: p,
         q: q,
         nonce: resPQ.nonce,
@@ -130,18 +130,19 @@ async function doAuthentication(sender, log) {
     if (serverDhInner.serverNonce.neq(resPQ.serverNonce)) {
         throw new SecurityError('Step 3 Invalid server nonce in encrypted answer')
     }
+    const dhPrime = Helpers.readBigIntFromBuffer(serverDhInner.dhPrime, false, false)
+    const ga = Helpers.readBigIntFromBuffer(serverDhInner.gA, false, false)
     const timeOffset = serverDhInner.serverTime - Math.floor(new Date().getTime() / 1000)
-
-    const bBytes = Helpers.generateRandomBytes(256)
-    const gb = modExp(getByteArray(serverDhInner.g), bBytes, serverDhInner.dhPrime)
-    const gab = modExp(serverDhInner.gA, bBytes, serverDhInner.dhPrime)
+    const b = Helpers.readBigIntFromBuffer(Helpers.generateRandomBytes(256), false, false)
+    const gb = Helpers.modExp(BigInt(serverDhInner.g), b, dhPrime)
+    const gab = Helpers.modExp(ga, b, dhPrime)
 
     // Prepare client DH Inner Data
     const clientDhInner = new ClientDHInnerData({
         nonce: resPQ.nonce,
         serverNonce: resPQ.serverNonce,
         retryId: 0, // TODO Actual retry ID
-        gB: Buffer.from(gb),
+        gB: Helpers.getByteArray(gb, false),
     }).getBytes()
 
     const clientDdhInnerHashed = Buffer.concat([ Helpers.sha1(clientDhInner), clientDhInner ])
@@ -165,7 +166,7 @@ async function doAuthentication(sender, log) {
     if (dhGen.serverNonce.neq(resPQ.serverNonce)) {
         throw new SecurityError(`Step 3 invalid ${name} server nonce from server`)
     }
-    const authKey = new AuthKey(Buffer.from(gab))
+    const authKey = new AuthKey(Helpers.getByteArray(gab))
     const nonceNumber = 1 + nonceTypes.indexOf(dhGen.constructor)
 
     const newNonceHash = authKey.calcNewNonceHash(newNonce, nonceNumber)
@@ -183,16 +184,5 @@ async function doAuthentication(sender, log) {
     return { authKey, timeOffset }
 }
 
-/**
- * Gets the arbitrary-length byte array corresponding to the given integer
- * @param integer {number,BigInteger}
- * @param signed {boolean}
- * @returns {Buffer}
- */
-function getByteArray(integer, signed = false) {
-    const bits = integer.toString(2).length
-    const byteLength = Math.floor((bits + 8 - 1) / 8)
-    return Helpers.readBufferFromBigInt(BigInt(integer), byteLength, false, signed)
-}
 
 module.exports = doAuthentication
