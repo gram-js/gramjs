@@ -88,6 +88,15 @@ function mod(n, m) {
 }
 
 /**
+ * returns a positive bigInt
+ * @param n {BigInt}
+ * @param m {BigInt}
+ * @returns {BigInt}
+ */
+function bigIntMod(n,m) {
+    return ((n.remainder(m)).add(m)).remainder(m)
+}
+/**
  * Generates a random bytes array
  * @param count
  * @returns {Buffer}
@@ -252,6 +261,7 @@ module.exports = {
     generateKeyDataFromNonce,
     sha1,
     sha256,
+    bigIntMod,
     modExp,
     getRandomInt,
     sleep,
