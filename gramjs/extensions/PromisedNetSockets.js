@@ -54,21 +54,19 @@ class PromisedNetSockets {
             this.resolveRead = resolve
         })
         this.closed = false
-        return new Promise(function(resolve, reject) {
-            this.client.connect(port, ip, function() {
+        return new Promise((resolve, reject) => {
+            this.client.connect(port, ip, () => {
                 this.receive()
                 resolve(this)
-            }.bind(this))
-            this.client.on('error', function(error) {
-                reject(error)
             })
-            this.client.on('close', function() {
+            this.client.on('error', reject)
+            this.client.on('close', () => {
                 if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
                 }
-            }.bind(this))
-        }.bind(this))
+            })
+        })
     }
 
     write(data) {
@@ -85,11 +83,11 @@ class PromisedNetSockets {
     }
 
     async receive() {
-        this.client.on('data', async function(message) {
+        this.client.on('data', async (message) => {
             const data = Buffer.from(message)
             this.stream = Buffer.concat([this.stream, data])
             this.resolveRead(true)
-        }.bind(this))
+        })
     }
 }
 
