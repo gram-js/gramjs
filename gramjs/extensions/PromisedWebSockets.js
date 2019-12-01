@@ -62,21 +62,19 @@ class PromisedWebSockets {
         this.closed = false
         this.website = this.getWebSocketLink(ip, port)
         this.client = new WebSocketClient(this.website, 'binary')
-        return new Promise(function(resolve, reject) {
-            this.client.onopen = function() {
+        return new Promise((resolve, reject) => {
+            this.client.onopen = () => {
                 this.receive()
                 resolve(this)
-            }.bind(this)
-            this.client.onerror = function(error) {
-                reject(error)
             }
-            this.client.onclose = function() {
+            this.client.onerror = reject
+            this.client.onclose = () => {
                 if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
                 }
-            }.bind(this)
-        }.bind(this))
+            }
+        })
     }
 
     write(data) {
@@ -93,7 +91,7 @@ class PromisedWebSockets {
     }
 
     async receive() {
-        this.client.onmessage = async function(message) {
+        this.client.onmessage = async (message) => {
             let data
             if (this.isBrowser) {
                 data = Buffer.from(await new Response(message.data).arrayBuffer())
@@ -102,7 +100,7 @@ class PromisedWebSockets {
             }
             this.stream = Buffer.concat([this.stream, data])
             this.resolveRead(true)
-        }.bind(this)
+        }
     }
 }
 
