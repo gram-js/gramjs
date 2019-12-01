@@ -1,11 +1,11 @@
 {
   "name": "telegram",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "postinstall": "node index.js gen tl"
+    "postinstall": "node index.js gen tl errors"
   },
   "repository": {
     "type": "git",
