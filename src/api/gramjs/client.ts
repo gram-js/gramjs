@@ -5,6 +5,7 @@ import {
   SupportedUploadRequests,
 } from './types/types';
 import * as apiRequests from '../../lib/gramjs/tl/functions';
+import { Logger as GramJsLogger } from '../../lib/gramjs/extensions';
 
 import { TelegramClient, session } from '../../lib/gramjs';
 import { DEBUG } from '../../config';
@@ -15,6 +16,11 @@ import { onGramJsUpdate } from './onGramJsUpdate';
 import localDb from './localDb';
 import { buildInputPeerPhotoFileLocation } from './inputHelpers';
 import { ApiFileLocation } from '../types';
+<<<<<<< HEAD
+=======
+
+GramJsLogger.getLogger().level = 'debug';
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
 
 let client: any;
 
@@ -97,14 +103,29 @@ export async function invokeRequest(data: InvokeRequestPayload) {
   return result;
 }
 
+<<<<<<< HEAD
 export function downloadFile(id: number, fileLocation: ApiFileLocation, dcId?: number) {
   return client.downloadFile(
     buildInputPeerPhotoFileLocation({ id, fileLocation }),
     true,
+=======
+export function downloadFile(chatOrUserId: number, fileLocation: ApiFileLocation) {
+  const { dcId, volumeId, localId } = fileLocation;
+
+  return client.downloadFile(
+    buildInputPeerPhotoFileLocation(chatOrUserId, volumeId, localId),
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
     { dcId },
   );
 }
 
+<<<<<<< HEAD
+=======
+export function downloadMessageImage(message: MTP.message) {
+  return client.downloadMedia(message, { sizeType: 'x' });
+}
+
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
 function postProcess(name: string, anyResult: any, args: AnyLiteral) {
   switch (name) {
     case 'GetDialogsRequest': {

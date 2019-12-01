@@ -1,10 +1,10 @@
 let logger = null
 
 class Logger {
-    static levels = ['debug', 'info', 'warn', 'error']
+    static levels = ['error', 'warn', 'info', 'debug']
 
     constructor(level) {
-        this.level = level
+        this.level = level || 'debug'
         this.isBrowser = typeof process === 'undefined' ||
             process.type === 'renderer' ||
             process.browser === true ||
@@ -37,7 +37,7 @@ class Logger {
      * @returns {boolean}
      */
     canSend(level) {
-        return (Logger.levels.indexOf(this.level) <= Logger.levels.indexOf(level))
+        return (Logger.levels.indexOf(this.level) >= Logger.levels.indexOf(level))
     }
 
     /**
@@ -87,6 +87,9 @@ class Logger {
      * @param color {string}
      */
     _log(level, message, color) {
+        if (!logger){
+            return
+        }
         if (this.canSend(level)) {
             if (!this.isBrowser) {
                 console.log(color + this.format(message, level) + this.colors.end)

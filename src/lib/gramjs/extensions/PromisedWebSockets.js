@@ -13,6 +13,19 @@ class PromisedWebSockets {
         this.closed = true
     }
 
+    // TODO This hangs in certain situations (issues with big files) and breaks subsequent calls.
+    // async readExactly(number) {
+    //     let readData = Buffer.alloc(0)
+    //     while (true) {
+    //         const thisTime = await this.read(number)
+    //         readData = Buffer.concat([readData, thisTime])
+    //         number = number - thisTime.length
+    //         if (!number) {
+    //             return readData
+    //         }
+    //     }
+    // }
+
     async read(number) {
         if (this.closed) {
             console.log('couldn\'t read')
@@ -58,18 +71,18 @@ class PromisedWebSockets {
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve
         })
-        this.closed  = false
+        this.closed = false
         this.website = this.getWebSocketLink(ip, port)
         this.client = new WebSocketClient(this.website, 'binary')
-        return new Promise(function(resolve, reject) {
-            this.client.onopen = function() {
+        return new Promise(function (resolve, reject) {
+            this.client.onopen = function () {
                 this.receive()
                 resolve(this)
             }.bind(this)
-            this.client.onerror = function(error) {
+            this.client.onerror = function (error) {
                 reject(error)
             }
-            this.client.onclose = function() {
+            this.client.onclose = function () {
                 if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
@@ -92,7 +105,7 @@ class PromisedWebSockets {
     }
 
     async receive() {
-        this.client.onmessage = async function(message) {
+        this.client.onmessage = async function (message) {
             let data
             if (this.isBrowser) {
                 data = Buffer.from(await new Response(message.data).arrayBuffer())

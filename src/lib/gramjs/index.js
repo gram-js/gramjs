@@ -9,8 +9,9 @@ const events = require('./events')
 const utils = require('./Utils')
 const errors = require('./errors')
 const session = require('./sessions')
+const extensions = require('./extensions')
 
 module.exports = {
-    TelegramClient, session, connection,
+    TelegramClient, session, connection, extensions,
     tl, version, events, utils, errors,
 }

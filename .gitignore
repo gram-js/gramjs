@@ -1,0 +1,8 @@
+node_modules
+dist
+.cache
+.env
+src/lib/gramjs/build/
+build-contest/
+.idea
+*.iml

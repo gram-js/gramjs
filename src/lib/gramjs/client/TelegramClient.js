@@ -158,7 +158,6 @@ class TelegramClient {
     async _updateLoop() {
         while (this.isConnected()) {
             const rnd = Helpers.getRandomInt(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-            console.log('rnd is ', rnd)
             await Helpers.sleep(1000 * 60)
             // We don't care about the result we just want to send it every
             // 60 seconds so telegram doesn't stop the connection
@@ -242,7 +241,8 @@ class TelegramClient {
 
     async _createExportedSender(dcId, retries) {
         const dc = await this._getDC(dcId)
-        const sender = new MTProtoSender(null, { logger: this._log })
+        const sender = new MTProtoSender(this.session.dcId === dcId ? this._sender.authKey : null,
+            { logger: this._log })
         for (let i = 0; i < retries; i++) {
             try {
                 await sender.connect(new this._connection(
@@ -251,13 +251,15 @@ class TelegramClient {
                     dcId,
                     this._log,
                 ))
-                this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
-                const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
-                const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
-                        id: auth.id, bytes: auth.bytes,
-                    },
-                ))
-                await sender.send(req)
+                if (this.session.dcId !== dcId) {
+                    this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+                    const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
+                    const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
+                            id: auth.id, bytes: auth.bytes,
+                        },
+                    ))
+                    await sender.send(req)
+                }
                 sender.dcId = dcId
                 return sender
             } catch (e) {
@@ -275,20 +277,23 @@ class TelegramClient {
     /**
      * Complete flow to download a file.
      * @param inputLocation {types.InputFileLocation}
-     * @param [saveToMemory=true {boolean}] Whether or not to return a buffer.
      * @param [args[partSizeKb] {number}]
      * @param [args[fileSize] {number}]
      * @param [args[progressCallback] {Function}]
      * @param [args[dcId] {number}]
      * @returns {Promise<Buffer>}
      */
-    async downloadFile(inputLocation, saveToMemory = true, args = {}) {
+    async downloadFile(inputLocation, args = {}) {
         let { partSizeKb, fileSize } = args
         const { dcId } = args
 
         if (!partSizeKb) {
             if (!fileSize) {
+<<<<<<< HEAD
                 partSizeKb = 64
+=======
+                partSizeKb = DEFAULT_CHUNK_SIZE
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
             } else {
                 partSizeKb = utils.getAppropriatedPartSize(partSizeKb)
             }
@@ -298,12 +303,7 @@ class TelegramClient {
             throw new Error('The part size must be evenly divisible by 4096')
         }
 
-        let f
-        if (saveToMemory) {
-            f = new BinaryWriter(Buffer.alloc(0))
-        } else {
-            throw new Error('not supported')
-        }
+        const fileWriter = new BinaryWriter(Buffer.alloc(0))
         const res = utils.getInputLocation(inputLocation)
         let exported = dcId && this.session.dcId !== dcId
 
@@ -355,21 +355,16 @@ class TelegramClient {
                 if (result.bytes.length) {
                     this._log.debug(`Saving ${result.bytes.length} more bytes`)
 
-                    f.write(result.bytes)
+                    fileWriter.write(result.bytes)
 
                     if (args.progressCallback) {
-                        await args.progressCallback(f.getValue().length, fileSize)
+                        await args.progressCallback(fileWriter.getValue().length, fileSize)
                     }
                 }
 
                 // Last chunk.
                 if (result.bytes.length < partSize) {
-                    if (saveToMemory) {
-                        return f.getValue()
-                    } else {
-                        // Todo implement
-                        throw new Error('Saving to files is not implemented yet')
-                    }
+                    return fileWriter.getValue()
                 }
             }
         } finally {
@@ -377,8 +372,8 @@ class TelegramClient {
         }
     }
 
-    async downloadMedia(message, saveToMemory, args = {
-        thumb: null,
+    async downloadMedia(message, args = {
+        sizeType: null,
         progressCallback: null,
     }) {
         let date
@@ -400,6 +395,7 @@ class TelegramClient {
             }
         }
         if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
+<<<<<<< HEAD
             return await this._downloadPhoto(media, saveToMemory, date, args.thumb, args.progressCallback)
         } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
             return await this._downloadDocument(media, saveToMemory, date, args.thumb, args.progressCallback, media.dcId)
@@ -407,16 +403,25 @@ class TelegramClient {
             return this._downloadContact(media, saveToMemory)
         } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
             return await this._downloadWebDocument(media, saveToMemory, args.progressCallback)
+=======
+            return this._downloadPhoto(media, args)
+        } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
+            return this._downloadDocument(media, args, media.dcId)
+        } else if (media instanceof types.MessageMediaContact) {
+            return this._downloadContact(media, args)
+        } else if (media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) {
+            return this._downloadWebDocument(media, args)
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
         }
     }
 
-    async downloadProfilePhoto(entity, saveToMemory, downloadBig = false) {
+    async downloadProfilePhoto(entity, isBig = false) {
         // ('User', 'Chat', 'UserFull', 'ChatFull')
-        const ENTITIES = [ 0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697 ]
+        const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
         // ('InputPeer', 'InputUser', 'InputChannel')
         // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
         // Todo account for input methods
-        const thumb = downloadBig ? -1 : 0
+        const sizeType = isBig ? 'x' : 'm'
         let photo
         if (!(ENTITIES.includes(entity.SUBCLASS_OF_ID))) {
             photo = entity
@@ -427,26 +432,29 @@ class TelegramClient {
                     return null
                 }
 
+<<<<<<< HEAD
                 return await this._downloadPhoto(
                     entity.chatPhoto, saveToMemory, null, thumb, null,
+=======
+                return this._downloadPhoto(
+                    entity.chatPhoto, { sizeType },
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
                 )
             }
             photo = entity.photo
         }
         let dcId
-        let which
         let loc
         if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
             console.log('i am ere')
             dcId = photo.dcId
-            which = downloadBig ? photo.photoBig : photo.photoSmall
+            const size = isBig ? photo.photoBig : photo.photoSmall
             loc = new types.InputPeerPhotoFileLocation({
                 peer: await this.getInputEntity(entity),
-                localId: which.localId,
-                volumeId: which.volumeId,
-                big: downloadBig,
+                localId: size.localId,
+                volumeId: size.volumeId,
+                big: isBig,
             })
-            console.log(loc)
         } else {
             // It doesn't make any sense to check if `photo` can be used
             // as input location, because then this method would be able
@@ -455,7 +463,11 @@ class TelegramClient {
             return null
         }
         try {
+<<<<<<< HEAD
             const result = await this.downloadFile(loc, saveToMemory, {
+=======
+            return this.downloadFile(loc, {
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
                 dcId: dcId,
             })
             return result
@@ -466,7 +478,11 @@ class TelegramClient {
                     const full = await this.invoke(new functions.channels.GetFullChannelRequest({
                         channel: ie,
                     }))
+<<<<<<< HEAD
                     return await this._downloadPhoto(full.fullChat.chatPhoto, saveToMemory, null, null, thumb)
+=======
+                    return this._downloadPhoto(full.fullChat.chatPhoto, { sizeType })
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
                 } else {
                     return null
                 }
@@ -478,21 +494,16 @@ class TelegramClient {
 
     }
 
-    _getThumb(thumbs, thumb) {
-        if (thumb === null || thumb === undefined) {
-            return thumbs[thumbs.length - 1]
-        } else if (typeof thumb === 'number') {
-            return thumbs[thumb]
-        } else if (thumb instanceof types.PhotoSize ||
-            thumb instanceof types.PhotoCachedSize ||
-            thumb instanceof types.PhotoStrippedSize) {
-            return thumb
-        } else {
-            return null
+    _pickFileSize(sizes, sizeType) {
+        if (!sizeType || !sizes || !sizes.length) {
+            return null;
         }
+
+        return sizes.find((s) => s.type === sizeType);
     }
 
-    _downloadCachedPhotoSize(size, saveToMemory) {
+
+    _downloadCachedPhotoSize(size) {
         // No need to download anything, simply write the bytes
         let data
         if (size instanceof types.PhotoStrippedSize) {
@@ -503,21 +514,21 @@ class TelegramClient {
         return data
     }
 
-    async _downloadPhoto(photo, saveToMemory, date, thumb, progressCallback) {
+    async _downloadPhoto(photo, args) {
         if (photo instanceof types.MessageMediaPhoto) {
             photo = photo.photo
         }
         if (!(photo instanceof types.Photo)) {
             return
         }
-        const size = this._getThumb(photo.sizes, thumb)
+        const size = this._pickFileSize(photo.sizes, args.sizeType)
         if (!size || (size instanceof types.PhotoSizeEmpty)) {
             return
         }
 
 
         if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-            return this._downloadCachedPhotoSize(size, saveToMemory)
+            return this._downloadCachedPhotoSize(size)
         }
 
         const result = await this.downloadFile(
@@ -527,55 +538,62 @@ class TelegramClient {
                 fileReference: photo.fileReference,
                 thumbSize: size.type,
             }),
-            saveToMemory,
             {
                 dcId: photo.dcId,
                 fileSize: size.size,
-                progressCallback: progressCallback,
+                progressCallback: args.progressCallback,
             },
         )
         return result
     }
 
+<<<<<<< HEAD
     async _downloadDocument(doc, saveToMemory, date, thumb, progressCallback, dcId) {
         if (doc instanceof types.MessageMediaPhoto) {
             doc = document.document
+=======
+    async _downloadDocument(media, args) {
+        if (!(media instanceof types.MessageMediaDocument)) {
+            return
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
         }
+
+        const doc = media.document
+
         if (!(doc instanceof types.Document)) {
             return
         }
-        let size
 
-        if (thumb === null || thumb === undefined) {
-            size = null
-        } else {
-            size = this._getThumb(doc.thumbs, thumb)
-            if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-                return this._downloadCachedPhotoSize(size, saveToMemory)
-            }
+        const size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null;
+        if (size && (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize)) {
+            return this._downloadCachedPhotoSize(size)
         }
+<<<<<<< HEAD
         const result = await this.downloadFile(
+=======
+
+        return this.downloadFile(
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
             new types.InputDocumentFileLocation({
                 id: doc.id,
                 accessHash: doc.accessHash,
                 fileReference: doc.fileReference,
                 thumbSize: size ? size.type : '',
             }),
-            saveToMemory,
             {
                 fileSize: size ? size.size : doc.size,
-                progressCallback: progressCallback,
-                dcId,
+                progressCallback: args.progressCallback,
+                dcId: doc.dcId,
             },
         )
         return result
     }
 
-    _downloadContact(media, saveToMemory) {
+    _downloadContact(media, args) {
         throw new Error('not implemented')
     }
 
-    async _downloadWebDocument(media, saveToMemory, progressCallback) {
+    _downloadWebDocument(media, args) {
         throw new Error('not implemented')
     }
 
@@ -648,8 +666,11 @@ class TelegramClient {
         let attempt = 0
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
+                console.log("invoking",request)
+
                 const promise = this._sender.send(request)
                 const result = await promise
+                console.log("got answer",promise)
                 this.session.processEntities(result)
                 this._entityCache.add(result)
                 return result
@@ -684,7 +705,7 @@ class TelegramClient {
 
     async getMe() {
         const me = (await this.invoke(new functions.users
-            .GetUsersRequest({ id: [ new types.InputUserSelf() ] })))[0]
+            .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
         return me
     }
 
@@ -829,7 +850,7 @@ class TelegramClient {
         if (args.phone && !args.code && !args.password) {
             return await this.sendCodeRequest(args.phone)
         } else if (args.code) {
-            const [ phone, phoneCodeHash ] =
+            const [phone, phoneCodeHash] =
                 this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
@@ -877,7 +898,7 @@ class TelegramClient {
             throw new Error('You also need to provide a phone_code_hash.')
         }
 
-        return [ phone, phoneHash ]
+        return [phone, phoneHash]
     }
 
     // endregion
@@ -950,7 +971,7 @@ class TelegramClient {
 
     // event region
     addEventHandler(callback, event) {
-        this._eventBuilders.push([ event, callback ])
+        this._eventBuilders.push([event, callback])
     }
 
     _handleUpdate(update) {
@@ -960,7 +981,7 @@ class TelegramClient {
         if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
             // TODO deal with entities
             const entities = {}
-            for (const x of [ ...update.users, ...update.chats ]) {
+            for (const x of [...update.users, ...update.chats]) {
                 entities[utils.getPeerId(x)] = x
             }
             for (const u of update.updates) {
@@ -1020,8 +1041,13 @@ class TelegramClient {
                 }
                 throw e
             }
+<<<<<<< HEAD
         } else if ([ 'me', 'this' ].includes(string.toLowerCase())) {
             return await this.getMe()
+=======
+        } else if (['me', 'this'].includes(string.toLowerCase())) {
+            return this.getMe()
+>>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
         } else {
             const { username, isJoinChat } = utils.parseUsername(string)
             if (isJoinChat) {
@@ -1133,8 +1159,6 @@ class TelegramClient {
      * @returns {Promise<>}
      */
     async getInputEntity(peer) {
-        console.log('trying to read ', peer)
-        console.log('trying to read ', peer)
         // Short-circuit if the input parameter directly maps to an InputPeer
         try {
             return utils.getInputPeer(peer)
@@ -1153,7 +1177,7 @@ class TelegramClient {
         } catch (e) {
         }
         // Then come known strings that take precedence
-        if ([ 'me', 'this' ].includes(peer)) {
+        if (['me', 'this'].includes(peer)) {
             return new types.InputPeerSelf()
         }
         // No InputPeer, cached peer, or known string. Fetch from disk cache
@@ -1173,9 +1197,9 @@ class TelegramClient {
         peer = utils.getPeer(peer)
         if (peer instanceof types.PeerUser) {
             const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: [ new types.InputUser({
+                id: [new types.InputUser({
                     userId: peer.userId, accessHash: 0,
-                }) ],
+                })],
             }))
             if (users && !(users[0] instanceof types.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
@@ -1194,10 +1218,10 @@ class TelegramClient {
         } else if (peer instanceof types.PeerChannel) {
             try {
                 const channels = await this.invoke(new functions.channels.GetChannelsRequest({
-                    id: [ new types.InputChannel({
+                    id: [new types.InputChannel({
                         channelId: peer.channelId,
                         accessHash: 0,
-                    }) ],
+                    })],
                 }))
 
                 return utils.getInputPeer(channels.chats[0])
@@ -1223,7 +1247,7 @@ class TelegramClient {
         channelId: null,
         ptsDate: null,
     }) {
-        for (const [ builder, callback ] of this._eventBuilders) {
+        for (const [builder, callback] of this._eventBuilders) {
             const event = builder.build(args.update)
             if (event) {
                 await callback(event)

@@ -133,7 +133,6 @@ class MTProtoState {
 
         // TODO Check salt,sessionId, and sequenceNumber
         const keyId = Helpers.readBigIntFromBuffer(body.slice(0, 8))
-
         if (keyId.neq(this.authKey.keyId)) {
             throw new SecurityError('Server replied with an invalid auth key')
         }

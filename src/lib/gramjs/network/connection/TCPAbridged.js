@@ -41,7 +41,7 @@ class AbridgedPacketCodec extends PacketCodec {
  * 508 bytes (127 << 2, which is very common).
  */
 class ConnectionTCPAbridged extends Connection {
-    packetCode = AbridgedPacketCodec
+    PacketCodecClass = AbridgedPacketCodec
 }
 
 module.exports = {
