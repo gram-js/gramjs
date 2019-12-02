@@ -1,5 +1,5 @@
 const Factorizator = require('./crypto/Factorizator')
-const { types } = require('./tl')
+const { constructors } = require('./tl')
 const { readBigIntFromBuffer, readBufferFromBigInt, sha256, bigIntMod, modExp,
     generateRandomBytes } = require('./Helpers')
 const crypto = require('crypto')
@@ -154,7 +154,7 @@ function pbkdf2sha512(password, salt, iterations) {
 
 /**
  *
- * @param algo {types.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow}
+ * @param algo {constructors.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow}
  * @param password
  * @returns {Buffer|*}
  */
@@ -167,7 +167,7 @@ function computeHash(algo, password) {
 
 /**
  *
- * @param algo {types.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow}
+ * @param algo {constructors.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow}
  * @param password
  */
 function computeDigest(algo, password) {
@@ -185,12 +185,12 @@ function computeDigest(algo, password) {
 
 /**
  *
- * @param request {types.account.Password}
+ * @param request {constructors.account.Password}
  * @param password {string}
  */
 function computeCheck(request, password) {
     const algo = request.currentAlgo
-    if (!(algo instanceof types.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow)) {
+    if (!(algo instanceof constructors.PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow)) {
         throw new Error(`Unsupported password algorithm ${algo.constructor.name}`)
     }
 
@@ -249,7 +249,7 @@ function computeCheck(request, password) {
     ]))
 
 
-    return new types.InputCheckPasswordSRP({
+    return new constructors.InputCheckPasswordSRP({
         srpId: request.srpId,
         A: Buffer.from(aForHash),
         M1: M1,

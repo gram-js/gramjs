@@ -3,9 +3,9 @@ const Helpers = require('../Helpers')
 const AES = require('../crypto/AES')
 const BinaryReader = require('../extensions/BinaryReader')
 const GZIPPacked = require('../tl/core/GZIPPacked')
-const {TLMessage} = require('../tl/core')
-const {SecurityError, InvalidBufferError} = require('../errors/Common')
-const {InvokeAfterMsgRequest} = require('../tl/functions')
+const { TLMessage } = require('../tl/core')
+const { SecurityError, InvalidBufferError } = require('../errors/Common')
+const { InvokeAfterMsgRequest } = require('../tl').requests
 const BigInt = require('big-integer')
 
 class MTProtoState {
@@ -77,7 +77,7 @@ class MTProtoState {
 
         const key = Buffer.concat([sha256a.slice(0, 8), sha256b.slice(8, 24), sha256a.slice(24, 32)])
         const iv = Buffer.concat([sha256b.slice(0, 8), sha256a.slice(8, 24), sha256b.slice(24, 32)])
-        return {key, iv}
+        return { key, iv }
     }
 
     /**
@@ -95,7 +95,7 @@ class MTProtoState {
         if (!afterId) {
             body = await GZIPPacked.gzipIfSmaller(contentRelated, data)
         } else {
-            body = await GZIPPacked.gzipIfSmaller(contentRelated, new InvokeAfterMsgRequest(afterId, data).toBuffer())
+            body = await GZIPPacked.gzipIfSmaller(contentRelated, new InvokeAfterMsgRequest(afterId, data).getBytes())
         }
         buffer.write(struct.pack('<qii', msgId.toString(), seqNo, body.length))
         buffer.write(body)
@@ -107,7 +107,8 @@ class MTProtoState {
      * following MTProto 2.0 guidelines core.telegram.org/mtproto/description.
      * @param data
      */
-    encryptMessageData(data) {
+    async encryptMessageData(data) {
+        await this.authKey.waitForKey()
         data = Buffer.concat([struct.pack('<qq', this.salt.toString(), this.id.toString()), data])
         const padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12)
         // Being substr(what, offset, length); x = 0 for client
@@ -116,7 +117,7 @@ class MTProtoState {
         // "msg_key = substr (msg_key_large, 8, 16)"
         const msgKey = msgKeyLarge.slice(8, 24)
 
-        const {iv, key} = this._calcKey(this.authKey.key, msgKey, true)
+        const { iv, key } = this._calcKey(this.authKey.key, msgKey, true)
 
         const keyId = Helpers.readBufferFromBigInt(this.authKey.keyId, 8)
         return Buffer.concat([keyId, msgKey, AES.encryptIge(Buffer.concat([data, padding]), key, iv)])
@@ -138,7 +139,7 @@ class MTProtoState {
         }
 
         const msgKey = body.slice(8, 24)
-        const {iv, key} = this._calcKey(this.authKey.key, msgKey, false)
+        const { iv, key } = this._calcKey(this.authKey.key, msgKey, false)
         body = AES.decryptIge(body.slice(24), key, iv)
 
         // https://core.telegram.org/mtproto/security_guidelines

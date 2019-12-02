@@ -1,5 +1,5 @@
 const NodeRSA = require('node-rsa')
-const { TLObject } = require('../tl/tlobject')
+const { serializeBytes } = require('../tl')
 const { readBigIntFromBuffer, readBufferFromBigInt, getByteArray, sha1, generateRandomBytes, modExp } = require('../Helpers')
 const _serverKeys = {}
 const BigInt = require('big-integer')
@@ -9,8 +9,8 @@ function _computeFingerprint(key) {
     const buf = readBigIntFromBuffer(key.keyPair.n.toBuffer(), false)
     const nArray = getByteArray(buf)
 
-    const n = TLObject.serializeBytes(nArray)
-    const e = TLObject.serializeBytes(getByteArray(key.keyPair.e))
+    const n = serializeBytes(nArray)
+    const e = serializeBytes(getByteArray(key.keyPair.e))
     // Telegram uses the last 8 bytes as the fingerprint
     const sh = sha1(Buffer.concat([ n, e ]))
     return readBigIntFromBuffer(sh.slice(-8), true, true)

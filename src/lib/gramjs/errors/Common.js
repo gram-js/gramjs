@@ -47,7 +47,7 @@ class InvalidBufferError extends Error {
     constructor(payload) {
         let code = null
         if (payload.length === 4) {
-            code = -(struct.unpack('<i', payload)[0])
+            code = -payload.readInt32LE(0)
             super(`Invalid response buffer (HTTP code ${code})`)
         } else {
             super(`Invalid response buffer (too short ${payload})`)
@@ -76,15 +76,6 @@ class SecurityError extends Error {
 class CdnFileTamperedError extends SecurityError {
     constructor() {
         super('The CDN file has been altered and its download cancelled.')
-    }
-}
-
-/**
- * Occurs when another exclusive conversation is opened in the same chat.
- */
-class AlreadyInConversationError extends Error {
-    constructor() {
-        super('Cannot open exclusive conversation in a chat that already has one open conversation')
     }
 }
 
@@ -132,8 +123,11 @@ class BadMessageError extends Error {
         64: 'Invalid container.',
     }
 
-    constructor(code) {
-        super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`)
+    constructor(request,code) {
+        let errorMessage = BadMessageError.ErrorMessages[code] ||
+            `Unknown error code (this should not happen): ${code}.`
+        errorMessage+= `  Caused by ${request.className}`
+        super(errorMessage)
         this.code = code
     }
 }
@@ -147,6 +141,5 @@ module.exports = {
     InvalidBufferError,
     SecurityError,
     CdnFileTamperedError,
-    AlreadyInConversationError,
     BadMessageError,
 }

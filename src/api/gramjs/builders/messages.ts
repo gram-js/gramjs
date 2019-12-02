@@ -1,18 +1,25 @@
-import * as gramJsApi from '../../../lib/gramjs/tl/types';
+import { gramJsApi, MTProto } from '../../../lib/gramjs';
 import { strippedPhotoToJpg } from '../../../lib/gramjs/Utils';
 import {
   ApiMessage, ApiMessageForwardInfo, ApiPhoto, ApiPhotoCachedSize, ApiPhotoSize, ApiSticker,
 } from '../../types';
-import { OmitFlags } from '../types/types';
 
 import { getApiChatIdFromMtpPeer } from './chats';
 import { isPeerUser } from './peers';
 import { bytesToDataUri } from './common';
 
+const ctors = gramJsApi.constructors;
+
 // TODO Maybe we do not need it.
 const DEFAULT_USER_ID = 0;
 
-export function buildApiMessage(mtpMessage: OmitFlags<MTP.message>): ApiMessage {
+export function buildApiMessage(mtpMessage: MTProto.Message): ApiMessage {
+  if (
+    !(mtpMessage instanceof ctors.Message)
+    && !(mtpMessage instanceof ctors.MessageService)) {
+    throw new Error('Not supported');
+  }
+
   const isPrivateToMe = mtpMessage.out !== true && isPeerUser(mtpMessage.toId);
   const chatId = isPrivateToMe
     ? (mtpMessage.fromId || DEFAULT_USER_ID)
@@ -22,9 +29,9 @@ export function buildApiMessage(mtpMessage: OmitFlags<MTP.message>): ApiMessage 
 }
 
 export function buildApiMessageFromShort(
-  mtpMessage: OmitFlags<MTP.updateShortMessage>,
+  mtpMessage: MTProto.updateShortMessage,
 ): ApiMessage {
-  const chatId = getApiChatIdFromMtpPeer({ userId: mtpMessage.userId });
+  const chatId = getApiChatIdFromMtpPeer({ userId: mtpMessage.userId } as MTProto.Peer);
 
   return buildApiMessageWithChatId(chatId, {
     ...mtpMessage,
@@ -34,16 +41,18 @@ export function buildApiMessageFromShort(
 }
 
 export function buildApiMessageFromShortChat(
-  mtpMessage: OmitFlags<MTP.updateShortChatMessage>,
+  mtpMessage: MTProto.updateShortChatMessage,
 ): ApiMessage {
-  const chatId = getApiChatIdFromMtpPeer({ chatId: mtpMessage.chatId });
+  const chatId = getApiChatIdFromMtpPeer({ chatId: mtpMessage.chatId } as MTProto.Peer);
 
   return buildApiMessageWithChatId(chatId, mtpMessage);
 }
 
 export function buildApiMessageWithChatId(
   chatId: number,
-  mtpMessage: Pick<MTP.message, 'id' | 'out' | 'message' | 'date' | 'fromId' | 'fwdFrom' | 'replyToMsgId' | 'media'>,
+  mtpMessage: Pick<MTProto.message, (
+    'id' | 'out' | 'message' | 'date' | 'fromId' | 'fwdFrom' | 'replyToMsgId' | 'media'
+  )>,
 ): ApiMessage {
   const sticker = mtpMessage.media && buildSticker(mtpMessage.media);
   const photo = mtpMessage.media && buildPhoto(mtpMessage.media);
@@ -57,7 +66,7 @@ export function buildApiMessageWithChatId(
   return {
     id: mtpMessage.id,
     chat_id: chatId,
-    is_outgoing: mtpMessage.out === true,
+    is_outgoing: Boolean(mtpMessage.out),
     content: {
       '@type': 'message',
       ...(text && { text }),
@@ -72,27 +81,33 @@ export function buildApiMessageWithChatId(
   };
 }
 
-function buildApiMessageForwardInfo(fwdFrom: MTP.messageFwdHeader): ApiMessageForwardInfo {
+function buildApiMessageForwardInfo(fwdFrom: MTProto.messageFwdHeader): ApiMessageForwardInfo {
   return {
     '@type': 'messageForwardInfo',
     from_chat_id: fwdFrom.fromId,
     origin: {
       '@type': 'messageForwardOriginUser',
       // TODO Handle when empty `fromId`.
-      sender_user_id: fwdFrom.fromId!,
+      sender_user_id: fwdFrom.fromId,
       // TODO @gramjs Not supported?
       // sender_user_name: fwdFrom.fromName,
     },
   };
 }
 
-function buildSticker(media: MTP.MessageMedia): ApiSticker | null {
-  if (!(media instanceof gramJsApi.MessageMediaDocument)) {
+function buildSticker(media: MTProto.MessageMedia): ApiSticker | null {
+  if (
+    !(media instanceof ctors.MessageMediaDocument)
+    || !media.document
+    || !(media.document instanceof ctors.Document)
+  ) {
     return null;
   }
 
   const stickerAttribute = media.document.attributes
-    .find((attr: any) => attr instanceof gramJsApi.DocumentAttributeSticker);
+    .find((attr: any): attr is MTProto.documentAttributeSticker => (
+      attr instanceof ctors.DocumentAttributeSticker
+    ));
 
   if (!stickerAttribute) {
     return null;
@@ -100,8 +115,8 @@ function buildSticker(media: MTP.MessageMedia): ApiSticker | null {
 
   const emoji = stickerAttribute.alt;
   const isAnimated = media.document.mimeType === 'application/x-tgsticker';
-  const thumb = media.document.thumbs.find((s: any) => s instanceof gramJsApi.PhotoCachedSize);
-  const thumbnail = thumb && buildApiPhotoCachedSize(thumb);
+  const thumb = media.document.thumbs && media.document.thumbs.find((s: any) => s instanceof ctors.PhotoCachedSize);
+  const thumbnail = thumb && buildApiPhotoCachedSize(thumb as MTProto.photoCachedSize);
   const { width, height } = thumbnail || {};
 
   return {
@@ -114,22 +129,24 @@ function buildSticker(media: MTP.MessageMedia): ApiSticker | null {
   };
 }
 
-function buildPhoto(media: MTP.MessageMedia): ApiPhoto | null {
-  if (!(media instanceof gramJsApi.MessageMediaPhoto)) {
+function buildPhoto(media: MTProto.MessageMedia): ApiPhoto | null {
+  if (!(media instanceof ctors.MessageMediaPhoto) || !media.photo || !(media.photo instanceof ctors.Photo)) {
     return null;
   }
 
-  const hasStickers = media.photo.has_stickers;
-  const thumb = media.photo.sizes.find((s: any) => s instanceof gramJsApi.PhotoStrippedSize);
-  const mSize = media.photo.sizes.find((s: any) => s.type === 'm');
-  const { width, height } = mSize;
+  const hasStickers = Boolean(media.photo.hasStickers);
+  const thumb = media.photo.sizes.find((s: any) => s instanceof ctors.PhotoStrippedSize);
+  const sizes = media.photo.sizes
+    .filter((s: any): s is MTProto.photoSize => s instanceof ctors.PhotoSize)
+    .map(buildApiPhotoSize);
+  const mSize = sizes.find((s: any) => s.type === 'm');
+  const { width, height } = mSize as ApiPhotoSize;
   const minithumbnail: ApiPhoto['minithumbnail'] = thumb && {
     '@type': 'minithumbnail',
-    data: bytesToDataUri(strippedPhotoToJpg(thumb.bytes as Buffer), true),
+    data: bytesToDataUri(strippedPhotoToJpg((thumb as MTProto.photoStrippedSize).bytes as Buffer), true),
     width,
     height,
   };
-  const sizes = media.photo.sizes.filter((s: any) => s instanceof gramJsApi.PhotoSize).map(buildApiPhotoSize);
 
   return {
     '@type': 'photo',
@@ -139,7 +156,7 @@ function buildPhoto(media: MTP.MessageMedia): ApiPhoto | null {
   };
 }
 
-function buildApiPhotoCachedSize(photoSize: MTP.photoCachedSize): ApiPhotoCachedSize {
+function buildApiPhotoCachedSize(photoSize: MTProto.photoCachedSize): ApiPhotoCachedSize {
   const {
     w, h, type, bytes,
   } = photoSize;
@@ -154,7 +171,7 @@ function buildApiPhotoCachedSize(photoSize: MTP.photoCachedSize): ApiPhotoCached
   };
 }
 
-function buildApiPhotoSize(photoSize: MTP.photoSize): ApiPhotoSize {
+function buildApiPhotoSize(photoSize: MTProto.photoSize): ApiPhotoSize {
   const { w, h, type } = photoSize;
 
   return {
@@ -167,6 +184,7 @@ function buildApiPhotoSize(photoSize: MTP.photoSize): ApiPhotoSize {
 
 // We only support 100000 local pending messages here and expect it will not interfere with real IDs.
 let localMessageCounter = -1;
+
 export function buildLocalMessage(chatId: number, text: string): ApiMessage {
   const localId = localMessageCounter--;
 

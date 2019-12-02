@@ -5,13 +5,13 @@ const AuthKey = require('../crypto/AuthKey')
 const doAuthentication = require('./Authenticator')
 const RPCResult = require('../tl/core/RPCResult')
 const MessageContainer = require('../tl/core/MessageContainer')
-const { TLRequest } = require('../tl/tlobject')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
 const format = require('string-format')
-const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl/types')
+const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl').constructors
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
+const { BadMessageError } = require("../errors/Common")
 const {
     BadServerSalt,
     BadMsgNotification,
@@ -22,14 +22,13 @@ const {
     MsgsStateReq,
     MsgResendReq,
     MsgsAllInfo,
-} = require('../tl/types')
+} = require('../tl').constructors
 const { SecurityError } = require('../errors/Common')
 const { InvalidBufferError } = require('../errors/Common')
-const { LogOutRequest } = require('../tl/functions/auth')
+const { LogOutRequest } = require('../tl').requests.auth
 const { RPCMessageToError } = require('../errors')
 const { TypeNotFoundError } = require('../errors/Common')
 
-// const { tlobjects } = require("../gramjs/tl/alltlobjects");
 format.extend(String.prototype, {})
 
 /**
@@ -300,7 +299,7 @@ class MTProtoSender {
             const batch = res.batch
             this._log.debug(`Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`)
 
-            data = this._state.encryptMessageData(data)
+            data = await this._state.encryptMessageData(data)
 
             try {
                 await this._connection.send(data)
@@ -311,12 +310,12 @@ class MTProtoSender {
             }
             for (const state of batch) {
                 if (!Array.isArray(state)) {
-                    if (state.request instanceof TLRequest) {
+                    if (state.request.classType === 'request') {
                         this._pending_state[state.msgId] = state
                     }
                 } else {
                     for (const s of state) {
-                        if (s.request instanceof TLRequest) {
+                        if (s.request.classType === 'request') {
                             this._pending_state[s.msgId] = s
                         }
                     }
@@ -525,10 +524,10 @@ class MTProtoSender {
     async _handleUpdate(message) {
         if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {
             // crc32(b'Updates')
-            this._log.warn(`Note: ${message.obj.constructor.name} is not an update, not dispatching it`)
+            this._log.warn(`Note: ${message.obj.className} is not an update, not dispatching it`)
             return
         }
-        this._log.debug('Handling update ' + message.obj.constructor.name)
+        this._log.debug('Handling update ' + message.obj.className)
         if (this._updateCallback) {
             this._updateCallback(message.obj)
         }
@@ -584,7 +583,7 @@ class MTProtoSender {
     async _handleBadNotification(message) {
         const badMsg = message.obj
         const states = this._popStates(badMsg.badMsgId)
-        this._log.debug(`Handling bad msg ${badMsg}`)
+        this._log.debug(`Handling bad msg ${JSON.stringify(badMsg)}`)
         if ([16, 17].includes(badMsg.errorCode)) {
             // Sent msg_id too low or too high (respectively).
             // Use the current msg_id to determine the right time offset.
@@ -598,11 +597,10 @@ class MTProtoSender {
             // msg_seqno too high never seems to happen but just in case
             this._state._sequence -= 16
         } else {
-            // for (const state of states) {
-            // TODO set errors;
-            /* state.future.set_exception(
-            BadMessageError(state.request, bad_msg.error_code))*/
-            // }
+
+            for (const state of states){
+                state.reject(new BadMessageError(state.request,badMsg.errorCode))
+            }
 
             return
         }

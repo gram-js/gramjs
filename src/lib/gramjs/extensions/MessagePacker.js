@@ -1,6 +1,5 @@
 const MessageContainer = require('../tl/core/MessageContainer')
 const TLMessage = require('../tl/core/TLMessage')
-const { TLRequest } = require('../tl/tlobject')
 const BinaryWriter = require('../extensions/BinaryWriter')
 const struct = require('python-struct')
 
@@ -52,11 +51,10 @@ class MessagePacker {
                     afterId = state.after.msgId
                 }
                 state.msgId = await this._state.writeDataAsMessage(
-                    buffer, state.data, state.request instanceof TLRequest,
+                    buffer, state.data, state.request.classType==='request',
                     afterId,
                 )
-
-                this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.constructor.name}`)
+                this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.className || state.request.constructor.name}`)
                 batch.push(state)
                 continue
             }
@@ -64,7 +62,7 @@ class MessagePacker {
                 this._queue.unshift(state)
                 break
             }
-            this._log.warn(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`)
+            this._log.warn(`Message payload for ${state.request.className || state.request.constructor.name} is too long ${state.data.length} and cannot be sent`)
             state.promise.reject('Request Payload is too big')
             size = 0
             continue

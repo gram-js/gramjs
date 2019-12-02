@@ -5,16 +5,14 @@ const MemorySession = require('../sessions/Memory')
 const { addKey } = require('../crypto/RSA')
 const Helpers = require('../Helpers')
 const { BinaryWriter } = require('../extensions')
-const { TLRequest } = require('../tl/tlobject')
 const utils = require('../Utils')
 const Session = require('../sessions/Abstract')
-const JSONSession = require('../sessions/JSONSession')
 const os = require('os')
-const { GetConfigRequest } = require('../tl/functions/help')
 const { LAYER } = require('../tl/AllTLObjects')
-const { functions, types } = require('../tl')
+const { constructors, requests } = require('../tl')
 const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
+const { FloodWaitError } = require("../errors/RPCErrorList")
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 
 const DEFAULT_DC_ID = 2
@@ -65,7 +63,7 @@ class TelegramClient {
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
             try {
-                session = JSONSession.tryLoadOrCreateNew(session)
+                throw new Error("not implemented")
             } catch (e) {
                 console.log(e)
                 session = new MemorySession()
@@ -101,9 +99,9 @@ class TelegramClient {
         this._floodWaitedRequests = {}
 
         this._initWith = (x) => {
-            return new functions.InvokeWithLayerRequest({
+            return new requests.InvokeWithLayerRequest({
                 layer: LAYER,
-                query: new functions.InitConnectionRequest({
+                query: new requests.InitConnectionRequest({
                     apiId: this.apiId,
                     deviceModel: args.deviceModel || os.type().toString() || 'Unknown',
                     systemVersion: args.systemVersion || os.release().toString() || '1.0',
@@ -150,7 +148,7 @@ class TelegramClient {
         this.session.authKey = this._sender.authKey
         await this.session.save()
         await this._sender.send(this._initWith(
-            new GetConfigRequest(),
+            new requests.help.GetConfigRequest({}),
         ))
         this._updateLoop()
     }
@@ -162,7 +160,7 @@ class TelegramClient {
             // We don't care about the result we just want to send it every
             // 60 seconds so telegram doesn't stop the connection
             try {
-                this._sender.send(new functions.PingRequest({
+                this._sender.send(new requests.PingRequest({
                     pingId: rnd,
                 }))
             } catch (e) {
@@ -178,7 +176,7 @@ class TelegramClient {
             // TODO Call getDifference instead since it's more relevant
             if (new Date().getTime() - this._lastRequest > 30 * 60 * 1000) {
                 try {
-                    await this.invoke(new functions.updates.GetStateRequest())
+                    await this.invoke(new requests.updates.GetStateRequest())
                 } catch (e) {
                     console.log('err is ', e)
                 }
@@ -253,8 +251,8 @@ class TelegramClient {
                 ))
                 if (this.session.dcId !== dcId) {
                     this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
-                    const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
-                    const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
+                    const auth = await this.invoke(new requests.auth.ExportAuthorizationRequest({ dcId: dcId }))
+                    const req = this._initWith(new requests.auth.ImportAuthorizationRequest({
                             id: auth.id, bytes: auth.bytes,
                         },
                     ))
@@ -276,7 +274,7 @@ class TelegramClient {
 
     /**
      * Complete flow to download a file.
-     * @param inputLocation {types.InputFileLocation}
+     * @param inputLocation {constructors.InputFileLocation}
      * @param [args[partSizeKb] {number}]
      * @param [args[fileSize] {number}]
      * @param [args[progressCallback] {Function}]
@@ -312,7 +310,7 @@ class TelegramClient {
             try {
                 sender = await this._borrowExportedSender(dcId)
             } catch (e) {
-                if (e instanceof errors.DcIdInvalidError) {
+                if (e.message==='DC_ID_INVALID') {
                     // Can't export a sender for the ID we are currently in
                     sender = this._sender
                     exported = false
@@ -332,12 +330,12 @@ class TelegramClient {
             while (true) {
                 let result
                 try {
-                    result = await sender.send(new functions.upload.GetFileRequest({
+                    result = await sender.send(new requests.upload.GetFileRequest({
                         location: res.inputLocation,
                         offset: offset,
                         limit: partSize,
                     }))
-                    if (result instanceof types.upload.FileCdnRedirect) {
+                    if (result instanceof constructors.upload.FileCdnRedirect) {
                         throw new Error('not implemented')
                     }
                 } catch (e) {
@@ -378,7 +376,7 @@ class TelegramClient {
     }) {
         let date
         let media
-        if (message instanceof types.Message) {
+        if (message instanceof constructors.Message) {
             date = message.date
             media = message.media
         } else {
@@ -389,11 +387,12 @@ class TelegramClient {
             throw new Error('not implemented')
         }
 
-        if (media instanceof types.MessageMediaWebPage) {
-            if (media.webpage instanceof types.WebPage) {
+        if (media instanceof constructors.MessageMediaWebPage) {
+            if (media.webpage instanceof constructors.WebPage) {
                 media = media.webpage.document || media.webpage.photo
             }
         }
+<<<<<<< HEAD
         if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
 <<<<<<< HEAD
             return await this._downloadPhoto(media, saveToMemory, date, args.thumb, args.progressCallback)
@@ -404,12 +403,15 @@ class TelegramClient {
         } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
             return await this._downloadWebDocument(media, saveToMemory, args.progressCallback)
 =======
+=======
+        if (media instanceof constructors.MessageMediaPhoto || media instanceof constructors.Photo) {
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
             return this._downloadPhoto(media, args)
-        } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
+        } else if (media instanceof constructors.MessageMediaDocument || media instanceof constructors.Document) {
             return this._downloadDocument(media, args, media.dcId)
-        } else if (media instanceof types.MessageMediaContact) {
+        } else if (media instanceof constructors.MessageMediaContact) {
             return this._downloadContact(media, args)
-        } else if (media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) {
+        } else if (media instanceof constructors.WebDocument || media instanceof constructors.WebDocumentNoProxy) {
             return this._downloadWebDocument(media, args)
 >>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
         }
@@ -445,11 +447,11 @@ class TelegramClient {
         }
         let dcId
         let loc
-        if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
+        if (photo instanceof constructors.UserProfilePhoto || photo instanceof constructors.ChatPhoto) {
             console.log('i am ere')
             dcId = photo.dcId
             const size = isBig ? photo.photoBig : photo.photoSmall
-            loc = new types.InputPeerPhotoFileLocation({
+            loc = new constructors.InputPeerPhotoFileLocation({
                 peer: await this.getInputEntity(entity),
                 localId: size.localId,
                 volumeId: size.volumeId,
@@ -472,10 +474,10 @@ class TelegramClient {
             })
             return result
         } catch (e) {
-            if (e instanceof errors.LocationInvalidError) {
+            if (e.message==='LOCATION_INVALID') {
                 const ie = await this.getInputEntity(entity)
-                if (ie instanceof types.InputPeerChannel) {
-                    const full = await this.invoke(new functions.channels.GetFullChannelRequest({
+                if (ie instanceof constructors.InputPeerChannel) {
+                    const full = await this.invoke(new requests.channels.GetFullChannelRequest({
                         channel: ie,
                     }))
 <<<<<<< HEAD
@@ -506,7 +508,7 @@ class TelegramClient {
     _downloadCachedPhotoSize(size) {
         // No need to download anything, simply write the bytes
         let data
-        if (size instanceof types.PhotoStrippedSize) {
+        if (size instanceof constructors.PhotoStrippedSize) {
             data = utils.strippedPhotoToJpg(size.bytes)
         } else {
             data = size.bytes
@@ -515,17 +517,18 @@ class TelegramClient {
     }
 
     async _downloadPhoto(photo, args) {
-        if (photo instanceof types.MessageMediaPhoto) {
+        if (photo instanceof constructors.MessageMediaPhoto) {
             photo = photo.photo
         }
-        if (!(photo instanceof types.Photo)) {
+        if (!(photo instanceof constructors.Photo)) {
             return
         }
         const size = this._pickFileSize(photo.sizes, args.sizeType)
-        if (!size || (size instanceof types.PhotoSizeEmpty)) {
+        if (!size || (size instanceof constructors.PhotoSizeEmpty)) {
             return
         }
 
+<<<<<<< HEAD
 
         if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
             return this._downloadCachedPhotoSize(size)
@@ -533,6 +536,14 @@ class TelegramClient {
 
         const result = await this.downloadFile(
             new types.InputPhotoFileLocation({
+=======
+        if (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize) {
+            return this._downloadCachedPhotoSize(size)
+        }
+
+        return this.downloadFile(
+            new constructors.InputPhotoFileLocation({
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
                 id: photo.id,
                 accessHash: photo.accessHash,
                 fileReference: photo.fileReference,
@@ -553,19 +564,19 @@ class TelegramClient {
             doc = document.document
 =======
     async _downloadDocument(media, args) {
-        if (!(media instanceof types.MessageMediaDocument)) {
+        if (!(media instanceof constructors.MessageMediaDocument)) {
             return
 >>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
         }
 
         const doc = media.document
 
-        if (!(doc instanceof types.Document)) {
+        if (!(doc instanceof constructors.Document)) {
             return
         }
 
         const size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null;
-        if (size && (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize)) {
+        if (size && (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize)) {
             return this._downloadCachedPhotoSize(size)
         }
 <<<<<<< HEAD
@@ -573,8 +584,12 @@ class TelegramClient {
 =======
 
         return this.downloadFile(
+<<<<<<< HEAD
 >>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
             new types.InputDocumentFileLocation({
+=======
+            new constructors.InputDocumentFileLocation({
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
                 id: doc.id,
                 accessHash: doc.accessHash,
                 fileReference: doc.fileReference,
@@ -617,10 +632,10 @@ class TelegramClient {
         // TODO chose based on current connection method
         /*
         if (!this._config) {
-            this._config = await this.invoke(new functions.help.GetConfigRequest())
+            this._config = await this.invoke(new requests.help.GetConfigRequest())
         }
         if (cdn && !this._cdnConfig) {
-            this._cdnConfig = await this.invoke(new functions.help.GetCdnConfigRequest())
+            this._cdnConfig = await this.invoke(new requests.help.GetCdnConfigRequest())
             for (const pk of this._cdnConfig.publicKeys) {
                 addKey(pk.publicKey)
             }
@@ -641,7 +656,7 @@ class TelegramClient {
      * @returns {Promise}
      */
     async invoke(request) {
-        if (!(request instanceof TLRequest)) {
+        if (request.classType !== 'request') {
             throw new Error('You can only invoke MTProtoRequests')
         }
         await request.resolve(this, utils)
@@ -656,7 +671,7 @@ class TelegramClient {
                 await sleep(diff)
                 delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
             } else {
-                throw new errors.FloodWaitError({
+                throw new FloodWaitError({
                     request: request,
                     capture: diff,
                 })
@@ -666,17 +681,14 @@ class TelegramClient {
         let attempt = 0
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
-                console.log("invoking",request)
-
                 const promise = this._sender.send(request)
                 const result = await promise
-                console.log("got answer",promise)
                 this.session.processEntities(result)
                 this._entityCache.add(result)
                 return result
             } catch (e) {
-                if (e instanceof errors.ServerError || e instanceof errors.RpcCallFailError ||
-                    e instanceof errors.RpcMcgetFailError) {
+                if (e instanceof errors.ServerError || e.message==='RPC_CALL_FAIL' ||
+                    e.message==='RPC_MCGET_FAIL') {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
@@ -704,8 +716,8 @@ class TelegramClient {
     }
 
     async getMe() {
-        const me = (await this.invoke(new functions.users
-            .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
+        const me = (await this.invoke(new requests.users
+            .GetUsersRequest({ id: [new constructors.InputUserSelf()] })))[0]
         return me
     }
 
@@ -763,9 +775,7 @@ class TelegramClient {
             try {
                 const value = await args.code()
                 if (!value) {
-                    throw new errors.PhoneCodeEmptyError({
-                        request: null,
-                    })
+                    throw new Error("the phone code is empty")
                 }
 
                 if (signUp) {
@@ -783,17 +793,17 @@ class TelegramClient {
                 }
                 break
             } catch (e) {
-                if (e instanceof errors.SessionPasswordNeededError) {
+                if (e.message==='SESSION_PASSWORD_NEEDED') {
                     twoStepDetected = true
                     break
-                } else if (e instanceof errors.PhoneNumberOccupiedError) {
+                } else if (e.message==='PHONE_NUMBER_OCCUPIED') {
                     signUp = true
-                } else if (e instanceof errors.PhoneNumberUnoccupiedError) {
+                } else if (e.message==='PHONE_NUMBER_UNOCCUPIED') {
                     signUp = true
-                } else if (e instanceof errors.PhoneCodeEmptyError ||
-                    e instanceof errors.PhoneCodeExpiredError ||
-                    e instanceof errors.PhoneCodeHashEmptyError ||
-                    e instanceof errors.PhoneCodeInvalidError) {
+                } else if (e.message==='PHONE_CODE_EMPTY' ||
+                    e.message==='PHONE_CODE_EXPIRED' ||
+                    e.message==='PHONE_CODE_HASH_EMPTY' ||
+                    e.message==='PHONE_CODE_INVALID') {
                     console.log('Invalid code. Please try again.')
                 } else {
                     throw e
@@ -854,7 +864,7 @@ class TelegramClient {
                 this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
-            result = await this.invoke(new functions.auth.SignInRequest({
+            result = await this.invoke(new requests.auth.SignInRequest({
                 phoneNumber: phone,
                 phoneCodeHash: phoneCodeHash,
                 phoneCode: args.code.toString(),
@@ -862,8 +872,8 @@ class TelegramClient {
         } else if (args.password) {
             for (let i = 0; i < 5; i++) {
                 try {
-                    const pwd = await this.invoke(new functions.account.GetPasswordRequest())
-                    result = await this.invoke(new functions.auth.CheckPasswordRequest({
+                    const pwd = await this.invoke(new requests.account.GetPasswordRequest())
+                    result = await this.invoke(new requests.auth.CheckPasswordRequest({
                         password: computeCheck(pwd, args.password),
                     }))
                     break
@@ -872,7 +882,7 @@ class TelegramClient {
                 }
             }
         } else if (args.botToken) {
-            result = await this.invoke(new functions.auth.ImportBotAuthorizationRequest(
+            result = await this.invoke(new requests.auth.ImportBotAuthorizationRequest(
                 {
                     flags: 0,
                     botAuthToken: args.botToken,
@@ -905,7 +915,7 @@ class TelegramClient {
     async isUserAuthorized() {
         if (this._authorized === undefined || this._authorized === null) {
             try {
-                await this.invoke(new functions.updates.GetStateRequest())
+                await this.invoke(new requests.updates.GetStateRequest())
                 this._authorized = true
             } catch (e) {
                 this._authorized = false
@@ -933,21 +943,26 @@ class TelegramClient {
 
         if (!phoneHash) {
             try {
-                result = await this.invoke(new functions.auth.SendCodeRequest({
+                result = await this.invoke(new requests.auth.SendCodeRequest({
                     phoneNumber: phone,
                     apiId: this.apiId,
                     apiHash: this.apiHash,
-                    settings: new types.CodeSettings(),
+                    settings: new constructors.CodeSettings(),
                 }))
             } catch (e) {
+<<<<<<< HEAD
                 if (e instanceof errors.AuthRestartError) {
                     return await this.sendCodeRequest(phone, forceSMS)
+=======
+                if (e.message==='AUTH_RESTART') {
+                    return this.sendCodeRequest(phone, forceSMS)
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
                 }
                 throw e
             }
 
             // If we already sent a SMS, do not resend the code (hash may be empty)
-            if (result.type instanceof types.auth.SentCodeTypeSms) {
+            if (result.type instanceof constructors.auth.SentCodeTypeSms) {
                 forceSMS = false
             }
             if (result.phoneCodeHash) {
@@ -958,7 +973,7 @@ class TelegramClient {
         }
         this._phone = phone
         if (forceSMS) {
-            result = await this.invoke(new functions.auth.ResendCodeRequest({
+            result = await this.invoke(new requests.auth.ResendCodeRequest({
                 phone: phone,
                 phoneHash: phoneHash,
             }))
@@ -978,7 +993,7 @@ class TelegramClient {
         this.session.processEntities(update)
         this._entityCache.add(update)
 
-        if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
+        if (update instanceof constructors.Updates || update instanceof constructors.UpdatesCombined) {
             // TODO deal with entities
             const entities = {}
             for (const x of [...update.users, ...update.chats]) {
@@ -987,7 +1002,7 @@ class TelegramClient {
             for (const u of update.updates) {
                 this._processUpdate(u, update.updates, entities)
             }
-        } else if (update instanceof types.UpdateShort) {
+        } else if (update instanceof constructors.UpdateShort) {
             this._processUpdate(update.update, null)
         } else {
             this._processUpdate(update, null)
@@ -1029,13 +1044,13 @@ class TelegramClient {
         if (phone) {
             try {
                 for (const user of (await this.invoke(
-                    new functions.contacts.GetContactsRequest(0))).users) {
+                    new requests.contacts.GetContactsRequest(0))).users) {
                     if (user.phone === phone) {
                         return user
                     }
                 }
             } catch (e) {
-                if (e instanceof errors.BotMethodInvalidError) {
+                if (e.message==='BOT_METHOD_INVALID') {
                     throw new Error('Cannot get entity by phone number as a ' +
                         'bot (try using integer IDs, not strings)')
                 }
@@ -1051,22 +1066,22 @@ class TelegramClient {
         } else {
             const { username, isJoinChat } = utils.parseUsername(string)
             if (isJoinChat) {
-                const invite = await this.invoke(new functions.messages.CheckChatInviteRequest({
+                const invite = await this.invoke(new requests.messages.CheckChatInviteRequest({
                     'hash': username,
                 }))
-                if (invite instanceof types.ChatInvite) {
+                if (invite instanceof constructors.ChatInvite) {
                     throw new Error('Cannot get entity from a channel (or group) ' +
                         'that you are not part of. Join the group and retry',
                     )
-                } else if (invite instanceof types.ChatInviteAlready) {
+                } else if (invite instanceof constructors.ChatInviteAlready) {
                     return invite.chat
                 }
             } else if (username) {
                 try {
                     const result = await this.invoke(
-                        new functions.contacts.ResolveUsernameRequest(username))
+                        new requests.contacts.ResolveUsernameRequest(username))
                     const pid = utils.getPeerId(result.peer, false)
-                    if (result.peer instanceof types.PeerUser) {
+                    if (result.peer instanceof constructors.PeerUser) {
                         for (const x of result.users) {
                             if (x.id === pid) {
                                 return x
@@ -1080,7 +1095,7 @@ class TelegramClient {
                         }
                     }
                 } catch (e) {
-                    if (e instanceof errors.UsernameNotOccupiedError) {
+                    if (e.message ==='USERNAME_NOT_OCCUPIED') {
                         throw new Error(`No user has "${username}" as username`)
                     }
                     throw e
@@ -1178,7 +1193,7 @@ class TelegramClient {
         }
         // Then come known strings that take precedence
         if (['me', 'this'].includes(peer)) {
-            return new types.InputPeerSelf()
+            return new constructors.InputPeerSelf()
         }
         // No InputPeer, cached peer, or known string. Fetch from disk cache
         try {
@@ -1195,13 +1210,13 @@ class TelegramClient {
         // If we're not a bot but the user is in our contacts, it seems to work
         // regardless. These are the only two special-cased requests.
         peer = utils.getPeer(peer)
-        if (peer instanceof types.PeerUser) {
-            const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: [new types.InputUser({
+        if (peer instanceof constructors.PeerUser) {
+            const users = await this.invoke(new requests.users.GetUsersRequest({
+                id: [new constructors.InputUser({
                     userId: peer.userId, accessHash: 0,
                 })],
             }))
-            if (users && !(users[0] instanceof types.UserEmpty)) {
+            if (users && !(users[0] instanceof constructors.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
                 // channels but would be valid for users, we get UserEmpty.
                 // Avoid returning the invalid empty input peer for that.
@@ -1211,14 +1226,14 @@ class TelegramClient {
                 // another request, but that becomes too much work.
                 return utils.getInputPeer(users[0])
             }
-        } else if (peer instanceof types.PeerChat) {
-            return new types.InputPeerChat({
+        } else if (peer instanceof constructors.PeerChat) {
+            return new constructors.InputPeerChat({
                 chatId: peer.chatId,
             })
-        } else if (peer instanceof types.PeerChannel) {
+        } else if (peer instanceof constructors.PeerChannel) {
             try {
-                const channels = await this.invoke(new functions.channels.GetChannelsRequest({
-                    id: [new types.InputChannel({
+                const channels = await this.invoke(new requests.channels.GetChannelsRequest({
+                    id: [new constructors.InputChannel({
                         channelId: peer.channelId,
                         accessHash: 0,
                     })],

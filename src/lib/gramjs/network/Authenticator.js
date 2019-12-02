@@ -1,23 +1,12 @@
-const BigInt = require('big-integer');
+const BigInt = require('big-integer')
 const AES = require('../crypto/AES')
 const AuthKey = require('../crypto/AuthKey')
 const Factorizator = require('../crypto/Factorizator')
 const RSA = require('../crypto/RSA')
 const Helpers = require('../Helpers')
-const { ServerDHParamsFail } = require('../tl/types')
-const { ServerDHParamsOk } = require('../tl/types')
-const { ReqDHParamsRequest } = require('../tl/functions')
-const { SecurityError } = require('../errors/Common')
-const { PQInnerData } = require('../tl/types')
+const { constructors, requests } = require('../tl')
 const BinaryReader = require('../extensions/BinaryReader')
-const { ClientDHInnerData } = require('../tl/types')
-const { DhGenFail } = require('../tl/types')
-const { DhGenRetry } = require('../tl/types')
-const { DhGenOk } = require('../tl/types')
-const { SetClientDHParamsRequest } = require('../tl/functions')
-const { ServerDHInnerData } = require('../tl/types')
-const { ResPQ } = require('../tl/types')
-const { ReqPqMultiRequest } = require('../tl/functions')
+const { SecurityError } = require("../errors/Common")
 
 /**
  * Executes the authentication process with the Telegram servers.
@@ -31,13 +20,13 @@ async function doAuthentication(sender, log) {
 
     const nonce = Helpers.readBigIntFromBuffer(bytes, false, true)
 
-    const resPQ = await sender.send(new ReqPqMultiRequest({ nonce: nonce }))
+    const resPQ = await sender.send(new requests.ReqPqMultiRequest({ nonce: nonce }))
     log.debug('Starting authKey generation step 1')
 
-    if (!(resPQ instanceof ResPQ)) {
+    if (!(resPQ instanceof constructors.ResPQ)) {
         throw new Error(`Step 1 answer was ${resPQ}`)
     }
-    if (resPQ.nonce.neq(nonce)){
+    if (resPQ.nonce.neq(nonce)) {
         throw new SecurityError('Step 1 invalid nonce from server')
     }
     const pq = Helpers.readBigIntFromBuffer(resPQ.pq, false, true)
@@ -53,7 +42,7 @@ async function doAuthentication(sender, log) {
     bytes = Helpers.generateRandomBytes(32)
     const newNonce = Helpers.readBigIntFromBuffer(bytes, true, true)
 
-    const pqInnerData = new PQInnerData({
+    const pqInnerData = new constructors.PQInnerData({
         pq: Helpers.getByteArray(pq), // unsigned
         p: p,
         q: q,
@@ -77,7 +66,7 @@ async function doAuthentication(sender, log) {
     }
 
     const serverDhParams = await sender.send(
-        new ReqDHParamsRequest({
+        new requests.ReqDHParamsRequest({
             nonce: resPQ.nonce,
             serverNonce: resPQ.serverNonce,
             p: p,
@@ -86,7 +75,7 @@ async function doAuthentication(sender, log) {
             encryptedData: cipherText,
         }),
     )
-    if (!(serverDhParams instanceof ServerDHParamsOk || serverDhParams instanceof ServerDHParamsFail)) {
+    if (!(serverDhParams instanceof constructors.ServerDHParamsOk || serverDhParams instanceof constructors.ServerDHParamsFail)) {
         throw new Error(`Step 2.1 answer was ${serverDhParams}`)
     }
     if (serverDhParams.nonce.neq(resPQ.nonce)) {
@@ -97,14 +86,14 @@ async function doAuthentication(sender, log) {
         throw new SecurityError('Step 2 invalid server nonce from server')
     }
 
-    if (serverDhParams instanceof ServerDHParamsFail) {
+    if (serverDhParams instanceof constructors.ServerDHParamsFail) {
         const sh = Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32, true, true).slice(4, 20))
         const nnh = Helpers.readBigIntFromBuffer(sh, true, true)
         if (serverDhParams.newNonceHash.neq(nnh)) {
             throw new SecurityError('Step 2 invalid DH fail nonce from server')
         }
     }
-    if (!(serverDhParams instanceof ServerDHParamsOk)) {
+    if (!(serverDhParams instanceof constructors.ServerDHParamsOk)) {
         throw new Error(`Step 2.2 answer was ${serverDhParams}`)
     }
     log.debug('Finished authKey generation step 2')
@@ -120,7 +109,7 @@ async function doAuthentication(sender, log) {
     const reader = new BinaryReader(plainTextAnswer)
     reader.read(20) // hash sum
     const serverDhInner = reader.tgReadObject()
-    if (!(serverDhInner instanceof ServerDHInnerData)) {
+    if (!(serverDhInner instanceof constructors.ServerDHInnerData)) {
         throw new Error(`Step 3 answer was ${serverDhInner}`)
     }
 
@@ -138,24 +127,24 @@ async function doAuthentication(sender, log) {
     const gab = Helpers.modExp(ga, b, dhPrime)
 
     // Prepare client DH Inner Data
-    const clientDhInner = new ClientDHInnerData({
+    const clientDhInner = new constructors.ClientDHInnerData({
         nonce: resPQ.nonce,
         serverNonce: resPQ.serverNonce,
         retryId: 0, // TODO Actual retry ID
         gB: Helpers.getByteArray(gb, false),
     }).getBytes()
 
-    const clientDdhInnerHashed = Buffer.concat([ Helpers.sha1(clientDhInner), clientDhInner ])
+    const clientDdhInnerHashed = Buffer.concat([Helpers.sha1(clientDhInner), clientDhInner])
     // Encryption
     const clientDhEncrypted = AES.encryptIge(clientDdhInnerHashed, key, iv)
     const dhGen = await sender.send(
-        new SetClientDHParamsRequest({
+        new requests.SetClientDHParamsRequest({
             nonce: resPQ.nonce,
             serverNonce: resPQ.serverNonce,
             encryptedData: clientDhEncrypted,
         }),
     )
-    const nonceTypes = [ DhGenOk, DhGenRetry, DhGenFail ]
+    const nonceTypes = [constructors.DhGenOk, constructors.DhGenRetry, constructors.DhGenFail]
     if (!(dhGen instanceof nonceTypes[0] || dhGen instanceof nonceTypes[1] || dhGen instanceof nonceTypes[2])) {
         throw new Error(`Step 3.1 answer was ${dhGen}`)
     }
@@ -176,7 +165,7 @@ async function doAuthentication(sender, log) {
         throw new SecurityError('Step 3 invalid new nonce hash')
     }
 
-    if (!(dhGen instanceof DhGenOk)) {
+    if (!(dhGen instanceof constructors.DhGenOk)) {
         throw new Error(`Step 3.2 answer was ${dhGen}`)
     }
     log.debug('Finished authKey generation step 3')

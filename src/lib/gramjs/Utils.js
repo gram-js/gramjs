@@ -1,4 +1,4 @@
-const { types } = require('./tl')
+const { constructors } = require('./tl')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
     '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?')
@@ -48,11 +48,11 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         return entity
     }
 
-    if (entity instanceof types.User) {
+    if (entity instanceof constructors.User) {
         if (entity.isSelf && allowSelf) {
-            return new types.InputPeerSelf()
+            return new constructors.InputPeerSelf()
         } else if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
-            return new types.InputPeerUser({
+            return new constructors.InputPeerUser({
                 userId: entity.id,
                 accessHash: entity.accessHash,
             })
@@ -60,42 +60,42 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
             throw new Error('User without access_hash or min info cannot be input')
         }
     }
-    if (entity instanceof types.Chat || entity instanceof types.ChatEmpty ||
-        entity instanceof types.ChatForbidden) {
-        return new types.InputPeerChat({ chatId: entity.id })
+    if (entity instanceof constructors.Chat || entity instanceof constructors.ChatEmpty ||
+        entity instanceof constructors.ChatForbidden) {
+        return new constructors.InputPeerChat({ chatId: entity.id })
     }
-    if (entity instanceof types.Channel) {
+    if (entity instanceof constructors.Channel) {
         if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
-            return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+            return new constructors.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
         } else {
             throw new TypeError('Channel without access_hash or min info cannot be input')
         }
     }
-    if (entity instanceof types.ChannelForbidden) {
+    if (entity instanceof constructors.ChannelForbidden) {
         // "channelForbidden are never min", and since their hash is
         // also not optional, we assume that this truly is the case.
-        return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+        return new constructors.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
     }
 
-    if (entity instanceof types.InputUser) {
-        return new types.InputPeerUser({ userId: entity.userId, accessHash: entity.accessHash })
+    if (entity instanceof constructors.InputUser) {
+        return new constructors.InputPeerUser({ userId: entity.userId, accessHash: entity.accessHash })
     }
-    if (entity instanceof types.InputChannel) {
-        return new types.InputPeerChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+    if (entity instanceof constructors.InputChannel) {
+        return new constructors.InputPeerChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
     }
-    if (entity instanceof types.UserEmpty) {
-        return new types.InputPeerEmpty()
+    if (entity instanceof constructors.UserEmpty) {
+        return new constructors.InputPeerEmpty()
     }
-    if (entity instanceof types.UserFull) {
+    if (entity instanceof constructors.UserFull) {
         return getInputPeer(entity.user)
     }
 
-    if (entity instanceof types.ChatFull) {
-        return new types.InputPeerChat({ chatId: entity.id })
+    if (entity instanceof constructors.ChatFull) {
+        return new constructors.InputPeerChat({ chatId: entity.id })
     }
 
-    if (entity instanceof types.PeerChat) {
-        return new types.InputPeerChat(entity.chat_id)
+    if (entity instanceof constructors.PeerChat) {
+        return new constructors.InputPeerChat(entity.chat_id)
     }
 
     _raiseCastFail(entity, 'InputPeer')
@@ -122,12 +122,12 @@ function getInputChannel(entity) {
     if (entity.SUBCLASS_OF_ID === 0x40f202fd) { // crc32(b'InputChannel')
         return entity
     }
-    if (entity instanceof types.Channel || entity instanceof types.ChannelForbidden) {
-        return new types.InputChannel({ channelId: entity.id, accessHash: entity.accessHash || 0 })
+    if (entity instanceof constructors.Channel || entity instanceof constructors.ChannelForbidden) {
+        return new constructors.InputChannel({ channelId: entity.id, accessHash: entity.accessHash || 0 })
     }
 
-    if (entity instanceof types.InputPeerChannel) {
-        return new types.InputChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+    if (entity instanceof constructors.InputPeerChannel) {
+        return new constructors.InputChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
     }
     _raiseCastFail(entity, 'InputChannel')
 }
@@ -151,29 +151,29 @@ function getInputUser(entity) {
         return entity
     }
 
-    if (entity instanceof types.User) {
+    if (entity instanceof constructors.User) {
         if (entity.isSelf) {
-            return new types.InputPeerSelf()
+            return new constructors.InputPeerSelf()
         } else {
-            return new types.InputUser({
+            return new constructors.InputUser({
                 userId: entity.id,
                 accessHash: entity.accessHash || 0,
             })
         }
     }
-    if (entity instanceof types.InputPeerSelf) {
-        return new types.InputPeerSelf()
+    if (entity instanceof constructors.InputPeerSelf) {
+        return new constructors.InputPeerSelf()
     }
-    if (entity instanceof types.UserEmpty || entity instanceof types.InputPeerEmpty) {
-        return new types.InputUserEmpty()
+    if (entity instanceof constructors.UserEmpty || entity instanceof constructors.InputPeerEmpty) {
+        return new constructors.InputUserEmpty()
     }
 
-    if (entity instanceof types.UserFull) {
+    if (entity instanceof constructors.UserFull) {
         return getInputUser(entity.user)
     }
 
-    if (entity instanceof types.InputPeerUser) {
-        return new types.InputUser({ userId: entity.userId, accessHash: entity.accessHash })
+    if (entity instanceof constructors.InputPeerUser) {
+        return new constructors.InputUser({ userId: entity.userId, accessHash: entity.accessHash })
     }
 
     _raiseCastFail(entity, 'InputUser')
@@ -189,14 +189,14 @@ function getInputDialog(dialog) {
             return dialog
         }
         if (dialog.SUBCLASS_OF_ID === 0xc91c90b6) { // crc32(b'InputPeer')
-            return new types.InputDialogPeer({ peer: dialog })
+            return new constructors.InputDialogPeer({ peer: dialog })
         }
     } catch (e) {
         _raiseCastFail(dialog, 'InputDialogPeer')
     }
 
     try {
-        return new types.InputDialogPeer(getInputPeer(dialog))
+        return new constructors.InputDialogPeer(getInputPeer(dialog))
         // eslint-disable-next-line no-empty
     } catch (e) {
 
@@ -207,13 +207,13 @@ function getInputDialog(dialog) {
 function getInputMessage(message) {
     try {
         if (typeof message == 'number') { // This case is really common too
-            return new types.InputMessageID({
+            return new constructors.InputMessageID({
                 id: message,
             })
         } else if (message.SUBCLASS_OF_ID === 0x54b6bcc5) { // crc32(b'InputMessage')
             return message
         } else if (message.SUBCLASS_OF_ID === 0x790009e3) { // crc32(b'Message')
-            return new types.InputMessageID(message.id)
+            return new constructors.InputMessageID(message.id)
         }
         // eslint-disable-next-line no-empty
     } catch (e) {
@@ -253,28 +253,28 @@ function getInputLocation(location) {
     } catch (e) {
         _raiseCastFail(location, 'InputFileLocation')
     }
-    if (location instanceof types.Message) {
+    if (location instanceof constructors.Message) {
         location = location.media
     }
 
-    if (location instanceof types.MessageMediaDocument) {
+    if (location instanceof constructors.MessageMediaDocument) {
         location = location.document
-    } else if (location instanceof types.MessageMediaPhoto) {
+    } else if (location instanceof constructors.MessageMediaPhoto) {
         location = location.photo
     }
 
-    if (location instanceof types.Document) {
+    if (location instanceof constructors.Document) {
         return {
-            dcId: location.dcId, inputLocation: new types.InputDocumentFileLocation({
+            dcId: location.dcId, inputLocation: new constructors.InputDocumentFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
                 thumbSize: '', // Presumably to download one of its thumbnails
             }),
         }
-    } else if (location instanceof types.Photo) {
+    } else if (location instanceof constructors.Photo) {
         return {
-            dcId: location.dcId, inputLocation: new types.InputPhotoFileLocation({
+            dcId: location.dcId, inputLocation: new constructors.InputPhotoFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
@@ -283,7 +283,7 @@ function getInputLocation(location) {
         }
     }
 
-    if (location instanceof types.FileLocationToBeDeprecated) {
+    if (location instanceof constructors.FileLocationToBeDeprecated) {
         throw new Error('Unavailable location cannot be used as input')
     }
     _raiseCastFail(location, 'InputFileLocation')
@@ -316,9 +316,9 @@ function getPeer(peer) {
         if (typeof peer === 'number') {
             const res = resolveId(peer)
 
-            if (res[1] === types.PeerChannel) {
+            if (res[1] === constructors.PeerChannel) {
                 return new res[1]({ channelId: res[0] })
-            } else if (res[1] === types.PeerChat) {
+            } else if (res[1] === constructors.PeerChat) {
                 return new res[1]({ chatId: res[0] })
             } else {
                 return new res[1]({ userId: res[0] })
@@ -329,25 +329,25 @@ function getPeer(peer) {
         }
         if (peer.SUBCLASS_OF_ID === 0x2d45687) {
             return peer
-        } else if (peer instanceof types.contacts.ResolvedPeer ||
-            peer instanceof types.InputNotifyPeer || peer instanceof types.TopPeer ||
-            peer instanceof types.Dialog || peer instanceof types.DialogPeer) {
+        } else if (peer instanceof constructors.contacts.ResolvedPeer ||
+            peer instanceof constructors.InputNotifyPeer || peer instanceof constructors.TopPeer ||
+            peer instanceof constructors.Dialog || peer instanceof constructors.DialogPeer) {
             return peer.peer
-        } else if (peer instanceof types.ChannelFull) {
-            return new types.PeerChannel({ channelId: peer.id })
+        } else if (peer instanceof constructors.ChannelFull) {
+            return new constructors.PeerChannel({ channelId: peer.id })
         }
         if (peer.SUBCLASS_OF_ID === 0x7d7c6f86 || peer.SUBCLASS_OF_ID === 0xd9c7fc18) {
             // ChatParticipant, ChannelParticipant
-            return new types.PeerUser({ userId: peer.userId })
+            return new constructors.PeerUser({ userId: peer.userId })
         }
         peer = getInputPeer(peer, false, false)
 
-        if (peer instanceof types.InputPeerUser) {
-            return new types.PeerUser({ userId: peer.userId })
-        } else if (peer instanceof types.InputPeerChat) {
-            return new types.PeerChat({ chatId: peer.chatId })
-        } else if (peer instanceof types.InputPeerChannel) {
-            return new types.PeerChannel({ channelId: peer.channelId })
+        if (peer instanceof constructors.InputPeerUser) {
+            return new constructors.PeerUser({ userId: peer.userId })
+        } else if (peer instanceof constructors.InputPeerChat) {
+            return new constructors.PeerChat({ chatId: peer.chatId })
+        } else if (peer instanceof constructors.InputPeerChannel) {
+            return new constructors.PeerChannel({ channelId: peer.channelId })
         }
         // eslint-disable-next-line no-empty
     } catch (e) {
@@ -380,7 +380,7 @@ function getPeerId(peer, addMark = true) {
     }
 
     // Tell the user to use their client to resolve InputPeerSelf if we got one
-    if (peer instanceof types.InputPeerSelf) {
+    if (peer instanceof constructors.InputPeerSelf) {
         _raiseCastFail(peer, 'int (you might want to use client.get_peer_id)')
     }
 
@@ -389,16 +389,16 @@ function getPeerId(peer, addMark = true) {
     } catch (e) {
         _raiseCastFail(peer, 'int')
     }
-    if (peer instanceof types.PeerUser) {
+    if (peer instanceof constructors.PeerUser) {
         return peer.userId
-    } else if (peer instanceof types.PeerChat) {
+    } else if (peer instanceof constructors.PeerChat) {
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.chatId <= 0x7fffffff)) {
             peer.chatId = resolveId(peer.chatId)[0]
         }
 
         return addMark ? -(peer.chatId) : peer.chatId
-    } else { // if (peer instanceof types.PeerChannel)
+    } else { // if (peer instanceof constructors.PeerChannel)
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.channelId <= 0x7fffffff)) {
             peer.channelId = resolveId(peer.channelId)[0]
@@ -422,7 +422,7 @@ function getPeerId(peer, addMark = true) {
  */
 function resolveId(markedId) {
     if (markedId >= 0) {
-        return [markedId, types.PeerUser]
+        return [markedId, constructors.PeerUser]
     }
 
     // There have been report of chat IDs being 10000xyz, which means their
@@ -431,9 +431,9 @@ function resolveId(markedId) {
     // two zeroes.
     const m = markedId.toString().match(/-100([^0]\d*)/)
     if (m) {
-        return [parseInt(m[1]), types.PeerChannel]
+        return [parseInt(m[1]), constructors.PeerChannel]
     }
-    return [-markedId, types.PeerChat]
+    return [-markedId, constructors.PeerChat]
 }
 
 /**
@@ -527,7 +527,7 @@ function rtrim(s, mask) {
  * @param entity
  */
 function getDisplayName(entity) {
-    if (entity instanceof types.User) {
+    if (entity instanceof constructors.User) {
         if (entity.lastName && entity.firstName) {
             return `${entity.firstName} ${entity.lastName}`
         } else if (entity.firstName) {
@@ -537,7 +537,7 @@ function getDisplayName(entity) {
         } else {
             return ''
         }
-    } else if (entity instanceof types.Chat || entity instanceof types.Channel) {
+    } else if (entity instanceof constructors.Chat || entity instanceof constructors.Channel) {
         return entity.title
     }
     return ''

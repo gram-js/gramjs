@@ -1,28 +1,26 @@
-import * as gramJsApi from '../../lib/gramjs/tl/types';
 import {
-  InvokeRequestPayload,
-  SupportedMessageRequests,
-  SupportedUploadRequests,
-} from './types/types';
-import * as apiRequests from '../../lib/gramjs/tl/functions';
+  TelegramClient, session, GramJsApi, MTProto,
+} from '../../lib/gramjs';
 import { Logger as GramJsLogger } from '../../lib/gramjs/extensions';
 
-import { TelegramClient, session } from '../../lib/gramjs';
 import { DEBUG } from '../../config';
 import {
   onAuthReady, onRequestCode, onRequestPassword, onRequestPhoneNumber,
 } from './connectors/auth';
 import { onGramJsUpdate } from './onGramJsUpdate';
+<<<<<<< HEAD
 import localDb from './localDb';
 import { buildInputPeerPhotoFileLocation } from './inputHelpers';
 import { ApiFileLocation } from '../types';
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
 
 GramJsLogger.getLogger().level = 'debug';
 >>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
 
-let client: any;
+let client: TelegramClient;
 
 export async function init(sessionId: string) {
   const { StringSession } = session;
@@ -67,42 +65,23 @@ export async function init(sessionId: string) {
   }
 }
 
-export async function invokeRequest(data: InvokeRequestPayload) {
-  const { namespace, name, args } = data;
-
-  let RequestClass;
-
-  // For some reason these types are not working automatically.
-  switch (namespace) {
-    case 'messages':
-      RequestClass = apiRequests.messages[name as SupportedMessageRequests];
-      break;
-    case 'upload':
-      RequestClass = apiRequests.upload[name as SupportedUploadRequests];
-      break;
-    default:
-      return null;
-  }
-
-  const request = new RequestClass(args);
-
+export async function invokeRequest<T extends InstanceType<GramJsApi.AnyRequest>>(request: T) {
   if (DEBUG) {
     // eslint-disable-next-line no-console
-    console.log(`[GramJs/worker] INVOKE ${name}`, args);
+    console.log(`[GramJs/client] INVOKE ${request.className}`);
   }
 
   const result = await client.invoke(request);
 
-  postProcess(name, result, args);
-
   if (DEBUG) {
     // eslint-disable-next-line no-console
-    console.log(`[GramJs/worker] INVOKE RESPONSE ${name}`, result);
+    console.log(`[GramJs/client] INVOKE RESPONSE ${request.className}`, result);
   }
 
   return result;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 export function downloadFile(id: number, fileLocation: ApiFileLocation, dcId?: number) {
   return client.downloadFile(
@@ -168,3 +147,12 @@ function postProcess(name: string, anyResult: any, args: AnyLiteral) {
     }
   }
 }
+=======
+export function downloadAvatar(entity: MTProto.chat | MTProto.user, isBig = false) {
+  return client.downloadProfilePhoto(entity, isBig);
+}
+
+export function downloadMessageImage(message: MTProto.message) {
+  return client.downloadMedia(message, { sizeType: 'x' });
+}
+>>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
