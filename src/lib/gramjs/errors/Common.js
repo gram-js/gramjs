@@ -128,6 +128,7 @@ class BadMessageError extends Error {
             `Unknown error code (this should not happen): ${code}.`
         errorMessage+= `  Caused by ${request.className}`
         super(errorMessage)
+        this.message = errorMessage
         this.code = code
     }
 }

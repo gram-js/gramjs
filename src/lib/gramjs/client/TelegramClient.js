@@ -820,18 +820,15 @@ class TelegramClient {
                     'Please provide the \'password\' argument to \'start()\'.')
             }
             if (typeof args.password == 'function') {
-                for (let i = 0; i < args.maxAttempts; i++) {
-                    try {
-                        const pass = await args.password()
-                        me = await this.signIn({
-                            phone: args.phone,
-                            password: pass,
-                        })
-                        break
-                    } catch (e) {
-                        console.log(e)
-                        console.log('Invalid password. Please try again')
-                    }
+                try {
+                    const pass = await args.password()
+                    me = await this.signIn({
+                        phone: args.phone,
+                        password: pass,
+                    })
+                } catch (e) {
+                    console.log(e)
+                    console.log('Invalid password. Please try again')
                 }
             } else {
                 me = await this.signIn({

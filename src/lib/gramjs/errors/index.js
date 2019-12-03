@@ -15,8 +15,8 @@ function RPCMessageToError(rpcError, request) {
             return new Cls({ request: request, capture: capture })
         }
     }
-    return new RPCError(request, rpcError)
 
+    return new RPCError(rpcError.errorMessage, request)
 }
 
 module.exports = {
