@@ -1,7 +1,6 @@
 const MessageContainer = require('../tl/core/MessageContainer')
 const TLMessage = require('../tl/core/TLMessage')
 const BinaryWriter = require('../extensions/BinaryWriter')
-const struct = require('python-struct')
 
 class MessagePacker {
     constructor(state, logger) {
@@ -71,9 +70,10 @@ class MessagePacker {
             return null
         }
         if (batch.length > 1) {
-            data = Buffer.concat([struct.pack(
-                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length,
-            ), buffer.getValue()])
+            const b = Buffer.alloc(8)
+            b.writeUInt32LE(MessageContainer.CONSTRUCTOR_ID,0)
+            b.writeInt32LE(batch.length,4)
+            data = Buffer.concat([b, buffer.getValue()])
             buffer = new BinaryWriter(Buffer.alloc(0))
             const containerId = await this._state.writeDataAsMessage(
                 buffer, data, false,

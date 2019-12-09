@@ -2,7 +2,6 @@
  * Errors not related to the Telegram API itself
  */
 
-const struct = require('python-struct')
 
 /**
  * Occurs when a read operation was cancelled.

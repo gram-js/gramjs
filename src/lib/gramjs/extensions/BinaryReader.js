@@ -1,9 +1,7 @@
-const { unpack } = require('python-struct')
 const { TypeNotFoundError } = require('../errors/Common')
 const { coreObjects } = require('../tl/core')
 const { tlobjects } = require('../tl/AllTLObjects')
 const { readBigIntFromBuffer } = require('../Helpers')
-const BigInt = require('big-integer')
 
 class BinaryReader {
     /**
@@ -56,7 +54,7 @@ class BinaryReader {
      * @returns {number}
      */
     readFloat() {
-        return unpack('<f', this.read(4))[0]
+        return this.read(4).readFloatLE(0)
     }
 
     /**
@@ -64,7 +62,8 @@ class BinaryReader {
      * @returns {BigInteger}
      */
     readDouble() {
-        return unpack('<f', this.read(8))[0]
+        // was this a bug ? it should have been <d
+        return this.read(8).readDoubleLE(0)
     }
 
     /**

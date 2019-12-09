@@ -7,7 +7,6 @@ const RPCResult = require('../tl/core/RPCResult')
 const MessageContainer = require('../tl/core/MessageContainer')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
-const format = require('string-format')
 const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl').constructors
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
@@ -29,7 +28,6 @@ const { LogOutRequest } = require('../tl').requests.auth
 const { RPCMessageToError } = require('../errors')
 const { TypeNotFoundError } = require('../errors/Common')
 
-format.extend(String.prototype, {})
 
 /**
  * MTProto Mobile Protocol sender

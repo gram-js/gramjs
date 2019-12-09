@@ -1,4 +1,3 @@
-const struct = require('python-struct')
 const Helpers = require('../Helpers')
 const AES = require('../crypto/AES')
 const BinaryReader = require('../extensions/BinaryReader')
@@ -7,6 +6,8 @@ const { TLMessage } = require('../tl/core')
 const { SecurityError, InvalidBufferError } = require('../errors/Common')
 const { InvokeAfterMsgRequest } = require('../tl').requests
 const BigInt = require('big-integer')
+const { readBufferFromBigInt } = require("../Helpers")
+const { readBigIntFromBuffer } = require("../Helpers")
 
 class MTProtoState {
     /**
@@ -97,7 +98,12 @@ class MTProtoState {
         } else {
             body = await GZIPPacked.gzipIfSmaller(contentRelated, new InvokeAfterMsgRequest(afterId, data).getBytes())
         }
-        buffer.write(struct.pack('<qii', msgId.toString(), seqNo, body.length))
+        const s = Buffer.alloc(4)
+        s.writeInt32LE(seqNo, 0)
+        const b = Buffer.alloc(4)
+        b.writeInt32LE(body.length, 0)
+        const m = readBufferFromBigInt(msgId, 8, true, true)
+        buffer.write(Buffer.concat([m, s, b]))
         buffer.write(body)
         return msgId
     }
@@ -109,7 +115,9 @@ class MTProtoState {
      */
     async encryptMessageData(data) {
         await this.authKey.waitForKey()
-        data = Buffer.concat([struct.pack('<qq', this.salt.toString(), this.id.toString()), data])
+        const s = readBufferFromBigInt(this.salt,8,true,true)
+        const i = readBufferFromBigInt(this.id,8,true,true)
+        data = Buffer.concat([Buffer.concat([s,i]), data])
         const padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12)
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"

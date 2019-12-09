@@ -52,6 +52,7 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+<<<<<<< HEAD
     "aes-js": "^3.1.2",
     "crc": "^3.8.0",
     "crypto": "^1.0.1",
@@ -62,6 +63,12 @@
     "python-struct": "^1.1.2",
     "string-format": "^2.0.0",
     "td": "^0.3.2",
+=======
+    "big-integer": "latest",
+    "croppie": "^2.6.4",
+    "emoji-regex": "^8.0.0",
+    "events": "^3.0.0",
+>>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
     "tdweb": "^1.5.0",
     "websocket": "^1.0.30",
     "big-integer": "latest"

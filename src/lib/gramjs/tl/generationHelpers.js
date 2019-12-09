@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const {crc32} = require('crc');
+=======
+const { crc32 } = require('../Helpers')
+>>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
 const snakeToCamelCase = (name) => {
   const result = name.replace(/(?:^|_)([a-z])/g, (_, g) => g.toUpperCase())
   return result.replace(/_/g, '')
@@ -62,7 +66,26 @@ const fromLine = (line, isFunction, methodInfo, layer) => {
     } else {
       args = ''
     }
+<<<<<<< HEAD
 
+=======
+    if (!currentConfig.constructorId) {
+
+        let hexId = ''
+        let args
+
+        if (Object.values(currentConfig.argsConfig).length) {
+            args = ` ${Object.keys(currentConfig.argsConfig).map((arg) => arg.toString()).join(' ')}`
+        } else {
+            args = ''
+        }
+
+        const representation = `${currentConfig.name}${hexId}${args} = ${currentConfig.result}`
+            .replace(/(:|\?)bytes /g, '$1string ')
+            .replace(/</g, ' ')
+            .replace(/>|{|}/g, '')
+            .replace(/ \w+:flags\.\d+\?true/g, '')
+>>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
 
     const representation = `${currentConfig.name}${hexId}${args} = ${currentConfig.result}`
       .replace(/(:|\?)bytes /g, '$1string ')
@@ -311,6 +334,7 @@ function serializeBytes(data) {
 }
 
 function serializeDate(dt) {
+<<<<<<< HEAD
   if (!dt) {
     return Buffer.alloc(4)
         .fill(0)
@@ -322,6 +346,21 @@ function serializeDate(dt) {
     return struct.pack('<i', dt)
   }
   throw Error(`Cannot interpret "${dt}" as a date`)
+=======
+    if (!dt) {
+        return Buffer.alloc(4)
+            .fill(0)
+    }
+    if (dt instanceof Date) {
+        dt = Math.floor((Date.now() - dt.getTime()) / 1000)
+    }
+    if (typeof dt == 'number') {
+        const t = Buffer.alloc(4)
+        t.writeInt32LE(dt, 0)
+        return t
+    }
+    throw Error(`Cannot interpret "${dt}" as a date`)
+>>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
 }
 module.exports = {
   findAll,

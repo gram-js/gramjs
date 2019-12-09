@@ -36,8 +36,8 @@ async function doAuthentication(sender, log) {
     let { p, q } = Factorizator.factorize(pq)
 
     // TODO Bring back after `Factorizator` fix.
-    // p = Helpers.getByteArray(p)
-    // q = Helpers.getByteArray(q)
+     p = Helpers.getByteArray(p)
+     q = Helpers.getByteArray(q)
 
     bytes = Helpers.generateRandomBytes(32)
     const newNonce = Helpers.readBigIntFromBuffer(bytes, true, true)

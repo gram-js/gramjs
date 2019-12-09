@@ -1,21 +1,17 @@
-const aesjs = require('aes-js')
+const crypto = require('crypto')
 
 class AESModeCTR {
     constructor(key, iv) {
         if (!(key instanceof Buffer) || !(iv instanceof Buffer) || iv.length !== 16) {
             throw new Error('Key and iv need to be a buffer')
         }
-        this.cipher = new aesjs.ModeOfOperation.ctr(Buffer.from(key), Buffer.from(iv))
+        this.cipher = crypto.createCipheriv('AES-256-CTR', key, iv)
     }
 
     encrypt(data) {
-        const res = this.cipher.encrypt(data)
-        return Buffer.from(res)
+        return this.cipher.update(data)
     }
 
-    decrypt(data) {
-        return Buffer.from(this.cipher.decrypt(data))
-    }
 
 }
 

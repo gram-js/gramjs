@@ -249,12 +249,43 @@ function isArrayLike(obj) {
     return true
 }
 
+// Taken from https://stackoverflow.com/questions/18638900/javascript-crc32/18639999#18639999
+function makeCRCTable() {
+    let c
+    const crcTable = []
+    for (let n = 0; n < 256; n++) {
+        c = n
+        for (let k = 0; k < 8; k++) {
+            c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1))
+        }
+        crcTable[n] = c
+    }
+    return crcTable
+}
 
+let crcTable = null
+
+function crc32(buf) {
+    if (!crcTable) {
+        crcTable = makeCRCTable()
+    }
+    if (!Buffer.isBuffer(buf)) {
+        buf = Buffer.from(buf)
+    }
+    let crc = -1
+
+    for (let index = 0; index < buf.length; index++) {
+        const byte = buf[index]
+        crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+    }
+    return (crc ^ (-1)) >>> 0
+}
 module.exports = {
     readBigIntFromBuffer,
     readBufferFromBigInt,
     generateRandomLong,
     mod,
+    crc32,
     generateRandomBytes,
     calcKey,
     calcMsgKey,

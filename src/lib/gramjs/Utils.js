@@ -12,7 +12,7 @@ const VALID_USERNAME_RE = new RegExp('^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|
     'pic|bing|wiki|imdb|bold|vote|like|coub)$')
 
 function _raiseCastFail(entity, target) {
-    throw new Error(`Cannot cast ${entity.constructor.name} to any kind of ${target}`)
+    throw new Error(`Cannot cast ${entity.className} to any kind of ${target}`)
 }
 
 /**

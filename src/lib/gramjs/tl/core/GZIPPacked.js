@@ -1,10 +1,8 @@
-const struct = require('python-struct')
 const { serializeBytes } = require("../index")
-const { ungzip } = require('node-gzip')
-const { gzip } = require('node-gzip')
+const zlib = require('zlib')
 
 class GZIPPacked {
-    static CONSTRUCTOR_ID = 0x3072cfa1;
+    static CONSTRUCTOR_ID = 0x3072cfa1
     static classType = "constructor"
 
     constructor(data) {
@@ -23,10 +21,36 @@ class GZIPPacked {
         return data
     }
 
+    static gzip(input, options) {
+        return new Promise(function (resolve, reject) {
+            zlib.gzip(input, options, function (error, result) {
+                if (!error) {
+                    resolve(result)
+                } else {
+                    reject(Error(error))
+                }
+            })
+        })
+    }
+
+    static ungzip(input, options) {
+        return new Promise(function (resolve, reject) {
+            zlib.gunzip(input, options, function (error, result) {
+                if (!error) {
+                    resolve(result)
+                } else {
+                    reject(Error(error))
+                }
+            })
+        })
+    }
+
     async toBytes() {
+        const g = Buffer.alloc(0)
+        g.writeUInt32LE(GZIPPacked.CONSTRUCTOR_ID, 0)
         return Buffer.concat([
-            struct.pack('<I', GZIPPacked.CONSTRUCTOR_ID),
-            serializeBytes(await gzip(this.data)),
+            g,
+            serializeBytes(await GZIPPacked.gzip(this.data)),
         ])
     }
 
@@ -35,11 +59,11 @@ class GZIPPacked {
         if (constructor !== GZIPPacked.CONSTRUCTOR_ID) {
             throw new Error('not equal')
         }
-        return await gzip(reader.tgReadBytes())
+        return await GZIPPacked.gzip(reader.tgReadBytes())
     }
 
     static async fromReader(reader) {
-        return new GZIPPacked(await ungzip(reader.tgReadBytes()))
+        return new GZIPPacked(await GZIPPacked.ungzip(reader.tgReadBytes()))
     }
 }
 
