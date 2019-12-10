@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+const crypto = require('./crypto/crypto')
 const BigInt = require('big-integer')
 
 
@@ -102,7 +102,7 @@ function bigIntMod(n,m) {
  * @returns {Buffer}
  */
 function generateRandomBytes(count) {
-    return crypto.randomBytes(count)
+    return Buffer.from(crypto.randomBytes(count))
 }
 
 
@@ -114,26 +114,17 @@ function generateRandomBytes(count) {
  * @returns {{iv: Buffer, key: Buffer}}
  */
 
-function calcKey(sharedKey, msgKey, client) {
+async function calcKey(sharedKey, msgKey, client) {
     const x = client === true ? 0 : 8
-    const sha1a = sha1(Buffer.concat([ msgKey, sharedKey.slice(x, x + 32) ]))
-    const sha1b = sha1(
-        Buffer.concat([ sharedKey.slice(x + 32, x + 48), msgKey, sharedKey.slice(x + 48, x + 64) ]),
-    )
-    const sha1c = sha1(Buffer.concat([ sharedKey.slice(x + 64, x + 96), msgKey ]))
-    const sha1d = sha1(Buffer.concat([ msgKey, sharedKey.slice(x + 96, x + 128) ]))
+    const [sha1a, sha1b, sha1c, sha1d] = await Promise.all([
+        sha1(Buffer.concat([ msgKey, sharedKey.slice(x, x + 32) ])),
+        sha1(Buffer.concat([ sharedKey.slice(x + 32, x + 48), msgKey, sharedKey.slice(x + 48, x + 64) ])),
+        sha1(Buffer.concat([ sharedKey.slice(x + 64, x + 96), msgKey ])),
+        sha1(Buffer.concat([ msgKey, sharedKey.slice(x + 96, x + 128) ]))
+    ])
     const key = Buffer.concat([ sha1a.slice(0, 8), sha1b.slice(8, 20), sha1c.slice(4, 16) ])
     const iv = Buffer.concat([ sha1a.slice(8, 20), sha1b.slice(0, 8), sha1c.slice(16, 20), sha1d.slice(0, 8) ])
     return { key, iv }
-}
-
-/**
- * Calculates the message key from the given data
- * @param data
- * @returns {Buffer}
- */
-function calcMsgKey(data) {
-    return sha1(data).slice(4, 20)
 }
 
 /**
@@ -142,12 +133,14 @@ function calcMsgKey(data) {
  * @param newNonce
  * @returns {{key: Buffer, iv: Buffer}}
  */
-function generateKeyDataFromNonce(serverNonce, newNonce) {
+async function generateKeyDataFromNonce(serverNonce, newNonce) {
     serverNonce = readBufferFromBigInt(serverNonce, 16, true, true)
     newNonce = readBufferFromBigInt(newNonce, 32, true, true)
-    const hash1 = sha1(Buffer.concat([ newNonce, serverNonce ]))
-    const hash2 = sha1(Buffer.concat([ serverNonce, newNonce ]))
-    const hash3 = sha1(Buffer.concat([ newNonce, newNonce ]))
+    const [hash1, hash2, hash3] = await Promise.all([
+        sha1(Buffer.concat([ newNonce, serverNonce ])),
+        sha1(Buffer.concat([ serverNonce, newNonce ])),
+        sha1(Buffer.concat([ newNonce, newNonce ]))
+    ])
     const keyBuffer = Buffer.concat([ hash1, hash2.slice(0, 12) ])
     const ivBuffer = Buffer.concat([ hash2.slice(12, 20), hash3, newNonce.slice(0, 4) ])
     return { key: keyBuffer, iv: ivBuffer }
@@ -156,7 +149,7 @@ function generateKeyDataFromNonce(serverNonce, newNonce) {
 /**
  * Calculates the SHA1 digest for the given data
  * @param data
- * @returns {Buffer}
+ * @returns {Promise}
  */
 function sha1(data) {
     const shaSum = crypto.createHash('sha1')
@@ -164,10 +157,11 @@ function sha1(data) {
     return shaSum.digest()
 }
 
+
 /**
  * Calculates the SHA256 digest for the given data
  * @param data
- * @returns {Buffer}
+ * @returns {Promise}
  */
 function sha256(data) {
     const shaSum = crypto.createHash('sha256')
@@ -288,7 +282,6 @@ module.exports = {
     crc32,
     generateRandomBytes,
     calcKey,
-    calcMsgKey,
     generateKeyDataFromNonce,
     sha1,
     sha256,

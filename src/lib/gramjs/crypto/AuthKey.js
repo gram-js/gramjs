@@ -1,13 +1,10 @@
 const { sha1, readBufferFromBigInt, readBigIntFromBuffer } = require('../Helpers')
 const BinaryReader = require('../extensions/BinaryReader')
-const { sleep } = require("../Helpers")
+const { sleep } = require('../Helpers')
 
 class AuthKey {
-    constructor(data) {
-        this.key = data
-    }
 
-    set key(value) {
+    async setKey(value) {
         if (!value) {
             this._key = this.auxHash = this.keyId = null
             return
@@ -19,19 +16,19 @@ class AuthKey {
             return
         }
         this._key = value
-        const reader = new BinaryReader(sha1(this._key))
+        const reader = new BinaryReader(Buffer.from(await sha1(this._key)))
         this.auxHash = reader.readLong(false)
         reader.read(4)
         this.keyId = reader.readLong(false)
     }
 
     async waitForKey() {
-        while (!this.key) {
+        while (!this.keyId) {
             await sleep(20)
         }
     }
 
-    get key() {
+    getKey() {
         return this._key
     }
 
@@ -43,7 +40,7 @@ class AuthKey {
      * @param number
      * @returns {bigint}
      */
-    calcNewNonceHash(newNonce, number) {
+    async calcNewNonceHash(newNonce, number) {
         newNonce = readBufferFromBigInt(newNonce, 32, true, true)
         const n = Buffer.alloc(1)
         n.writeUInt8(number, 0)
@@ -51,12 +48,12 @@ class AuthKey {
             Buffer.concat([n, readBufferFromBigInt(this.auxHash, 8, true)])])
 
         // Calculates the message key from the given data
-        const shaData = sha1(data).slice(4, 20)
+        const shaData = (await sha1(data)).slice(4, 20)
         return readBigIntFromBuffer(shaData, true, true)
     }
 
     equals(other) {
-        return other instanceof this.constructor && other.key === this._key
+        return other instanceof this.constructor && other.getKey() === this._key
     }
 }
 

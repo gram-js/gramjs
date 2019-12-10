@@ -1,7 +1,7 @@
-const crypto = require('crypto')
+const crypto = require('./crypto')
 const { generateRandomBytes } = require('../Helpers')
 
-class AES {
+class IGE {
     /**
      * Decrypts the given text in 16-bytes blocks by using the given key and 32-bytes initialization vector
      * @param cipherText {Buffer}
@@ -15,9 +15,10 @@ class AES {
         let iv2 = iv.slice(Math.floor(iv.length / 2))
         let plainText = []
         const aes = crypto.createDecipheriv('AES-256-ECB', key, Buffer.alloc(0))
-        aes.setAutoPadding(true)
+        //aes.setAutoPadding(true)
         const blocksCount = Math.floor(cipherText.length / 16)
-        const cipherTextBlock = Buffer.alloc(16).fill(0)
+        const cipherTextBlock = Buffer.alloc(16)
+            .fill(0)
 
         for (let blockIndex = 0; blockIndex < blocksCount; blockIndex++) {
             for (let i = 0; i < 16; i++) {
@@ -25,7 +26,7 @@ class AES {
             }
             //This might be a bug in the crypto module
             aes.update(cipherTextBlock)
-            const plainTextBlock = aes.update(cipherTextBlock)
+            const plainTextBlock =Buffer.from(aes.update(cipherTextBlock))
 
             for (let i = 0; i < 16; i++) {
                 plainTextBlock[i] ^= iv1[i]
@@ -55,7 +56,7 @@ class AES {
         let iv1 = iv.slice(0, Math.floor(iv.length / 2))
         let iv2 = iv.slice(Math.floor(iv.length / 2))
         const aes = crypto.createCipheriv('AES-256-ECB', key, Buffer.alloc(0))
-        aes.setAutoPadding(true)
+        //aes.setAutoPadding(true)
         let cipherText = Buffer.alloc(0)
         const blockCount = Math.floor(plainText.length / 16)
 
@@ -65,7 +66,7 @@ class AES {
             for (let i = 0; i < 16; i++) {
                 plainTextBlock[i] ^= iv1[i]
             }
-            const cipherTextBlock = aes.update(plainTextBlock)
+            const cipherTextBlock = Buffer.from(aes.update(plainTextBlock))
 
             for (let i = 0; i < 16; i++) {
                 cipherTextBlock[i] ^= iv2[i]
@@ -79,4 +80,4 @@ class AES {
     }
 }
 
-module.exports = AES
+module.exports = IGE

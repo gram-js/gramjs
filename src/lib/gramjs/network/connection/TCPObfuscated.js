@@ -1,7 +1,7 @@
 const { generateRandomBytes } = require('../../Helpers')
 const { ObfuscatedConnection } = require('./Connection')
 const { AbridgedPacketCodec } = require('./TCPAbridged')
-const AESModeCTR = require('../../crypto/AESCTR')
+const CTR = require('../../crypto/CTR')
 
 class ObfuscatedIO {
     header = null
@@ -45,8 +45,8 @@ class ObfuscatedIO {
         const encryptIv = Buffer.from(random.slice(40, 56))
         const decryptKey = Buffer.from(randomReversed.slice(0, 32))
         const decryptIv = Buffer.from(randomReversed.slice(32, 48))
-        const encryptor = new AESModeCTR(encryptKey, encryptIv)
-        const decryptor = new AESModeCTR(decryptKey, decryptIv)
+        const encryptor = new CTR(encryptKey, encryptIv)
+        const decryptor = new CTR(decryptKey, decryptIv)
 
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)), packetCodec.obfuscateTag, Buffer.from(random.slice(60)),
@@ -75,3 +75,4 @@ class ConnectionTCPObfuscated extends ObfuscatedConnection {
 module.exports = {
     ConnectionTCPObfuscated,
 }
+

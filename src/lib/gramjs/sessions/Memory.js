@@ -65,6 +65,10 @@ class MemorySession extends Session {
     save() {
     }
 
+    async load() {
+
+    }
+
     delete() {
     }
 

@@ -1,5 +1,5 @@
 const BigInt = require('big-integer')
-const AES = require('../crypto/AES')
+const IGE = require('../crypto/IGE')
 const AuthKey = require('../crypto/AuthKey')
 const Factorizator = require('../crypto/Factorizator')
 const RSA = require('../crypto/RSA')
@@ -55,7 +55,7 @@ async function doAuthentication(sender, log) {
     let cipherText = null
     let targetFingerprint = null
     for (const fingerprint of resPQ.serverPublicKeyFingerprints) {
-        cipherText = RSA.encrypt(fingerprint.toString(), pqInnerData.getBytes())
+        cipherText = await RSA.encrypt(fingerprint.toString(), pqInnerData.getBytes())
         if (cipherText !== null && cipherText !== undefined) {
             targetFingerprint = fingerprint
             break
@@ -87,7 +87,7 @@ async function doAuthentication(sender, log) {
     }
 
     if (serverDhParams instanceof constructors.ServerDHParamsFail) {
-        const sh = Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32, true, true).slice(4, 20))
+        const sh = await Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32, true, true).slice(4, 20))
         const nnh = Helpers.readBigIntFromBuffer(sh, true, true)
         if (serverDhParams.newNonceHash.neq(nnh)) {
             throw new SecurityError('Step 2 invalid DH fail nonce from server')
@@ -100,12 +100,12 @@ async function doAuthentication(sender, log) {
     log.debug('Starting authKey generation step 3')
 
     // Step 3 sending: Complete DH Exchange
-    const { key, iv } = Helpers.generateKeyDataFromNonce(resPQ.serverNonce, newNonce)
+    const { key, iv } = await Helpers.generateKeyDataFromNonce(resPQ.serverNonce, newNonce)
     if (serverDhParams.encryptedAnswer.length % 16 !== 0) {
         // See PR#453
         throw new SecurityError('Step 3 AES block size mismatch')
     }
-    const plainTextAnswer = AES.decryptIge(serverDhParams.encryptedAnswer, key, iv)
+    const plainTextAnswer = IGE.decryptIge(serverDhParams.encryptedAnswer, key, iv)
     const reader = new BinaryReader(plainTextAnswer)
     reader.read(20) // hash sum
     const serverDhInner = reader.tgReadObject()
@@ -134,9 +134,9 @@ async function doAuthentication(sender, log) {
         gB: Helpers.getByteArray(gb, false),
     }).getBytes()
 
-    const clientDdhInnerHashed = Buffer.concat([Helpers.sha1(clientDhInner), clientDhInner])
+    const clientDdhInnerHashed = Buffer.concat([await Helpers.sha1(clientDhInner), clientDhInner])
     // Encryption
-    const clientDhEncrypted = AES.encryptIge(clientDdhInnerHashed, key, iv)
+    const clientDhEncrypted = IGE.encryptIge(clientDdhInnerHashed, key, iv)
     const dhGen = await sender.send(
         new requests.SetClientDHParamsRequest({
             nonce: resPQ.nonce,
@@ -155,10 +155,12 @@ async function doAuthentication(sender, log) {
     if (dhGen.serverNonce.neq(resPQ.serverNonce)) {
         throw new SecurityError(`Step 3 invalid ${name} server nonce from server`)
     }
-    const authKey = new AuthKey(Helpers.getByteArray(gab))
+    const authKey = new AuthKey()
+    await authKey.setKey(Helpers.getByteArray(gab))
+
     const nonceNumber = 1 + nonceTypes.indexOf(dhGen.constructor)
 
-    const newNonceHash = authKey.calcNewNonceHash(newNonce, nonceNumber)
+    const newNonceHash = await authKey.calcNewNonceHash(newNonce, nonceNumber)
     const dhHash = dhGen[`newNonceHash${nonceNumber}`]
 
     if (dhHash.neq(newNonceHash)) {

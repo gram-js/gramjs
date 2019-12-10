@@ -2,7 +2,7 @@ const Logger = require('../extensions/Logger')
 const { sleep } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
-const { addKey } = require('../crypto/RSA')
+const { init: initRSA } = require('../crypto/RSA')
 const Helpers = require('../Helpers')
 const { BinaryWriter } = require('../extensions')
 const utils = require('../Utils')
@@ -116,16 +116,6 @@ class TelegramClient {
         }
         // These will be set later
         this._config = null
-        this._sender = new MTProtoSender(this.session.authKey, {
-            logger: this._log,
-            retries: this._connectionRetries,
-            delay: this._retryDelay,
-            autoReconnect: this._autoReconnect,
-            connectTimeout: this._timeout,
-            authKeyCallback: this._authKeyCallback.bind(this),
-            updateCallback: this._handleUpdate.bind(this),
-
-        })
         this.phoneCodeHashes = []
         this._borrowedSenderPromises = {}
     }
@@ -140,6 +130,18 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
+        await initRSA()
+        await this.session.load()
+        this._sender = new MTProtoSender(this.session.authKey, {
+            logger: this._log,
+            retries: this._connectionRetries,
+            delay: this._retryDelay,
+            autoReconnect: this._autoReconnect,
+            connectTimeout: this._timeout,
+            authKeyCallback: this._authKeyCallback.bind(this),
+            updateCallback: this._handleUpdate.bind(this),
+
+        })
         const connection = new this._connection(this.session.serverAddress
             , this.session.port, this.session.dcId, this._log)
         if (!await this._sender.connect(connection)) {
@@ -201,7 +203,7 @@ class TelegramClient {
         this.session.setDC(newDc, DC.ipAddress, DC.port)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
-        this._sender.authKey.key = null
+        await this._sender.authKey.setKey(null)
         this.session.authKey = null
         await this.session.save()
         await this.disconnect()
@@ -821,10 +823,9 @@ class TelegramClient {
             }
             if (typeof args.password == 'function') {
                 try {
-                    const pass = await args.password()
                     me = await this.signIn({
                         phone: args.phone,
-                        password: pass,
+                        password: args.password,
                     })
                 } catch (e) {
                     console.log(e)
@@ -869,9 +870,15 @@ class TelegramClient {
         } else if (args.password) {
             for (let i = 0; i < 5; i++) {
                 try {
+<<<<<<< HEAD
                     const pwd = await this.invoke(new requests.account.GetPasswordRequest())
                     result = await this.invoke(new requests.auth.CheckPasswordRequest({
                         password: computeCheck(pwd, args.password),
+=======
+                    const pwd = await this.invoke(new requests.account.GetPassword())
+                    result = await this.invoke(new requests.auth.CheckPassword({
+                        password: await computeCheck(pwd, await args.password()),
+>>>>>>> 783ae306... GramJS: Remove Node `crypto` dependency
                     }))
                     break
                 } catch (err) {

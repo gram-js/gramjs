@@ -1,5 +1,5 @@
 const Helpers = require('../Helpers')
-const AES = require('../crypto/AES')
+const IGE = require('../crypto/IGE')
 const BinaryReader = require('../extensions/BinaryReader')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const { TLMessage } = require('../tl/core')
@@ -71,11 +71,12 @@ class MTProtoState {
      * @param client
      * @returns {{iv: Buffer, key: Buffer}}
      */
-    _calcKey(authKey, msgKey, client) {
+    async _calcKey(authKey, msgKey, client) {
         const x = client === true ? 0 : 8
-        const sha256a = Helpers.sha256(Buffer.concat([msgKey, authKey.slice(x, x + 36)]))
-        const sha256b = Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey]))
-
+        const [sha256a , sha256b] = await Promise.all([
+            Helpers.sha256(Buffer.concat([msgKey, authKey.slice(x, x + 36)])),
+            Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey]))
+        ])
         const key = Buffer.concat([sha256a.slice(0, 8), sha256b.slice(8, 24), sha256a.slice(24, 32)])
         const iv = Buffer.concat([sha256b.slice(0, 8), sha256a.slice(8, 24), sha256b.slice(24, 32)])
         return { key, iv }
@@ -121,14 +122,14 @@ class MTProtoState {
         const padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12)
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"
-        const msgKeyLarge = Helpers.sha256(Buffer.concat([this.authKey.key.slice(88, 88 + 32), data, padding]))
+        const msgKeyLarge = await Helpers.sha256(Buffer.concat([this.authKey.getKey().slice(88, 88 + 32), data, padding]))
         // "msg_key = substr (msg_key_large, 8, 16)"
         const msgKey = msgKeyLarge.slice(8, 24)
 
-        const { iv, key } = this._calcKey(this.authKey.key, msgKey, true)
+        const { iv, key } = await this._calcKey(this.authKey.getKey(), msgKey, true)
 
         const keyId = Helpers.readBufferFromBigInt(this.authKey.keyId, 8)
-        return Buffer.concat([keyId, msgKey, AES.encryptIge(Buffer.concat([data, padding]), key, iv)])
+        return Buffer.concat([keyId, msgKey, IGE.encryptIge(Buffer.concat([data, padding]), key, iv)])
     }
 
     /**
@@ -147,13 +148,13 @@ class MTProtoState {
         }
 
         const msgKey = body.slice(8, 24)
-        const { iv, key } = this._calcKey(this.authKey.key, msgKey, false)
-        body = AES.decryptIge(body.slice(24), key, iv)
+        const { iv, key } = await this._calcKey(this.authKey.getKey(), msgKey, false)
+        body = IGE.decryptIge(body.slice(24), key, iv)
 
         // https://core.telegram.org/mtproto/security_guidelines
         // Sections "checking sha256 hash" and "message length"
 
-        const ourKey = Helpers.sha256(Buffer.concat([this.authKey.key.slice(96, 96 + 32), body]))
+        const ourKey = await Helpers.sha256(Buffer.concat([this.authKey.getKey().slice(96, 96 + 32), body]))
 
         if (!msgKey.equals(ourKey.slice(8, 24))) {
             throw new SecurityError('Received msg_key doesn\'t match with expected one')

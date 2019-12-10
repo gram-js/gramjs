@@ -91,7 +91,7 @@ class MTProtoSender {
         /**
          * Preserving the references of the AuthKey and state is important
          */
-        this.authKey = authKey || new AuthKey(null)
+        this.authKey = authKey || new AuthKey()
         this._state = new MTProtoState(this.authKey, this._log)
 
         /**
@@ -223,7 +223,8 @@ class MTProtoSender {
             this._log.debug('New auth_key attempt ...')
             const res = await doAuthentication(plain, this._log)
             this._log.debug('Generated new auth_key successfully')
-            this.authKey.key = res.authKey
+            await this.authKey.setKey(res.authKey)
+
             this._state.time_offset = res.timeOffset
 
             /**
@@ -360,7 +361,8 @@ class MTProtoSender {
                     // return
                 } else if (e instanceof InvalidBufferError) {
                     this._log.info('Broken authorization key; resetting')
-                    this.authKey.key = null
+                    await this.authKey.setKey(null)
+
                     if (this._authKeyCallback) {
                         await this._authKeyCallback(null)
                     }

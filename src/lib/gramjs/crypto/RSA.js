@@ -10,12 +10,12 @@ const BigInt = require('big-integer')
  * @returns {bigInt.BigInteger|*} its 8-bytes-long fingerprint
  * @private
  */
-function _computeFingerprint(key) {
+async function _computeFingerprint(key) {
 
     const n = serializeBytes(getByteArray(key.n))
     const e = serializeBytes(getByteArray(key.e))
     // Telegram uses the last 8 bytes as the fingerprint
-    const sh = sha1(Buffer.concat([n, e]))
+    const sh = await sha1(Buffer.concat([n, e]))
     return readBigIntFromBuffer(sh.slice(-8), true, true)
 }
 
@@ -23,8 +23,8 @@ function _computeFingerprint(key) {
  * Adds a new public key to be used when encrypting new data is needed
  * @param pub {{n:BigInt,e:BigInt}}
  */
-function addKey(pub) {
-    _serverKeys[_computeFingerprint(pub)] = pub
+async function addKey(pub) {
+    _serverKeys[await _computeFingerprint(pub)] = pub
 }
 
 /**
@@ -35,7 +35,7 @@ function addKey(pub) {
  * @param data the data to be encrypted.
  * @returns {Buffer|*|undefined} the cipher text, or None if no key matching this fingerprint is found.
  */
-function encrypt(fingerprint, data) {
+async function encrypt(fingerprint, data) {
     const key = _serverKeys[fingerprint]
     if (!key) {
         return undefined
@@ -43,7 +43,8 @@ function encrypt(fingerprint, data) {
 
     // len(sha1.digest) is always 20, so we're left with 255 - 20 - x padding
     const rand = generateRandomBytes(235 - data.length)
-    const toEncrypt = Buffer.concat([sha1(data), data, rand])
+
+    const toEncrypt = Buffer.concat([await sha1(data), data, rand])
 
     // rsa module rsa.encrypt adds 11 bits for padding which we don't want
     // rsa module uses rsa.transform.bytes2int(to_encrypt), easier way:
@@ -66,9 +67,14 @@ const publicKeys = [{
     'n': BigInt('24573455207957565047870011785254215390918912369814947541785386299516827003508659346069416840622922416779652050319196701077275060353178142796963682024347858398319926119639265555410256455471016400261630917813337515247954638555325280392998950756512879748873422896798579889820248358636937659872379948616822902110696986481638776226860777480684653756042166610633513404129518040549077551227082262066602286208338952016035637334787564972991208252928951876463555456715923743181359826124083963758009484867346318483872552977652588089928761806897223231500970500186019991032176060579816348322451864584743414550721639495547636008351'),
     'e': 65537
 }]
-for (const pub of publicKeys) {
-    addKey(pub)
+
+async function init() {
+    await Promise.all(publicKeys.map(addKey));
 }
 
-module.exports = { encrypt, addKey }
+module.exports = {
+    encrypt,
+    addKey,
+    init
+}
 
