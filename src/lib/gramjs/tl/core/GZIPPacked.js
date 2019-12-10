@@ -1,14 +1,14 @@
-const { serializeBytes } = require("../index")
-const zlib = require('zlib')
+const { serializeBytes } = require('../index')
+const { gzip, ungzip } = require('pako')
 
 class GZIPPacked {
     static CONSTRUCTOR_ID = 0x3072cfa1
-    static classType = "constructor"
+    static classType = 'constructor'
 
     constructor(data) {
         this.data = data
         this.CONSTRUCTOR_ID = 0x3072cfa1
-        this.classType = "constructor"
+        this.classType = 'constructor'
     }
 
     static async gzipIfSmaller(contentRelated, data) {
@@ -21,28 +21,12 @@ class GZIPPacked {
         return data
     }
 
-    static gzip(input, options) {
-        return new Promise(function (resolve, reject) {
-            zlib.gzip(input, options, function (error, result) {
-                if (!error) {
-                    resolve(result)
-                } else {
-                    reject(Error(error))
-                }
-            })
-        })
+    static gzip(input) {
+        return Buffer.from(gzip(input))
     }
 
-    static ungzip(input, options) {
-        return new Promise(function (resolve, reject) {
-            zlib.gunzip(input, options, function (error, result) {
-                if (!error) {
-                    resolve(result)
-                } else {
-                    reject(Error(error))
-                }
-            })
-        })
+    static ungzip(input) {
+        return Buffer.from(ungzip(input))
     }
 
     async toBytes() {
@@ -68,3 +52,4 @@ class GZIPPacked {
 }
 
 module.exports = GZIPPacked
+

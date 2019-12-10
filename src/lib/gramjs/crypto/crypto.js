@@ -402,7 +402,7 @@ class ECB {
         return plaintext
     }
 }
-// end region
+// endregion
 function createDecipheriv(algorithm, key, iv) {
     if (algorithm.includes('ECB')) {
         return new ECB(key, 'decrypt')

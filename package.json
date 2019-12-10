@@ -71,6 +71,10 @@
 >>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
     "tdweb": "^1.5.0",
     "websocket": "^1.0.30",
+<<<<<<< HEAD
     "big-integer": "latest"
+=======
+    "pako": "latest"
+>>>>>>> f8f1a405... GramJS : Remove zlib and other small fixes.
   }
 }
