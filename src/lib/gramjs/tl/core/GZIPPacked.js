@@ -1,5 +1,5 @@
 const { serializeBytes } = require('../index')
-const { gzip, ungzip } = require('pako')
+const { inflate } = require('pako/dist/pako_inflate')
 
 class GZIPPacked {
     static CONSTRUCTOR_ID = 0x3072cfa1
@@ -22,11 +22,11 @@ class GZIPPacked {
     }
 
     static gzip(input) {
-        return Buffer.from(gzip(input))
+        throw new Error("Not Implemented")
     }
 
     static ungzip(input) {
-        return Buffer.from(ungzip(input))
+        return Buffer.from(inflate(input))
     }
 
     async toBytes() {
@@ -52,4 +52,3 @@ class GZIPPacked {
 }
 
 module.exports = GZIPPacked
-

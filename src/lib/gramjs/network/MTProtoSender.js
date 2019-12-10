@@ -7,7 +7,7 @@ const RPCResult = require('../tl/core/RPCResult')
 const MessageContainer = require('../tl/core/MessageContainer')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
-const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl').constructors
+const { MsgsAck, upload, MsgsStateInfo, Pong } = require('../tl').constructors
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
 const { BadMessageError } = require("../errors/Common")
@@ -468,7 +468,7 @@ class MTProtoSender {
             // which contain the real response right after.
             try {
                 const reader = new BinaryReader(RPCResult.body)
-                if (!(reader.tgReadObject() instanceof File)) {
+                if (!(reader.tgReadObject() instanceof upload.File)) {
                     throw new TypeNotFoundError('Not an upload.File')
                 }
             } catch (e) {
