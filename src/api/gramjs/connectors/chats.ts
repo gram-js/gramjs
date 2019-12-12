@@ -33,7 +33,13 @@ export async function fetchChats(
     offsetDate,
   }));
 
+<<<<<<< HEAD
   if (!result || !(result instanceof ctors.messages.DialogsSlice) || !result.dialogs.length) {
+=======
+  // I had to change it to Dialogs to work for me.
+  if (!result || !(result instanceof GramJs.messages.DialogsSlice
+      || result instanceof GramJs.messages.Dialogs) || !result.dialogs.length) {
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
     throw new Error(UNSUPPORTED_RESPONSE);
   }
 

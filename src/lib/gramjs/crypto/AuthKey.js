@@ -4,19 +4,33 @@ const { sleep } = require('../Helpers')
 
 class AuthKey {
 
+    constructor(value, hash) {
+        if (!hash || !value) {
+            return
+        }
+        this._key = value
+        this._hash = hash
+        const reader = new BinaryReader(hash)
+        this.auxHash = reader.readLong(false)
+        reader.read(4)
+        this.keyId = reader.readLong(false)
+    }
+
     async setKey(value) {
         if (!value) {
-            this._key = this.auxHash = this.keyId = null
+            this._key = this.auxHash = this.keyId = this._hash = null
             return
         }
         if (value instanceof AuthKey) {
             this._key = value._key
             this.auxHash = value.auxHash
             this.keyId = value.keyId
+            this._hash = value._hash
             return
         }
         this._key = value
-        const reader = new BinaryReader(Buffer.from(await sha1(this._key)))
+        this._hash = await sha1(this._key)
+        const reader = new BinaryReader(this._hash)
         this.auxHash = reader.readLong(false)
         reader.read(4)
         this.keyId = reader.readLong(false)

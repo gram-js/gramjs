@@ -12,7 +12,7 @@ const { LAYER } = require('../tl/AllTLObjects')
 const { constructors, requests } = require('../tl')
 const { computeCheck } = require('../Password')
 const MTProtoSender = require('../network/MTProtoSender')
-const { FloodWaitError } = require("../errors/RPCErrorList")
+const { FloodWaitError } = require('../errors/RPCErrorList')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 
 const DEFAULT_DC_ID = 2
@@ -45,7 +45,13 @@ class TelegramClient {
         useWSS: false,
     }
 
-
+    /**
+     *
+     * @param session {StringSession|LocalStorageSession}
+     * @param apiId
+     * @param apiHash
+     * @param opts
+     */
     constructor(session, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
@@ -63,7 +69,7 @@ class TelegramClient {
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
             try {
-                throw new Error("not implemented")
+                throw new Error('not implemented')
             } catch (e) {
                 console.log(e)
                 session = new MemorySession()
@@ -103,8 +109,10 @@ class TelegramClient {
                 layer: LAYER,
                 query: new requests.InitConnectionRequest({
                     apiId: this.apiId,
-                    deviceModel: args.deviceModel || os.type().toString() || 'Unknown',
-                    systemVersion: args.systemVersion || os.release().toString() || '1.0',
+                    deviceModel: args.deviceModel || os.type()
+                        .toString() || 'Unknown',
+                    systemVersion: args.systemVersion || os.release()
+                        .toString() || '1.0',
                     appVersion: args.appVersion || '1.0',
                     langCode: args.langCode,
                     langPack: '', // this should be left empty.
@@ -130,10 +138,17 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
+<<<<<<< HEAD
         await initRSA()
         await this.session.load()
         this._sender = new MTProtoSender(this.session.authKey, {
+=======
+        //await this.session.load()
+
+        this._sender = new MTProtoSender(this.session.getAuthKey(), {
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
             logger: this._log,
+            dcId:this.session.dcId,
             retries: this._connectionRetries,
             delay: this._retryDelay,
             autoReconnect: this._autoReconnect,
@@ -147,8 +162,7 @@ class TelegramClient {
         if (!await this._sender.connect(connection)) {
             return
         }
-        this.session.authKey = this._sender.authKey
-        await this.session.save()
+        this.session.setAuthKey(this._sender.authKey)
         await this._sender.send(this._initWith(
             new requests.help.GetConfigRequest({}),
         ))
@@ -168,8 +182,6 @@ class TelegramClient {
             } catch (e) {
                 console.log('err is ', e)
             }
-
-            // this.session.save()
 
             // We need to send some content-related request at least hourly
             // for Telegram to keep delivering updates, otherwise they will
@@ -199,20 +211,18 @@ class TelegramClient {
 
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
-        const DC = await this._getDC(newDc)
+        const DC = utils.getDC(newDc)
         this.session.setDC(newDc, DC.ipAddress, DC.port)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
         await this._sender.authKey.setKey(null)
-        this.session.authKey = null
-        await this.session.save()
+        this.session.setAuthKey(null)
         await this.disconnect()
         return await this.connect()
     }
 
-    async _authKeyCallback(authKey) {
-        this.session.authKey = authKey
-        await this.session.save()
+    async _authKeyCallback(authKey,dcId) {
+        this.session.setAuthKey(authKey,dcId)
     }
 
     // endregion
@@ -240,9 +250,16 @@ class TelegramClient {
     }
 
     async _createExportedSender(dcId, retries) {
-        const dc = await this._getDC(dcId)
-        const sender = new MTProtoSender(this.session.dcId === dcId ? this._sender.authKey : null,
-            { logger: this._log })
+        const dc = utils.getDC(dcId)
+        const sender = new MTProtoSender(this.session.getAuthKey(dcId),
+            { logger: this._log,
+                dcId:dcId,
+                retries: this._connectionRetries,
+                delay: this._retryDelay,
+                autoReconnect: this._autoReconnect,
+                connectTimeout: this._timeout,
+                authKeyCallback: this._authKeyCallback.bind(this),
+            })
         for (let i = 0; i < retries; i++) {
             try {
                 await sender.connect(new this._connection(
@@ -253,9 +270,16 @@ class TelegramClient {
                 ))
                 if (this.session.dcId !== dcId) {
                     this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+<<<<<<< HEAD
                     const auth = await this.invoke(new requests.auth.ExportAuthorizationRequest({ dcId: dcId }))
                     const req = this._initWith(new requests.auth.ImportAuthorizationRequest({
                             id: auth.id, bytes: auth.bytes,
+=======
+                    const auth = await this.invoke(new requests.auth.ExportAuthorization({ dcId: dcId }))
+                    const req = this._initWith(new requests.auth.ImportAuthorization({
+                            id: auth.id,
+                            bytes: auth.bytes,
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
                         },
                     ))
                     await sender.send(req)
@@ -312,7 +336,7 @@ class TelegramClient {
             try {
                 sender = await this._borrowExportedSender(dcId)
             } catch (e) {
-                if (e.message==='DC_ID_INVALID') {
+                if (e.message === 'DC_ID_INVALID') {
                     // Can't export a sender for the ID we are currently in
                     sender = this._sender
                     exported = false
@@ -476,7 +500,7 @@ class TelegramClient {
             })
             return result
         } catch (e) {
-            if (e.message==='LOCATION_INVALID') {
+            if (e.message === 'LOCATION_INVALID') {
                 const ie = await this.getInputEntity(entity)
                 if (ie instanceof constructors.InputPeerChannel) {
                     const full = await this.invoke(new requests.channels.GetFullChannelRequest({
@@ -500,10 +524,10 @@ class TelegramClient {
 
     _pickFileSize(sizes, sizeType) {
         if (!sizeType || !sizes || !sizes.length) {
-            return null;
+            return null
         }
 
-        return sizes.find((s) => s.type === sizeType);
+        return sizes.find((s) => s.type === sizeType)
     }
 
 
@@ -577,7 +601,7 @@ class TelegramClient {
             return
         }
 
-        const size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null;
+        const size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null
         if (size && (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize)) {
             return this._downloadCachedPhotoSize(size)
         }
@@ -614,6 +638,7 @@ class TelegramClient {
         throw new Error('not implemented')
     }
 
+<<<<<<< HEAD
     // region Working with different connections/Data Centers
 
     async _getDC(dcId, cdn = false) {
@@ -651,6 +676,8 @@ class TelegramClient {
 
     // endregion
 
+=======
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
     // region Invoking Telegram request
     /**
      * Invokes a MTProtoRequest (sends and receives it) and returns its result
@@ -689,8 +716,8 @@ class TelegramClient {
                 this._entityCache.add(result)
                 return result
             } catch (e) {
-                if (e instanceof errors.ServerError || e.message==='RPC_CALL_FAIL' ||
-                    e.message==='RPC_MCGET_FAIL') {
+                if (e instanceof errors.ServerError || e.message === 'RPC_CALL_FAIL' ||
+                    e.message === 'RPC_MCGET_FAIL') {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
@@ -777,7 +804,7 @@ class TelegramClient {
             try {
                 const value = await args.code()
                 if (!value) {
-                    throw new Error("the phone code is empty")
+                    throw new Error('the phone code is empty')
                 }
 
                 if (signUp) {
@@ -795,17 +822,17 @@ class TelegramClient {
                 }
                 break
             } catch (e) {
-                if (e.message==='SESSION_PASSWORD_NEEDED') {
+                if (e.message === 'SESSION_PASSWORD_NEEDED') {
                     twoStepDetected = true
                     break
-                } else if (e.message==='PHONE_NUMBER_OCCUPIED') {
+                } else if (e.message === 'PHONE_NUMBER_OCCUPIED') {
                     signUp = true
-                } else if (e.message==='PHONE_NUMBER_UNOCCUPIED') {
+                } else if (e.message === 'PHONE_NUMBER_UNOCCUPIED') {
                     signUp = true
-                } else if (e.message==='PHONE_CODE_EMPTY' ||
-                    e.message==='PHONE_CODE_EXPIRED' ||
-                    e.message==='PHONE_CODE_HASH_EMPTY' ||
-                    e.message==='PHONE_CODE_INVALID') {
+                } else if (e.message === 'PHONE_CODE_EMPTY' ||
+                    e.message === 'PHONE_CODE_EXPIRED' ||
+                    e.message === 'PHONE_CODE_HASH_EMPTY' ||
+                    e.message === 'PHONE_CODE_INVALID') {
                     console.log('Invalid code. Please try again.')
                 } else {
                     throw e
@@ -955,10 +982,14 @@ class TelegramClient {
                 }))
             } catch (e) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if (e instanceof errors.AuthRestartError) {
                     return await this.sendCodeRequest(phone, forceSMS)
 =======
                 if (e.message==='AUTH_RESTART') {
+=======
+                if (e.message === 'AUTH_RESTART') {
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
                     return this.sendCodeRequest(phone, forceSMS)
 >>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings
                 }
@@ -1054,7 +1085,7 @@ class TelegramClient {
                     }
                 }
             } catch (e) {
-                if (e.message==='BOT_METHOD_INVALID') {
+                if (e.message === 'BOT_METHOD_INVALID') {
                     throw new Error('Cannot get entity by phone number as a ' +
                         'bot (try using integer IDs, not strings)')
                 }
@@ -1099,7 +1130,7 @@ class TelegramClient {
                         }
                     }
                 } catch (e) {
-                    if (e.message ==='USERNAME_NOT_OCCUPIED') {
+                    if (e.message === 'USERNAME_NOT_OCCUPIED') {
                         throw new Error(`No user has "${username}" as username`)
                     }
                     throw e
@@ -1217,7 +1248,8 @@ class TelegramClient {
         if (peer instanceof constructors.PeerUser) {
             const users = await this.invoke(new requests.users.GetUsersRequest({
                 id: [new constructors.InputUser({
-                    userId: peer.userId, accessHash: 0,
+                    userId: peer.userId,
+                    accessHash: 0,
                 })],
             }))
             if (users && !(users[0] instanceof constructors.UserEmpty)) {

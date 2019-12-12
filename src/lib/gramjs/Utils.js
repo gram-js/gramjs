@@ -66,7 +66,10 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     }
     if (entity instanceof constructors.Channel) {
         if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
-            return new constructors.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+            return new constructors.InputPeerChannel({
+                channelId: entity.id,
+                accessHash: entity.accessHash
+            })
         } else {
             throw new TypeError('Channel without access_hash or min info cannot be input')
         }
@@ -74,14 +77,23 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     if (entity instanceof constructors.ChannelForbidden) {
         // "channelForbidden are never min", and since their hash is
         // also not optional, we assume that this truly is the case.
-        return new constructors.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+        return new constructors.InputPeerChannel({
+            channelId: entity.id,
+            accessHash: entity.accessHash
+        })
     }
 
     if (entity instanceof constructors.InputUser) {
-        return new constructors.InputPeerUser({ userId: entity.userId, accessHash: entity.accessHash })
+        return new constructors.InputPeerUser({
+            userId: entity.userId,
+            accessHash: entity.accessHash
+        })
     }
     if (entity instanceof constructors.InputChannel) {
-        return new constructors.InputPeerChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+        return new constructors.InputPeerChannel({
+            channelId: entity.channelId,
+            accessHash: entity.accessHash
+        })
     }
     if (entity instanceof constructors.UserEmpty) {
         return new constructors.InputPeerEmpty()
@@ -123,11 +135,17 @@ function getInputChannel(entity) {
         return entity
     }
     if (entity instanceof constructors.Channel || entity instanceof constructors.ChannelForbidden) {
-        return new constructors.InputChannel({ channelId: entity.id, accessHash: entity.accessHash || 0 })
+        return new constructors.InputChannel({
+            channelId: entity.id,
+            accessHash: entity.accessHash || 0
+        })
     }
 
     if (entity instanceof constructors.InputPeerChannel) {
-        return new constructors.InputChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+        return new constructors.InputChannel({
+            channelId: entity.channelId,
+            accessHash: entity.accessHash
+        })
     }
     _raiseCastFail(entity, 'InputChannel')
 }
@@ -173,7 +191,10 @@ function getInputUser(entity) {
     }
 
     if (entity instanceof constructors.InputPeerUser) {
-        return new constructors.InputUser({ userId: entity.userId, accessHash: entity.accessHash })
+        return new constructors.InputUser({
+            userId: entity.userId,
+            accessHash: entity.accessHash
+        })
     }
 
     _raiseCastFail(entity, 'InputUser')
@@ -248,7 +269,10 @@ function getInputLocation(location) {
             throw new Error()
         }
         if (location.SUBCLASS_OF_ID === 0x1523d462) {
-            return { dcId: null, inputLocation: location }
+            return {
+                dcId: null,
+                inputLocation: location
+            }
         }
     } catch (e) {
         _raiseCastFail(location, 'InputFileLocation')
@@ -265,7 +289,8 @@ function getInputLocation(location) {
 
     if (location instanceof constructors.Document) {
         return {
-            dcId: location.dcId, inputLocation: new constructors.InputDocumentFileLocation({
+            dcId: location.dcId,
+            inputLocation: new constructors.InputDocumentFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
@@ -274,7 +299,8 @@ function getInputLocation(location) {
         }
     } else if (location instanceof constructors.Photo) {
         return {
-            dcId: location.dcId, inputLocation: new constructors.InputPhotoFileLocation({
+            dcId: location.dcId,
+            inputLocation: new constructors.InputPhotoFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
@@ -429,7 +455,8 @@ function resolveId(markedId) {
     // marked version is -10000xyz, which in turn looks like a channel but
     // it becomes 00xyz (= xyz). Hence, we must assert that there are only
     // two zeroes.
-    const m = markedId.toString().match(/-100([^0]\d*)/)
+    const m = markedId.toString()
+        .match(/-100([^0]\d*)/)
     if (m) {
         return [parseInt(m[1]), constructors.PeerChannel]
     }
@@ -455,7 +482,10 @@ function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) 
             inputEntity = null
         }
     }
-    return { entity, inputEntity }
+    return {
+        entity,
+        inputEntity
+    }
 }
 
 function getMessageId(message) {
@@ -479,7 +509,8 @@ function parsePhone(phone) {
     if (typeof phone === 'number') {
         return phone.toString()
     } else {
-        phone = phone.toString().replace(/[+()\s-]/gm, '')
+        phone = phone.toString()
+            .replace(/[+()\s-]/gm, '')
         if (!isNaN(phone)) {
             return phone
         }
@@ -502,15 +533,24 @@ function parseUsername(username) {
     if (m) {
         username = username.replace(m[0], '')
         if (m[1]) {
-            return { username: username, isInvite: true }
+            return {
+                username: username,
+                isInvite: true
+            }
         } else {
             username = rtrim(username, '/')
         }
     }
     if (username.match(VALID_USERNAME_RE)) {
-        return { username: username.toLowerCase(), isInvite: false }
+        return {
+            username: username.toLowerCase(),
+            isInvite: false
+        }
     } else {
-        return { username: null, isInvite: false }
+        return {
+            username: null,
+            isInvite: false
+        }
     }
 }
 
@@ -562,6 +602,59 @@ function isListLike(item) {
     )
 }
 
+function getDC(dcId, cdn = false) {
+    switch (dcId) {
+        case 1:
+            return {
+                id: 1,
+                ipAddress: 'pluto.web.telegram.org',
+                port: 443
+            }
+        case 2:
+            return {
+                id: 2,
+                ipAddress: 'venus.web.telegram.org',
+                port: 443
+            }
+        case 3:
+            return {
+                id: 3,
+                ipAddress: 'aurora.web.telegram.org',
+                port: 443
+            }
+        case 4:
+            return {
+                id: 4,
+                ipAddress: 'vesta.web.telegram.org',
+                port: 443
+            }
+        case 5:
+            return {
+                id: 5,
+                ipAddress: 'flora.web.telegram.org',
+                port: 443
+            }
+        default:
+            throw new Error(`Cannot find the DC with the ID of ${dcId}`)
+    }
+    // TODO chose based on current connection method
+    /*
+    if (!this._config) {
+        this._config = await this.invoke(new requests.help.GetConfig())
+    }
+    if (cdn && !this._cdnConfig) {
+        this._cdnConfig = await this.invoke(new requests.help.GetCdnConfig())
+        for (const pk of this._cdnConfig.publicKeys) {
+            addKey(pk.publicKey)
+        }
+    }
+    for (const DC of this._config.dcOptions) {
+        if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
+            return DC
+        }
+    }*/
+}
+
 module.exports = {
     getMessageId,
     _getEntityPair,
@@ -580,5 +673,5 @@ module.exports = {
     getAppropriatedPartSize,
     getInputLocation,
     strippedPhotoToJpg,
-
+    getDC
 }

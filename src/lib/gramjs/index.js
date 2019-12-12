@@ -13,10 +13,14 @@ const version = require('./Version')
 const events = require('./events')
 const utils = require('./Utils')
 const errors = require('./errors')
-const session = require('./sessions')
+const sessions = require('./sessions')
 const extensions = require('./extensions')
 
 module.exports = {
+<<<<<<< HEAD
     gramJsApi, TelegramClient, session, connection, extensions,
+=======
+    Api, TelegramClient, sessions, connection, extensions,
+>>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
     tl, version, events, utils, errors,
 }

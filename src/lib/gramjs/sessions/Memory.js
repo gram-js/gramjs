@@ -9,7 +9,6 @@ class MemorySession extends Session {
         this._serverAddress = null
         this._dcId = 0
         this._port = null
-        this._authKey = null
         this._takeoutId = null
 
         this._entities = new Set()

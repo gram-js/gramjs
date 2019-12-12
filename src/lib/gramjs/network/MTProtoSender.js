@@ -62,6 +62,7 @@ class MTProtoSender {
         const args = { ...MTProtoSender.DEFAULT_OPTIONS, ...opts }
         this._connection = null
         this._log = args.logger
+        this._dcId = args.dcId
         this._retries = args.retries
         this._delay = args.delay
         this._autoReconnect = args.autoReconnect
@@ -218,7 +219,8 @@ class MTProtoSender {
         this._log.info('Connecting to {0}...'.replace('{0}', this._connection))
         await this._connection.connect()
         this._log.debug('Connection success!')
-        if (!this.authKey._key) {
+        //process.exit(0)
+        if (!this.authKey.getKey()) {
             const plain = new MtProtoPlainSender(this._connection, this._log)
             this._log.debug('New auth_key attempt ...')
             const res = await doAuthentication(plain, this._log)
@@ -234,7 +236,7 @@ class MTProtoSender {
              * switch to different data centers.
              */
             if (this._authKeyCallback) {
-                await this._authKeyCallback(this.authKey)
+                await this._authKeyCallback(this.authKey,this._dcId)
             }
         } else {
             this._log.debug('Already have an auth key ...')
