@@ -1,6 +1,10 @@
 const { EventBuilder, EventCommon } = require('./common')
 const { types } = require('../tl')
 
+/**
+ * This event occurs whenever a new text message, or a message
+ * with media is received.
+ */
 class NewMessage extends EventBuilder {
     constructor({
         outgoing = true,
