@@ -158,7 +158,7 @@ class TelegramClient {
     async _updateLoop() {
         while (this.isConnected()) {
             const rnd = Helpers.getRandomInt(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-            console.log('rnd is ', rnd)
+            this._log.debug('rnd is', rnd)
             await Helpers.sleep(1000 * 60)
             // We don't care about the result we just want to send it every
             // 60 seconds so telegram doesn't stop the connection
@@ -167,7 +167,7 @@ class TelegramClient {
                     pingId: rnd,
                 }))
             } catch (e) {
-                console.log('err is ', e)
+                this._log.error('err is', e)
             }
 
             // this.session.save()
@@ -181,7 +181,7 @@ class TelegramClient {
                 try {
                     await this.invoke(new functions.updates.GetStateRequest())
                 } catch (e) {
-                    console.log('err is ', e)
+                    this._log.error('err is', e)
                 }
             }
         }
@@ -395,7 +395,7 @@ class TelegramClient {
                     e instanceof errors.PhoneCodeExpiredError ||
                     e instanceof errors.PhoneCodeHashEmptyError ||
                     e instanceof errors.PhoneCodeInvalidError) {
-                    console.log('Invalid code. Please try again.')
+                    this._log.error('Invalid code. Please try again.')
                 } else {
                     throw e
                 }
@@ -420,8 +420,8 @@ class TelegramClient {
                         })
                         break
                     } catch (e) {
-                        console.log(e)
-                        console.log('Invalid password. Please try again')
+                        this._log.error(e)
+                        this._log.error('Invalid password. Please try again')
                     }
                 }
             } else {
@@ -433,7 +433,7 @@ class TelegramClient {
 
         }
         const name = utils.getDisplayName(me)
-        console.log('Signed in successfully as' + name)
+        this._log.error('Signed in successfully as', name)
         return this
     }
 
@@ -562,7 +562,7 @@ class TelegramClient {
 
 
     // event region
-    addEventHandler(callback, event) {
+    addEventHandler(event, callback) {
         this._eventBuilders.push([event, callback])
     }
 
@@ -830,7 +830,7 @@ class TelegramClient {
                 return utils.getInputPeer(channels.chats[0])
                 // eslint-disable-next-line no-empty
             } catch (e) {
-                console.log(e)
+                this._log.error(e)
             }
         }
         throw new Error(`Could not find the input entity for ${peer.id || peer.channelId || peer.chatId || peer.userId}.
@@ -1057,7 +1057,6 @@ class TelegramClient {
         let which
         let loc
         if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
-            console.log('i am ere')
             dcId = photo.dcId
             which = downloadBig ? photo.photoBig : photo.photoSmall
             loc = new types.InputPeerPhotoFileLocation({
@@ -1066,7 +1065,7 @@ class TelegramClient {
                 volumeId: which.volumeId,
                 big: downloadBig,
             })
-            console.log(loc)
+            this._log.debug(loc)
         } else {
             // It doesn't make any sense to check if `photo` can be used
             // as input location, because then this method would be able
