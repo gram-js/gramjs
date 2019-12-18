@@ -22,7 +22,7 @@ const generateErrors = (errors, f) => {
     }
 
     // Imports and new subclass creation
-    f.write(`const { RPCError, ${[...importBase.values()].join(', ')} } = require('./rpcbaseerrors');`)
+    f.write(`const { RPCError, ${[...importBase.values()].join(', ')} } = require('./RPCBaseErrors');`)
 
     f.write('\nconst format = require(\'string-format\');')
 
