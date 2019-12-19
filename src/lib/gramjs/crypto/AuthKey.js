@@ -1,4 +1,4 @@
-const { sha1, readBufferFromBigInt, readBigIntFromBuffer } = require('../Helpers')
+const { sha1, toSignedLittleBuffer,readBufferFromBigInt, readBigIntFromBuffer } = require('../Helpers')
 const BinaryReader = require('../extensions/BinaryReader')
 const { sleep } = require('../Helpers')
 
@@ -55,7 +55,7 @@ class AuthKey {
      * @returns {bigint}
      */
     async calcNewNonceHash(newNonce, number) {
-        newNonce = readBufferFromBigInt(newNonce, 32, true, true)
+        newNonce = toSignedLittleBuffer(newNonce, 32)
         const n = Buffer.alloc(1)
         n.writeUInt8(number, 0)
         const data = Buffer.concat([newNonce,

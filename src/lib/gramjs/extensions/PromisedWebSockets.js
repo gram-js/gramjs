@@ -1,3 +1,7 @@
+const BinaryReader = require('../extensions/BinaryReader')
+const Mutex = require('async-mutex').Mutex
+const mutex = new Mutex()
+
 const WebSocketClient = require('websocket').w3cwebsocket
 
 const closeError = new Error('WebSocket was closed')
@@ -13,18 +17,17 @@ class PromisedWebSockets {
         this.closed = true
     }
 
-    // TODO This hangs in certain situations (issues with big files) and breaks subsequent calls.
-    // async readExactly(number) {
-    //     let readData = Buffer.alloc(0)
-    //     while (true) {
-    //         const thisTime = await this.read(number)
-    //         readData = Buffer.concat([readData, thisTime])
-    //         number = number - thisTime.length
-    //         if (!number) {
-    //             return readData
-    //         }
-    //     }
-    // }
+    async readExactly(number) {
+        let readData = Buffer.alloc(0)
+        while (true) {
+            const thisTime = await this.read(number)
+            readData = Buffer.concat([readData, thisTime])
+            number = number - thisTime.length
+            if (!number) {
+                return readData
+            }
+        }
+    }
 
     async read(number) {
         if (this.closed) {
@@ -67,28 +70,27 @@ class PromisedWebSockets {
     async connect(port, ip) {
         console.log('trying to connect')
         this.stream = Buffer.alloc(0)
-
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve
         })
         this.closed = false
         this.website = this.getWebSocketLink(ip, port)
         this.client = new WebSocketClient(this.website, 'binary')
-        return new Promise(function (resolve, reject) {
-            this.client.onopen = function () {
+        return new Promise((resolve, reject) => {
+            this.client.onopen = () => {
                 this.receive()
                 resolve(this)
-            }.bind(this)
-            this.client.onerror = function (error) {
+            }
+            this.client.onerror = (error) => {
                 reject(error)
             }
-            this.client.onclose = function () {
+            this.client.onclose = () => {
                 if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
                 }
-            }.bind(this)
-        }.bind(this))
+            }
+        })
     }
 
     write(data) {
@@ -105,16 +107,22 @@ class PromisedWebSockets {
     }
 
     async receive() {
-        this.client.onmessage = async function (message) {
-            let data
-            if (this.isBrowser) {
-                data = Buffer.from(await new Response(message.data).arrayBuffer())
-            } else {
-                data = Buffer.from(message.data)
+        this.client.onmessage = async (message) => {
+            const release = await mutex.acquire()
+            try {
+                let data
+                if (this.isBrowser) {
+                    data = Buffer.from(await new Response(message.data).arrayBuffer())
+                } else {
+                    data = Buffer.from(message.data)
+                }
+
+                this.stream = Buffer.concat([this.stream, data])
+                this.resolveRead(true)
+            } finally {
+                release()
             }
-            this.stream = Buffer.concat([this.stream, data])
-            this.resolveRead(true)
-        }.bind(this)
+        }
     }
 }
 

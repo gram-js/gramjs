@@ -28,7 +28,8 @@ class AbridgedPacketCodec extends PacketCodec {
         const readData = await reader.read(1)
         let length = readData[0]
         if (length >= 127) {
-            length = Buffer.concat([await reader.read(3), Buffer.alloc(1)]).readInt32LE(0)
+            length = Buffer.concat([await reader.read(3), Buffer.alloc(1)])
+                .readInt32LE(0)
         }
 
         return await reader.read(length << 2)

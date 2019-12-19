@@ -17,10 +17,27 @@ function readBigIntFromBuffer(buffer, little = true, signed = false) {
     }
     let bigInt = BigInt(randBuffer.toString('hex'), 16)
     if (signed && Math.floor(bigInt.toString('2').length / 8) >= bytesNumber) {
-        bigInt = bigInt.subtract(BigInt(2).pow(BigInt(bytesNumber * 8)))
+        bigInt = bigInt.subtract(BigInt(2)
+            .pow(BigInt(bytesNumber * 8)))
     }
     return bigInt
 }
+
+/**
+ * Special case signed little ints
+ * @param big
+ * @param number
+ * @returns {Buffer}
+ */
+function toSignedLittleBuffer(big, number=8) {
+    const bigNumber = BigInt(big)
+    const byteArray = []
+    for (let i = 0; i < number; i++) {
+        byteArray[i] = bigNumber.shiftRight(8*i).and(255)
+    }
+    return Buffer.from(byteArray)
+}
+
 
 /**
  * converts a big int to a buffer
@@ -44,10 +61,11 @@ function readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = false
     let below = false
     if (bigInt.lesser(BigInt(0))) {
         below = true
-        bigInt = bigInt.subtract(bigInt.add(bigInt))
+        bigInt = bigInt.abs()
     }
 
-    const hex = bigInt.toString('16').padStart(bytesNumber * 2, '0')
+    const hex = bigInt.toString('16')
+        .padStart(bytesNumber * 2, '0')
     let l = Buffer.from(hex, 'hex')
     if (little) {
         l = l.reverse()
@@ -55,8 +73,19 @@ function readBufferFromBigInt(bigInt, bytesNumber, little = true, signed = false
 
     if (signed && below) {
         if (little) {
-            l[0] = 256 - l[0]
-            for (let i = 1; i < l.length; i++) {
+            let reminder = false
+            if (l[0] !== 0) {
+                l[0] -= 1
+            }
+            for (let i = 0; i < l.length; i++) {
+                if (l[i] === 0) {
+                    reminder = true
+                    continue
+                }
+                if (reminder) {
+                    l[i] -= 1
+                    reminder = false
+                }
                 l[i] = 255 - l[i]
             }
         } else {
@@ -93,9 +122,10 @@ function mod(n, m) {
  * @param m {BigInt}
  * @returns {BigInt}
  */
-function bigIntMod(n,m) {
+function bigIntMod(n, m) {
     return ((n.remainder(m)).add(m)).remainder(m)
 }
+
 /**
  * Generates a random bytes array
  * @param count
@@ -117,14 +147,17 @@ function generateRandomBytes(count) {
 async function calcKey(sharedKey, msgKey, client) {
     const x = client === true ? 0 : 8
     const [sha1a, sha1b, sha1c, sha1d] = await Promise.all([
-        sha1(Buffer.concat([ msgKey, sharedKey.slice(x, x + 32) ])),
-        sha1(Buffer.concat([ sharedKey.slice(x + 32, x + 48), msgKey, sharedKey.slice(x + 48, x + 64) ])),
-        sha1(Buffer.concat([ sharedKey.slice(x + 64, x + 96), msgKey ])),
-        sha1(Buffer.concat([ msgKey, sharedKey.slice(x + 96, x + 128) ]))
+        sha1(Buffer.concat([msgKey, sharedKey.slice(x, x + 32)])),
+        sha1(Buffer.concat([sharedKey.slice(x + 32, x + 48), msgKey, sharedKey.slice(x + 48, x + 64)])),
+        sha1(Buffer.concat([sharedKey.slice(x + 64, x + 96), msgKey])),
+        sha1(Buffer.concat([msgKey, sharedKey.slice(x + 96, x + 128)]))
     ])
-    const key = Buffer.concat([ sha1a.slice(0, 8), sha1b.slice(8, 20), sha1c.slice(4, 16) ])
-    const iv = Buffer.concat([ sha1a.slice(8, 20), sha1b.slice(0, 8), sha1c.slice(16, 20), sha1d.slice(0, 8) ])
-    return { key, iv }
+    const key = Buffer.concat([sha1a.slice(0, 8), sha1b.slice(8, 20), sha1c.slice(4, 16)])
+    const iv = Buffer.concat([sha1a.slice(8, 20), sha1b.slice(0, 8), sha1c.slice(16, 20), sha1d.slice(0, 8)])
+    return {
+        key,
+        iv
+    }
 }
 
 /**
@@ -134,16 +167,19 @@ async function calcKey(sharedKey, msgKey, client) {
  * @returns {{key: Buffer, iv: Buffer}}
  */
 async function generateKeyDataFromNonce(serverNonce, newNonce) {
-    serverNonce = readBufferFromBigInt(serverNonce, 16, true, true)
-    newNonce = readBufferFromBigInt(newNonce, 32, true, true)
+    serverNonce = toSignedLittleBuffer(serverNonce, 16)
+    newNonce = toSignedLittleBuffer(newNonce, 32)
     const [hash1, hash2, hash3] = await Promise.all([
-        sha1(Buffer.concat([ newNonce, serverNonce ])),
-        sha1(Buffer.concat([ serverNonce, newNonce ])),
-        sha1(Buffer.concat([ newNonce, newNonce ]))
+        sha1(Buffer.concat([newNonce, serverNonce])),
+        sha1(Buffer.concat([serverNonce, newNonce])),
+        sha1(Buffer.concat([newNonce, newNonce]))
     ])
-    const keyBuffer = Buffer.concat([ hash1, hash2.slice(0, 12) ])
-    const ivBuffer = Buffer.concat([ hash2.slice(12, 20), hash3, newNonce.slice(0, 4) ])
-    return { key: keyBuffer, iv: ivBuffer }
+    const keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)])
+    const ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)])
+    return {
+        key: keyBuffer,
+        iv: ivBuffer
+    }
 }
 
 /**
@@ -205,6 +241,7 @@ function getByteArray(integer, signed = false) {
     const byteLength = Math.floor((bits + 8 - 1) / 8)
     return readBufferFromBigInt(BigInt(integer), byteLength, false, signed)
 }
+
 /**
  * returns a random int from min (inclusive) and max (inclusive)
  * @param min
@@ -274,6 +311,7 @@ function crc32(buf) {
     }
     return (crc ^ (-1)) >>> 0
 }
+
 module.exports = {
     readBigIntFromBuffer,
     readBufferFromBigInt,
@@ -291,4 +329,5 @@ module.exports = {
     sleep,
     getByteArray,
     isArrayLike,
+    toSignedLittleBuffer
 }

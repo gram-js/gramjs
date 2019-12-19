@@ -6,7 +6,7 @@ const { TLMessage } = require('../tl/core')
 const { SecurityError, InvalidBufferError } = require('../errors/Common')
 const { InvokeAfterMsgRequest } = require('../tl').requests
 const BigInt = require('big-integer')
-const { readBufferFromBigInt } = require("../Helpers")
+const { toSignedLittleBuffer,readBufferFromBigInt } = require("../Helpers")
 const { readBigIntFromBuffer } = require("../Helpers")
 
 class MTProtoState {
@@ -103,7 +103,7 @@ class MTProtoState {
         s.writeInt32LE(seqNo, 0)
         const b = Buffer.alloc(4)
         b.writeInt32LE(body.length, 0)
-        const m = readBufferFromBigInt(msgId, 8, true, true)
+        const m = toSignedLittleBuffer(msgId, 8)
         buffer.write(Buffer.concat([m, s, b]))
         buffer.write(body)
         return msgId
@@ -116,8 +116,8 @@ class MTProtoState {
      */
     async encryptMessageData(data) {
         await this.authKey.waitForKey()
-        const s = readBufferFromBigInt(this.salt,8,true,true)
-        const i = readBufferFromBigInt(this.id,8,true,true)
+        const s = toSignedLittleBuffer(this.salt,8)
+        const i = toSignedLittleBuffer(this.id,8)
         data = Buffer.concat([Buffer.concat([s,i]), data])
         const padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12)
         // Being substr(what, offset, length); x = 0 for client

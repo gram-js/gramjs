@@ -87,7 +87,7 @@ async function doAuthentication(sender, log) {
     }
 
     if (serverDhParams instanceof constructors.ServerDHParamsFail) {
-        const sh = await Helpers.sha1(Helpers.readBufferFromBigInt(newNonce, 32, true, true).slice(4, 20))
+        const sh = await Helpers.sha1(Helpers.toSignedLittleBuffer(newNonce, 32).slice(4, 20))
         const nnh = Helpers.readBigIntFromBuffer(sh, true, true)
         if (serverDhParams.newNonceHash.neq(nnh)) {
             throw new SecurityError('Step 2 invalid DH fail nonce from server')

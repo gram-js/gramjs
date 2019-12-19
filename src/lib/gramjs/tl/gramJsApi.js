@@ -11,6 +11,10 @@ const {
     serializeBytes,
     serializeDate
 } = require('./generationHelpers')
+<<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
+=======
+const { readBufferFromBigInt,toSignedLittleBuffer } = require('../Helpers')
+>>>>>>> 1a0b5c54... GramJS: Fix images loading: add `async-mutex`; Fix signed LE ints; Bring back `readExactly`:src/lib/gramjs/tl/api.js
 
 const NAMED_AUTO_CASTS = new Set([
     'chatId,int'
@@ -65,11 +69,11 @@ function argToBytes(x, type) {
             const i = Buffer.alloc(4)
             return i.writeInt32LE(x, 0)
         case 'long':
-            return readBufferFromBigInt(x, 8, true, true)
+            return toSignedLittleBuffer(x, 8)
         case 'int128':
-            return readBufferFromBigInt(x, 16, true, true)
+            return toSignedLittleBuffer(x, 16)
         case 'int256':
-            return readBufferFromBigInt(x, 32, true, true)
+            return toSignedLittleBuffer(x, 32)
         case 'double':
             const d = Buffer.alloc(8)
             return d.writeDoubleLE(x, 0)
@@ -277,13 +281,13 @@ function createClasses(classesType, params) {
                                     buffers.push(i)
                                     break
                                 case 'long':
-                                    buffers.push(readBufferFromBigInt(this[arg], 8, true, true))
+                                    buffers.push(toSignedLittleBuffer(this[arg], 8))
                                     break
                                 case 'int128':
-                                    buffers.push(readBufferFromBigInt(this[arg], 16, true, true))
+                                    buffers.push(toSignedLittleBuffer(this[arg], 16))
                                     break
                                 case 'int256':
-                                    buffers.push(readBufferFromBigInt(this[arg], 32, true, true))
+                                    buffers.push(toSignedLittleBuffer(this[arg], 32))
                                     break
                                 case 'double':
                                     const d = Buffer.alloc(8)

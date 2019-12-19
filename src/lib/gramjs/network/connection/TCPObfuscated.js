@@ -58,7 +58,7 @@ class ObfuscatedIO {
     }
 
     async read(n) {
-        const data = await this.connection.read(n)
+        const data = await this.connection.readExactly(n)
         return this._decrypt.encrypt(data)
     }
 

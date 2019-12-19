@@ -7,7 +7,7 @@ const MTProtoState = require('./MTProtoState')
 const BinaryReader = require('../extensions/BinaryReader')
 const { InvalidBufferError } = require('../errors/Common')
 const BigInt = require('big-integer')
-const { readBufferFromBigInt } = require("../Helpers")
+const { toSignedLittleBuffer } = require("../Helpers")
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)
@@ -32,7 +32,7 @@ class MTProtoPlainSender {
 
         let body = request.getBytes()
         let msgId = this._state._getNewMsgId()
-        const m = readBufferFromBigInt(msgId, 8, true, true)
+        const m = toSignedLittleBuffer(msgId, 8)
         const b = Buffer.alloc(4)
         b.writeInt32LE(body.length, 0)
 
