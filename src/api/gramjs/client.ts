@@ -13,6 +13,7 @@ import {
 } from './connectors/auth';
 import { onGramJsUpdate } from './onGramJsUpdate';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import localDb from './localDb';
 import { buildInputPeerPhotoFileLocation } from './inputHelpers';
 import { ApiFileLocation } from '../types';
@@ -23,6 +24,11 @@ import { ApiFileLocation } from '../types';
 
 GramJsLogger.getLogger().level = 'debug';
 >>>>>>> dda7e47e... Fix images loading; Various Gram JS fixes; Refactor Gram JS Logger
+=======
+import queuedDownloadMedia from './connectors/media';
+
+GramJsLogger.setLevel(DEBUG ? 'debug' : 'warn');
+>>>>>>> ddb2a0ed... GramJS: Fix downloading images of uncommon (small) size
 
 let client: TelegramClient;
 

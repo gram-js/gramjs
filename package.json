@@ -67,8 +67,12 @@
 =======
 =======
     "async-mutex": "^0.1.4",
+<<<<<<< HEAD
 >>>>>>> 1a0b5c54... GramJS: Fix images loading: add `async-mutex`; Fix signed LE ints; Bring back `readExactly`
     "big-integer": "latest",
+=======
+    "big-integer": "painor/BigInteger.js",
+>>>>>>> ddb2a0ed... GramJS: Fix downloading images of uncommon (small) size
     "croppie": "^2.6.4",
     "emoji-regex": "^8.0.0",
     "events": "^3.0.0",
