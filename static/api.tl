@@ -1329,6 +1329,7 @@ upload.getFileHashes#c7025931 location:InputFileLocation offset:int = Vector<Fil
 
 help.getConfig#c4f9186b = Config;
 help.getNearestDc#1fb33026 = NearestDc;
+<<<<<<< HEAD
 help.getAppUpdate#522d5a7d source:string = help.AppUpdate;
 help.getInviteText#4d392343 = help.InviteText;
 help.getSupport#9cdf08cd = help.Support;
@@ -1347,6 +1348,9 @@ help.getSupportName#d360e72c = help.SupportName;
 help.getUserInfo#38a08d3 user_id:InputUser = help.UserInfo;
 help.editUserInfo#66b91b70 user_id:InputUser message:string entities:Vector<MessageEntity> = help.UserInfo;
 
+=======
+help.acceptTermsOfService#ee72f79a id:DataJSON = Bool;
+>>>>>>> 073c3e12... GramJS: Implement signup
 channels.readHistory#cc104937 channel:InputChannel max_id:int = Bool;
 channels.deleteMessages#84c1fd4e channel:InputChannel id:Vector<int> = messages.AffectedMessages;
 channels.deleteUserHistory#d10dd71b channel:InputChannel user_id:InputUser = messages.AffectedHistory;

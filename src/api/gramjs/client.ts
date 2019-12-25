@@ -9,7 +9,7 @@ import { Logger as GramJsLogger } from '../../lib/gramjs/extensions';
 
 import { DEBUG } from '../../config';
 import {
-  onAuthReady, onRequestCode, onRequestPassword, onRequestPhoneNumber,
+  onAuthReady, onRequestCode, onRequestPassword, onRequestPhoneNumber, onRequestRegistration,
 } from './connectors/auth';
 import { onGramJsUpdate } from './onGramJsUpdate';
 <<<<<<< HEAD
@@ -28,7 +28,10 @@ GramJsLogger.getLogger().level = 'debug';
 import queuedDownloadMedia from './connectors/media';
 
 GramJsLogger.setLevel(DEBUG ? 'debug' : 'warn');
+<<<<<<< HEAD
 >>>>>>> ddb2a0ed... GramJS: Fix downloading images of uncommon (small) size
+=======
+>>>>>>> 073c3e12... GramJS: Implement signup
 
 let client: TelegramClient;
 
@@ -53,6 +56,7 @@ export async function init(sessionId: string) {
       phone: onRequestPhoneNumber,
       code: onRequestCode,
       password: onRequestPassword,
+      firstAndLastNames: onRequestRegistration,
     } as any);
 
     const newSessionId = session.save();

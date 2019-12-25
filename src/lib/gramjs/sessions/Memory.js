@@ -79,7 +79,7 @@ class MemorySession extends Session {
     }
 
     _entityToRow(e) {
-        if (!(e.classType==="constructor")) {
+        if (!(e.classType === "constructor")) {
             return
         }
         let p
@@ -114,18 +114,20 @@ class MemorySession extends Session {
 
     _entitiesToRows(tlo) {
         let entities = []
-        if (tlo.classType==="constructor" && utils.isListLike(tlo)) {
+        if (tlo.classType === "constructor" && utils.isListLike(tlo)) {
             // This may be a list of users already for instance
             entities = tlo
         } else {
-            if ('user' in tlo) {
-                entities.push(tlo.user)
-            }
-            if ('chats' in tlo && utils.isListLike(tlo.chats)) {
-                entities.concat(tlo.chats)
-            }
-            if ('users' in tlo && utils.isListLike(tlo.users)) {
-                entities.concat(tlo.users)
+            if (tlo instanceof Object) {
+                if ('user' in tlo) {
+                    entities.push(tlo.user)
+                }
+                if ('chats' in tlo && utils.isListLike(tlo.chats)) {
+                    entities.concat(tlo.chats)
+                }
+                if ('users' in tlo && utils.isListLike(tlo.users)) {
+                    entities.concat(tlo.users)
+                }
             }
         }
         const rows = [] // Rows to add (id, hash, username, phone, name)
@@ -201,7 +203,7 @@ class MemorySession extends Session {
             return utils.getInputPeer(key)
         } else {
             // Not a TLObject or can't be cast into InputPeer
-            if (key.classType==='constructor') {
+            if (key.classType === 'constructor') {
                 key = utils.getPeerId(key)
                 exact = true
             } else {

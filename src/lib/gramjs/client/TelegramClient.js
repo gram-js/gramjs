@@ -759,9 +759,17 @@ class TelegramClient {
     }
 
     async getMe() {
+<<<<<<< HEAD
         const me = (await this.invoke(new requests.users
             .GetUsersRequest({ id: [new constructors.InputUserSelf()] })))[0]
         return me
+=======
+        try {
+            return (await this.invoke(new requests.users
+                .GetUsers({ id: [new constructors.InputUserSelf()] })))[0]
+        } catch (e) {
+        }
+>>>>>>> 073c3e12... GramJS: Implement signup
     }
 
 
@@ -771,8 +779,7 @@ class TelegramClient {
         password: null,
         botToken: null,
         forceSMS: null,
-        firstName: null,
-        lastName: null,
+        firstAndLastNames: null,
         maxAttempts: 5,
     }) {
         args.maxAttempts = args.maxAttempts || 5
@@ -814,18 +821,25 @@ class TelegramClient {
         await this.sendCodeRequest(args.phone, args.forceSMS)
 
         let signUp = false
+        let value
         while (attempts < args.maxAttempts) {
             try {
-                const value = await args.code()
+                if (!signUp) {
+                    value = await args.code()
+                }
                 if (!value) {
                     throw new Error('the phone code is empty')
                 }
 
                 if (signUp) {
+                    const [firstName, lastName] = await args.firstAndLastNames()
+                    if (!firstName) {
+                        throw new Error("first name can't be empty")
+                    }
                     me = await this.signUp({
                         code: value,
-                        firstName: args.firstName,
-                        lastName: args.lastName,
+                        firstName: firstName,
+                        lastName: lastName || '',
                     })
                 } else {
                     // this throws SessionPasswordNeededError if 2FA enabled
@@ -840,7 +854,7 @@ class TelegramClient {
                     twoStepDetected = true
                     break
                 } else if (e.message === 'PHONE_NUMBER_OCCUPIED') {
-                    signUp = true
+                    signUp = false
                 } else if (e.message === 'PHONE_NUMBER_UNOCCUPIED') {
                     signUp = true
                 } else if (e.message === 'PHONE_CODE_EMPTY' ||
@@ -939,12 +953,21 @@ class TelegramClient {
             throw new Error('You must provide a phone and a code the first time, ' +
                 'and a password only if an RPCError was raised before.')
         }
+        if (result instanceof constructors.auth.AuthorizationSignUpRequired) {
+            this._tos = result.termsOfService
+            throw new Error('PHONE_NUMBER_UNOCCUPIED')
+        }
+
         return this._onLogin(result.user)
     }
 
 
     _parsePhoneAndHash(phone, phoneHash) {
-        phone = utils.parsePhone(phone) || this._phone
+        if (!phone) {
+            phone = this._phone
+        } else {
+            phone = utils.parsePhone(phone)
+        }
         if (!phone) {
             throw new Error('Please make sure to call send_code_request first.')
         }
@@ -1329,8 +1352,27 @@ class TelegramClient {
         return false
     }
 
-    async signUp() {
-
+    async signUp(args) {
+        const me = await this.getMe()
+        if (me) {
+            return me
+        }
+        if (this._tos && this._tos.text) {
+            console.log(this._tos.text)
+            // The user should click accept if he wants to continue
+        }
+        const [phone, phoneCodeHash] =
+            this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
+        const result = await this.invoke(new requests.auth.SignUp({
+            phoneNumber: phone,
+            phoneCodeHash: phoneCodeHash,
+            firstName: args.firstName,
+            lastName: args.lastName,
+        }))
+        if (this._tos) {
+            await this.invoke(new requests.help.AcceptTermsOfService({ id: this._tos.id }))
+        }
+        return this._onLogin(result.user)
     }
 }
 
