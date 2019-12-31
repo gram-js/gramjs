@@ -1,20 +1,22 @@
 const { EventBuilder } = require('./common')
 
 class Raw extends EventBuilder {
-    constructor(args = {
-        types: null,
-        func: null,
-    }) {
+    constructor({
+        types = [],
+    } = {}) {
         super()
-        if (!args.types) {
-            this.types = true
-        } else {
-            this.types = args.types
-        }
+        
+        this.types = Array.isArray(types) ? types : [types]
     }
 
     build(update, others = null) {
-        return update
+        if (this.types.length < 1) return update
+        
+        for (const _type of this.types) {
+            if (update instanceof _type) {
+                return update
+            }
+        }
     }
 }
 

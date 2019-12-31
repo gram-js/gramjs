@@ -43,28 +43,28 @@ class Logger {
     /**
      * @param message {string}
      */
-    warn(message) {
+    warn(...message) {
         this._log('warn', message, this.colors.warn)
     }
 
     /**
      * @param message {string}
      */
-    info(message) {
+    info(...message) {
         this._log('info', message, this.colors.info)
     }
 
     /**
      * @param message {string}
      */
-    debug(message) {
+    debug(...message) {
         this._log('debug', message, this.colors.debug)
     }
 
     /**
      * @param message {string}
      */
-    error(message) {
+    error(...message) {
         this._log('error', message, this.colors.error)
     }
 
@@ -87,6 +87,10 @@ class Logger {
      * @param color {string}
      */
     _log(level, message, color) {
+        if (Array.isArray(message)) {
+            message = message.join(' ')
+        }
+
         if (this.canSend(level)) {
             if (!this.isBrowser) {
                 console.log(color + this.format(message, level) + this.colors.end)
