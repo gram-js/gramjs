@@ -97,8 +97,10 @@ class NewMessage extends EventBuilder {
 
         // Check if the message is incoming or outgoing, and if
         // we want to accept whichever one it is
-        if (message.out && (!message.outgoing || !message.incoming)) {
-            return false
+        if (message.out) {
+            if (!this.outgoing) return false
+        } else {
+            if (!this.incoming) return false
         }
 
         // See if the message was sent by one of the `fromUsers`
