@@ -17,7 +17,6 @@ const Helpers = require('../Helpers')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { BinaryWriter } = require('../extensions')
 const events = require('../events')
-const { MessageMethods } = require('./Messages')
 
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
@@ -1218,8 +1217,5 @@ class TelegramClient {
 
     // endregion
 }
-
-// Method mixins
-Object.assign(TelegramClient.prototype, MessageMethods)
 
 module.exports = TelegramClient
