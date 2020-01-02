@@ -28,6 +28,10 @@ class MarkdownParser extends Scanner {
     }
 
     parse() {
+        // Do a little reset
+        this.stripped = ''
+        this.entities = []
+
         while (!this.eof()) {
             switch (this.chr) {
             case '*':
@@ -55,6 +59,8 @@ class MarkdownParser extends Scanner {
                 this.pos += 1
             }
         }
+
+        return [this.stripped, this.entities]
     }
 
     static unparse(text, entities) {
