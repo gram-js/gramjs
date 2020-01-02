@@ -17,7 +17,6 @@ const Helpers = require('../Helpers')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { BinaryWriter } = require('../extensions')
 const events = require('../events')
-
 const { MessageMethods } = require('./Messages')
 
 const DEFAULT_DC_ID = 4
