@@ -1,7 +1,7 @@
 const path = require('path')
 const mime = require('mime-types')
 const struct = require('python-struct')
-const { markdown, html } = require('./extensions')
+const { MarkdownParser, HTMLParser } = require('./extensions')
 const { types } = require('./tl')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
@@ -868,8 +868,7 @@ function getMessageId(message) {
 }
 
 /**
- Converts the given parse mode into an object with
- `parse` and `unparse` callable properties.
+ Converts the given parse mode into a matching parser.
  */
 function sanitizeParseMode(mode) {
     if (!mode) return null
@@ -889,10 +888,10 @@ function sanitizeParseMode(mode) {
         switch (mode.toLowerCase()) {
         case 'md':
         case 'markdown':
-            return markdown
+            return MarkdownParser
         case 'htm':
         case 'html':
-            return html
+            return HTMLParser
         default:
             throw new Error(`Unknown parse mode ${mode}`)
         }
@@ -1263,6 +1262,7 @@ module.exports = {
     getInputUser,
     getInputChannel,
     getInputPeer,
+    getInputPhoto,
     parsePhone,
     parseUsername,
     getPeer,
