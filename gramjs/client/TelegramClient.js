@@ -17,6 +17,7 @@ const Helpers = require('../Helpers')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { BinaryWriter } = require('../extensions')
 const events = require('../events')
+
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
@@ -24,6 +25,8 @@ const DEFAULT_PORT = 443
 
 // Chunk sizes for upload.getFile must be multiples of the smallest size
 const MIN_CHUNK_SIZE = 4096
+
+// eslint-disable-next-line no-unused-vars
 const MAX_CHUNK_SIZE = 512 * 1024
 
 
@@ -340,9 +343,11 @@ class TelegramClient {
             while (typeof args.phone == 'function') {
                 const value = await args.phone()
                 if (value.indexOf(':') !== -1) {
+                    // eslint-disable-next-line require-atomic-updates
                     args.botToken = value
                     break
                 }
+                // eslint-disable-next-line require-atomic-updates
                 args.phone = utils.parsePhone(value) || args.phone
             }
         }
@@ -430,7 +435,6 @@ class TelegramClient {
                     password: args.password,
                 })
             }
-
         }
         const name = utils.getDisplayName(me)
         this._log.error('Signed in successfully as', name)
@@ -460,9 +464,8 @@ class TelegramClient {
         } else if (args.password) {
             const pwd = await this.invoke(new functions.account.GetPasswordRequest())
             result = await this.invoke(new functions.auth.CheckPasswordRequest({
-                    password: computeCheck(pwd, args.password),
-                },
-            ))
+                password: computeCheck(pwd, args.password),
+            }))
         } else if (args.botToken) {
             result = await this.invoke(new functions.auth.ImportBotAuthorizationRequest(
                 {
@@ -909,9 +912,8 @@ class TelegramClient {
         this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
         const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
         const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
-                id: auth.id, bytes: auth.bytes,
-            },
-        ))
+            id: auth.id, bytes: auth.bytes,
+        }))
         await sender.send(req)
         return sender
     }
@@ -1039,7 +1041,8 @@ class TelegramClient {
             return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
         } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
             return this._downloadContact(media, file)
-        } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) && args.thumb == null) {
+        } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) &&
+                    args.thumb == null) {
             return await this._downloadWebDocument(media, file, args.progressCallback)
         }
     }
@@ -1108,8 +1111,6 @@ class TelegramClient {
                 throw e
             }
         }
-
-
     }
 
     _getThumb(thumbs, thumb) {
@@ -1215,7 +1216,6 @@ class TelegramClient {
     }
 
     // endregion
-
 }
 
 module.exports = TelegramClient

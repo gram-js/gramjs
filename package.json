@@ -32,6 +32,7 @@
     "csv-parse": "^4.4.6",
     "fast-csv": "^3.4.0",
     "glob": "^7.1.4",
+    "mime-types": "^2.1.25",
     "net": "^1.0.2",
     "node-gzip": "^1.1.2",
     "node-rsa": "^1.0.6",

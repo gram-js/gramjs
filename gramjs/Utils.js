@@ -1,13 +1,106 @@
+const path = require('path')
+const mime = require('mime-types')
+const struct = require('python-struct')
+const { MarkdownParser, HTMLParser } = require('./extensions')
 const { types } = require('./tl')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
     '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?')
 
-
 const TG_JOIN_RE = new RegExp('tg:\\/\\/(join)\\?invite=')
 
 const VALID_USERNAME_RE = new RegExp('^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|' +
     'pic|bing|wiki|imdb|bold|vote|like|coub)$')
+
+class FileInfo {
+    constructor(dcId, location, size) {
+        this.dcId = dcId
+        this.location = location
+        this.size = size
+    }
+}
+
+/**
+ Turns the given iterable into chunks of the specified size,
+ which is 100 by default since that's what Telegram uses the most.
+
+ * @param iter
+ * @param size
+ */
+function* chunk(iter, size = 100) {
+    let items = []
+    let index = 0
+
+    for (const item of iter) {
+        items[index++] = item
+        if (index === size) {
+            yield items
+            items = []
+            index = 0
+        }
+    }
+
+    if (index) {
+        yield items
+    }
+}
+
+/**
+ Gets the display name for the given User, Chat,
+ or Channel. Otherwise returns an empty string.
+ */
+function getDisplayName(entity) {
+    if (entity instanceof types.User) {
+        if (entity.lastName && entity.firstName) {
+            return `${entity.firstName} ${entity.lastName}`
+        } else if (entity.firstName) {
+            return entity.firstName
+        } else if (entity.lastName) {
+            return entity.lastName
+        }
+    }
+
+    if (entity instanceof types.Chat || entity instanceof types.Channel) {
+        return entity.title
+    }
+
+    return ''
+}
+
+/**
+ Gets the corresponding extension for any Telegram media.
+ */
+function getExtension(media) {
+    // Photos are always compressed as .jpg by Telegram
+    try {
+        getInputPhoto(media)
+        return '.jpg'
+    } catch (err) {
+        if ((media instanceof types.UserProfilePhoto) ||
+            (media instanceof types.ChatPhoto)) {
+            return '.jpg'
+        }
+    }
+
+    // Documents will come with a mime type
+    if (media instanceof types.MessageMediaDocument) {
+        media = media.document
+    }
+
+    if ((media instanceof types.Document) ||
+        (media instanceof types.WebDocument) ||
+        (media instanceof types.WebDocumentNoProxy)) {
+        if (media.mimeType === 'application/octet-stream') {
+            // Octet stream are just bytes, which have no default extension
+            return ''
+        } else {
+            const ext = mime.extension(media.mimeType)
+            return ext ? '.' + ext : ''
+        }
+    }
+
+    return ''
+}
 
 function _raiseCastFail(entity, target) {
     throw new Error(`Cannot cast ${entity.constructor.name} to any kind of ${target}`)
@@ -60,11 +153,16 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     }
     if (entity instanceof types.Chat || entity instanceof types.ChatEmpty ||
         entity instanceof types.ChatForbidden) {
-        return new types.InputPeerChat({ chatId: entity.id })
+        return new types.InputPeerChat({
+            chatId: entity.id,
+        })
     }
     if (entity instanceof types.Channel) {
         if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
-            return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+            return new types.InputPeerChannel({
+                channelId: entity.id,
+                accessHash: entity.accessHash,
+            })
         } else {
             throw new TypeError('Channel without access_hash or min info cannot be input')
         }
@@ -72,14 +170,23 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     if (entity instanceof types.ChannelForbidden) {
         // "channelForbidden are never min", and since their hash is
         // also not optional, we assume that this truly is the case.
-        return new types.InputPeerChannel({ channelId: entity.id, accessHash: entity.accessHash })
+        return new types.InputPeerChannel({
+            channelId: entity.id,
+            accessHash: entity.accessHash,
+        })
     }
 
     if (entity instanceof types.InputUser) {
-        return new types.InputPeerUser({ userId: entity.userId, accessHash: entity.accessHash })
+        return new types.InputPeerUser({
+            userId: entity.userId,
+            accessHash: entity.accessHash,
+        })
     }
     if (entity instanceof types.InputChannel) {
-        return new types.InputPeerChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+        return new types.InputPeerChannel({
+            channelId: entity.channelId,
+            accessHash: entity.accessHash,
+        })
     }
     if (entity instanceof types.UserEmpty) {
         return new types.InputPeerEmpty()
@@ -89,7 +196,9 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
     }
 
     if (entity instanceof types.ChatFull) {
-        return new types.InputPeerChat({ chatId: entity.id })
+        return new types.InputPeerChat({
+            chatId: entity.id,
+        })
     }
 
     if (entity instanceof types.PeerChat) {
@@ -121,11 +230,17 @@ function getInputChannel(entity) {
         return entity
     }
     if (entity instanceof types.Channel || entity instanceof types.ChannelForbidden) {
-        return new types.InputChannel({ channelId: entity.id, accessHash: entity.accessHash || 0 })
+        return new types.InputChannel({
+            channelId: entity.id,
+            accessHash: entity.accessHash || 0,
+        })
     }
 
     if (entity instanceof types.InputPeerChannel) {
-        return new types.InputChannel({ channelId: entity.channelId, accessHash: entity.accessHash })
+        return new types.InputChannel({
+            channelId: entity.channelId,
+            accessHash: entity.accessHash,
+        })
     }
     _raiseCastFail(entity, 'InputChannel')
 }
@@ -191,7 +306,10 @@ function getInputUser(entity) {
     }
 
     if (entity instanceof types.InputPeerUser) {
-        return new types.InputUser({ userId: entity.userId, accessHash: entity.accessHash })
+        return new types.InputUser({
+            userId: entity.userId,
+            accessHash: entity.accessHash,
+        })
     }
 
     _raiseCastFail(entity, 'InputUser')
@@ -203,7 +321,10 @@ function getInputLocation(location) {
             throw new Error()
         }
         if (location.SUBCLASS_OF_ID === 0x1523d462) {
-            return { dcId: null, inputLocation: location }
+            return {
+                dcId: null,
+                inputLocation: location,
+            }
         }
     } catch (e) {
         _raiseCastFail(location, 'InputFileLocation')
@@ -220,7 +341,8 @@ function getInputLocation(location) {
 
     if (location instanceof types.Document) {
         return {
-            dcId: location.dcId, inputLocation: new types.InputDocumentFileLocation({
+            dcId: location.dcId,
+            inputLocation: new types.InputDocumentFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
@@ -229,7 +351,8 @@ function getInputLocation(location) {
         }
     } else if (location instanceof types.Photo) {
         return {
-            dcId: location.dcId, inputLocation: new types.InputPhotoFileLocation({
+            dcId: location.dcId,
+            inputLocation: new types.InputPhotoFileLocation({
                 id: location.id,
                 accessHash: location.accessHash,
                 fileReference: location.fileReference,
@@ -254,7 +377,9 @@ function getInputDialog(dialog) {
             return dialog
         }
         if (dialog.SUBCLASS_OF_ID === 0xc91c90b6) { // crc32(b'InputPeer')
-            return new types.InputDialogPeer({ peer: dialog })
+            return new types.InputDialogPeer({
+                peer: dialog,
+            })
         }
     } catch (e) {
         _raiseCastFail(dialog, 'InputDialogPeer')
@@ -281,12 +406,288 @@ function getInputMessage(message) {
             return new types.InputMessageID(message.id)
         }
         // eslint-disable-next-line no-empty
-    } catch (e) {
-    }
+    } catch (e) {}
 
     _raiseCastFail(message, 'InputMessage')
 }
 
+function getInputDocument(doc) {
+    try {
+        if (doc.SUBCLASS_OF_ID === 0xf33fdb68) {
+            return doc
+        }
+    } catch (err) {
+        _raiseCastFail(doc, 'InputMediaDocument')
+    }
+
+    if (doc instanceof types.Document) {
+        return new types.InputDocument({
+            id: doc.id,
+            accessHash: doc.accessHash,
+            fileReference: doc.fileReference,
+        })
+    }
+
+    if (doc instanceof types.DocumentEmpty) {
+        return new types.InputDocumentEmpty()
+    }
+
+    if (doc instanceof types.MessageMediaDocument) {
+        return getInputDocument(doc.document)
+    }
+
+    if (doc instanceof types.Message) {
+        return getInputDocument(doc.media)
+    }
+
+    _raiseCastFail(doc, 'InputDocument')
+}
+
+/**
+ Similar to `getInputPeer`, but for photos.
+ */
+function getInputPhoto(photo) {
+    try {
+        if (photo.SUBCLASS_OF_ID === 0x846363e0) {
+            return photo
+        }
+    } catch (err) {
+        _raiseCastFail(photo, 'InputPhoto')
+    }
+
+    if (photo instanceof types.Message) {
+        photo = photo.media
+    }
+
+    if ((photo instanceof types.photos.Photo) ||
+        (photo instanceof types.MessageMediaPhoto)) {
+        photo = photo.photo
+    }
+
+    if (photo instanceof types.Photo) {
+        return new types.InputPhoto({
+            id: photo.id,
+            accessHash: photo.accessHash,
+            fileReference: photo.fileReference,
+        })
+    }
+
+    if (photo instanceof types.PhotoEmpty) {
+        return new types.InputPhotoEmpty()
+    }
+
+    if (photo instanceof types.messages.ChatFull) {
+        photo = photo.fullChat
+    }
+
+    if (photo instanceof types.ChannelFull) {
+        return getInputPhoto(photo.chatPhoto)
+    } else if (photo instanceof types.UserFull) {
+        return getInputPhoto(photo.profilePhoto)
+    } else if ((photo instanceof types.Photo) ||
+        (photo instanceof types.Chat) ||
+        (photo instanceof types.User)) {
+        return getInputPhoto(photo.photo)
+    }
+
+    if ((photo instanceof types.UserEmpty) ||
+        (photo instanceof types.ChatEmpty) ||
+        (photo instanceof types.ChatForbidden) ||
+        (photo instanceof types.ChannelForbidden)) {
+        return new types.InputPhotoEmpty()
+    }
+
+    _raiseCastFail(photo, 'InputPhoto')
+}
+
+/**
+ Similar to `getInputPeer`, but for chat photos.
+ */
+function getInputChatPhoto(photo) {
+    try {
+        if (photo.SUBCLASS_OF_ID === 0xd4eb2d74) {
+            return photo
+        } else if (photo.SUBCLASS_OF_ID === 0xe7655f1f) {
+            return new types.InputChatUploadedPhoto(photo)
+        }
+    } catch (err) {
+        _raiseCastFail(photo, 'InputChatPhoto')
+    }
+
+    photo = getInputPhoto(photo)
+    if (photo instanceof types.InputPhoto) {
+        return new types.InputChatPhoto(photo)
+    } else if (photo instanceof types.InputPhotoEmpty) {
+        return new types.InputChatPhotoEmpty()
+    }
+
+    _raiseCastFail(photo, 'InputChatPhoto')
+}
+
+/**
+ Similar to `getInputPeer`, but for geo points.
+ */
+function getInputGeo(geo) {
+    try {
+        if (geo.SUBCLASS_OF_ID === 0x430d225) {
+            return geo
+        }
+    } catch (err) {
+        _raiseCastFail(geo, 'InputGeoPoint')
+    }
+
+    if (geo instanceof types.GeoPoint) {
+        return new types.InputGeoPoint({
+            lat: geo.lat,
+            long: geo.long,
+        })
+    }
+
+    if (geo instanceof types.GeoPointEmpty) {
+        return new types.InputGeoPointEmpty()
+    }
+
+    if (geo instanceof types.MessageMediaGeo) {
+        return getInputGeo(geo)
+    }
+
+    if (geo instanceof types.Message) {
+        return getInputGeo(geo.media)
+    }
+
+    _raiseCastFail(geo, 'InputGeoPoint')
+}
+
+/**
+ Similar to `getInputPeer`, but for media.
+
+ If the media is `InputFile` and `is_photo` is known to be `True`,
+ it will be treated as an `InputMediaUploadedPhoto`. Else, the rest
+ of parameters will indicate how to treat it.
+ */
+function getInputMedia(media, {
+    isPhoto = false,
+    attributes = null,
+    forceDocument = false,
+    voiceNote = false,
+    videoNote = false,
+    supportsStreaming = false,
+} = {}) {
+    try {
+        switch (media.SUBCLASS_OF_ID) {
+        case 0xfaf846f4:
+            return media
+        case 0x846363e0:
+            return new types.InputMediaPhoto(media)
+        case 0xf33fdb68:
+            return new types.InputMediaDocument(media)
+        }
+    } catch (err) {
+        _raiseCastFail(media, 'InputMedia')
+    }
+
+    if (media instanceof types.MessageMediaPhoto) {
+        return new types.InputMediaPhoto({
+            id: getInputPhoto(media.photo),
+            ttlSeconds: media.ttlSeconds,
+        })
+    }
+
+    if ((media instanceof types.Photo) ||
+        (media instanceof types.photos.Photo) ||
+        (media instanceof types.PhotoEmpty)) {
+        return new types.InputMediaPhoto({
+            id: getInputPhoto(media),
+        })
+    }
+
+    if (media instanceof types.MessageMediaDocument) {
+        return new types.InputMediaDocument({
+            id: getInputDocument(media.document),
+            ttlSeconds: media.ttlSeconds,
+        })
+    }
+
+    if ((media instanceof types.Document) ||
+        (media instanceof types.DocumentEmpty)) {
+        return new types.InputMediaDocument({
+            id: getInputDocument(media),
+        })
+    }
+
+    if ((media instanceof types.InputFile) ||
+        (media instanceof types.InputFileBig)) {
+        // eslint-disable-next-line one-var
+        if (isPhoto) {
+            return new types.InputMediaUploadedPhoto({
+                file: media,
+            })
+        } else {
+            // TODO: Get attributes from audio file
+            // [attrs, mimeType] = getAttributes(media, {
+            //     attributes,
+            //     forceDocument,
+            //     voiceNote,
+            //     videoNote,
+            //     supportsStreaming,
+            // })
+            const mimeType = mime.lookup(media.name)
+            return new types.InputMediaUploadedDocument({
+                file: media,
+                mimeType: mimeType,
+                attributes: [],
+            })
+        }
+    }
+
+    if (media instanceof types.MessageMediaGame) {
+        return new types.InputMediaGame({
+            id: media.game.id,
+        })
+    }
+
+    if (media instanceof types.MessageMediaContact) {
+        return new types.InputMediaContact({
+            phoneNumber: media.phoneNumber,
+            firstName: media.firstName,
+            lastName: media.lastName,
+            vcard: '',
+        })
+    }
+
+    if (media instanceof types.MessageMediaGeo) {
+        return new types.InputMediaGeoPoint({
+            geoPoint: getInputGeo(media.geo),
+        })
+    }
+
+    if (media instanceof types.MessageMediaVenue) {
+        return new types.InputMediaVenue({
+            geoPoint: getInputGeo(media.geo),
+            title: media.title,
+            address: media.address,
+            provider: media.provider,
+            venueId: media.venueId,
+            venueType: '',
+        })
+    }
+
+    if ((media instanceof types.MessageMediaEmpty) ||
+        (media instanceof types.MessageMediaUnsupported) ||
+        (media instanceof types.ChatPhotoEmpty) ||
+        (media instanceof types.UserProfilePhoto) ||
+        (media instanceof types.FileLocationToBeDeprecated)) {
+        return new types.InputMediaEmpty()
+    }
+
+    if (media instanceof types.Message) {
+        return getInputMedia(media.media, {
+            isPhoto,
+        })
+    }
+
+    _raiseCastFail(media, 'InputMedia')
+}
 
 function getPeer(peer) {
     try {
@@ -294,11 +695,17 @@ function getPeer(peer) {
             const res = resolveId(peer)
 
             if (res[1] === types.PeerChannel) {
-                return new res[1]({ channelId: res[0] })
+                return new res[1]({
+                    channelId: res[0],
+                })
             } else if (res[1] === types.PeerChat) {
-                return new res[1]({ chatId: res[0] })
+                return new res[1]({
+                    chatId: res[0],
+                })
             } else {
-                return new res[1]({ userId: res[0] })
+                return new res[1]({
+                    userId: res[0],
+                })
             }
         }
         if (peer.SUBCLASS_OF_ID === undefined) {
@@ -311,20 +718,30 @@ function getPeer(peer) {
             peer instanceof types.Dialog || peer instanceof types.DialogPeer) {
             return peer.peer
         } else if (peer instanceof types.ChannelFull) {
-            return new types.PeerChannel({ channelId: peer.id })
+            return new types.PeerChannel({
+                channelId: peer.id,
+            })
         }
         if (peer.SUBCLASS_OF_ID === 0x7d7c6f86 || peer.SUBCLASS_OF_ID === 0xd9c7fc18) {
             // ChatParticipant, ChannelParticipant
-            return new types.PeerUser({ userId: peer.userId })
+            return new types.PeerUser({
+                userId: peer.userId,
+            })
         }
         peer = getInputPeer(peer, false, false)
 
         if (peer instanceof types.InputPeerUser) {
-            return new types.PeerUser({ userId: peer.userId })
+            return new types.PeerUser({
+                userId: peer.userId,
+            })
         } else if (peer instanceof types.InputPeerChat) {
-            return new types.PeerChat({ chatId: peer.chatId })
+            return new types.PeerChat({
+                chatId: peer.chatId,
+            })
         } else if (peer instanceof types.InputPeerChannel) {
-            return new types.PeerChannel({ channelId: peer.channelId })
+            return new types.PeerChannel({
+                channelId: peer.channelId,
+            })
         }
         // eslint-disable-next-line no-empty
     } catch (e) {
@@ -433,7 +850,10 @@ function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) 
             inputEntity = null
         }
     }
-    return { entity, inputEntity }
+    return {
+        entity,
+        inputEntity,
+    }
 }
 
 function getMessageId(message) {
@@ -450,6 +870,84 @@ function getMessageId(message) {
 }
 
 /**
+ Converts the given parse mode into a matching parser.
+ */
+function sanitizeParseMode(mode) {
+    if (!mode) return null
+
+    if (mode instanceof Function) {
+        class CustomMode {
+            static unparse(text, entities) {
+                throw new Error('Not implemented')
+            }
+        }
+
+        CustomMode.prototype.parse = mode
+        return CustomMode
+    } else if ((mode.parse && mode.unparse) &&
+               (mode.parse instanceof Function) &&
+               (mode.unparse instanceof Function)) {
+        return mode
+    } else if (mode instanceof String) {
+        switch (mode.toLowerCase()) {
+        case 'md':
+        case 'markdown':
+            return MarkdownParser
+        case 'htm':
+        case 'html':
+            return HTMLParser
+        default:
+            throw new Error(`Unknown parse mode ${mode}`)
+        }
+    } else {
+        throw new TypeError(`Invalid parse mode type ${mode}`)
+    }
+}
+
+
+function _getFileInfo(location) {
+    try {
+        if (location.SUBCLASS_OF_ID === 0x1523d462) {
+            return new FileInfo(null, location, null)
+        }
+    } catch (err) {
+        _raiseCastFail(location, 'InputFileLocation')
+    }
+
+    if (location instanceof types.Message) {
+        location = location.media
+    }
+
+    if (location instanceof types.MessageMediaDocument) {
+        location = location.document
+    } else if (location instanceof types.MessageMediaPhoto) {
+        location = location.photo
+    }
+
+    if (location instanceof types.Document) {
+        return new FileInfo(location.dcId, new types.InputDocumentFileLocation({
+            id: location.id,
+            accessHash: location.accessHash,
+            fileReference: location.fileReference,
+            thumbSize: '',
+        }), location.size)
+    } else if (location instanceof types.Photo) {
+        return new FileInfo(location.dcId, new types.InputPhotoFileLocation({
+            id: location.id,
+            accessHash: location.accessHash,
+            fileReference: location.fileReference,
+            thumbSize: location.sizes.slice(-1)[0].type,
+        }))
+    }
+
+    if (location instanceof types.FileLocationToBeDeprecated) {
+        throw new TypeError('Unavailable location can\'t be used as input')
+    }
+
+    _raiseCastFail(location, 'InputFileLocation')
+}
+
+/**
  * Parses the given phone, or returns `None` if it's invalid.
  * @param phone
  */
@@ -462,6 +960,33 @@ function parsePhone(phone) {
             return phone
         }
     }
+}
+
+function isImage(file) {
+    if (path.extname(file).match(/\.(png|jpe?g)/i)) {
+        return true
+    } else {
+        return resolveBotFileId(file) instanceof types.Photo
+    }
+}
+
+function isGif(file) {
+    return !!(path.extname(file).match(/\.gif/i))
+}
+
+function isAudio(file) {
+    return (mime.lookup(file) || '').startsWith('audio/')
+}
+
+function isVideo(file) {
+    return (mime.lookup(file) || '').startsWith('video/')
+}
+
+function isIterable(obj) {
+    if (obj == null) {
+        return false
+    }
+    return typeof obj[Symbol.iterator] === 'function'
 }
 
 /**
@@ -480,16 +1005,42 @@ function parseUsername(username) {
     if (m) {
         username = username.replace(m[0], '')
         if (m[1]) {
-            return { username: username, isInvite: true }
+            return {
+                username: username,
+                isInvite: true,
+            }
         } else {
             username = rtrim(username, '/')
         }
     }
     if (username.match(VALID_USERNAME_RE)) {
-        return { username: username.toLowerCase(), isInvite: false }
+        return {
+            username: username.toLowerCase(),
+            isInvite: false,
+        }
     } else {
-        return { username: null, isInvite: false }
+        return {
+            username: null,
+            isInvite: false,
+        }
     }
+}
+
+/**
+ Gets the inner text that's surrounded by the given entites.
+ For instance: `text = 'Hey!', entity = new MessageEntityBold(2, 2) // -> 'y!'`
+
+ @param text the original text
+ @param entities the entity or entities that must be matched
+ */
+function getInnerText(text, entities) {
+    entities = Array.isArray(entities) ? entities : [entities]
+    return entities.reduce((acc, e) => {
+        const start = e.offset
+        const stop = e.offset + e.length
+        acc.push(text.substring(start, stop))
+        return acc
+    }, [])
 }
 
 function rtrim(s, mask) {
@@ -497,6 +1048,165 @@ function rtrim(s, mask) {
         s = s.slice(0, -1)
     }
     return s
+}
+
+/**
+ Decoded run-length-encoded data
+ */
+function _rleDecode(data) {
+    return data.replace(/(\d+)([A-z\s])/g, (_, runLength, char) => char.repeat(runLength))
+}
+
+/**
+ Run-length encodes data
+ */
+function _rleEncode(data) {
+    return data.replace(/([A-z])\1+/g, (run, char) => (run.length + char))
+}
+
+/**
+ Decodes a url-safe base64 encoded string into its bytes
+ by first adding the stripped necessary padding characters.
+
+ This is the way Telegram shares binary data as strings, such
+ as the Bot API style file IDs or invite links.
+
+ Returns `null` if the input string was not valid.
+ */
+function _decodeTelegramBase64(string) {
+    string += '='.repeat(string.length % 4)
+    return new Buffer(string).toString('utf8')
+}
+
+/**
+ Inverse of `_decodeTelegramBase64`
+ */
+function _encodeTelegramBase64(string) {
+    return new Buffer(string).toString('base64').replace(/=+$/, '')
+}
+
+/**
+ Given a Bot API style `fileId`, returns the media it
+ represents. If the `fileId` is not valid, `null` is
+ returned instead.
+
+ Note that the `fileId` does not have information such as
+ dimensions, or file size, so these will be zero if
+ present.
+
+ For thumbnails, the photo ID hash will always be zero.
+ */
+function resolveBotFileId(fileId) {
+    let data = _rleDecode(_decodeTelegramBase64(fileId))
+    if (!data) return null
+
+    // Not officially documented anywhere, but we
+    // assume the last byte is some kind of "version".
+    let version
+    [data, version] = data.slice(0, data.length - 1), data.slice(-1)
+    if (![2, 4].includes(version)) return null
+
+    if ((version === 2 && data.size === 24) ||
+        (version === 4 && data.size === 25)) {
+        // eslint-disable-next-line one-var
+        let fileType, dcId, mediaId, accessHash
+        if (version === 2) {
+            [fileType, dcId, mediaId, accessHash] = struct.unpack('<iiqq', Buffer.from(data))
+        } else {
+            // TODO: Figure out what the extra byte means
+            // eslint-disable-next-line comma-dangle, comma-spacing
+            [fileType, dcId, mediaId, accessHash,] = struct.unpack('<iiqqb', Buffer.from(data))
+        }
+
+        if (!((1 <= dcId) && (dcId <= 5))) {
+            // Valid `fileId`'s must have valid DC IDs. Since this method is
+            // called when sending a file and the user may have entered a path
+            // they believe is correct but the file doesn't exist, this method
+            // may detect a path as "valid" bot `fileId` even when it's not.
+            // By checking the `dcId`, we greatly reduce the chances of this
+            // happening.
+            return null
+        }
+
+        const attributes = []
+        switch (fileType) {
+        case 3:
+        case 9:
+            attributes.push(new types.DocumentAttributeAudio({
+                duration: 0,
+                voice: fileType === 3,
+            }))
+            break
+        case 4:
+        case 13:
+            attributes.push(new types.DocumentAttributeVideo({
+                duration: 0,
+                w: 0,
+                h: 0,
+                roundMessage: fileType === 13,
+            }))
+            break
+        case 5:
+            // No idea what this is
+            break
+        case 8:
+            attributes.push(new types.DocumentAttributeSticker({
+                alt: '',
+                stickerSet: new types.InputStickerSetEmpty(),
+            }))
+            break
+        case 10:
+            attributes.push(new types.DocumentAttributeAnimated())
+        }
+
+        return new types.Document({
+            id: mediaId,
+            accessHash: accessHash,
+            date: null,
+            mimeType: '',
+            size: 0,
+            thumbs: null,
+            dcId: dcId,
+            attributes: attributes,
+            file_reference: '',
+        })
+    } else if ((version === 2 && data.size === 44) ||
+        (version === 4 && data.size === 49)) {
+        // eslint-disable-next-line one-var
+        let dcId, mediaId, accessHash, volumeId, localId
+        if (version === 2) {
+            [, dcId, mediaId, accessHash, volumeId, , localId] = struct.unpack('<iiqqqqi', Buffer.from(data))
+        } else {
+            // TODO: Figure out what the extra five bytes mean
+            // eslint-disable-next-line comma-dangle, comma-spacing
+            [, dcId, mediaId, accessHash, volumeId, , localId,] = struct.unpack('<iiqqqqi5s', Buffer.from(data))
+        }
+
+        if (!((1 <= dcId) && (dcId <= 5))) {
+            return null
+        }
+
+        // Thumbnails (small) always have ID 0; otherwise size 'x'
+        const photoSize = mediaId || accessHash ? 's' : 'x'
+        return new types.Photo({
+            id: mediaId,
+            accessHash: accessHash,
+            fileReference: '',
+            data: null,
+            sizes: [new types.PhotoSize({
+                type: photoSize,
+                location: new types.FileLocationToBeDeprecated({
+                    volumeId: volumeId,
+                    localId: localId,
+                }),
+                w: 0,
+                h: 0,
+                size: 0,
+            })],
+            dcId: dcId,
+            hasStickers: null,
+        })
+    }
 }
 
 /**
@@ -520,28 +1230,6 @@ function getAppropriatedPartSize(fileSize) {
 }
 
 /**
- * Gets the display name for the given :tl:`User`,
- :tl:`Chat` or :tl:`Channel`. Returns an empty string otherwise
- * @param entity
- */
-function getDisplayName(entity) {
-    if (entity instanceof types.User) {
-        if (entity.lastName && entity.firstName) {
-            return `${entity.firstName} ${entity.lastName}`
-        } else if (entity.firstName) {
-            return entity.firstName
-        } else if (entity.lastName) {
-            return entity.lastName
-        } else {
-            return ''
-        }
-    } else if (entity instanceof types.Chat || entity instanceof types.Channel) {
-        return entity.title
-    }
-    return ''
-}
-
-/**
  * check if a given item is an array like or not
  * @param item
  * @returns {boolean}
@@ -551,7 +1239,7 @@ function isListLike(item) {
         Array.isArray(item) ||
         (!!item &&
             typeof item === 'object' &&
-            typeof (item.length) === 'number' &&
+            typeof(item.length) === 'number' &&
             (item.length === 0 ||
                 (item.length > 0 &&
                     (item.length - 1) in item)
@@ -561,13 +1249,24 @@ function isListLike(item) {
 }
 
 module.exports = {
-    getMessageId,
     _getEntityPair,
+    _decodeTelegramBase64,
+    _encodeTelegramBase64,
+    _rleDecode,
+    _rleEncode,
+    _getFileInfo,
+    chunk,
+    getMessageId,
+    getExtension,
+    getInputChatPhoto,
+    getInputMedia,
     getInputMessage,
     getInputDialog,
+    getInputDocument,
     getInputUser,
     getInputChannel,
     getInputPeer,
+    getInputPhoto,
     parsePhone,
     parseUsername,
     getPeer,
@@ -576,5 +1275,14 @@ module.exports = {
     resolveId,
     isListLike,
     getAppropriatedPartSize,
-    getInputLocation, strippedPhotoToJpg,
+    getInputLocation,
+    strippedPhotoToJpg,
+    resolveBotFileId,
+    getInnerText,
+    isImage,
+    isGif,
+    isAudio,
+    isVideo,
+    isIterable,
+    sanitizeParseMode,
 }
