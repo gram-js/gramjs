@@ -251,6 +251,56 @@ function isArrayLike(obj) {
     return true
 }
 
+/**
+ * Strips whitespace from the given text modifying the provided entities.
+ * This assumes that there are no overlapping entities, that their length
+ * is greater or equal to one, and that their length is not out of bounds.
+ */
+function stripText(text, entities) {
+    if (!entities || entities.length === 0) return text.trim()
+
+    entities = Array.isArray(entities) ? entities : [entities]
+    while (text && text.slice(-1).match(/\s/)) {
+        const e = entities.slice(-1)
+        if (e.offset + e.length === text.length) {
+            if (e.length === 1) {
+                delete entities[entities.length - 1]
+                if (!entities) return text.trim()
+            } else {
+                e.length -= 1
+            }
+        }
+
+        text = text.slice(0, -1)
+    }
+
+    while (text && text[0].match(/\s/)) {
+        for (let i = entities.size; i > 0; i--) {
+            const e = entities[i]
+            if (e.offset !== 0) {
+                e.offset -= 1
+                continue
+            }
+
+            if (e.length === 1) {
+                delete entities[0]
+                if (entities.size === 0) {
+                    return text.trim()
+                }
+            } else {
+                e.length -= 1
+            }
+        }
+
+        text = text(1, text.length)
+    }
+
+    return text
+}
+
+function regExpEscape(str) {
+    return str.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, '\\$&')
+}
 
 module.exports = {
     readBigIntFromBuffer,
@@ -268,4 +318,6 @@ module.exports = {
     sleep,
     isArrayLike,
     ensureParentDirExists,
+    stripText,
+    regExpEscape,
 }
