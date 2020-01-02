@@ -12,10 +12,12 @@ const TG_JOIN_RE = new RegExp('tg:\\/\\/(join)\\?invite=')
 const VALID_USERNAME_RE = new RegExp('^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|' +
     'pic|bing|wiki|imdb|bold|vote|like|coub)$')
 
-function FileInfo(dcId, location, size) {
-    this.dcId = dcId
-    this.location = location
-    this.size = size
+class FileInfo {
+    constructor(dcId, location, size) {
+        this.dcId = dcId
+        this.location = location
+        this.size = size
+    }
 }
 
 /**
@@ -409,36 +411,36 @@ function getInputMessage(message) {
     _raiseCastFail(message, 'InputMessage')
 }
 
-function getInputDocument(document) {
+function getInputDocument(doc) {
     try {
-        if (document.SUBCLASS_OF_ID === 0xf33fdb68) {
-            return document
+        if (doc.SUBCLASS_OF_ID === 0xf33fdb68) {
+            return doc
         }
     } catch (err) {
-        _raiseCastFail(document, 'InputMediaDocument')
+        _raiseCastFail(doc, 'InputMediaDocument')
     }
 
-    if (document instanceof types.Document) {
+    if (doc instanceof types.Document) {
         return new types.InputDocument({
-            id: document.id,
-            accessHash: document.accessHash,
-            fileReference: document.fileReference,
+            id: doc.id,
+            accessHash: doc.accessHash,
+            fileReference: doc.fileReference,
         })
     }
 
-    if (document instanceof types.DocumentEmpty) {
+    if (doc instanceof types.DocumentEmpty) {
         return new types.InputDocumentEmpty()
     }
 
-    if (document instanceof types.MessageMediaDocument) {
-        return getInputDocument(document.document)
+    if (doc instanceof types.MessageMediaDocument) {
+        return getInputDocument(doc.document)
     }
 
-    if (document instanceof types.Message) {
-        return getInputDocument(document.media)
+    if (doc instanceof types.Message) {
+        return getInputDocument(doc.media)
     }
 
-    _raiseCastFail(document, 'InputDocument')
+    _raiseCastFail(doc, 'InputDocument')
 }
 
 /**
@@ -882,7 +884,9 @@ function sanitizeParseMode(mode) {
 
         CustomMode.prototype.parse = mode
         return CustomMode
-    } else if (mode.parse && mode.unparse) {
+    } else if ((mode.parse && mode.unparse) &&
+               (mode.parse instanceof Function) &&
+               (mode.unparse instanceof Function)) {
         return mode
     } else if (mode instanceof String) {
         switch (mode.toLowerCase()) {
