@@ -41,11 +41,11 @@ class Scanner {
     }
 
     bof() {
-        return this.pos === 0
+        return this.pos <= 0
     }
 
     eof() {
-        return this.pos === this.str.length
+        return this.pos >= this.str.length
     }
 }
 
