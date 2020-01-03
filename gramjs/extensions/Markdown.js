@@ -19,17 +19,17 @@ const DELIMITERS = {
 class MarkdownParser extends Scanner {
     constructor(str) {
         super(str)
-        this.stripped = ''
+        this.text = ''
         this.entities = []
     }
 
-    get strippedPos() {
-        return this.stripped.length - 1
+    get textPos() {
+        return this.text.length - 1
     }
 
     parse() {
         // Do a little reset
-        this.stripped = ''
+        this.text = ''
         this.entities = []
 
         while (!this.eof()) {
@@ -55,12 +55,12 @@ class MarkdownParser extends Scanner {
             case '[':
                 if (this.parseURL()) break
             default:
-                this.stripped += this.chr
+                this.text += this.chr
                 this.pos += 1
             }
         }
 
-        return [this.stripped, this.entities]
+        return [this.text, this.entities]
     }
 
     static unparse(text, entities) {
@@ -107,8 +107,8 @@ class MarkdownParser extends Scanner {
 
     parseEntity(EntityType, delimiter) {
         // The offset for this entity should be the end of the
-        // stripped string
-        const offset = this.strippedPos
+        // text string
+        const offset = this.textPos
 
         // Consume the delimiter
         this.consume(delimiter.length)
@@ -121,8 +121,8 @@ class MarkdownParser extends Scanner {
             // Consume the delimiter again
             this.consume(delimiter.length)
 
-            // Add the entire content to the stripped content
-            this.stripped += content
+            // Add the entire content to the text
+            this.text += content
 
             // Create and return a new Entity
             const entity = new EntityType({
@@ -141,7 +141,7 @@ class MarkdownParser extends Scanner {
         const [full, txt, url] = match
         const len = full.length
 
-        this.stripped += txt
+        this.text += txt
 
         const entity = new MessageEntityTextUrl({
             offset: this.pos,
@@ -156,4 +156,15 @@ class MarkdownParser extends Scanner {
     }
 }
 
-module.exports = MarkdownParser
+const parse = (str) => {
+    const parser = new MarkdownParser(str)
+    return parser.parse()
+}
+
+const unparse = MarkdownParser.unparse
+
+module.exports = {
+    MarkdownParser,
+    parse,
+    unparse,
+}

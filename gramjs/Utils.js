@@ -1,7 +1,7 @@
 const path = require('path')
 const mime = require('mime-types')
 const struct = require('python-struct')
-const { MarkdownParser, HTMLParser } = require('./extensions')
+const { markdown, html } = require('./extensions')
 const { types } = require('./tl')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
@@ -892,10 +892,10 @@ function sanitizeParseMode(mode) {
         switch (mode.toLowerCase()) {
         case 'md':
         case 'markdown':
-            return MarkdownParser
+            return markdown
         case 'htm':
         case 'html':
-            return HTMLParser
+            return html
         default:
             throw new Error(`Unknown parse mode ${mode}`)
         }

@@ -6,8 +6,8 @@ const MessagePacker = require('./MessagePacker')
 const AsyncQueue = require('./AsyncQueue')
 const PromisedNetSocket = require('./PromisedNetSockets')
 const Scanner = require('./Scanner')
-const MarkdownParser = require('./Markdown')
-const HTMLParser = null
+const markdown = require('./Markdown')
+const html = require('./HTML')
 
 module.exports = {
     BinaryWriter,
@@ -18,6 +18,12 @@ module.exports = {
     PromisedWebSockets,
     PromisedNetSocket,
     Scanner,
-    MarkdownParser,
-    HTMLParser,
+    markdown: {
+        parse: markdown.parse,
+        unparse: markdown.unparse,
+    },
+    html: {
+        parse: html.parse,
+        unparse: html.unparse,
+    }
 }
