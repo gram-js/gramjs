@@ -4,6 +4,7 @@
   "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "scripts": {
+    "test": "jest",
     "lint": "eslint .",
     "postinstall": "node index.js gen tl errors"
   },
@@ -20,9 +21,9 @@
   },
   "homepage": "https://github.com/gram-js/gramjs#readme",
   "dependencies": {
-    "@babel/core": "^7.7.0",
+    "@babel/core": "^7.7.7",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
-    "@babel/preset-env": "^7.7.0",
+    "@babel/preset-env": "^7.7.7",
     "aes-js": "^3.1.2",
     "babel-loader": "^8.0.6",
     "babel-register": "^6.26.0",
@@ -46,8 +47,10 @@
   "devDependencies": {
     "@babel/plugin-transform-async-to-generator": "^7.7.0",
     "babel-eslint": "^10.0.3",
+    "babel-jest": "^24.9.0",
     "eslint": "^6.5.1",
     "eslint-config-google": "^0.14.0",
+    "jest": "^24.9.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "websocket-as-promised": "^0.10.1"
