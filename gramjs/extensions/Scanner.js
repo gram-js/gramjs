@@ -15,7 +15,7 @@ class Scanner {
 
     reverse(n = 1) {
         const pos = this.pos - n
-        return pos < 0 ? 0 : pos
+        this.pos = pos < 0 ? 0 : pos
     }
 
     consume(n = 1) {
@@ -23,7 +23,13 @@ class Scanner {
     }
 
     scanUntil(re, consumeMatch = false) {
-        const match = this.lastMatch = this.rest.match(re)
+        let match
+        try {
+            match = this.lastMatch = this.rest.match(re)
+        } catch {
+            match = null
+        }
+
         if (!match) return null
 
         let len = match.index
@@ -33,7 +39,7 @@ class Scanner {
     }
 
     get rest() {
-        return this.str.slice(this.pos, this.str.length)
+        return this.str.slice(this.pos, this.str.length) || null
     }
 
     reset() {

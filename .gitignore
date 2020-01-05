@@ -9,6 +9,7 @@
 /gramjs/tl/AllTLObjects.js
 /gramjs/errors/RPCErrorList.js
 /dist/
+/coverage/
 
 # User session
 *.session
