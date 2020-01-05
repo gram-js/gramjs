@@ -92,5 +92,16 @@ describe('HTMLParser', () => {
             const text = HTMLParser.unparse(strippedText, rawEntities)
             expect(text).toEqual(unparsed)
         })
+
+        test('it should unparse nested entities', () => {
+            const unparsed = '<strong><em>Hello world</em></strong>'
+            const strippedText = 'Hello world'
+            const rawEntities = [
+                new types.MessageEntityBold({ offset: 0, length: 11 }),
+                new types.MessageEntityItalic({ offset: 0, length: 11 }),
+            ]
+            const text = HTMLParser.unparse(strippedText, rawEntities)
+            expect(text).toEqual(unparsed)
+        })
     })
 })
