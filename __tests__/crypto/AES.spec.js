@@ -1,5 +1,5 @@
-const AES = require('../gramjs/crypto/AES')
-const AESModeCTR = require('../gramjs/crypto/AESCTR')
+const AES = require('../../gramjs/crypto/AES')
+const AESModeCTR = require('../../gramjs/crypto/AESCTR')
 describe('IGE encrypt function', () => {
     test('it should return 4a657a834edc2956ec95b2a42ec8c1f2d1f0a6028ac26fd830ed23855574b4e69dd1a2be2ba18a53a49b879b2' +
         '45e1065e14b6e8ac5ba9b24befaff3209b77b5f', () => {
