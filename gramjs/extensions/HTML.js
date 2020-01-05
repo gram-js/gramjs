@@ -47,9 +47,13 @@ class HTMLParser extends Scanner {
                         .map((a) => a.length === 1 ? a.concat([true]) : a)
                         // Remove quotes if they exist
                         .map((a) => {
-                            const txt = a[0].replace(/^('|")|('|")$/, '')
-                            return [txt, a[1]]
+                            const attr = a[1].replace(/^('|")|('|")$/g, '')
+                            return [a[0], attr]
                         })
+                        .reduce((p, c) => {
+                            p[c[0]] = c[1]
+                            return p
+                        }, {})
 
                     this.handleStartTag(tag, attrs)
                 }
