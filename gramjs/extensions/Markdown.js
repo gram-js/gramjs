@@ -11,7 +11,7 @@ const URL_RE = /\[([\S\s]+?)\]\((.+?)\)/
 const DELIMITERS = {
     'MessageEntityBold': '**',
     'MessageEntityItalic': '__',
-    'MessageEntityCode': '``',
+    'MessageEntityCode': '`',
     'MessageEntityPre': '```',
     'MessageEntityStrike': '~~',
 }
@@ -19,17 +19,13 @@ const DELIMITERS = {
 class MarkdownParser extends Scanner {
     constructor(str) {
         super(str)
-        this.stripped = ''
+        this.text = ''
         this.entities = []
-    }
-
-    get strippedPos() {
-        return this.stripped.length - 1
     }
 
     parse() {
         // Do a little reset
-        this.stripped = ''
+        this.text = ''
         this.entities = []
 
         while (!this.eof()) {
@@ -49,18 +45,18 @@ class MarkdownParser extends Scanner {
             case '`':
                 if (this.peek(3) == '```') {
                     if (this.parseEntity(MessageEntityPre, '```')) break
-                } else if (this.peek(2) == '``') {
-                    if (this.parseEntity(MessageEntityCode, '``')) break
+                } else if (this.peek(1) == '`') {
+                    if (this.parseEntity(MessageEntityCode, '`')) break
                 }
             case '[':
                 if (this.parseURL()) break
             default:
-                this.stripped += this.chr
+                this.text += this.chr
                 this.pos += 1
             }
         }
 
-        return [this.stripped, this.entities]
+        return [this.text, this.entities]
     }
 
     static unparse(text, entities) {
@@ -71,13 +67,12 @@ class MarkdownParser extends Scanner {
         for (const entity of entities) {
             const s = entity.offset
             const e = entity.offset + entity.length
-            const delimiter = DELIMITERS[typeof(entity)]
+            const delimiter = DELIMITERS[entity.constructor.name]
             if (delimiter) {
                 insertAt.push([s, delimiter])
                 insertAt.push([e, delimiter])
             } else {
                 let url = null
-
                 if (entity instanceof MessageEntityTextUrl) {
                     url = entity.url
                 } else if (entity instanceof MessageEntityMentionName) {
@@ -107,8 +102,8 @@ class MarkdownParser extends Scanner {
 
     parseEntity(EntityType, delimiter) {
         // The offset for this entity should be the end of the
-        // stripped string
-        const offset = this.strippedPos
+        // text string
+        const offset = this.text.length
 
         // Consume the delimiter
         this.consume(delimiter.length)
@@ -121,8 +116,8 @@ class MarkdownParser extends Scanner {
             // Consume the delimiter again
             this.consume(delimiter.length)
 
-            // Add the entire content to the stripped content
-            this.stripped += content
+            // Add the entire content to the text
+            this.text += content
 
             // Create and return a new Entity
             const entity = new EntityType({
@@ -140,11 +135,12 @@ class MarkdownParser extends Scanner {
 
         const [full, txt, url] = match
         const len = full.length
+        const offset = this.text.length
 
-        this.stripped += txt
+        this.text += txt
 
         const entity = new MessageEntityTextUrl({
-            offset: this.pos,
+            offset: offset,
             length: txt.length,
             url: url,
         })
@@ -156,4 +152,15 @@ class MarkdownParser extends Scanner {
     }
 }
 
-module.exports = MarkdownParser
+const parse = (str) => {
+    const parser = new MarkdownParser(str)
+    return parser.parse()
+}
+
+const unparse = MarkdownParser.unparse
+
+module.exports = {
+    MarkdownParser,
+    parse,
+    unparse,
+}

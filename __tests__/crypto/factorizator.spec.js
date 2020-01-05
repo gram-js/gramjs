@@ -1,4 +1,4 @@
-const Factorizator = require('../gramjs/crypto/Factorizator')
+const Factorizator = require('../../gramjs/crypto/Factorizator')
 
 describe('calcKey function', () => {
     test('it should return 0x20a13b25e1726bfc', () => {

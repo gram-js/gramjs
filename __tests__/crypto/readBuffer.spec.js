@@ -1,4 +1,4 @@
-const Helpers = require('../gramjs/Helpers')
+const Helpers = require('../../gramjs/Helpers')
 
 describe('readBufferFromBigInt 8 bytes function', () => {
     test('it should return 0x20a13b25e1726bfc', () => {

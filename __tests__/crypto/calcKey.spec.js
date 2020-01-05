@@ -1,4 +1,4 @@
-const MTProtoState = require('../gramjs/network/MTProtoState')
+const MTProtoState = require('../../gramjs/network/MTProtoState')
 
 describe('calcKey function', () => {
     test('it should return 0x93355e3f1f50529b6fb93eaf97f29b69c16345f53621e9d45cd9a11ddfbebac9 and' +
