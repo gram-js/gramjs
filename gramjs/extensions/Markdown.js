@@ -75,7 +75,6 @@ class MarkdownParser extends Scanner {
                 let url = null
                 if (entity instanceof MessageEntityTextUrl) {
                     url = entity.url
-                    console.log(url)
                 } else if (entity instanceof MessageEntityMentionName) {
                     url = `tg://user?id=${entity.userId}`
                 }
