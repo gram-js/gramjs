@@ -67,7 +67,8 @@ function argToBytes(x, type) {
     switch (type) {
         case 'int':
             const i = Buffer.alloc(4)
-            return i.writeInt32LE(x, 0)
+            i.writeInt32LE(x, 0)
+            return i
         case 'long':
             return toSignedLittleBuffer(x, 8)
         case 'int128':
@@ -76,7 +77,8 @@ function argToBytes(x, type) {
             return toSignedLittleBuffer(x, 32)
         case 'double':
             const d = Buffer.alloc(8)
-            return d.writeDoubleLE(x, 0)
+            d.writeDoubleLE(x, 0)
+            return d
         case 'string':
             return serializeBytes(x)
         case 'Bool':
@@ -191,9 +193,9 @@ function createClasses(classesType, params) {
             constructor(args) {
                 args = args || {}
                 Object.keys(args)
-                    .forEach((argName) => {
-                        this[argName] = args[argName]
-                    })
+                  .forEach((argName) => {
+                      this[argName] = args[argName]
+                  })
             }
 
             static fromReader(reader) {
@@ -233,6 +235,7 @@ function createClasses(classesType, params) {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
                         if (argsConfig[arg].isFlag) {
+<<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
                             const tempBuffers = []
                             if (argsConfig[arg] === 'true') {
 
@@ -247,6 +250,14 @@ function createClasses(classesType, params) {
                             }
                         } else if (argsConfig[arg].isVector && !argsConfig[arg].isFlag) {
                             if (argsConfig[arg].isVector) {
+=======
+                          if (this[arg]===false || this[arg]===null || this[arg]===undefined || argsConfig[arg].type==='true'){
+                              continue
+                          }
+                        }
+                        if (argsConfig[arg].isVector) {
+                            if (argsConfig[arg].useVectorId) {
+>>>>>>> 49c97f0a... GramJS : Fix flags and vector reading (#154):src/lib/gramjs/tl/api.js
                                 buffers.push(Buffer.from('15c4b51c', 'hex'))
                             }
                             const l = Buffer.alloc(4)
@@ -255,16 +266,16 @@ function createClasses(classesType, params) {
                         } else if (argsConfig[arg].flagIndicator) {
                             // @ts-ignore
                             if (!Object.values(argsConfig)
-                                .some((f) => f.isFlag)) {
+                              .some((f) => f.isFlag)) {
                                 buffers.push(Buffer.alloc(4))
                             } else {
                                 let flagCalculate = 0
-                                for (const f of Object.values(argsConfig)) {
-                                    if (f.isFlag) {
-                                        if (!this[f.name]) {
+                                for (const f in argsConfig) {
+                                    if (argsConfig[f].isFlag) {
+                                        if (!this[f]) {
                                             flagCalculate |= 0
                                         } else {
-                                            flagCalculate |= f.flagIndex
+                                            flagCalculate |= 1 << argsConfig[f].flagIndex
                                         }
                                     }
                                 }
