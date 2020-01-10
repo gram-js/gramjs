@@ -15,12 +15,24 @@ export type ApiUpdateAuthorizationStateType = (
   'authorizationStateClosed'
 );
 
+export type ApiUpdateConnectionStateType = (
+  'connectionStateConnecting' |
+  'connectionStateReady'
+);
+
 export type ApiUpdateAuthorizationState = {
   '@type': 'updateAuthorizationState';
   authorization_state: {
     '@type': ApiUpdateAuthorizationStateType;
   };
   session_id?: string;
+};
+
+export type ApiUpdateConnectionState = {
+  '@type': 'updateConnectionState';
+  connection_state: {
+    '@type': ApiUpdateConnectionStateType;
+  };
 };
 
 export type ApiUpdateChats = {
@@ -75,9 +87,18 @@ export type ApiUpdateMessageImage = {
 };
 
 export type ApiUpdate = (
+<<<<<<< HEAD
   ApiUpdateAuthorizationState |
   ApiUpdateChats | ApiUpdateChat |
   ApiUpdateMessage | ApiUpdateMessageSendSucceeded | ApiUpdateMessageSendFailed |
   ApiUpdateUsers | ApiUpdateUser |
   ApiUpdateMessageImage
+=======
+  ApiUpdateAuthorizationState | ApiUpdateConnectionState |
+  ApiUpdateChats | ApiUpdateChat | ApiUpdateChatFullInfo |
+  ApiUpdateNewMessage | ApiUpdateEditMessage | ApiUpdateDeleteMessages |
+  ApiUpdateMessageSendSucceeded | ApiUpdateMessageSendFailed |
+  ApiUpdateUsers | ApiUpdateUser | ApiUpdateUserFullInfo |
+  ApiUpdateAvatar | ApiUpdateMessageImage
+>>>>>>> 48d2d818... Support reconnect and re-sync
 );

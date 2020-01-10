@@ -39,6 +39,34 @@ const struct = require('python-struct')
 const { readBufferFromBigInt } = require('../Helpers')
 
 function buildApiFromTlSchema() {
+<<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
+=======
+    let definitions;
+    const fromCache = CACHING_SUPPORTED && loadFromCache()
+
+    if (fromCache) {
+        definitions = fromCache
+    } else {
+        definitions = loadFromTlSchemas()
+
+        if (CACHING_SUPPORTED) {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(definitions))
+        }
+    }
+
+    return mergeWithNamespaces(
+      createClasses('constructor', definitions.constructors),
+      createClasses('request', definitions.requests)
+    )
+}
+
+function loadFromCache() {
+    const jsonCache = localStorage.getItem(CACHE_KEY)
+    return jsonCache && JSON.parse(jsonCache)
+}
+
+function loadFromTlSchemas() {
+>>>>>>> 48d2d818... Support reconnect and re-sync:src/lib/gramjs/tl/api.js
     const tlContent = readFileSync('./static/api.tl', 'utf-8')
     const [constructorParamsApi, functionParamsApi] = extractParams(tlContent)
     const schemeContent = readFileSync('./static/schema.tl', 'utf-8')

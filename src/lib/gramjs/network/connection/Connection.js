@@ -35,7 +35,7 @@ class Connection {
     async _connect() {
         this._log.debug('Connecting')
         this._codec = new this.PacketCodecClass(this)
-        await this.socket.connect(this._port, this._ip,this)
+        await this.socket.connect(this._port, this._ip, this)
         this._log.debug('Finished connecting')
         // await this.socket.connect({host: this._ip, port: this._port});
         await this._initConn()
@@ -44,6 +44,7 @@ class Connection {
     async connect() {
         await this._connect()
         this._connected = true
+
         if (!this._sendTask) {
             this._sendTask = this._sendLoop()
         }
@@ -52,6 +53,7 @@ class Connection {
 
     async disconnect() {
         this._connected = false
+        await this._recvArray.push(null)
         await this.socket.close()
     }
 
@@ -78,6 +80,10 @@ class Connection {
         try {
             while (this._connected) {
                 const data = await this._sendArray.pop()
+                if (!data) {
+                    this._sendTask = null
+                    return
+                }
                 await this._send(data)
             }
         } catch (e) {
@@ -92,11 +98,14 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
-                    return
+                    throw new Error("no data recieved")
                 }
             } catch (e) {
                 console.log(e)
-                this._log.info('an error occured')
+                this._log.info('connection closed')
+                //await this._recvArray.push()
+
+                this.disconnect()
                 return
             }
             await this._recvArray.push(data)

@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { GramJsApi, gramJsApi, MTProto } from '../../lib/gramjs';
 import { OnApiUpdate } from './types';
+=======
+import { Api as GramJs, connection } from '../../lib/gramjs';
+import { OnApiUpdate } from '../types';
+>>>>>>> 48d2d818... Support reconnect and re-sync
 
 import { buildApiMessage, buildApiMessageFromShort, buildApiMessageFromShortChat } from './builders/messages';
 import { getApiChatIdFromMtpPeer } from './builders/chats';
@@ -15,12 +20,34 @@ export function init(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
 }
 
+<<<<<<< HEAD
 export function onGramJsUpdate(update: AnyLiteral, originRequest?: InstanceType<GramJsApi.AnyRequest>) {
   if (
     update instanceof ctors.UpdateNewMessage
     || update instanceof ctors.UpdateShortChatMessage
     || update instanceof ctors.UpdateShortMessage
     // TODO UpdateNewChannelMessage
+=======
+export function onGramJsUpdate(update: GramJs.TypeUpdate | GramJs.TypeUpdates, originRequest?: GramJs.AnyRequest) {
+  if (update instanceof connection.UpdateConnectionState) {
+    const connectionState = update.state === connection.UpdateConnectionState.states.disconnected
+      ? 'connectionStateConnecting'
+      : 'connectionStateReady';
+
+    onUpdate({
+      '@type': 'updateConnectionState',
+      connection_state: {
+        '@type': connectionState,
+      },
+    });
+
+    // Messages
+  } else if (
+    update instanceof GramJs.UpdateNewMessage
+    || update instanceof GramJs.UpdateNewChannelMessage
+    || update instanceof GramJs.UpdateShortChatMessage
+    || update instanceof GramJs.UpdateShortMessage
+>>>>>>> 48d2d818... Support reconnect and re-sync
   ) {
     let message;
 

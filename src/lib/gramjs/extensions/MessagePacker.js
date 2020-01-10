@@ -29,11 +29,16 @@ class MessagePacker {
     }
 
     async get() {
+
         if (!this._queue.length) {
             this._ready = new Promise(((resolve) => {
                 this.setReady = resolve
             }))
             await this._ready
+        }
+        if (!this._queue[this._queue.length - 1]) {
+            this._queue = []
+            return
         }
         let data
         let buffer = new BinaryWriter(Buffer.alloc(0))
@@ -50,7 +55,7 @@ class MessagePacker {
                     afterId = state.after.msgId
                 }
                 state.msgId = await this._state.writeDataAsMessage(
-                    buffer, state.data, state.request.classType==='request',
+                    buffer, state.data, state.request.classType === 'request',
                     afterId,
                 )
                 this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.className || state.request.constructor.name}`)
@@ -71,8 +76,8 @@ class MessagePacker {
         }
         if (batch.length > 1) {
             const b = Buffer.alloc(8)
-            b.writeUInt32LE(MessageContainer.CONSTRUCTOR_ID,0)
-            b.writeInt32LE(batch.length,4)
+            b.writeUInt32LE(MessageContainer.CONSTRUCTOR_ID, 0)
+            b.writeInt32LE(batch.length, 4)
             data = Buffer.concat([b, buffer.getValue()])
             buffer = new BinaryWriter(Buffer.alloc(0))
             const containerId = await this._state.writeDataAsMessage(

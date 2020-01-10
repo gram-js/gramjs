@@ -1,10 +1,16 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import {
   TelegramClient, session, GramJsApi, MTProto,
 } from '../../lib/gramjs';
 =======
 import { TelegramClient, sessions, Api as GramJs } from '../../lib/gramjs';
 >>>>>>> 42589b8b... GramJS: Add `LocalStorageSession` with keys and hashes for all DCs
+=======
+import {
+  TelegramClient, sessions, Api as GramJs, connection,
+} from '../../lib/gramjs';
+>>>>>>> 48d2d818... Support reconnect and re-sync
 import { Logger as GramJsLogger } from '../../lib/gramjs/extensions';
 
 import { DEBUG } from '../../config';
@@ -33,7 +39,10 @@ GramJsLogger.setLevel(DEBUG ? 'debug' : 'warn');
 =======
 >>>>>>> 073c3e12... GramJS: Implement signup
 
+const gramJsUpdateEventBuilder = { build: (update: object) => update };
+
 let client: TelegramClient;
+let isConnected = false;
 
 export async function init(sessionId: string) {
   const session = new sessions.LocalStorageSession(sessionId);
@@ -44,7 +53,8 @@ export async function init(sessionId: string) {
     { useWSS: true } as any,
   );
 
-  client.addEventHandler(onGramJsUpdate, { build: (update: object) => update });
+  client.addEventHandler(onGramJsUpdate, gramJsUpdateEventBuilder);
+  client.addEventHandler(onUpdate, gramJsUpdateEventBuilder);
 
   try {
     if (DEBUG) {
@@ -77,8 +87,24 @@ export async function init(sessionId: string) {
   }
 }
 
+<<<<<<< HEAD
 export async function invokeRequest<T extends InstanceType<GramJsApi.AnyRequest>>(request: T) {
+=======
+function onUpdate(update: any) {
+  if (update instanceof connection.UpdateConnectionState) {
+    isConnected = update.state === connection.UpdateConnectionState.states.connected;
+  }
+}
+
+export async function invokeRequest<T extends GramJs.AnyRequest>(request: T, shouldHandleUpdates = false) {
+>>>>>>> 48d2d818... Support reconnect and re-sync
   if (DEBUG) {
+    if (!isConnected) {
+      // eslint-disable-next-line no-console
+      console.warn(`[GramJs/client] INVOKE ${request.className} ERROR: Client is not connected`);
+      return undefined;
+    }
+
     // eslint-disable-next-line no-console
     console.log(`[GramJs/client] INVOKE ${request.className}`);
   }
@@ -164,7 +190,16 @@ export function downloadAvatar(entity: MTProto.chat | MTProto.user, isBig = fals
   return client.downloadProfilePhoto(entity, isBig);
 }
 
+<<<<<<< HEAD
 export function downloadMessageImage(message: MTProto.message) {
   return client.downloadMedia(message, { sizeType: 'x' });
+=======
+export function downloadMedia(url: string) {
+  if (!isConnected) {
+    throw new Error('ERROR: Client is not connected');
+  }
+
+  return queuedDownloadMedia(client, url);
+>>>>>>> 48d2d818... Support reconnect and re-sync
 }
 >>>>>>> f70d85dd... Gram JS: Replace generated `tl/*` contents with runtime logic; TypeScript typings

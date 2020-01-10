@@ -1,4 +1,3 @@
-const BinaryReader = require('../extensions/BinaryReader')
 const Mutex = require('async-mutex').Mutex
 const mutex = new Mutex()
 
@@ -13,7 +12,6 @@ class PromisedWebSockets {
             process.browser === true ||
             process.__nwjs
         this.client = null
-
         this.closed = true
     }
 
@@ -34,8 +32,11 @@ class PromisedWebSockets {
             console.log('couldn\'t read')
             throw closeError
         }
-        const canWe = await this.canRead
-
+        await this.canRead
+        if (this.closed) {
+            console.log('couldn\'t read')
+            throw closeError
+        }
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
@@ -85,10 +86,14 @@ class PromisedWebSockets {
                 reject(error)
             }
             this.client.onclose = () => {
-                if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
-                }
+            }
+            if (this.isBrowser && typeof window !== 'undefined'){
+                window.addEventListener('offline', async () => {
+                    await this.close()
+                    this.resolveRead(false)
+                });
             }
         })
     }

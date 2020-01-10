@@ -11,7 +11,6 @@ addReducer('init', (global: GlobalState) => {
 
   return {
     ...global,
-    isInitialized: true,
     authIsSessionRemembered: Boolean(sessionId),
   };
 });

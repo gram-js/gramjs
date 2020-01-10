@@ -1,0 +1,80 @@
+@function toRGB($color) {
+  @return red($color) + ", " + green($color) + ", " + blue($color);
+}
+
+$color-primary: #4ea4f6;
+$color-primary-shade: #51aaff;
+$color-primary-shade-2: #4b9dec;
+
+$color-links: #52a1ef;
+
+$color-text-green: #4fae4e;
+$color-green: #4dcd5e;
+
+$color-error: #e53935;
+
+$color-warning: #fb8c00;
+
+$color-yellow: #FDD764;
+
+$color-white: #ffffff;
+$color-black: #000000;
+$color-dark-gray: #2e3939;
+$color-gray: #c4c9cc;
+$color-text-secondary: #707579;
+$color-text-meta: #686c72;
+$color-borders: #ecedef;
+$color-chat-hover: #f4f4f5;
+
+:root {
+  --color-background: #{$color-white};
+  --color-text: #{$color-black};
+  --color-text-lighter: #{$color-dark-gray};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-secondary-rgb: #{toRGB($color-text-secondary)};
+  --color-text-meta: #{$color-text-meta};
+  --color-text-green: #{$color-text-green};
+  --color-text-green-rgb: #{toRGB($color-text-green)};
+  --color-borders: #{$color-borders};
+
+  --color-primary: #{$color-primary};
+  --color-primary-shade: #{mix($color-primary, $color-black, 92%)};
+
+  --color-green: #{$color-green};
+
+  --color-error: #{$color-error};
+
+  --color-warning: #{$color-warning};
+
+  --color-yellow: #{$color-yellow};
+
+  --color-links: #{$color-links};
+  --color-links-hover: #{darken($color-links, 8%)};
+
+  --color-code: #{mix($color-links, $color-text-secondary, 50%)};
+  --color-code-own: #{mix($color-text-green, $color-text-secondary, 50%)};
+
+  --color-gray: #{$color-gray};
+
+  --color-chat-hover: #{$color-chat-hover};
+  --color-chat-active: #{$color-borders};
+
+  --border-radius-default: 0.5rem;
+  --border-radius-messages: 0.75rem;
+  --border-radius-messages-small: 0.375rem;
+  --messages-container-width: 45.5rem;
+
+  --z-modal: 1000;
+  --z-media-viewer: 100;
+  --z-animation-fade: 50;
+  --z-menu-bubble: 21;
+  --z-menu-backdrop: 20;
+  --z-message-highlighted: 12;
+  --z-message-context-menu: 11;
+  --z-message-date-header: 10;
+  --z-country-code-input-group: 10;
+  --z-layout-left-header: 5;
+  --z-register-add-avatar: 5;
+  --z-message-avatar: 2;
+  --z-below: -1;
+}
