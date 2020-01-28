@@ -125,6 +125,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
  * @param entity
  * @returns {InputChannel|*}
  */
+/*CONTEST
 function getInputChannel(entity) {
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputChannel')
@@ -149,7 +150,7 @@ function getInputChannel(entity) {
     }
     _raiseCastFail(entity, 'InputChannel')
 }
-
+*/
 /**
  Similar to :meth:`get_input_peer`, but for :tl:`InputUser`'s alone.
 
@@ -161,6 +162,7 @@ function getInputChannel(entity) {
 
  * @param entity
  */
+/*CONTEST
 function getInputUser(entity) {
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputUser')
@@ -199,11 +201,12 @@ function getInputUser(entity) {
 
     _raiseCastFail(entity, 'InputUser')
 }
-
+*/
 /**
  Similar to :meth:`get_input_peer`, but for dialogs
  * @param dialog
  */
+/*CONTEST
 function getInputDialog(dialog) {
     try {
         if (dialog.SUBCLASS_OF_ID === 0xa21c9795) { // crc32(b'InputDialogPeer')
@@ -224,6 +227,8 @@ function getInputDialog(dialog) {
     }
     _raiseCastFail(dialog, 'InputDialogPeer')
 }
+*/
+/*CONTEST
 
 function getInputMessage(message) {
     try {
@@ -242,7 +247,7 @@ function getInputMessage(message) {
 
     _raiseCastFail(message, 'InputMessage')
 }
-
+*/
 
 /**
  * Adds the JPG header and footer to a stripped image.
@@ -262,7 +267,7 @@ function strippedPhotoToJpg(stripped) {
     return Buffer.concat([header, stripped.slice(3), JPEG_FOOTER])
 }
 
-
+/*CONTEST
 function getInputLocation(location) {
     try {
         if (!location.SUBCLASS_OF_ID) {
@@ -314,7 +319,7 @@ function getInputLocation(location) {
     }
     _raiseCastFail(location, 'InputFileLocation')
 }
-
+*/
 
 /**
  * Gets the appropriated part size when uploading or downloading files,
@@ -336,7 +341,7 @@ function getAppropriatedPartSize(fileSize) {
     throw new Error('File size too large')
 }
 
-
+/*CONTEST
 function getPeer(peer) {
     try {
         if (typeof peer === 'number') {
@@ -381,7 +386,7 @@ function getPeer(peer) {
     }
     _raiseCastFail(peer, 'peer')
 }
-
+*/
 
 /**
  Convert the given peer into its marked ID by default.
@@ -399,6 +404,7 @@ function getPeer(peer) {
  * @param peer
  * @param addMark
  */
+/*CONTEST
 function getPeerId(peer, addMark = true) {
     // First we assert it's a Peer TLObject, or early return for integers
     if (typeof peer == 'number') {
@@ -441,11 +447,12 @@ function getPeerId(peer, addMark = true) {
         }
     }
 }
-
+*/
 /**
  * Given a marked ID, returns the original ID and its :tl:`Peer` type.
  * @param markedId
  */
+/*CONTEST
 function resolveId(markedId) {
     if (markedId >= 0) {
         return [markedId, constructors.PeerUser]
@@ -462,6 +469,7 @@ function resolveId(markedId) {
     }
     return [-markedId, constructors.PeerChat]
 }
+*/
 
 /**
  * returns an entity pair
@@ -472,6 +480,8 @@ function resolveId(markedId) {
  * @returns {{inputEntity: *, entity: *}}
  * @private
  */
+/*CONTEST
+
 function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) {
     const entity = entities.get(entityId)
     let inputEntity = cache[entityId]
@@ -487,6 +497,7 @@ function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) 
         inputEntity
     }
 }
+*/
 
 function getMessageId(message) {
     if (message === null || message === undefined) {
@@ -500,6 +511,7 @@ function getMessageId(message) {
     }
     throw new Error(`Invalid message type: ${message.constructor.name}`)
 }
+
 
 /**
  * Parses the given phone, or returns `None` if it's invalid.
@@ -527,6 +539,8 @@ function parsePhone(phone) {
 
  * @param username {string}
  */
+/*CONTEST
+
 function parseUsername(username) {
     username = username.trim()
     const m = username.match(USERNAME_RE) || username.match(TG_JOIN_RE)
@@ -561,6 +575,8 @@ function rtrim(s, mask) {
     return s
 }
 
+ */
+
 /**
  * Gets the display name for the given :tl:`User`,
  :tl:`Chat` or :tl:`Channel`. Returns an empty string otherwise
@@ -588,6 +604,8 @@ function getDisplayName(entity) {
  * @param item
  * @returns {boolean}
  */
+/*CONTEST
+Duplicate ?
 function isListLike(item) {
     return (
         Array.isArray(item) ||
@@ -601,7 +619,7 @@ function isListLike(item) {
         )
     )
 }
-
+*/
 function getDC(dcId, cdn = false) {
     switch (dcId) {
         case 1:
@@ -657,21 +675,21 @@ function getDC(dcId, cdn = false) {
 
 module.exports = {
     getMessageId,
-    _getEntityPair,
-    getInputMessage,
-    getInputDialog,
-    getInputUser,
-    getInputChannel,
+    //_getEntityPair,
+    //getInputMessage,
+    //getInputDialog,
+    //getInputUser,
+    //getInputChannel,
     getInputPeer,
-    parsePhone,
-    parseUsername,
-    getPeer,
-    getPeerId,
+    //parsePhone,
+    //parseUsername,
+    //getPeer,
+    //getPeerId,
     getDisplayName,
-    resolveId,
-    isListLike,
+    //resolveId,
+    //isListLike,
     getAppropriatedPartSize,
-    getInputLocation,
+    //getInputLocation,
     strippedPhotoToJpg,
     getDC
 }

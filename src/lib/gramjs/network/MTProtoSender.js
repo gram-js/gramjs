@@ -215,14 +215,18 @@ class MTProtoSender {
         if (!this._user_connected) {
             throw new Error('Cannot send requests while disconnected')
         }
-
+        //CONTEST
+        const state = new RequestState(request)
+        this._send_queue.append(state)
+        return state.promise
+        /*
         if (!Helpers.isArrayLike(request)) {
             const state = new RequestState(request)
             this._send_queue.append(state)
             return state.promise
         } else {
             throw new Error('not supported')
-        }
+        }*/
     }
 
     /**

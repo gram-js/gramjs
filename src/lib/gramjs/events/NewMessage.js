@@ -1,3 +1,4 @@
+/*CONTEST
 const { EventBuilder, EventCommon } = require('./common')
 const { constructors } = require('../tl')
 
@@ -90,3 +91,4 @@ class Event extends EventCommon {
 }
 
 module.exports = NewMessage
+*/

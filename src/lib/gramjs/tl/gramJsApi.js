@@ -14,8 +14,12 @@ const {
 <<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
 =======
 const { readBufferFromBigInt,toSignedLittleBuffer } = require('../Helpers')
+<<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
 >>>>>>> 1a0b5c54... GramJS: Fix images loading: add `async-mutex`; Fix signed LE ints; Bring back `readExactly`:src/lib/gramjs/tl/api.js
 
+=======
+/*CONTEST
+>>>>>>> 3f7f5bfa... GramJS: Comment out unused things:src/lib/gramjs/tl/api.js
 const NAMED_AUTO_CASTS = new Set([
     'chatId,int'
 ])
@@ -34,7 +38,13 @@ const AUTO_CASTS = new Set([
     'InputDocument',
     'InputChatPhoto',
 ])
+<<<<<<< HEAD:src/lib/gramjs/tl/gramJsApi.js
 const struct = require('python-struct')
+=======
+
+ */
+const CACHING_SUPPORTED = typeof self !== 'undefined' && self.localStorage !== undefined
+>>>>>>> 3f7f5bfa... GramJS: Comment out unused things:src/lib/gramjs/tl/api.js
 
 const { readBufferFromBigInt } = require('../Helpers')
 
@@ -121,7 +131,8 @@ function argToBytes(x, type) {
             throw new Error("unsupported")
     }
 }
-
+/*
+CONTEST
 async function getInputFromResolve(utils, client, peer, peerType) {
     switch (peerType) {
         case 'InputPeer':
@@ -152,7 +163,7 @@ async function getInputFromResolve(utils, client, peer, peerType) {
     }
 
 }
-
+*/
 function getArgFromReader(reader, arg) {
     if (arg.isVector) {
         if (arg.useVectorId) {
@@ -387,7 +398,9 @@ function createClasses(classesType, params) {
                 }
             }
 
+            /*CONTEST
             async resolve(client, utils) {
+
                 if (classesType !== 'request') {
                     throw new Error('`resolve()` called for non-request instance')
                 }
@@ -415,7 +428,7 @@ function createClasses(classesType, params) {
                         }
                     }
                 }
-            }
+            }*/
         }
 
         if (namespace) {

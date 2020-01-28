@@ -21,10 +21,6 @@ class GZIPPacked {
         return data
     }
 
-    static gzip(input) {
-        throw new Error("Not Implemented")
-    }
-
     static ungzip(input) {
         return Buffer.from(inflate(input))
     }

@@ -40,7 +40,7 @@ class MemorySession extends Session {
     set authKey(value) {
         this._authKey = value
     }
-
+    /* CONTEST
     get takeoutId() {
         return this._takeoutId
     }
@@ -250,7 +250,7 @@ class MemorySession extends Session {
         } else {
             throw new Error('Could not find input entity with key ' + key)
         }
-    }
+    }*/
 }
 
 module.exports = MemorySession

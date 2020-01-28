@@ -319,6 +319,7 @@ class TelegramClient {
      * @returns {Promise<Buffer>}
      */
     async downloadFile(inputLocation, args = {}) {
+
         let { partSizeKb, fileSize } = args
         const { dcId } = args
 
@@ -337,9 +338,8 @@ class TelegramClient {
         if (partSize % MIN_CHUNK_SIZE !== 0) {
             throw new Error('The part size must be evenly divisible by 4096')
         }
-
         const fileWriter = new BinaryWriter(Buffer.alloc(0))
-        const res = utils.getInputLocation(inputLocation)
+
         let exported = dcId && this.session.dcId !== dcId
 
         let sender
@@ -367,8 +367,13 @@ class TelegramClient {
             while (true) {
                 let result
                 try {
+<<<<<<< HEAD
                     result = await sender.send(new requests.upload.GetFileRequest({
                         location: res.inputLocation,
+=======
+                    result = await sender.send(new requests.upload.GetFile({
+                        location: inputLocation,
+>>>>>>> 3f7f5bfa... GramJS: Comment out unused things
                         offset: offset,
                         limit: partSize,
                     }))
@@ -482,6 +487,7 @@ class TelegramClient {
             }
             photo = entity.photo
         }
+
         let dcId
         let loc
         if (photo instanceof constructors.UserProfilePhoto || photo instanceof constructors.ChatPhoto) {
@@ -489,7 +495,7 @@ class TelegramClient {
             dcId = photo.dcId
             const size = isBig ? photo.photoBig : photo.photoSmall
             loc = new constructors.InputPeerPhotoFileLocation({
-                peer: await this.getInputEntity(entity),
+                peer: utils.getInputPeer(entity),
                 localId: size.localId,
                 volumeId: size.volumeId,
                 big: isBig,
@@ -511,7 +517,9 @@ class TelegramClient {
             })
             return result
         } catch (e) {
-            if (e.message === 'LOCATION_INVALID') {
+            // TODO this should never raise
+            throw e;
+            /*if (e.message === 'LOCATION_INVALID') {
                 const ie = await this.getInputEntity(entity)
                 if (ie instanceof constructors.InputPeerChannel) {
                     const full = await this.invoke(new requests.channels.GetFullChannelRequest({
@@ -527,7 +535,7 @@ class TelegramClient {
                 }
             } else {
                 throw e
-            }
+            }*/
         }
 
 
@@ -706,7 +714,7 @@ class TelegramClient {
         if (request.classType !== 'request') {
             throw new Error('You can only invoke MTProtoRequests')
         }
-        await request.resolve(this, utils)
+        //await request.resolve(this, utils)
 
         if (request.CONSTRUCTOR_ID in this._floodWaitedRequests) {
             const due = this._floodWaitedRequests[request.CONSTRUCTOR_ID]
@@ -730,7 +738,7 @@ class TelegramClient {
             try {
                 const promise = this._sender.send(request)
                 const result = await promise
-                this.session.processEntities(result)
+                //this.session.processEntities(result)
                 this._entityCache.add(result)
                 return result
             } catch (e) {
@@ -1073,14 +1081,14 @@ class TelegramClient {
             this._dispatchUpdate({ update: new UpdateConnectionState(update) })
             return
         }
-        this.session.processEntities(update)
+        //this.session.processEntities(update)
         this._entityCache.add(update)
 
         if (update instanceof constructors.Updates || update instanceof constructors.UpdatesCombined) {
             // TODO deal with entities
-            const entities = {}
+            const entities = []
             for (const x of [...update.users, ...update.chats]) {
-                entities[utils.getPeerId(x)] = x
+                entities.push(x)
             }
             for (const u of update.updates) {
                 this._processUpdate(u, update.updates, entities)
@@ -1122,6 +1130,7 @@ class TelegramClient {
      * @returns {Promise<void>}
      * @private
      */
+    /*CONTEST
     async _getEntityFromString(string) {
         const phone = utils.parsePhone(string)
         if (phone) {
@@ -1187,7 +1196,7 @@ class TelegramClient {
         }
         throw new Error(`Cannot find any entity corresponding to "${string}"`)
     }
-
+    */
     // endregion
 
 
@@ -1256,6 +1265,7 @@ class TelegramClient {
      * @param peer
      * @returns {Promise<>}
      */
+    /*CONTEST
     async getInputEntity(peer) {
         // Short-circuit if the input parameter directly maps to an InputPeer
         try {
@@ -1335,11 +1345,15 @@ class TelegramClient {
             ' find out more details.',
         )
     }
+<<<<<<< HEAD
 
 
     // endregion
 
 
+=======
+    */
+>>>>>>> 3f7f5bfa... GramJS: Comment out unused things
     async _dispatchUpdate(args = {
         update: null,
         others: null,

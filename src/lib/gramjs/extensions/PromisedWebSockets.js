@@ -7,10 +7,13 @@ const closeError = new Error('WebSocket was closed')
 
 class PromisedWebSockets {
     constructor() {
+        /*CONTEST
         this.isBrowser = typeof process === 'undefined' ||
             process.type === 'renderer' ||
             process.browser === true ||
             process.__nwjs
+
+         */
         this.client = null
         this.closed = true
     }
@@ -89,7 +92,8 @@ class PromisedWebSockets {
                     this.resolveRead(false)
                     this.closed = true
             }
-            if (this.isBrowser && typeof window !== 'undefined'){
+            //CONTEST
+            if (typeof window !== 'undefined'){
                 window.addEventListener('offline', async () => {
                     await this.close()
                     this.resolveRead(false)
@@ -116,12 +120,8 @@ class PromisedWebSockets {
             const release = await mutex.acquire()
             try {
                 let data
-                if (this.isBrowser) {
+                //CONTEST BROWSER
                     data = Buffer.from(await new Response(message.data).arrayBuffer())
-                } else {
-                    data = Buffer.from(message.data)
-                }
-
                 this.stream = Buffer.concat([this.stream, data])
                 this.resolveRead(true)
             } finally {

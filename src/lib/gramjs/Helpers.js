@@ -143,7 +143,8 @@ function generateRandomBytes(count) {
  * @param client
  * @returns {{iv: Buffer, key: Buffer}}
  */
-
+/*CONTEST
+this is mtproto 1 (mostly used for secret chats)
 async function calcKey(sharedKey, msgKey, client) {
     const x = client === true ? 0 : 8
     const [sha1a, sha1b, sha1c, sha1d] = await Promise.all([
@@ -159,6 +160,8 @@ async function calcKey(sharedKey, msgKey, client) {
         iv
     }
 }
+
+ */
 
 /**
  * Generates the key data corresponding to the given nonces
@@ -266,6 +269,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * @param obj
  * @returns {boolean}
  */
+/*
+CONTEST
+we do'nt support array requests anyway
 function isArrayLike(obj) {
     if (!obj) return false
     const l = obj.length
@@ -279,7 +285,7 @@ function isArrayLike(obj) {
     }
     return true
 }
-
+*/
 // Taken from https://stackoverflow.com/questions/18638900/javascript-crc32/18639999#18639999
 function makeCRCTable() {
     let c
@@ -319,7 +325,7 @@ module.exports = {
     mod,
     crc32,
     generateRandomBytes,
-    calcKey,
+    //calcKey,
     generateKeyDataFromNonce,
     sha1,
     sha256,
@@ -328,6 +334,6 @@ module.exports = {
     getRandomInt,
     sleep,
     getByteArray,
-    isArrayLike,
+    //isArrayLike,
     toSignedLittleBuffer
 }
