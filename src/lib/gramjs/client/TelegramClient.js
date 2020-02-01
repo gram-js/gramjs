@@ -218,6 +218,25 @@ class TelegramClient {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Disconnects all senders and removes all handlers
+     * @returns {Promise<void>}
+     */
+    async destroy() {
+        await Promise.all([
+            this.disconnect(),
+            this.session.delete(),
+            ...Object.values(this._borrowedSenderPromises).map((promise) => {
+                return promise
+                    .then((sender) => sender.disconnect())
+            })
+        ]);
+
+        this._eventBuilders = []
+    }
+>>>>>>> 5143ac4c... Fixes for Log Out
 
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)

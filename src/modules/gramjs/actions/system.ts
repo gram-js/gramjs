@@ -66,11 +66,12 @@ addReducer('saveSession', (global, actions, payload) => {
 
 
 addReducer('signOut', () => {
-  const sessionId = localStorage.getItem(GRAMJS_SESSION_ID_KEY);
-  if (sessionId) {
-    localStorage.removeItem(sessionId);
-    localStorage.removeItem(GRAMJS_SESSION_ID_KEY);
-  }
+  void signOut();
+});
+
+async function signOut() {
+  await callSdk('destroy');
+  localStorage.removeItem(GRAMJS_SESSION_ID_KEY);
 
   getDispatch().init();
-});
+}

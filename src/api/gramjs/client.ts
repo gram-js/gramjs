@@ -88,8 +88,15 @@ export async function init(sessionId: string) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export async function invokeRequest<T extends InstanceType<GramJsApi.AnyRequest>>(request: T) {
 =======
+=======
+export async function destroy() {
+  await client.destroy();
+}
+
+>>>>>>> 5143ac4c... Fixes for Log Out
 function onUpdate(update: any) {
   if (update instanceof connection.UpdateConnectionState) {
     isConnected = update.state === connection.UpdateConnectionState.states.connected;

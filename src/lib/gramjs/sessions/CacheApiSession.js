@@ -96,6 +96,12 @@ class CacheApi extends MemorySession {
 
         await saveToCache(this._storageKey, JSON.stringify(sessionData))
     }
+
+    async delete() {
+        const request = new Request(this._storageKey)
+        const cache = await self.caches.open(CACHE_NAME)
+        await cache.delete(request)
+    }
 }
 
 function generateStorageKey() {
