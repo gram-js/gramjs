@@ -91,7 +91,7 @@ function loadFromTlSchemas() {
 
 
 function extractParams(fileContent) {
-    const f = parseTl(fileContent, 105)
+    const f = parseTl(fileContent, 109)
     const constructors = []
     const functions = []
     for (const d of f) {

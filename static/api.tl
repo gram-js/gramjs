@@ -71,8 +71,12 @@ inputMediaDocumentExternal#fb52dc99 flags:# url:string ttl_seconds:flags.0?int =
 inputMediaGame#d33f43f3 id:InputGame = InputMedia;
 inputMediaInvoice#f4e096c3 flags:# title:string description:string photo:flags.0?InputWebDocument invoice:Invoice payload:bytes provider:string provider_data:DataJSON start_param:string = InputMedia;
 inputMediaGeoLive#ce4e82fd flags:# stopped:flags.0?true geo_point:InputGeoPoint period:flags.1?int = InputMedia;
+<<<<<<< HEAD
 inputMediaPoll#6b3765b poll:Poll = InputMedia;
 
+=======
+inputMediaPoll#abe9ca25 flags:# poll:Poll correct_answers:flags.0?Vector<bytes> = InputMedia;
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
 inputChatPhotoEmpty#1ca48f57 = InputChatPhoto;
 inputChatUploadedPhoto#927c55b4 file:InputFile = InputChatPhoto;
 inputChatPhoto#8953ad37 id:InputPhoto = InputChatPhoto;
@@ -89,6 +93,7 @@ inputDocumentFileLocation#bad07584 id:long access_hash:long file_reference:bytes
 inputSecureFileLocation#cbc7ee28 id:long access_hash:long = InputFileLocation;
 inputTakeoutFileLocation#29be5899 = InputFileLocation;
 inputPhotoFileLocation#40181ffe id:long access_hash:long file_reference:bytes thumb_size:string = InputFileLocation;
+inputPhotoLegacyFileLocation#d83466f3 id:long access_hash:long file_reference:bytes volume_id:long local_id:int secret:long = InputFileLocation;
 inputPeerPhotoFileLocation#27d69997 flags:# big:flags.0?true peer:InputPeer volume_id:long local_id:int = InputFileLocation;
 inputStickerSetThumb#dbaeae9 stickerset:InputStickerSet volume_id:long local_id:int = InputFileLocation;
 
@@ -213,7 +218,11 @@ peerNotifySettings#af509d20 flags:# show_previews:flags.0?Bool silent:flags.1?Bo
 peerSettings#818426cd flags:# report_spam:flags.0?true add_contact:flags.1?true block_contact:flags.2?true share_contact:flags.3?true need_contacts_exception:flags.4?true report_geo:flags.5?true = PeerSettings;
 
 wallPaper#a437c3ed id:long flags:# creator:flags.0?true default:flags.1?true pattern:flags.3?true dark:flags.4?true access_hash:long slug:string document:Document settings:flags.2?WallPaperSettings = WallPaper;
+<<<<<<< HEAD
 
+=======
+wallPaperNoFile#8af40b25 flags:# default:flags.1?true dark:flags.4?true settings:flags.2?WallPaperSettings = WallPaper;
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
 inputReportReasonSpam#58dbcab8 = ReportReason;
 inputReportReasonViolence#1e22c78d = ReportReason;
 inputReportReasonPornography#2e59d922 = ReportReason;
@@ -347,7 +356,13 @@ updatePeerLocated#b4afcfb0 peers:Vector<PeerLocated> = Update;
 updateNewScheduledMessage#39a51dfb message:Message = Update;
 updateDeleteScheduledMessages#90866cee peer:Peer messages:Vector<int> = Update;
 updateTheme#8216fba3 theme:Theme = Update;
+<<<<<<< HEAD
 
+=======
+updateGeoLiveViewed#871fb939 peer:Peer msg_id:int = Update;
+updateLoginToken#564fe691 = Update;
+updateMessagePollVote#42f88f2c poll_id:long user_id:int options:Vector<bytes> = Update;
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
 updates.state#a56c2a3e pts:int qts:int date:int seq:int unread_count:int = updates.State;
 
 updates.differenceEmpty#5d75a138 date:int seq:int = updates.Difference;
@@ -496,7 +511,7 @@ messages.affectedMessages#84d19185 pts:int pts_count:int = messages.AffectedMess
 
 webPageEmpty#eb1477e8 id:long = WebPage;
 webPagePending#c586da1c id:long date:int = WebPage;
-webPage#fa64e172 flags:# id:long url:string display_url:string hash:int type:flags.0?string site_name:flags.1?string title:flags.2?string description:flags.3?string photo:flags.4?Photo embed_url:flags.5?string embed_type:flags.5?string embed_width:flags.6?int embed_height:flags.6?int duration:flags.7?int author:flags.8?string document:flags.9?Document documents:flags.11?Vector<Document> cached_page:flags.10?Page = WebPage;
+webPage#e89c45b2 flags:# id:long url:string display_url:string hash:int type:flags.0?string site_name:flags.1?string title:flags.2?string description:flags.3?string photo:flags.4?Photo embed_url:flags.5?string embed_type:flags.5?string embed_width:flags.6?int embed_height:flags.6?int duration:flags.7?int author:flags.8?string document:flags.9?Document cached_page:flags.10?Page attributes:flags.12?Vector<WebPageAttribute> = WebPage;
 webPageNotModified#85849473 = WebPage;
 
 authorization#ad01d61d flags:# current:flags.0?true official_app:flags.1?true password_pending:flags.2?true hash:long device_model:string platform:string system_version:string api_id:int app_name:string app_version:string date_created:int date_active:int ip:string country:string region:string = Authorization;
@@ -542,7 +557,11 @@ keyboardButtonGame#50f41ccf text:string = KeyboardButton;
 keyboardButtonBuy#afd93fbb text:string = KeyboardButton;
 keyboardButtonUrlAuth#10b78d29 flags:# text:string fwd_text:flags.0?string url:string button_id:int = KeyboardButton;
 inputKeyboardButtonUrlAuth#d02e7fd4 flags:# request_write_access:flags.0?true text:string fwd_text:flags.1?string url:string bot:InputUser = KeyboardButton;
+<<<<<<< HEAD
 
+=======
+keyboardButtonRequestPoll#bbc7515d flags:# quiz:flags.0?Bool text:string = KeyboardButton;
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
 keyboardButtonRow#77608b83 buttons:Vector<KeyboardButton> = KeyboardButtonRow;
 
 replyKeyboardHide#a03e5b85 flags:# selective:flags.2?true = ReplyMarkup;
@@ -1077,6 +1096,26 @@ theme#f7d90ce0 flags:# creator:flags.0?true default:flags.1?true id:long access_
 
 account.themesNotModified#f41eb622 = account.Themes;
 account.themes#7f676421 hash:int themes:Vector<Theme> = account.Themes;
+<<<<<<< HEAD
+=======
+auth.loginToken#629f1980 expires:int token:bytes = auth.LoginToken;
+auth.loginTokenMigrateTo#68e9916 dc_id:int token:bytes = auth.LoginToken;
+auth.loginTokenSuccess#390d5c5e authorization:auth.Authorization = auth.LoginToken;
+account.contentSettings#57e28221 flags:# sensitive_enabled:flags.0?true sensitive_can_change:flags.1?true = account.ContentSettings;
+messages.inactiveChats#a927fec5 dates:Vector<int> chats:Vector<Chat> users:Vector<User> = messages.InactiveChats;
+baseThemeClassic#c3a12462 = BaseTheme;
+baseThemeDay#fbd81688 = BaseTheme;
+baseThemeNight#b7b31ea8 = BaseTheme;
+baseThemeTinted#6d5f77ee = BaseTheme;
+baseThemeArctic#5b11125a = BaseTheme;
+inputThemeSettings#bd507cd1 flags:# base_theme:BaseTheme accent_color:int message_top_color:flags.0?int message_bottom_color:flags.0?int wallpaper:flags.1?InputWallPaper wallpaper_settings:flags.1?WallPaperSettings = InputThemeSettings;
+themeSettings#9c14984a flags:# base_theme:BaseTheme accent_color:int message_top_color:flags.0?int message_bottom_color:flags.0?int wallpaper:flags.1?WallPaper = ThemeSettings;
+webPageAttributeTheme#54b56617 flags:# documents:flags.0?Vector<Document> settings:flags.1?ThemeSettings = WebPageAttribute;
+messageUserVote#a28e5559 user_id:int option:bytes date:int = MessageUserVote;
+messageUserVoteInputOption#36377430 user_id:int date:int = MessageUserVote;
+messageUserVoteMultiple#e8fe0de user_id:int options:Vector<bytes> date:int = MessageUserVote;
+messages.votesList#823f649 flags:# count:int votes:Vector<MessageUserVote> users:Vector<User> next_offset:flags.0?string = messages.VotesList;
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
 
 ---functions---
 
@@ -1360,6 +1399,7 @@ channels.getParticipants#123e05e9 channel:InputChannel filter:ChannelParticipant
 channels.getParticipant#546dd7a6 channel:InputChannel user_id:InputUser = channels.ChannelParticipant;
 channels.getChannels#a7f6bbb id:Vector<InputChannel> = messages.Chats;
 channels.getFullChannel#8736a09 channel:InputChannel = messages.ChatFull;
+<<<<<<< HEAD
 channels.createChannel#3d5fb10f flags:# broadcast:flags.0?true megagroup:flags.1?true title:string about:string geo_point:flags.2?InputGeoPoint address:flags.2?string = Updates;
 channels.editAdmin#d33c8902 channel:InputChannel user_id:InputUser admin_rights:ChatAdminRights rank:string = Updates;
 channels.editTitle#566decd0 channel:InputChannel title:string = Updates;
@@ -1420,3 +1460,6 @@ folders.editPeerFolders#6847d0ab folder_peers:Vector<InputFolderPeer> = Updates;
 folders.deleteFolder#1c295881 folder_id:int = Updates;
 
 // LAYER 105
+=======
+// LAYER 109
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109

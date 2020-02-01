@@ -25,6 +25,7 @@ function main() {
 }
 
 function extractParams(fileContent) {
+<<<<<<< HEAD
   const defInterator = parseTl(fileContent, 105);
   const types = {};
   const constructors = [];
@@ -46,6 +47,30 @@ function extractParams(fileContent) {
 
       types[def.result].constructors.push(def.namespace ? `${def.namespace}.${def.name}` : def.name);
       constructors.push(def);
+=======
+    const defInterator = parseTl(fileContent, 109)
+    const types = {}
+    const constructors = []
+    const functions = []
+
+    for (const def of defInterator) {
+        if (def.isFunction) {
+            functions.push(def)
+        } else {
+            if (!types[def.result]) {
+                let [namespace, name] = def.result.includes('.') ? def.result.split('.') : [undefined, def.result]
+
+                types[def.result] = {
+                    namespace,
+                    name,
+                    constructors: []
+                }
+            }
+
+            types[def.result].constructors.push(def.namespace ? `${def.namespace}.${def.name}` : def.name)
+            constructors.push(def)
+        }
+>>>>>>> ca1f18ad... GramJS: Update MTProto layer to 109
     }
   }
 
