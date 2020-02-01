@@ -1,7 +1,7 @@
 # GramJS
 **GramJS** is Telegram client implementation in Javascript. This project's _core_ is **completely based** on
 [Telethon](https://github.com/LonamiWebs/Telethon). All the files which are fully based on it.
-don't forget to have a look to the original project.
+Don't forget to have a look to the original project.
 
 ### Obtaining your `API ID` and `Hash`
 1. Follow [this link](https://my.telegram.org) and login with your phone number.
