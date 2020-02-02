@@ -11,7 +11,8 @@
     "build:github:all": "./deploy/github.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "gramjs:types": "node ./src/lib/gramjs/tl/types-generator/generate.js"
   },
   "husky": {
     "hooks": {

@@ -217,7 +217,7 @@ namespace Api {
   export type TypeStatsURL = StatsURL;
   export type TypeChatAdminRights = ChatAdminRights;
   export type TypeChatBannedRights = ChatBannedRights;
-  export type TypeInputWallPaper = InputWallPaper | InputWallPaperSlug | InputWallPaperNoFile;
+  export type TypeInputWallPaper = InputWallPaper | InputWallPaperSlug;
   export type TypeCodeSettings = CodeSettings;
   export type TypeWallPaperSettings = WallPaperSettings;
   export type TypeAutoDownloadSettings = AutoDownloadSettings;
@@ -5493,7 +5493,6 @@ namespace Api {
   }> {
     slug: string;
   };
-  export class InputWallPaperNoFile extends VirtualClass<void> {};
   export class CodeSettings extends VirtualClass<{
     // flags: null;
     allowFlashcall?: true;
@@ -7197,20 +7196,6 @@ namespace Api {
     };
   }
 
-  export class InvokeAfterMsg extends Request<Partial<{
-    msgId: long;
-    query: X;
-  }>, X> {
-    msgId: long;
-    query: X;
-  };
-  export class InvokeAfterMsgs extends Request<Partial<{
-    msgIds: long[];
-    query: X;
-  }>, X> {
-    msgIds: long[];
-    query: X;
-  };
   export class InitConnection extends Request<Partial<{
     // flags: null;
     apiId: int;
@@ -7239,25 +7224,6 @@ namespace Api {
     query: X;
   }>, X> {
     layer: int;
-    query: X;
-  };
-  export class InvokeWithoutUpdates extends Request<Partial<{
-    query: X;
-  }>, X> {
-    query: X;
-  };
-  export class InvokeWithMessagesRange extends Request<Partial<{
-    range: Api.TypeMessageRange;
-    query: X;
-  }>, X> {
-    range: Api.TypeMessageRange;
-    query: X;
-  };
-  export class InvokeWithTakeout extends Request<Partial<{
-    takeoutId: long;
-    query: X;
-  }>, X> {
-    takeoutId: long;
     query: X;
   };
   export class ReqPq extends Request<Partial<{
@@ -7381,28 +7347,12 @@ namespace Api {
       expiresAt: int;
       encryptedMessage: bytes;
     };
-    export class ImportBotAuthorization extends Request<Partial<{
-      // flags: int;
-      apiId: int;
-      apiHash: string;
-      botAuthToken: string;
-    }>, auth.TypeAuthorization> {
-      // flags: int;
-      apiId: int;
-      apiHash: string;
-      botAuthToken: string;
-    };
     export class CheckPassword extends Request<Partial<{
       password: Api.TypeInputCheckPasswordSRP;
     }>, auth.TypeAuthorization> {
       password: Api.TypeInputCheckPasswordSRP;
     };
     export class RequestPasswordRecovery extends Request<void, auth.TypePasswordRecovery> {};
-    export class RecoverPassword extends Request<Partial<{
-      code: string;
-    }>, auth.TypeAuthorization> {
-      code: string;
-    };
     export class ResendCode extends Request<Partial<{
       phoneNumber: string;
       phoneCodeHash: string;
@@ -7422,95 +7372,9 @@ namespace Api {
     }>, Bool> {
       exceptAuthKeys: long[];
     };
-    export class ExportLoginToken extends Request<Partial<{
-      apiId: int;
-      apiHash: string;
-      exceptIds: int[];
-    }>, auth.TypeLoginToken> {
-      apiId: int;
-      apiHash: string;
-      exceptIds: int[];
-    };
-    export class ImportLoginToken extends Request<Partial<{
-      token: bytes;
-    }>, auth.TypeLoginToken> {
-      token: bytes;
-    };
-    export class AcceptLoginToken extends Request<Partial<{
-      token: bytes;
-    }>, Api.TypeAuthorization> {
-      token: bytes;
-    };
   }
 
   export namespace account {
-    export class RegisterDevice extends Request<Partial<{
-      // flags: null;
-      noMuted?: true;
-      tokenType: int;
-      token: string;
-      appSandbox: Bool;
-      secret: bytes;
-      otherUids: int[];
-    }>, Bool> {
-      // flags: null;
-      noMuted?: true;
-      tokenType: int;
-      token: string;
-      appSandbox: Bool;
-      secret: bytes;
-      otherUids: int[];
-    };
-    export class UnregisterDevice extends Request<Partial<{
-      tokenType: int;
-      token: string;
-      otherUids: int[];
-    }>, Bool> {
-      tokenType: int;
-      token: string;
-      otherUids: int[];
-    };
-    export class UpdateNotifySettings extends Request<Partial<{
-      peer: Api.TypeInputNotifyPeer;
-      settings: Api.TypeInputPeerNotifySettings;
-    }>, Bool> {
-      peer: Api.TypeInputNotifyPeer;
-      settings: Api.TypeInputPeerNotifySettings;
-    };
-    export class GetNotifySettings extends Request<Partial<{
-      peer: Api.TypeInputNotifyPeer;
-    }>, Api.TypePeerNotifySettings> {
-      peer: Api.TypeInputNotifyPeer;
-    };
-    export class ResetNotifySettings extends Request<void, Bool> {};
-    export class UpdateProfile extends Request<Partial<{
-      // flags: null;
-      firstName?: string;
-      lastName?: string;
-      about?: string;
-    } | void>, Api.TypeUser> {
-      // flags: null;
-      firstName?: string;
-      lastName?: string;
-      about?: string;
-    };
-    export class UpdateStatus extends Request<Partial<{
-      offline: Bool;
-    }>, Bool> {
-      offline: Bool;
-    };
-    export class GetWallPapers extends Request<Partial<{
-      hash: int;
-    }>, account.TypeWallPapers> {
-      hash: int;
-    };
-    export class ReportPeer extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      reason: Api.TypeReportReason;
-    }>, Bool> {
-      peer: Api.TypeInputPeer;
-      reason: Api.TypeReportReason;
-    };
     export class CheckUsername extends Request<Partial<{
       username: string;
     }>, Bool> {
@@ -7521,50 +7385,6 @@ namespace Api {
     }>, Api.TypeUser> {
       username: string;
     };
-    export class GetPrivacy extends Request<Partial<{
-      key: Api.TypeInputPrivacyKey;
-    }>, account.TypePrivacyRules> {
-      key: Api.TypeInputPrivacyKey;
-    };
-    export class SetPrivacy extends Request<Partial<{
-      key: Api.TypeInputPrivacyKey;
-      rules: Api.TypeInputPrivacyRule[];
-    }>, account.TypePrivacyRules> {
-      key: Api.TypeInputPrivacyKey;
-      rules: Api.TypeInputPrivacyRule[];
-    };
-    export class DeleteAccount extends Request<Partial<{
-      reason: string;
-    }>, Bool> {
-      reason: string;
-    };
-    export class GetAccountTTL extends Request<void, Api.TypeAccountDaysTTL> {};
-    export class SetAccountTTL extends Request<Partial<{
-      ttl: Api.TypeAccountDaysTTL;
-    }>, Bool> {
-      ttl: Api.TypeAccountDaysTTL;
-    };
-    export class SendChangePhoneCode extends Request<Partial<{
-      phoneNumber: string;
-      settings: Api.TypeCodeSettings;
-    }>, auth.TypeSentCode> {
-      phoneNumber: string;
-      settings: Api.TypeCodeSettings;
-    };
-    export class ChangePhone extends Request<Partial<{
-      phoneNumber: string;
-      phoneCodeHash: string;
-      phoneCode: string;
-    }>, Api.TypeUser> {
-      phoneNumber: string;
-      phoneCodeHash: string;
-      phoneCode: string;
-    };
-    export class UpdateDeviceLocked extends Request<Partial<{
-      period: int;
-    }>, Bool> {
-      period: int;
-    };
     export class GetAuthorizations extends Request<void, account.TypeAuthorizations> {};
     export class ResetAuthorization extends Request<Partial<{
       hash: long;
@@ -7572,18 +7392,6 @@ namespace Api {
       hash: long;
     };
     export class GetPassword extends Request<void, account.TypePassword> {};
-    export class GetPasswordSettings extends Request<Partial<{
-      password: Api.TypeInputCheckPasswordSRP;
-    }>, account.TypePasswordSettings> {
-      password: Api.TypeInputCheckPasswordSRP;
-    };
-    export class UpdatePasswordSettings extends Request<Partial<{
-      password: Api.TypeInputCheckPasswordSRP;
-      newSettings: account.TypePasswordInputSettings;
-    }>, Bool> {
-      password: Api.TypeInputCheckPasswordSRP;
-      newSettings: account.TypePasswordInputSettings;
-    };
     export class SendConfirmPhoneCode extends Request<Partial<{
       hash: string;
       settings: Api.TypeCodeSettings;
@@ -7605,261 +7413,12 @@ namespace Api {
       password: Api.TypeInputCheckPasswordSRP;
       period: int;
     };
-    export class GetWebAuthorizations extends Request<void, account.TypeWebAuthorizations> {};
-    export class ResetWebAuthorization extends Request<Partial<{
-      hash: long;
-    }>, Bool> {
-      hash: long;
-    };
-    export class ResetWebAuthorizations extends Request<void, Bool> {};
-    export class GetAllSecureValues extends Request<void, Api.TypeSecureValue[]> {};
-    export class GetSecureValue extends Request<Partial<{
-      types: Api.TypeSecureValueType[];
-    }>, Api.TypeSecureValue[]> {
-      types: Api.TypeSecureValueType[];
-    };
-    export class SaveSecureValue extends Request<Partial<{
-      value: Api.TypeInputSecureValue;
-      secureSecretId: long;
-    }>, Api.TypeSecureValue> {
-      value: Api.TypeInputSecureValue;
-      secureSecretId: long;
-    };
-    export class DeleteSecureValue extends Request<Partial<{
-      types: Api.TypeSecureValueType[];
-    }>, Bool> {
-      types: Api.TypeSecureValueType[];
-    };
-    export class GetAuthorizationForm extends Request<Partial<{
-      botId: int;
-      scope: string;
-      publicKey: string;
-    }>, account.TypeAuthorizationForm> {
-      botId: int;
-      scope: string;
-      publicKey: string;
-    };
-    export class AcceptAuthorization extends Request<Partial<{
-      botId: int;
-      scope: string;
-      publicKey: string;
-      valueHashes: Api.TypeSecureValueHash[];
-      credentials: Api.TypeSecureCredentialsEncrypted;
-    }>, Bool> {
-      botId: int;
-      scope: string;
-      publicKey: string;
-      valueHashes: Api.TypeSecureValueHash[];
-      credentials: Api.TypeSecureCredentialsEncrypted;
-    };
     export class SendVerifyPhoneCode extends Request<Partial<{
       phoneNumber: string;
       settings: Api.TypeCodeSettings;
     }>, auth.TypeSentCode> {
       phoneNumber: string;
       settings: Api.TypeCodeSettings;
-    };
-    export class VerifyPhone extends Request<Partial<{
-      phoneNumber: string;
-      phoneCodeHash: string;
-      phoneCode: string;
-    }>, Bool> {
-      phoneNumber: string;
-      phoneCodeHash: string;
-      phoneCode: string;
-    };
-    export class SendVerifyEmailCode extends Request<Partial<{
-      email: string;
-    }>, account.TypeSentEmailCode> {
-      email: string;
-    };
-    export class VerifyEmail extends Request<Partial<{
-      email: string;
-      code: string;
-    }>, Bool> {
-      email: string;
-      code: string;
-    };
-    export class InitTakeoutSession extends Request<Partial<{
-      // flags: null;
-      contacts?: true;
-      messageUsers?: true;
-      messageChats?: true;
-      messageMegagroups?: true;
-      messageChannels?: true;
-      files?: true;
-      fileMaxSize?: int;
-    } | void>, account.TypeTakeout> {
-      // flags: null;
-      contacts?: true;
-      messageUsers?: true;
-      messageChats?: true;
-      messageMegagroups?: true;
-      messageChannels?: true;
-      files?: true;
-      fileMaxSize?: int;
-    };
-    export class FinishTakeoutSession extends Request<Partial<{
-      // flags: null;
-      success?: true;
-    } | void>, Bool> {
-      // flags: null;
-      success?: true;
-    };
-    export class ConfirmPasswordEmail extends Request<Partial<{
-      code: string;
-    }>, Bool> {
-      code: string;
-    };
-    export class ResendPasswordEmail extends Request<void, Bool> {};
-    export class CancelPasswordEmail extends Request<void, Bool> {};
-    export class GetContactSignUpNotification extends Request<void, Bool> {};
-    export class SetContactSignUpNotification extends Request<Partial<{
-      silent: Bool;
-    }>, Bool> {
-      silent: Bool;
-    };
-    export class GetNotifyExceptions extends Request<Partial<{
-      // flags: null;
-      compareSound?: true;
-      peer?: Api.TypeInputNotifyPeer;
-    } | void>, Api.TypeUpdates> {
-      // flags: null;
-      compareSound?: true;
-      peer?: Api.TypeInputNotifyPeer;
-    };
-    export class GetWallPaper extends Request<Partial<{
-      wallpaper: Api.TypeInputWallPaper;
-    }>, Api.TypeWallPaper> {
-      wallpaper: Api.TypeInputWallPaper;
-    };
-    export class UploadWallPaper extends Request<Partial<{
-      file: Api.TypeInputFile;
-      mimeType: string;
-      settings: Api.TypeWallPaperSettings;
-    }>, Api.TypeWallPaper> {
-      file: Api.TypeInputFile;
-      mimeType: string;
-      settings: Api.TypeWallPaperSettings;
-    };
-    export class SaveWallPaper extends Request<Partial<{
-      wallpaper: Api.TypeInputWallPaper;
-      unsave: Bool;
-      settings: Api.TypeWallPaperSettings;
-    }>, Bool> {
-      wallpaper: Api.TypeInputWallPaper;
-      unsave: Bool;
-      settings: Api.TypeWallPaperSettings;
-    };
-    export class InstallWallPaper extends Request<Partial<{
-      wallpaper: Api.TypeInputWallPaper;
-      settings: Api.TypeWallPaperSettings;
-    }>, Bool> {
-      wallpaper: Api.TypeInputWallPaper;
-      settings: Api.TypeWallPaperSettings;
-    };
-    export class ResetWallPapers extends Request<void, Bool> {};
-    export class GetAutoDownloadSettings extends Request<void, account.TypeAutoDownloadSettings> {};
-    export class SaveAutoDownloadSettings extends Request<Partial<{
-      // flags: null;
-      low?: true;
-      high?: true;
-      settings: Api.TypeAutoDownloadSettings;
-    }>, Bool> {
-      // flags: null;
-      low?: true;
-      high?: true;
-      settings: Api.TypeAutoDownloadSettings;
-    };
-    export class UploadTheme extends Request<Partial<{
-      // flags: null;
-      file: Api.TypeInputFile;
-      thumb?: Api.TypeInputFile;
-      fileName: string;
-      mimeType: string;
-    }>, Api.TypeDocument> {
-      // flags: null;
-      file: Api.TypeInputFile;
-      thumb?: Api.TypeInputFile;
-      fileName: string;
-      mimeType: string;
-    };
-    export class CreateTheme extends Request<Partial<{
-      // flags: null;
-      slug: string;
-      title: string;
-      document?: Api.TypeInputDocument;
-      settings?: Api.TypeInputThemeSettings;
-    }>, Api.TypeTheme> {
-      // flags: null;
-      slug: string;
-      title: string;
-      document?: Api.TypeInputDocument;
-      settings?: Api.TypeInputThemeSettings;
-    };
-    export class UpdateTheme extends Request<Partial<{
-      // flags: null;
-      format: string;
-      theme: Api.TypeInputTheme;
-      slug?: string;
-      title?: string;
-      document?: Api.TypeInputDocument;
-      settings?: Api.TypeInputThemeSettings;
-    }>, Api.TypeTheme> {
-      // flags: null;
-      format: string;
-      theme: Api.TypeInputTheme;
-      slug?: string;
-      title?: string;
-      document?: Api.TypeInputDocument;
-      settings?: Api.TypeInputThemeSettings;
-    };
-    export class SaveTheme extends Request<Partial<{
-      theme: Api.TypeInputTheme;
-      unsave: Bool;
-    }>, Bool> {
-      theme: Api.TypeInputTheme;
-      unsave: Bool;
-    };
-    export class InstallTheme extends Request<Partial<{
-      // flags: null;
-      dark?: true;
-      format?: string;
-      theme?: Api.TypeInputTheme;
-    } | void>, Bool> {
-      // flags: null;
-      dark?: true;
-      format?: string;
-      theme?: Api.TypeInputTheme;
-    };
-    export class GetTheme extends Request<Partial<{
-      format: string;
-      theme: Api.TypeInputTheme;
-      documentId: long;
-    }>, Api.TypeTheme> {
-      format: string;
-      theme: Api.TypeInputTheme;
-      documentId: long;
-    };
-    export class GetThemes extends Request<Partial<{
-      format: string;
-      hash: int;
-    }>, account.TypeThemes> {
-      format: string;
-      hash: int;
-    };
-    export class SetContentSettings extends Request<Partial<{
-      // flags: null;
-      sensitiveEnabled?: true;
-    } | void>, Bool> {
-      // flags: null;
-      sensitiveEnabled?: true;
-    };
-    export class GetContentSettings extends Request<void, account.TypeContentSettings> {};
-    export class GetMultiWallPapers extends Request<Partial<{
-      wallpapers: Api.TypeInputWallPaper[];
-    }>, Api.TypeWallPaper[]> {
-      wallpapers: Api.TypeInputWallPaper[];
     };
   }
 
@@ -7874,59 +7433,9 @@ namespace Api {
     }>, Api.TypeUserFull> {
       id: Api.TypeInputUser;
     };
-    export class SetSecureValueErrors extends Request<Partial<{
-      id: Api.TypeInputUser;
-      errors: Api.TypeSecureValueError[];
-    }>, Bool> {
-      id: Api.TypeInputUser;
-      errors: Api.TypeSecureValueError[];
-    };
   }
 
   export namespace contacts {
-    export class GetContactIDs extends Request<Partial<{
-      hash: int;
-    }>, int[]> {
-      hash: int;
-    };
-    export class GetStatuses extends Request<void, Api.TypeContactStatus[]> {};
-    export class GetContacts extends Request<Partial<{
-      hash: int;
-    }>, contacts.TypeContacts> {
-      hash: int;
-    };
-    export class ImportContacts extends Request<Partial<{
-      contacts: Api.TypeInputContact[];
-    }>, contacts.TypeImportedContacts> {
-      contacts: Api.TypeInputContact[];
-    };
-    export class DeleteContacts extends Request<Partial<{
-      id: Api.TypeInputUser[];
-    }>, Api.TypeUpdates> {
-      id: Api.TypeInputUser[];
-    };
-    export class DeleteByPhones extends Request<Partial<{
-      phones: string[];
-    }>, Bool> {
-      phones: string[];
-    };
-    export class Block extends Request<Partial<{
-      id: Api.TypeInputUser;
-    }>, Bool> {
-      id: Api.TypeInputUser;
-    };
-    export class Unblock extends Request<Partial<{
-      id: Api.TypeInputUser;
-    }>, Bool> {
-      id: Api.TypeInputUser;
-    };
-    export class GetBlocked extends Request<Partial<{
-      offset: int;
-      limit: int;
-    }>, contacts.TypeBlocked> {
-      offset: int;
-      limit: int;
-    };
     export class Search extends Request<Partial<{
       q: string;
       limit: int;
@@ -7938,72 +7447,6 @@ namespace Api {
       username: string;
     }>, contacts.TypeResolvedPeer> {
       username: string;
-    };
-    export class GetTopPeers extends Request<Partial<{
-      // flags: null;
-      correspondents?: true;
-      botsPm?: true;
-      botsInline?: true;
-      phoneCalls?: true;
-      forwardUsers?: true;
-      forwardChats?: true;
-      groups?: true;
-      channels?: true;
-      offset: int;
-      limit: int;
-      hash: int;
-    }>, contacts.TypeTopPeers> {
-      // flags: null;
-      correspondents?: true;
-      botsPm?: true;
-      botsInline?: true;
-      phoneCalls?: true;
-      forwardUsers?: true;
-      forwardChats?: true;
-      groups?: true;
-      channels?: true;
-      offset: int;
-      limit: int;
-      hash: int;
-    };
-    export class ResetTopPeerRating extends Request<Partial<{
-      category: Api.TypeTopPeerCategory;
-      peer: Api.TypeInputPeer;
-    }>, Bool> {
-      category: Api.TypeTopPeerCategory;
-      peer: Api.TypeInputPeer;
-    };
-    export class ResetSaved extends Request<void, Bool> {};
-    export class GetSaved extends Request<void, Api.TypeSavedContact[]> {};
-    export class ToggleTopPeers extends Request<Partial<{
-      enabled: Bool;
-    }>, Bool> {
-      enabled: Bool;
-    };
-    export class AddContact extends Request<Partial<{
-      // flags: null;
-      addPhonePrivacyException?: true;
-      id: Api.TypeInputUser;
-      firstName: string;
-      lastName: string;
-      phone: string;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      addPhonePrivacyException?: true;
-      id: Api.TypeInputUser;
-      firstName: string;
-      lastName: string;
-      phone: string;
-    };
-    export class AcceptContact extends Request<Partial<{
-      id: Api.TypeInputUser;
-    }>, Api.TypeUpdates> {
-      id: Api.TypeInputUser;
-    };
-    export class GetLocated extends Request<Partial<{
-      geoPoint: Api.TypeInputGeoPoint;
-    }>, Api.TypeUpdates> {
-      geoPoint: Api.TypeInputGeoPoint;
     };
   }
 
@@ -8087,19 +7530,6 @@ namespace Api {
       peer: Api.TypeInputPeer;
       maxId: int;
     };
-    export class DeleteHistory extends Request<Partial<{
-      // flags: null;
-      justClear?: true;
-      revoke?: true;
-      peer: Api.TypeInputPeer;
-      maxId: int;
-    }>, messages.TypeAffectedHistory> {
-      // flags: null;
-      justClear?: true;
-      revoke?: true;
-      peer: Api.TypeInputPeer;
-      maxId: int;
-    };
     export class DeleteMessages extends Request<Partial<{
       // flags: null;
       revoke?: true;
@@ -8175,48 +7605,6 @@ namespace Api {
       entities?: Api.TypeMessageEntity[];
       scheduleDate?: int;
     };
-    export class ForwardMessages extends Request<Partial<{
-      // flags: null;
-      silent?: true;
-      background?: true;
-      withMyScore?: true;
-      grouped?: true;
-      fromPeer: Api.TypeInputPeer;
-      id: int[];
-      randomId: long[];
-      toPeer: Api.TypeInputPeer;
-      scheduleDate?: int;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      silent?: true;
-      background?: true;
-      withMyScore?: true;
-      grouped?: true;
-      fromPeer: Api.TypeInputPeer;
-      id: int[];
-      randomId: long[];
-      toPeer: Api.TypeInputPeer;
-      scheduleDate?: int;
-    };
-    export class ReportSpam extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-    }>, Bool> {
-      peer: Api.TypeInputPeer;
-    };
-    export class GetPeerSettings extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-    }>, Api.TypePeerSettings> {
-      peer: Api.TypeInputPeer;
-    };
-    export class Report extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int[];
-      reason: Api.TypeReportReason;
-    }>, Bool> {
-      peer: Api.TypeInputPeer;
-      id: int[];
-      reason: Api.TypeReportReason;
-    };
     export class GetChats extends Request<Partial<{
       id: int[];
     }>, messages.TypeChats> {
@@ -8226,36 +7614,6 @@ namespace Api {
       chatId: int;
     }>, messages.TypeChatFull> {
       chatId: int;
-    };
-    export class EditChatTitle extends Request<Partial<{
-      chatId: int;
-      title: string;
-    }>, Api.TypeUpdates> {
-      chatId: int;
-      title: string;
-    };
-    export class EditChatPhoto extends Request<Partial<{
-      chatId: int;
-      photo: Api.TypeInputChatPhoto;
-    }>, Api.TypeUpdates> {
-      chatId: int;
-      photo: Api.TypeInputChatPhoto;
-    };
-    export class AddChatUser extends Request<Partial<{
-      chatId: int;
-      userId: Api.TypeInputUser;
-      fwdLimit: int;
-    }>, Api.TypeUpdates> {
-      chatId: int;
-      userId: Api.TypeInputUser;
-      fwdLimit: int;
-    };
-    export class DeleteChatUser extends Request<Partial<{
-      chatId: int;
-      userId: Api.TypeInputUser;
-    }>, Api.TypeUpdates> {
-      chatId: int;
-      userId: Api.TypeInputUser;
     };
     export class CreateChat extends Request<Partial<{
       users: Api.TypeInputUser[];
@@ -8271,99 +7629,6 @@ namespace Api {
       version: int;
       randomLength: int;
     };
-    export class RequestEncryption extends Request<Partial<{
-      userId: Api.TypeInputUser;
-      randomId: int;
-      gA: bytes;
-    }>, Api.TypeEncryptedChat> {
-      userId: Api.TypeInputUser;
-      randomId: int;
-      gA: bytes;
-    };
-    export class AcceptEncryption extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      gB: bytes;
-      keyFingerprint: long;
-    }>, Api.TypeEncryptedChat> {
-      peer: Api.TypeInputEncryptedChat;
-      gB: bytes;
-      keyFingerprint: long;
-    };
-    export class DiscardEncryption extends Request<Partial<{
-      chatId: int;
-    }>, Bool> {
-      chatId: int;
-    };
-    export class SetEncryptedTyping extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      typing: Bool;
-    }>, Bool> {
-      peer: Api.TypeInputEncryptedChat;
-      typing: Bool;
-    };
-    export class ReadEncryptedHistory extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      maxDate: int;
-    }>, Bool> {
-      peer: Api.TypeInputEncryptedChat;
-      maxDate: int;
-    };
-    export class SendEncrypted extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-    }>, messages.TypeSentEncryptedMessage> {
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-    };
-    export class SendEncryptedFile extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-      file: Api.TypeInputEncryptedFile;
-    }>, messages.TypeSentEncryptedMessage> {
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-      file: Api.TypeInputEncryptedFile;
-    };
-    export class SendEncryptedService extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-    }>, messages.TypeSentEncryptedMessage> {
-      peer: Api.TypeInputEncryptedChat;
-      randomId: long;
-      data: bytes;
-    };
-    export class ReceivedQueue extends Request<Partial<{
-      maxQts: int;
-    }>, long[]> {
-      maxQts: int;
-    };
-    export class ReportEncryptedSpam extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-    }>, Bool> {
-      peer: Api.TypeInputEncryptedChat;
-    };
-    export class ReadMessageContents extends Request<Partial<{
-      id: int[];
-    }>, messages.TypeAffectedMessages> {
-      id: int[];
-    };
-    export class GetStickers extends Request<Partial<{
-      emoticon: string;
-      hash: int;
-    }>, messages.TypeStickers> {
-      emoticon: string;
-      hash: int;
-    };
-    export class GetAllStickers extends Request<Partial<{
-      hash: int;
-    }>, messages.TypeAllStickers> {
-      hash: int;
-    };
     export class GetWebPagePreview extends Request<Partial<{
       // flags: null;
       message: string;
@@ -8372,72 +7637,6 @@ namespace Api {
       // flags: null;
       message: string;
       entities?: Api.TypeMessageEntity[];
-    };
-    export class ExportChatInvite extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-    }>, Api.TypeExportedChatInvite> {
-      peer: Api.TypeInputPeer;
-    };
-    export class CheckChatInvite extends Request<Partial<{
-      hash: string;
-    }>, Api.TypeChatInvite> {
-      hash: string;
-    };
-    export class ImportChatInvite extends Request<Partial<{
-      hash: string;
-    }>, Api.TypeUpdates> {
-      hash: string;
-    };
-    export class GetStickerSet extends Request<Partial<{
-      stickerset: Api.TypeInputStickerSet;
-    }>, messages.TypeStickerSet> {
-      stickerset: Api.TypeInputStickerSet;
-    };
-    export class InstallStickerSet extends Request<Partial<{
-      stickerset: Api.TypeInputStickerSet;
-      archived: Bool;
-    }>, messages.TypeStickerSetInstallResult> {
-      stickerset: Api.TypeInputStickerSet;
-      archived: Bool;
-    };
-    export class UninstallStickerSet extends Request<Partial<{
-      stickerset: Api.TypeInputStickerSet;
-    }>, Bool> {
-      stickerset: Api.TypeInputStickerSet;
-    };
-    export class StartBot extends Request<Partial<{
-      bot: Api.TypeInputUser;
-      peer: Api.TypeInputPeer;
-      randomId: long;
-      startParam: string;
-    }>, Api.TypeUpdates> {
-      bot: Api.TypeInputUser;
-      peer: Api.TypeInputPeer;
-      randomId: long;
-      startParam: string;
-    };
-    export class GetMessagesViews extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int[];
-      increment: Bool;
-    }>, int[]> {
-      peer: Api.TypeInputPeer;
-      id: int[];
-      increment: Bool;
-    };
-    export class EditChatAdmin extends Request<Partial<{
-      chatId: int;
-      userId: Api.TypeInputUser;
-      isAdmin: Bool;
-    }>, Bool> {
-      chatId: int;
-      userId: Api.TypeInputUser;
-      isAdmin: Bool;
-    };
-    export class MigrateChat extends Request<Partial<{
-      chatId: int;
-    }>, Api.TypeUpdates> {
-      chatId: int;
     };
     export class SearchGlobal extends Request<Partial<{
       // flags: null;
@@ -8456,15 +7655,6 @@ namespace Api {
       offsetId: int;
       limit: int;
     };
-    export class ReorderStickerSets extends Request<Partial<{
-      // flags: null;
-      masks?: true;
-      order: long[];
-    }>, Bool> {
-      // flags: null;
-      masks?: true;
-      order: long[];
-    };
     export class GetDocumentByHash extends Request<Partial<{
       sha256: bytes;
       size: int;
@@ -8473,91 +7663,6 @@ namespace Api {
       sha256: bytes;
       size: int;
       mimeType: string;
-    };
-    export class SearchGifs extends Request<Partial<{
-      q: string;
-      offset: int;
-    }>, messages.TypeFoundGifs> {
-      q: string;
-      offset: int;
-    };
-    export class GetSavedGifs extends Request<Partial<{
-      hash: int;
-    }>, messages.TypeSavedGifs> {
-      hash: int;
-    };
-    export class SaveGif extends Request<Partial<{
-      id: Api.TypeInputDocument;
-      unsave: Bool;
-    }>, Bool> {
-      id: Api.TypeInputDocument;
-      unsave: Bool;
-    };
-    export class GetInlineBotResults extends Request<Partial<{
-      // flags: null;
-      bot: Api.TypeInputUser;
-      peer: Api.TypeInputPeer;
-      geoPoint?: Api.TypeInputGeoPoint;
-      query: string;
-      offset: string;
-    }>, messages.TypeBotResults> {
-      // flags: null;
-      bot: Api.TypeInputUser;
-      peer: Api.TypeInputPeer;
-      geoPoint?: Api.TypeInputGeoPoint;
-      query: string;
-      offset: string;
-    };
-    export class SetInlineBotResults extends Request<Partial<{
-      // flags: null;
-      gallery?: true;
-      private?: true;
-      queryId: long;
-      results: Api.TypeInputBotInlineResult[];
-      cacheTime: int;
-      nextOffset?: string;
-      switchPm?: Api.TypeInlineBotSwitchPM;
-    }>, Bool> {
-      // flags: null;
-      gallery?: true;
-      private?: true;
-      queryId: long;
-      results: Api.TypeInputBotInlineResult[];
-      cacheTime: int;
-      nextOffset?: string;
-      switchPm?: Api.TypeInlineBotSwitchPM;
-    };
-    export class SendInlineBotResult extends Request<Partial<{
-      // flags: null;
-      silent?: true;
-      background?: true;
-      clearDraft?: true;
-      hideVia?: true;
-      peer: Api.TypeInputPeer;
-      replyToMsgId?: int;
-      randomId: long;
-      queryId: long;
-      id: string;
-      scheduleDate?: int;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      silent?: true;
-      background?: true;
-      clearDraft?: true;
-      hideVia?: true;
-      peer: Api.TypeInputPeer;
-      replyToMsgId?: int;
-      randomId: long;
-      queryId: long;
-      id: string;
-      scheduleDate?: int;
-    };
-    export class GetMessageEditData extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int;
-    }>, messages.TypeMessageEditData> {
-      peer: Api.TypeInputPeer;
-      id: int;
     };
     export class EditMessage extends Request<Partial<{
       // flags: null;
@@ -8580,191 +7685,10 @@ namespace Api {
       entities?: Api.TypeMessageEntity[];
       scheduleDate?: int;
     };
-    export class EditInlineBotMessage extends Request<Partial<{
-      // flags: null;
-      noWebpage?: true;
-      id: Api.TypeInputBotInlineMessageID;
-      message?: string;
-      media?: Api.TypeInputMedia;
-      replyMarkup?: Api.TypeReplyMarkup;
-      entities?: Api.TypeMessageEntity[];
-    }>, Bool> {
-      // flags: null;
-      noWebpage?: true;
-      id: Api.TypeInputBotInlineMessageID;
-      message?: string;
-      media?: Api.TypeInputMedia;
-      replyMarkup?: Api.TypeReplyMarkup;
-      entities?: Api.TypeMessageEntity[];
-    };
-    export class GetBotCallbackAnswer extends Request<Partial<{
-      // flags: null;
-      game?: true;
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      data?: bytes;
-    }>, messages.TypeBotCallbackAnswer> {
-      // flags: null;
-      game?: true;
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      data?: bytes;
-    };
-    export class SetBotCallbackAnswer extends Request<Partial<{
-      // flags: null;
-      alert?: true;
-      queryId: long;
-      message?: string;
-      url?: string;
-      cacheTime: int;
-    }>, Bool> {
-      // flags: null;
-      alert?: true;
-      queryId: long;
-      message?: string;
-      url?: string;
-      cacheTime: int;
-    };
     export class GetPeerDialogs extends Request<Partial<{
       peers: Api.TypeInputDialogPeer[];
     }>, messages.TypePeerDialogs> {
       peers: Api.TypeInputDialogPeer[];
-    };
-    export class SaveDraft extends Request<Partial<{
-      // flags: null;
-      noWebpage?: true;
-      replyToMsgId?: int;
-      peer: Api.TypeInputPeer;
-      message: string;
-      entities?: Api.TypeMessageEntity[];
-    }>, Bool> {
-      // flags: null;
-      noWebpage?: true;
-      replyToMsgId?: int;
-      peer: Api.TypeInputPeer;
-      message: string;
-      entities?: Api.TypeMessageEntity[];
-    };
-    export class GetAllDrafts extends Request<void, Api.TypeUpdates> {};
-    export class GetFeaturedStickers extends Request<Partial<{
-      hash: int;
-    }>, messages.TypeFeaturedStickers> {
-      hash: int;
-    };
-    export class ReadFeaturedStickers extends Request<Partial<{
-      id: long[];
-    }>, Bool> {
-      id: long[];
-    };
-    export class GetRecentStickers extends Request<Partial<{
-      // flags: null;
-      attached?: true;
-      hash: int;
-    }>, messages.TypeRecentStickers> {
-      // flags: null;
-      attached?: true;
-      hash: int;
-    };
-    export class SaveRecentSticker extends Request<Partial<{
-      // flags: null;
-      attached?: true;
-      id: Api.TypeInputDocument;
-      unsave: Bool;
-    }>, Bool> {
-      // flags: null;
-      attached?: true;
-      id: Api.TypeInputDocument;
-      unsave: Bool;
-    };
-    export class ClearRecentStickers extends Request<Partial<{
-      // flags: null;
-      attached?: true;
-    } | void>, Bool> {
-      // flags: null;
-      attached?: true;
-    };
-    export class GetArchivedStickers extends Request<Partial<{
-      // flags: null;
-      masks?: true;
-      offsetId: long;
-      limit: int;
-    }>, messages.TypeArchivedStickers> {
-      // flags: null;
-      masks?: true;
-      offsetId: long;
-      limit: int;
-    };
-    export class GetMaskStickers extends Request<Partial<{
-      hash: int;
-    }>, messages.TypeAllStickers> {
-      hash: int;
-    };
-    export class GetAttachedStickers extends Request<Partial<{
-      media: Api.TypeInputStickeredMedia;
-    }>, Api.TypeStickerSetCovered[]> {
-      media: Api.TypeInputStickeredMedia;
-    };
-    export class SetGameScore extends Request<Partial<{
-      // flags: null;
-      editMessage?: true;
-      force?: true;
-      peer: Api.TypeInputPeer;
-      id: int;
-      userId: Api.TypeInputUser;
-      score: int;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      editMessage?: true;
-      force?: true;
-      peer: Api.TypeInputPeer;
-      id: int;
-      userId: Api.TypeInputUser;
-      score: int;
-    };
-    export class SetInlineGameScore extends Request<Partial<{
-      // flags: null;
-      editMessage?: true;
-      force?: true;
-      id: Api.TypeInputBotInlineMessageID;
-      userId: Api.TypeInputUser;
-      score: int;
-    }>, Bool> {
-      // flags: null;
-      editMessage?: true;
-      force?: true;
-      id: Api.TypeInputBotInlineMessageID;
-      userId: Api.TypeInputUser;
-      score: int;
-    };
-    export class GetGameHighScores extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int;
-      userId: Api.TypeInputUser;
-    }>, messages.TypeHighScores> {
-      peer: Api.TypeInputPeer;
-      id: int;
-      userId: Api.TypeInputUser;
-    };
-    export class GetInlineGameHighScores extends Request<Partial<{
-      id: Api.TypeInputBotInlineMessageID;
-      userId: Api.TypeInputUser;
-    }>, messages.TypeHighScores> {
-      id: Api.TypeInputBotInlineMessageID;
-      userId: Api.TypeInputUser;
-    };
-    export class GetCommonChats extends Request<Partial<{
-      userId: Api.TypeInputUser;
-      maxId: int;
-      limit: int;
-    }>, messages.TypeChats> {
-      userId: Api.TypeInputUser;
-      maxId: int;
-      limit: int;
-    };
-    export class GetAllChats extends Request<Partial<{
-      exceptIds: int[];
-    }>, messages.TypeChats> {
-      exceptIds: int[];
     };
     export class GetWebPage extends Request<Partial<{
       url: string;
@@ -8773,53 +7697,6 @@ namespace Api {
       url: string;
       hash: int;
     };
-    export class ToggleDialogPin extends Request<Partial<{
-      // flags: null;
-      pinned?: true;
-      peer: Api.TypeInputDialogPeer;
-    }>, Bool> {
-      // flags: null;
-      pinned?: true;
-      peer: Api.TypeInputDialogPeer;
-    };
-    export class ReorderPinnedDialogs extends Request<Partial<{
-      // flags: null;
-      force?: true;
-      folderId: int;
-      order: Api.TypeInputDialogPeer[];
-    }>, Bool> {
-      // flags: null;
-      force?: true;
-      folderId: int;
-      order: Api.TypeInputDialogPeer[];
-    };
-    export class GetPinnedDialogs extends Request<Partial<{
-      folderId: int;
-    }>, messages.TypePeerDialogs> {
-      folderId: int;
-    };
-    export class SetBotShippingResults extends Request<Partial<{
-      // flags: null;
-      queryId: long;
-      error?: string;
-      shippingOptions?: Api.TypeShippingOption[];
-    }>, Bool> {
-      // flags: null;
-      queryId: long;
-      error?: string;
-      shippingOptions?: Api.TypeShippingOption[];
-    };
-    export class SetBotPrecheckoutResults extends Request<Partial<{
-      // flags: null;
-      success?: true;
-      queryId: long;
-      error?: string;
-    }>, Bool> {
-      // flags: null;
-      success?: true;
-      queryId: long;
-      error?: string;
-    };
     export class UploadMedia extends Request<Partial<{
       peer: Api.TypeInputPeer;
       media: Api.TypeInputMedia;
@@ -8827,105 +7704,6 @@ namespace Api {
       peer: Api.TypeInputPeer;
       media: Api.TypeInputMedia;
     };
-    export class SendScreenshotNotification extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      replyToMsgId: int;
-      randomId: long;
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      replyToMsgId: int;
-      randomId: long;
-    };
-    export class GetFavedStickers extends Request<Partial<{
-      hash: int;
-    }>, messages.TypeFavedStickers> {
-      hash: int;
-    };
-    export class FaveSticker extends Request<Partial<{
-      id: Api.TypeInputDocument;
-      unfave: Bool;
-    }>, Bool> {
-      id: Api.TypeInputDocument;
-      unfave: Bool;
-    };
-    export class GetUnreadMentions extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      offsetId: int;
-      addOffset: int;
-      limit: int;
-      maxId: int;
-      minId: int;
-    }>, messages.TypeMessages> {
-      peer: Api.TypeInputPeer;
-      offsetId: int;
-      addOffset: int;
-      limit: int;
-      maxId: int;
-      minId: int;
-    };
-    export class ReadMentions extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-    }>, messages.TypeAffectedHistory> {
-      peer: Api.TypeInputPeer;
-    };
-    export class GetRecentLocations extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      limit: int;
-      hash: int;
-    }>, messages.TypeMessages> {
-      peer: Api.TypeInputPeer;
-      limit: int;
-      hash: int;
-    };
-    export class SendMultiMedia extends Request<Partial<{
-      // flags: null;
-      silent?: true;
-      background?: true;
-      clearDraft?: true;
-      peer: Api.TypeInputPeer;
-      replyToMsgId?: int;
-      multiMedia: Api.TypeInputSingleMedia[];
-      scheduleDate?: int;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      silent?: true;
-      background?: true;
-      clearDraft?: true;
-      peer: Api.TypeInputPeer;
-      replyToMsgId?: int;
-      multiMedia: Api.TypeInputSingleMedia[];
-      scheduleDate?: int;
-    };
-    export class UploadEncryptedFile extends Request<Partial<{
-      peer: Api.TypeInputEncryptedChat;
-      file: Api.TypeInputEncryptedFile;
-    }>, Api.TypeEncryptedFile> {
-      peer: Api.TypeInputEncryptedChat;
-      file: Api.TypeInputEncryptedFile;
-    };
-    export class SearchStickerSets extends Request<Partial<{
-      // flags: null;
-      excludeFeatured?: true;
-      q: string;
-      hash: int;
-    }>, messages.TypeFoundStickerSets> {
-      // flags: null;
-      excludeFeatured?: true;
-      q: string;
-      hash: int;
-    };
-    export class GetSplitRanges extends Request<void, Api.TypeMessageRange[]> {};
-    export class MarkDialogUnread extends Request<Partial<{
-      // flags: null;
-      unread?: true;
-      peer: Api.TypeInputDialogPeer;
-    }>, Bool> {
-      // flags: null;
-      unread?: true;
-      peer: Api.TypeInputDialogPeer;
-    };
-    export class GetDialogUnreadMarks extends Request<void, Api.TypeDialogPeer[]> {};
-    export class ClearAllDrafts extends Request<void, Bool> {};
     export class UpdatePinnedMessage extends Request<Partial<{
       // flags: null;
       silent?: true;
@@ -8937,150 +7715,10 @@ namespace Api {
       peer: Api.TypeInputPeer;
       id: int;
     };
-    export class SendVote extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      options: bytes[];
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      options: bytes[];
-    };
-    export class GetPollResults extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      msgId: int;
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      msgId: int;
-    };
     export class GetOnlines extends Request<Partial<{
       peer: Api.TypeInputPeer;
     }>, Api.TypeChatOnlines> {
       peer: Api.TypeInputPeer;
-    };
-    export class GetStatsURL extends Request<Partial<{
-      // flags: null;
-      dark?: true;
-      peer: Api.TypeInputPeer;
-      params: string;
-    }>, Api.TypeStatsURL> {
-      // flags: null;
-      dark?: true;
-      peer: Api.TypeInputPeer;
-      params: string;
-    };
-    export class EditChatAbout extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      about: string;
-    }>, Bool> {
-      peer: Api.TypeInputPeer;
-      about: string;
-    };
-    export class EditChatDefaultBannedRights extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      bannedRights: Api.TypeChatBannedRights;
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      bannedRights: Api.TypeChatBannedRights;
-    };
-    export class GetEmojiKeywords extends Request<Partial<{
-      langCode: string;
-    }>, Api.TypeEmojiKeywordsDifference> {
-      langCode: string;
-    };
-    export class GetEmojiKeywordsDifference extends Request<Partial<{
-      langCode: string;
-      fromVersion: int;
-    }>, Api.TypeEmojiKeywordsDifference> {
-      langCode: string;
-      fromVersion: int;
-    };
-    export class GetEmojiKeywordsLanguages extends Request<Partial<{
-      langCodes: string[];
-    }>, Api.TypeEmojiLanguage[]> {
-      langCodes: string[];
-    };
-    export class GetEmojiURL extends Request<Partial<{
-      langCode: string;
-    }>, Api.TypeEmojiURL> {
-      langCode: string;
-    };
-    export class GetSearchCounters extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      filters: Api.TypeMessagesFilter[];
-    }>, messages.TypeSearchCounter[]> {
-      peer: Api.TypeInputPeer;
-      filters: Api.TypeMessagesFilter[];
-    };
-    export class RequestUrlAuth extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      buttonId: int;
-    }>, Api.TypeUrlAuthResult> {
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      buttonId: int;
-    };
-    export class AcceptUrlAuth extends Request<Partial<{
-      // flags: null;
-      writeAllowed?: true;
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      buttonId: int;
-    }>, Api.TypeUrlAuthResult> {
-      // flags: null;
-      writeAllowed?: true;
-      peer: Api.TypeInputPeer;
-      msgId: int;
-      buttonId: int;
-    };
-    export class HidePeerSettingsBar extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-    }>, Bool> {
-      peer: Api.TypeInputPeer;
-    };
-    export class GetScheduledHistory extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      hash: int;
-    }>, messages.TypeMessages> {
-      peer: Api.TypeInputPeer;
-      hash: int;
-    };
-    export class GetScheduledMessages extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int[];
-    }>, messages.TypeMessages> {
-      peer: Api.TypeInputPeer;
-      id: int[];
-    };
-    export class SendScheduledMessages extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int[];
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      id: int[];
-    };
-    export class DeleteScheduledMessages extends Request<Partial<{
-      peer: Api.TypeInputPeer;
-      id: int[];
-    }>, Api.TypeUpdates> {
-      peer: Api.TypeInputPeer;
-      id: int[];
-    };
-    export class GetPollVotes extends Request<Partial<{
-      // flags: null;
-      peer: Api.TypeInputPeer;
-      id: int;
-      option?: bytes;
-      offset?: string;
-      limit: int;
-    }>, messages.TypeVotesList> {
-      // flags: null;
-      peer: Api.TypeInputPeer;
-      id: int;
-      option?: bytes;
-      offset?: string;
-      limit: int;
     };
   }
 
@@ -9112,35 +7750,6 @@ namespace Api {
       channel: Api.TypeInputChannel;
       filter: Api.TypeChannelMessagesFilter;
       pts: int;
-      limit: int;
-    };
-  }
-
-  export namespace photos {
-    export class UpdateProfilePhoto extends Request<Partial<{
-      id: Api.TypeInputPhoto;
-    }>, Api.TypeUserProfilePhoto> {
-      id: Api.TypeInputPhoto;
-    };
-    export class UploadProfilePhoto extends Request<Partial<{
-      file: Api.TypeInputFile;
-    }>, photos.TypePhoto> {
-      file: Api.TypeInputFile;
-    };
-    export class DeletePhotos extends Request<Partial<{
-      id: Api.TypeInputPhoto[];
-    }>, long[]> {
-      id: Api.TypeInputPhoto[];
-    };
-    export class GetUserPhotos extends Request<Partial<{
-      userId: Api.TypeInputUser;
-      offset: int;
-      maxId: long;
-      limit: int;
-    }>, photos.TypePhotos> {
-      userId: Api.TypeInputUser;
-      offset: int;
-      maxId: long;
       limit: int;
     };
   }
@@ -9181,112 +7790,15 @@ namespace Api {
       fileTotalParts: int;
       bytes: bytes;
     };
-    export class GetWebFile extends Request<Partial<{
-      location: Api.TypeInputWebFileLocation;
-      offset: int;
-      limit: int;
-    }>, upload.TypeWebFile> {
-      location: Api.TypeInputWebFileLocation;
-      offset: int;
-      limit: int;
-    };
-    export class GetCdnFile extends Request<Partial<{
-      fileToken: bytes;
-      offset: int;
-      limit: int;
-    }>, upload.TypeCdnFile> {
-      fileToken: bytes;
-      offset: int;
-      limit: int;
-    };
-    export class ReuploadCdnFile extends Request<Partial<{
-      fileToken: bytes;
-      requestToken: bytes;
-    }>, Api.TypeFileHash[]> {
-      fileToken: bytes;
-      requestToken: bytes;
-    };
-    export class GetCdnFileHashes extends Request<Partial<{
-      fileToken: bytes;
-      offset: int;
-    }>, Api.TypeFileHash[]> {
-      fileToken: bytes;
-      offset: int;
-    };
-    export class GetFileHashes extends Request<Partial<{
-      location: Api.TypeInputFileLocation;
-      offset: int;
-    }>, Api.TypeFileHash[]> {
-      location: Api.TypeInputFileLocation;
-      offset: int;
-    };
   }
 
   export namespace help {
     export class GetConfig extends Request<void, Api.TypeConfig> {};
     export class GetNearestDc extends Request<void, Api.TypeNearestDc> {};
-    export class GetAppUpdate extends Request<Partial<{
-      source: string;
-    }>, help.TypeAppUpdate> {
-      source: string;
-    };
-    export class GetInviteText extends Request<void, help.TypeInviteText> {};
-    export class GetSupport extends Request<void, help.TypeSupport> {};
-    export class GetAppChangelog extends Request<Partial<{
-      prevAppVersion: string;
-    }>, Api.TypeUpdates> {
-      prevAppVersion: string;
-    };
-    export class SetBotUpdatesStatus extends Request<Partial<{
-      pendingUpdatesCount: int;
-      message: string;
-    }>, Bool> {
-      pendingUpdatesCount: int;
-      message: string;
-    };
-    export class GetCdnConfig extends Request<void, Api.TypeCdnConfig> {};
-    export class GetRecentMeUrls extends Request<Partial<{
-      referer: string;
-    }>, help.TypeRecentMeUrls> {
-      referer: string;
-    };
-    export class GetProxyData extends Request<void, help.TypeProxyData> {};
-    export class GetTermsOfServiceUpdate extends Request<void, help.TypeTermsOfServiceUpdate> {};
     export class AcceptTermsOfService extends Request<Partial<{
       id: Api.TypeDataJSON;
     }>, Bool> {
       id: Api.TypeDataJSON;
-    };
-    export class GetDeepLinkInfo extends Request<Partial<{
-      path: string;
-    }>, help.TypeDeepLinkInfo> {
-      path: string;
-    };
-    export class GetAppConfig extends Request<void, Api.TypeJSONValue> {};
-    export class SaveAppLog extends Request<Partial<{
-      events: Api.TypeInputAppEvent[];
-    }>, Bool> {
-      events: Api.TypeInputAppEvent[];
-    };
-    export class GetPassportConfig extends Request<Partial<{
-      hash: int;
-    }>, help.TypePassportConfig> {
-      hash: int;
-    };
-    export class GetSupportName extends Request<void, help.TypeSupportName> {};
-    export class GetUserInfo extends Request<Partial<{
-      userId: Api.TypeInputUser;
-    }>, help.TypeUserInfo> {
-      userId: Api.TypeInputUser;
-    };
-    export class EditUserInfo extends Request<Partial<{
-      userId: Api.TypeInputUser;
-      message: string;
-      entities: Api.TypeMessageEntity[];
-    }>, help.TypeUserInfo> {
-      userId: Api.TypeInputUser;
-      message: string;
-      entities: Api.TypeMessageEntity[];
     };
   }
 
@@ -9303,22 +7815,6 @@ namespace Api {
       id: int[];
     }>, messages.TypeAffectedMessages> {
       channel: Api.TypeInputChannel;
-      id: int[];
-    };
-    export class DeleteUserHistory extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-    }>, messages.TypeAffectedHistory> {
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-    };
-    export class ReportSpam extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      id: int[];
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
       id: int[];
     };
     export class GetMessages extends Request<Partial<{
@@ -9358,455 +7854,17 @@ namespace Api {
     }>, messages.TypeChatFull> {
       channel: Api.TypeInputChannel;
     };
-    export class CreateChannel extends Request<Partial<{
-      // flags: null;
-      broadcast?: true;
-      megagroup?: true;
-      title: string;
-      about: string;
-      geoPoint?: Api.TypeInputGeoPoint;
-      address?: string;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      broadcast?: true;
-      megagroup?: true;
-      title: string;
-      about: string;
-      geoPoint?: Api.TypeInputGeoPoint;
-      address?: string;
-    };
-    export class EditAdmin extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      adminRights: Api.TypeChatAdminRights;
-      rank: string;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      adminRights: Api.TypeChatAdminRights;
-      rank: string;
-    };
-    export class EditTitle extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      title: string;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      title: string;
-    };
-    export class EditPhoto extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      photo: Api.TypeInputChatPhoto;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      photo: Api.TypeInputChatPhoto;
-    };
-    export class CheckUsername extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      username: string;
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      username: string;
-    };
-    export class UpdateUsername extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      username: string;
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      username: string;
-    };
-    export class JoinChannel extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-    };
-    export class LeaveChannel extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-    };
-    export class InviteToChannel extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      users: Api.TypeInputUser[];
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      users: Api.TypeInputUser[];
-    };
-    export class DeleteChannel extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-    };
-    export class ExportMessageLink extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      id: int;
-      grouped: Bool;
-    }>, Api.TypeExportedMessageLink> {
-      channel: Api.TypeInputChannel;
-      id: int;
-      grouped: Bool;
-    };
-    export class ToggleSignatures extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      enabled: Bool;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      enabled: Bool;
-    };
-    export class GetAdminedPublicChannels extends Request<Partial<{
-      // flags: null;
-      byLocation?: true;
-      checkLimit?: true;
-    } | void>, messages.TypeChats> {
-      // flags: null;
-      byLocation?: true;
-      checkLimit?: true;
-    };
-    export class EditBanned extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      bannedRights: Api.TypeChatBannedRights;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      bannedRights: Api.TypeChatBannedRights;
-    };
-    export class GetAdminLog extends Request<Partial<{
-      // flags: null;
-      channel: Api.TypeInputChannel;
-      q: string;
-      eventsFilter?: Api.TypeChannelAdminLogEventsFilter;
-      admins?: Api.TypeInputUser[];
-      maxId: long;
-      minId: long;
-      limit: int;
-    }>, channels.TypeAdminLogResults> {
-      // flags: null;
-      channel: Api.TypeInputChannel;
-      q: string;
-      eventsFilter?: Api.TypeChannelAdminLogEventsFilter;
-      admins?: Api.TypeInputUser[];
-      maxId: long;
-      minId: long;
-      limit: int;
-    };
-    export class SetStickers extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      stickerset: Api.TypeInputStickerSet;
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      stickerset: Api.TypeInputStickerSet;
-    };
-    export class ReadMessageContents extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      id: int[];
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      id: int[];
-    };
-    export class DeleteHistory extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      maxId: int;
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      maxId: int;
-    };
-    export class TogglePreHistoryHidden extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      enabled: Bool;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      enabled: Bool;
-    };
-    export class GetLeftChannels extends Request<Partial<{
-      offset: int;
-    }>, messages.TypeChats> {
-      offset: int;
-    };
-    export class GetGroupsForDiscussion extends Request<void, messages.TypeChats> {};
-    export class SetDiscussionGroup extends Request<Partial<{
-      broadcast: Api.TypeInputChannel;
-      group: Api.TypeInputChannel;
-    }>, Bool> {
-      broadcast: Api.TypeInputChannel;
-      group: Api.TypeInputChannel;
-    };
-    export class EditCreator extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      password: Api.TypeInputCheckPasswordSRP;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      userId: Api.TypeInputUser;
-      password: Api.TypeInputCheckPasswordSRP;
-    };
-    export class EditLocation extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      geoPoint: Api.TypeInputGeoPoint;
-      address: string;
-    }>, Bool> {
-      channel: Api.TypeInputChannel;
-      geoPoint: Api.TypeInputGeoPoint;
-      address: string;
-    };
-    export class ToggleSlowMode extends Request<Partial<{
-      channel: Api.TypeInputChannel;
-      seconds: int;
-    }>, Api.TypeUpdates> {
-      channel: Api.TypeInputChannel;
-      seconds: int;
-    };
-    export class GetInactiveChannels extends Request<void, messages.TypeInactiveChats> {};
   }
 
-  export namespace bots {
-    export class SendCustomRequest extends Request<Partial<{
-      customMethod: string;
-      params: Api.TypeDataJSON;
-    }>, Api.TypeDataJSON> {
-      customMethod: string;
-      params: Api.TypeDataJSON;
-    };
-    export class AnswerWebhookJSONQuery extends Request<Partial<{
-      queryId: long;
-      data: Api.TypeDataJSON;
-    }>, Bool> {
-      queryId: long;
-      data: Api.TypeDataJSON;
-    };
-  }
-
-  export namespace payments {
-    export class GetPaymentForm extends Request<Partial<{
-      msgId: int;
-    }>, payments.TypePaymentForm> {
-      msgId: int;
-    };
-    export class GetPaymentReceipt extends Request<Partial<{
-      msgId: int;
-    }>, payments.TypePaymentReceipt> {
-      msgId: int;
-    };
-    export class ValidateRequestedInfo extends Request<Partial<{
-      // flags: null;
-      save?: true;
-      msgId: int;
-      info: Api.TypePaymentRequestedInfo;
-    }>, payments.TypeValidatedRequestedInfo> {
-      // flags: null;
-      save?: true;
-      msgId: int;
-      info: Api.TypePaymentRequestedInfo;
-    };
-    export class SendPaymentForm extends Request<Partial<{
-      // flags: null;
-      msgId: int;
-      requestedInfoId?: string;
-      shippingOptionId?: string;
-      credentials: Api.TypeInputPaymentCredentials;
-    }>, payments.TypePaymentResult> {
-      // flags: null;
-      msgId: int;
-      requestedInfoId?: string;
-      shippingOptionId?: string;
-      credentials: Api.TypeInputPaymentCredentials;
-    };
-    export class GetSavedInfo extends Request<void, payments.TypeSavedInfo> {};
-    export class ClearSavedInfo extends Request<Partial<{
-      // flags: null;
-      credentials?: true;
-      info?: true;
-    } | void>, Bool> {
-      // flags: null;
-      credentials?: true;
-      info?: true;
-    };
-  }
-
-  export namespace stickers {
-    export class CreateStickerSet extends Request<Partial<{
-      // flags: null;
-      masks?: true;
-      userId: Api.TypeInputUser;
-      title: string;
-      shortName: string;
-      stickers: Api.TypeInputStickerSetItem[];
-    }>, messages.TypeStickerSet> {
-      // flags: null;
-      masks?: true;
-      userId: Api.TypeInputUser;
-      title: string;
-      shortName: string;
-      stickers: Api.TypeInputStickerSetItem[];
-    };
-    export class RemoveStickerFromSet extends Request<Partial<{
-      sticker: Api.TypeInputDocument;
-    }>, messages.TypeStickerSet> {
-      sticker: Api.TypeInputDocument;
-    };
-    export class ChangeStickerPosition extends Request<Partial<{
-      sticker: Api.TypeInputDocument;
-      position: int;
-    }>, messages.TypeStickerSet> {
-      sticker: Api.TypeInputDocument;
-      position: int;
-    };
-    export class AddStickerToSet extends Request<Partial<{
-      stickerset: Api.TypeInputStickerSet;
-      sticker: Api.TypeInputStickerSetItem;
-    }>, messages.TypeStickerSet> {
-      stickerset: Api.TypeInputStickerSet;
-      sticker: Api.TypeInputStickerSetItem;
-    };
-  }
-
-  export namespace phone {
-    export class GetCallConfig extends Request<void, Api.TypeDataJSON> {};
-    export class RequestCall extends Request<Partial<{
-      // flags: null;
-      video?: true;
-      userId: Api.TypeInputUser;
-      randomId: int;
-      gAHash: bytes;
-      protocol: Api.TypePhoneCallProtocol;
-    }>, phone.TypePhoneCall> {
-      // flags: null;
-      video?: true;
-      userId: Api.TypeInputUser;
-      randomId: int;
-      gAHash: bytes;
-      protocol: Api.TypePhoneCallProtocol;
-    };
-    export class AcceptCall extends Request<Partial<{
-      peer: Api.TypeInputPhoneCall;
-      gB: bytes;
-      protocol: Api.TypePhoneCallProtocol;
-    }>, phone.TypePhoneCall> {
-      peer: Api.TypeInputPhoneCall;
-      gB: bytes;
-      protocol: Api.TypePhoneCallProtocol;
-    };
-    export class ConfirmCall extends Request<Partial<{
-      peer: Api.TypeInputPhoneCall;
-      gA: bytes;
-      keyFingerprint: long;
-      protocol: Api.TypePhoneCallProtocol;
-    }>, phone.TypePhoneCall> {
-      peer: Api.TypeInputPhoneCall;
-      gA: bytes;
-      keyFingerprint: long;
-      protocol: Api.TypePhoneCallProtocol;
-    };
-    export class ReceivedCall extends Request<Partial<{
-      peer: Api.TypeInputPhoneCall;
-    }>, Bool> {
-      peer: Api.TypeInputPhoneCall;
-    };
-    export class DiscardCall extends Request<Partial<{
-      // flags: null;
-      video?: true;
-      peer: Api.TypeInputPhoneCall;
-      duration: int;
-      reason: Api.TypePhoneCallDiscardReason;
-      connectionId: long;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      video?: true;
-      peer: Api.TypeInputPhoneCall;
-      duration: int;
-      reason: Api.TypePhoneCallDiscardReason;
-      connectionId: long;
-    };
-    export class SetCallRating extends Request<Partial<{
-      // flags: null;
-      userInitiative?: true;
-      peer: Api.TypeInputPhoneCall;
-      rating: int;
-      comment: string;
-    }>, Api.TypeUpdates> {
-      // flags: null;
-      userInitiative?: true;
-      peer: Api.TypeInputPhoneCall;
-      rating: int;
-      comment: string;
-    };
-    export class SaveCallDebug extends Request<Partial<{
-      peer: Api.TypeInputPhoneCall;
-      debug: Api.TypeDataJSON;
-    }>, Bool> {
-      peer: Api.TypeInputPhoneCall;
-      debug: Api.TypeDataJSON;
-    };
-  }
-
-  export namespace langpack {
-    export class GetLangPack extends Request<Partial<{
-      langPack: string;
-      langCode: string;
-    }>, Api.TypeLangPackDifference> {
-      langPack: string;
-      langCode: string;
-    };
-    export class GetStrings extends Request<Partial<{
-      langPack: string;
-      langCode: string;
-      keys: string[];
-    }>, Api.TypeLangPackString[]> {
-      langPack: string;
-      langCode: string;
-      keys: string[];
-    };
-    export class GetDifference extends Request<Partial<{
-      langPack: string;
-      langCode: string;
-      fromVersion: int;
-    }>, Api.TypeLangPackDifference> {
-      langPack: string;
-      langCode: string;
-      fromVersion: int;
-    };
-    export class GetLanguages extends Request<Partial<{
-      langPack: string;
-    }>, Api.TypeLangPackLanguage[]> {
-      langPack: string;
-    };
-    export class GetLanguage extends Request<Partial<{
-      langPack: string;
-      langCode: string;
-    }>, Api.TypeLangPackLanguage> {
-      langPack: string;
-      langCode: string;
-    };
-  }
-
-  export namespace folders {
-    export class EditPeerFolders extends Request<Partial<{
-      folderPeers: Api.TypeInputFolderPeer[];
-    }>, Api.TypeUpdates> {
-      folderPeers: Api.TypeInputFolderPeer[];
-    };
-    export class DeleteFolder extends Request<Partial<{
-      folderId: int;
-    }>, Api.TypeUpdates> {
-      folderId: int;
-    };
-  }
-
-  export type AnyRequest = InvokeAfterMsg | InvokeAfterMsgs | InitConnection | InvokeWithLayer | InvokeWithoutUpdates | InvokeWithMessagesRange | InvokeWithTakeout | ReqPq | ReqPqMulti | ReqDHParams | SetClientDHParams | DestroyAuthKey | RpcDropAnswer | GetFutureSalts | Ping | PingDelayDisconnect | DestroySession
-    | auth.SendCode | auth.SignUp | auth.SignIn | auth.LogOut | auth.ResetAuthorizations | auth.ExportAuthorization | auth.ImportAuthorization | auth.BindTempAuthKey | auth.ImportBotAuthorization | auth.CheckPassword | auth.RequestPasswordRecovery | auth.RecoverPassword | auth.ResendCode | auth.CancelCode | auth.DropTempAuthKeys | auth.ExportLoginToken | auth.ImportLoginToken | auth.AcceptLoginToken
-    | account.RegisterDevice | account.UnregisterDevice | account.UpdateNotifySettings | account.GetNotifySettings | account.ResetNotifySettings | account.UpdateProfile | account.UpdateStatus | account.GetWallPapers | account.ReportPeer | account.CheckUsername | account.UpdateUsername | account.GetPrivacy | account.SetPrivacy | account.DeleteAccount | account.GetAccountTTL | account.SetAccountTTL | account.SendChangePhoneCode | account.ChangePhone | account.UpdateDeviceLocked | account.GetAuthorizations | account.ResetAuthorization | account.GetPassword | account.GetPasswordSettings | account.UpdatePasswordSettings | account.SendConfirmPhoneCode | account.ConfirmPhone | account.GetTmpPassword | account.GetWebAuthorizations | account.ResetWebAuthorization | account.ResetWebAuthorizations | account.GetAllSecureValues | account.GetSecureValue | account.SaveSecureValue | account.DeleteSecureValue | account.GetAuthorizationForm | account.AcceptAuthorization | account.SendVerifyPhoneCode | account.VerifyPhone | account.SendVerifyEmailCode | account.VerifyEmail | account.InitTakeoutSession | account.FinishTakeoutSession | account.ConfirmPasswordEmail | account.ResendPasswordEmail | account.CancelPasswordEmail | account.GetContactSignUpNotification | account.SetContactSignUpNotification | account.GetNotifyExceptions | account.GetWallPaper | account.UploadWallPaper | account.SaveWallPaper | account.InstallWallPaper | account.ResetWallPapers | account.GetAutoDownloadSettings | account.SaveAutoDownloadSettings | account.UploadTheme | account.CreateTheme | account.UpdateTheme | account.SaveTheme | account.InstallTheme | account.GetTheme | account.GetThemes | account.SetContentSettings | account.GetContentSettings | account.GetMultiWallPapers
-    | users.GetUsers | users.GetFullUser | users.SetSecureValueErrors
-    | contacts.GetContactIDs | contacts.GetStatuses | contacts.GetContacts | contacts.ImportContacts | contacts.DeleteContacts | contacts.DeleteByPhones | contacts.Block | contacts.Unblock | contacts.GetBlocked | contacts.Search | contacts.ResolveUsername | contacts.GetTopPeers | contacts.ResetTopPeerRating | contacts.ResetSaved | contacts.GetSaved | contacts.ToggleTopPeers | contacts.AddContact | contacts.AcceptContact | contacts.GetLocated
-    | messages.GetMessages | messages.GetDialogs | messages.GetHistory | messages.Search | messages.ReadHistory | messages.DeleteHistory | messages.DeleteMessages | messages.ReceivedMessages | messages.SetTyping | messages.SendMessage | messages.SendMedia | messages.ForwardMessages | messages.ReportSpam | messages.GetPeerSettings | messages.Report | messages.GetChats | messages.GetFullChat | messages.EditChatTitle | messages.EditChatPhoto | messages.AddChatUser | messages.DeleteChatUser | messages.CreateChat | messages.GetDhConfig | messages.RequestEncryption | messages.AcceptEncryption | messages.DiscardEncryption | messages.SetEncryptedTyping | messages.ReadEncryptedHistory | messages.SendEncrypted | messages.SendEncryptedFile | messages.SendEncryptedService | messages.ReceivedQueue | messages.ReportEncryptedSpam | messages.ReadMessageContents | messages.GetStickers | messages.GetAllStickers | messages.GetWebPagePreview | messages.ExportChatInvite | messages.CheckChatInvite | messages.ImportChatInvite | messages.GetStickerSet | messages.InstallStickerSet | messages.UninstallStickerSet | messages.StartBot | messages.GetMessagesViews | messages.EditChatAdmin | messages.MigrateChat | messages.SearchGlobal | messages.ReorderStickerSets | messages.GetDocumentByHash | messages.SearchGifs | messages.GetSavedGifs | messages.SaveGif | messages.GetInlineBotResults | messages.SetInlineBotResults | messages.SendInlineBotResult | messages.GetMessageEditData | messages.EditMessage | messages.EditInlineBotMessage | messages.GetBotCallbackAnswer | messages.SetBotCallbackAnswer | messages.GetPeerDialogs | messages.SaveDraft | messages.GetAllDrafts | messages.GetFeaturedStickers | messages.ReadFeaturedStickers | messages.GetRecentStickers | messages.SaveRecentSticker | messages.ClearRecentStickers | messages.GetArchivedStickers | messages.GetMaskStickers | messages.GetAttachedStickers | messages.SetGameScore | messages.SetInlineGameScore | messages.GetGameHighScores | messages.GetInlineGameHighScores | messages.GetCommonChats | messages.GetAllChats | messages.GetWebPage | messages.ToggleDialogPin | messages.ReorderPinnedDialogs | messages.GetPinnedDialogs | messages.SetBotShippingResults | messages.SetBotPrecheckoutResults | messages.UploadMedia | messages.SendScreenshotNotification | messages.GetFavedStickers | messages.FaveSticker | messages.GetUnreadMentions | messages.ReadMentions | messages.GetRecentLocations | messages.SendMultiMedia | messages.UploadEncryptedFile | messages.SearchStickerSets | messages.GetSplitRanges | messages.MarkDialogUnread | messages.GetDialogUnreadMarks | messages.ClearAllDrafts | messages.UpdatePinnedMessage | messages.SendVote | messages.GetPollResults | messages.GetOnlines | messages.GetStatsURL | messages.EditChatAbout | messages.EditChatDefaultBannedRights | messages.GetEmojiKeywords | messages.GetEmojiKeywordsDifference | messages.GetEmojiKeywordsLanguages | messages.GetEmojiURL | messages.GetSearchCounters | messages.RequestUrlAuth | messages.AcceptUrlAuth | messages.HidePeerSettingsBar | messages.GetScheduledHistory | messages.GetScheduledMessages | messages.SendScheduledMessages | messages.DeleteScheduledMessages | messages.GetPollVotes
+  export type AnyRequest = InitConnection | InvokeWithLayer | ReqPq | ReqPqMulti | ReqDHParams | SetClientDHParams | DestroyAuthKey | RpcDropAnswer | GetFutureSalts | Ping | PingDelayDisconnect | DestroySession
+    | auth.SendCode | auth.SignUp | auth.SignIn | auth.LogOut | auth.ResetAuthorizations | auth.ExportAuthorization | auth.ImportAuthorization | auth.BindTempAuthKey | auth.CheckPassword | auth.RequestPasswordRecovery | auth.ResendCode | auth.CancelCode | auth.DropTempAuthKeys
+    | account.CheckUsername | account.UpdateUsername | account.GetAuthorizations | account.ResetAuthorization | account.GetPassword | account.SendConfirmPhoneCode | account.ConfirmPhone | account.GetTmpPassword | account.SendVerifyPhoneCode
+    | users.GetUsers | users.GetFullUser
+    | contacts.Search | contacts.ResolveUsername
+    | messages.GetMessages | messages.GetDialogs | messages.GetHistory | messages.Search | messages.ReadHistory | messages.DeleteMessages | messages.ReceivedMessages | messages.SetTyping | messages.SendMessage | messages.SendMedia | messages.GetChats | messages.GetFullChat | messages.CreateChat | messages.GetDhConfig | messages.GetWebPagePreview | messages.SearchGlobal | messages.GetDocumentByHash | messages.EditMessage | messages.GetPeerDialogs | messages.GetWebPage | messages.UploadMedia | messages.UpdatePinnedMessage | messages.GetOnlines
     | updates.GetState | updates.GetDifference | updates.GetChannelDifference
-    | photos.UpdateProfilePhoto | photos.UploadProfilePhoto | photos.DeletePhotos | photos.GetUserPhotos
-    | upload.SaveFilePart | upload.GetFile | upload.SaveBigFilePart | upload.GetWebFile | upload.GetCdnFile | upload.ReuploadCdnFile | upload.GetCdnFileHashes | upload.GetFileHashes
-    | help.GetConfig | help.GetNearestDc | help.GetAppUpdate | help.GetInviteText | help.GetSupport | help.GetAppChangelog | help.SetBotUpdatesStatus | help.GetCdnConfig | help.GetRecentMeUrls | help.GetProxyData | help.GetTermsOfServiceUpdate | help.AcceptTermsOfService | help.GetDeepLinkInfo | help.GetAppConfig | help.SaveAppLog | help.GetPassportConfig | help.GetSupportName | help.GetUserInfo | help.EditUserInfo
-    | channels.ReadHistory | channels.DeleteMessages | channels.DeleteUserHistory | channels.ReportSpam | channels.GetMessages | channels.GetParticipants | channels.GetParticipant | channels.GetChannels | channels.GetFullChannel | channels.CreateChannel | channels.EditAdmin | channels.EditTitle | channels.EditPhoto | channels.CheckUsername | channels.UpdateUsername | channels.JoinChannel | channels.LeaveChannel | channels.InviteToChannel | channels.DeleteChannel | channels.ExportMessageLink | channels.ToggleSignatures | channels.GetAdminedPublicChannels | channels.EditBanned | channels.GetAdminLog | channels.SetStickers | channels.ReadMessageContents | channels.DeleteHistory | channels.TogglePreHistoryHidden | channels.GetLeftChannels | channels.GetGroupsForDiscussion | channels.SetDiscussionGroup | channels.EditCreator | channels.EditLocation | channels.ToggleSlowMode | channels.GetInactiveChannels
-    | bots.SendCustomRequest | bots.AnswerWebhookJSONQuery
-    | payments.GetPaymentForm | payments.GetPaymentReceipt | payments.ValidateRequestedInfo | payments.SendPaymentForm | payments.GetSavedInfo | payments.ClearSavedInfo
-    | stickers.CreateStickerSet | stickers.RemoveStickerFromSet | stickers.ChangeStickerPosition | stickers.AddStickerToSet
-    | phone.GetCallConfig | phone.RequestCall | phone.AcceptCall | phone.ConfirmCall | phone.ReceivedCall | phone.DiscardCall | phone.SetCallRating | phone.SaveCallDebug
-    | langpack.GetLangPack | langpack.GetStrings | langpack.GetDifference | langpack.GetLanguages | langpack.GetLanguage
-    | folders.EditPeerFolders | folders.DeleteFolder;
+    | upload.SaveFilePart | upload.GetFile | upload.SaveBigFilePart
+    | help.GetConfig | help.GetNearestDc | help.AcceptTermsOfService
+    | channels.ReadHistory | channels.DeleteMessages | channels.GetMessages | channels.GetParticipants | channels.GetParticipant | channels.GetChannels | channels.GetFullChannel;
 
 }
