@@ -370,8 +370,6 @@ class MTProtoSender {
             try {
                 message = await this._state.decryptMessageData(body)
             } catch (e) {
-                console.log(e)
-
                 if (e instanceof TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
                     this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`)
@@ -392,7 +390,7 @@ class MTProtoSender {
                     return
                 } else {
                     this._log.error('Unhandled error while receiving data')
-                    console.log(e)
+                    this._log.error(e)
                     this._startReconnect()
                     return
                 }
@@ -400,8 +398,8 @@ class MTProtoSender {
             try {
                 await this._processMessage(message)
             } catch (e) {
-                console.log(e)
                 this._log.error('Unhandled error while receiving data')
+                this._log.error(e)
             }
         }
     }
@@ -495,7 +493,7 @@ class MTProtoSender {
                     throw new TypeNotFoundError('Not an upload.File')
                 }
             } catch (e) {
-                console.log(e)
+                this._log.error(e)
                 if (e instanceof TypeNotFoundError) {
                     this._log.info(`Received response without parent request: ${RPCResult.body}`)
                     return
@@ -764,7 +762,7 @@ class MTProtoSender {
         try {
             await this.disconnect()
         } catch (err) {
-            console.warn(err)
+            this._log.warn(err)
         }
         this._send_queue.append(null)
 

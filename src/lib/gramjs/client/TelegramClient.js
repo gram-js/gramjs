@@ -78,7 +78,6 @@ class TelegramClient {
             try {
                 throw new Error('not implemented')
             } catch (e) {
-                console.log(e)
                 session = new MemorySession()
             }
         } else if (!(session instanceof Session)) {
@@ -190,7 +189,7 @@ class TelegramClient {
                     pingId: rnd,
                 }))
             } catch (e) {
-                console.log('err is ', e)
+
             }
 
             // We need to send some content-related request at least hourly
@@ -202,7 +201,7 @@ class TelegramClient {
                 try {
                     await this.invoke(new requests.updates.GetStateRequest())
                 } catch (e) {
-                    console.log('err is ', e)
+
                 }
             }
         }
@@ -366,6 +365,11 @@ class TelegramClient {
             try {
                 sender = await this._borrowExportedSender(dcId)
             } catch (e) {
+<<<<<<< HEAD
+=======
+                // This should never raise
+                this._log.error(e)
+>>>>>>> e664f064... GramJS: Remove loose console logs and replace them with logger (#242)
                 if (e.message === 'DC_ID_INVALID') {
                     // Can't export a sender for the ID we are currently in
                     sender = this._sender

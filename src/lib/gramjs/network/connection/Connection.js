@@ -87,7 +87,6 @@ class Connection {
                 await this._send(data)
             }
         } catch (e) {
-            console.log(e)
             this._log.info('The server closed the connection while sending')
         }
     }
@@ -98,10 +97,9 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
-                    throw new Error("no data recieved")
+                    throw new Error("no data received")
                 }
             } catch (e) {
-                console.log(e)
                 this._log.info('connection closed')
                 //await this._recvArray.push()
 

@@ -32,12 +32,10 @@ class PromisedWebSockets {
 
     async read(number) {
         if (this.closed) {
-            console.log('couldn\'t read')
             throw closeError
         }
         await this.canRead
         if (this.closed) {
-            console.log('couldn\'t read')
             throw closeError
         }
         const toReturn = this.stream.slice(0, number)
@@ -72,7 +70,6 @@ class PromisedWebSockets {
     }
 
     async connect(port, ip) {
-        console.log('trying to connect')
         this.stream = Buffer.alloc(0)
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve
@@ -110,7 +107,6 @@ class PromisedWebSockets {
     }
 
     async close() {
-        console.log('something happened. closing')
         await this.client.close()
         this.closed = true
     }
