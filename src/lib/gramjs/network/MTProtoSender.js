@@ -331,7 +331,7 @@ class MTProtoSender {
             try {
                 await this._connection.send(data)
             } catch (e) {
-                console.log(e)
+                this._log.error(e)
                 this._log.info('Connection closed while sending data')
                 return
             }
@@ -442,8 +442,8 @@ class MTProtoSender {
 
         const toPop = []
 
-        for (state in this._pending_state) {
-            if (state.containerId === msgId) {
+        for (state of Object.values(this._pending_state)) {
+            if (state.containerId.equals(msgId)) {
                 toPop.push(state.msgId)
             }
         }
