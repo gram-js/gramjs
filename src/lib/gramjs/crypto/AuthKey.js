@@ -67,7 +67,7 @@ class AuthKey {
     }
 
     equals(other) {
-        return other instanceof this.constructor && other.getKey() === this._key
+        return other instanceof this.constructor && this._key && other.getKey() && other.getKey().equals(this._key)
     }
 }
 
