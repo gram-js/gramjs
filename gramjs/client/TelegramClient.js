@@ -48,7 +48,7 @@ class TelegramClient {
         appVersion: null,
         langCode: 'en',
         systemLangCode: 'en',
-        baseLogger: 'gramjs',
+        baseLogger: Logger,
     }
 
 
@@ -61,11 +61,16 @@ class TelegramClient {
         this.apiHash = apiHash
         this._useIPV6 = args.useIPV6
         this._entityCache = new Set()
-        if (typeof args.baseLogger == 'string') {
-            this._log = new Logger()
-        } else {
+
+        if (typeof(args.baseLogger) == 'function') {
+            // eslint-disable-next-line new-cap
+            this._log = new args.baseLogger()
+        } else if (typeof(args.baseLogger) == 'object') {
             this._log = args.baseLogger
+        } else {
+            this._log = new Logger()
         }
+
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
             try {
