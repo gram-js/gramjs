@@ -51,6 +51,7 @@
     "eslint": "^6.5.1",
     "eslint-config-google": "^0.14.0",
     "jest": "^24.9.0",
+    "readline-promise": "^1.0.4",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "websocket-as-promised": "^0.10.1"
