@@ -17,6 +17,7 @@ const Helpers = require('../Helpers')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { BinaryWriter } = require('../extensions')
 const events = require('../events')
+const StateCache = require('../StateCache')
 
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
@@ -78,6 +79,7 @@ class TelegramClient {
         if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
             session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
         }
+        this._stateCache = new StateCache(this.session.getUpdateState(0), this._log)
         this.floodSleepLimit = args.floodSleepLimit
         this._eventBuilders = []
 
@@ -602,7 +604,7 @@ class TelegramClient {
             this._processUpdate(update, null)
         }
         // TODO add caching
-        // this._stateCache.update(update)
+        this._stateCache.update(update)
     }
 
     _processUpdate(update, others, entities) {
