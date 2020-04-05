@@ -119,14 +119,17 @@ class MemorySession extends Session {
             // This may be a list of users already for instance
             entities = tlo
         } else {
+            if ('users' in tlo && utils.isListLike(tlo.users)) {
+                entities = entities.concat(tlo.users)
+            }
+            if ('chats' in tlo && utils.isListLike(tlo.chats)) {
+                entities = entities.concat(tlo.chats)
+            }
             if ('user' in tlo) {
                 entities.push(tlo.user)
             }
-            if ('chats' in tlo && utils.isListLike(tlo.chats)) {
-                entities.concat(tlo.chats)
-            }
-            if ('users' in tlo && utils.isListLike(tlo.users)) {
-                entities.concat(tlo.users)
+            if ('chat' in tlo) {
+                entities.push(tlo.chat)
             }
         }
         const rows = [] // Rows to add (id, hash, username, phone, name)
