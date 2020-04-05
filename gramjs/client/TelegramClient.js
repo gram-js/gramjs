@@ -18,6 +18,7 @@ const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated
 const { BinaryWriter } = require('../extensions')
 const events = require('../events')
 const StateCache = require('../StateCache')
+const { Markdown } = require('../extensions')
 
 const DEFAULT_DC_ID = 4
 const DEFAULT_IPV4_IP = '149.154.167.51'
@@ -56,7 +57,9 @@ class TelegramClient {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
         }
+
         const args = { ...TelegramClient.DEFAULT_OPTIONS, ...opts }
+
         this.apiId = apiId
         this.apiHash = apiHash
         this._useIPV6 = args.useIPV6
@@ -74,22 +77,32 @@ class TelegramClient {
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
             try {
-                session = new SQLiteSession(session)
+                this.session = new SQLiteSession(session)
             } catch (e) {
-                session = new MemorySession()
+                this.session = new MemorySession()
             }
-        } else if (!(session instanceof Session)) {
+        } else if (!(this.session instanceof Session)) {
             throw new Error('The given session must be str or a session instance')
         }
-        if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
-            session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
-        }
-        this._stateCache = new StateCache(this.session.getUpdateState(0), this._log)
-        this.floodSleepLimit = args.floodSleepLimit
-        this._eventBuilders = []
 
+        if (!this.session.serverAddress || (this.session.serverAddress.includes(':') !== this._useIPV6)) {
+            this.session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
+        }
+
+        // Update state (for catching up after a disconnection)
+        this._stateCache = new StateCache(this.session.getUpdateState(0), this._log)
+
+        // Some further state for subclasses
+        this._eventBuilders = []
+        this.floodSleepLimit = args.floodSleepLimit
+
+        // Default parse mode
+        this._parseMode = Markdown
+
+        // Some fields for easy signing in.
         this._phoneCodeHash = {}
-        this.session = session
+        this._phone = null
+        this._tos = null
         // this._entityCache = EntityCache();
         this.apiId = parseInt(apiId)
         this.apiHash = apiHash
@@ -98,7 +111,7 @@ class TelegramClient {
         this._connectionRetries = args.connectionRetries
         this._retryDelay = args.retryDelay || 0
         if (args.proxy) {
-            this._log.warn('proxies are not supported')
+            this._log.warn('proxies are not yet supported')
         }
         this._proxy = args.proxy
         this._timeout = args.timeout
@@ -341,13 +354,13 @@ class TelegramClient {
             return this
         }
         if (args.code == null && !args.botToken) {
-            throw new Error('Please pass a promise to the code arg')
+            throw new Error('Please pass a string or a promise to the code arg')
         }
         if (!args.botToken && !args.phone) {
             throw new Error('Please provide either a phone or a bot token')
         }
         if (!args.botToken) {
-            while (typeof args.phone == 'function') {
+            while (typeof args.phone === 'function') {
                 const value = await args.phone()
                 if (value.indexOf(':') !== -1) {
                     // eslint-disable-next-line require-atomic-updates
@@ -368,13 +381,19 @@ class TelegramClient {
         let me
         let attempts = 0
         let twoStepDetected = false
-
-        await this.sendCodeRequest(args.phone, args.forceSMS)
-
         let signUp = false
+
+        if (typeof(args.code) === 'function') {
+            await this.sendCodeRequest(args.phone, args.forceSMS)
+        }
+
         while (attempts < args.maxAttempts) {
             try {
-                const value = await args.code()
+                let value = args.code
+                if (typeof(value) === 'function') {
+                    value = await value()
+                }
+
                 if (!value) {
                     throw new errors.PhoneCodeEmptyError({
                         request: null,
@@ -608,7 +627,7 @@ class TelegramClient {
         } else {
             this._processUpdate(update, null)
         }
-        // TODO add caching
+
         this._stateCache.update(update)
     }
 
