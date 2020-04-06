@@ -11,4 +11,5 @@ const { TelegramClient } = require('../gramjs')
     await client.connect()
 
     console.log(await client.getMe())
+    await client.disconnect().then(() => process.exit(0))
 })()
