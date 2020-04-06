@@ -52,9 +52,8 @@ function codeCallback() {
     })
 }
 
-const gramjs = require('../gramjs')
-const { TelegramClient } = gramjs
-const { StringSession } = gramjs.session
+const { TelegramClient } = require('../gramjs')
+const { StringSession } = require('../gramjs').session
 const apiId = 12345 // put your api id here
 const apiHash = 'f3a230e12345d1234df5b2134d1e1357' // put you api hash here
 
