@@ -26,6 +26,7 @@ BOT_MISSING,400,This method can only be run by a bot
 BOT_PAYMENTS_DISABLED,400,This method can only be run by a bot
 BOT_POLLS_DISABLED,400,You cannot create polls under a bot account
 BROADCAST_ID_INVALID,400,The channel is invalid
+BROADCAST_PUBLIC_VOTERS_FORBIDDEN,400,You cannot broadcast polls where the voters are public
 BUTTON_DATA_INVALID,400,The provided button data is invalid
 BUTTON_TYPE_INVALID,400,The type of one of the buttons you provided is invalid
 BUTTON_URL_INVALID,400,Button URL invalid
@@ -67,6 +68,7 @@ CONNECTION_LAYER_INVALID,400,The very first request must always be InvokeWithLay
 CONNECTION_NOT_INITED,400,Connection not initialized
 CONNECTION_SYSTEM_EMPTY,400,Connection system empty
 CONTACT_ID_INVALID,400,The provided contact ID is invalid
+CONTACT_NAME_EMPTY,400,The provided contact name cannot be empty
 DATA_INVALID,400,Encrypted data invalid
 DATA_JSON_INVALID,400,The provided JSON data is invalid
 DATE_EMPTY,400,Date empty
@@ -96,6 +98,7 @@ FILE_PART_0_MISSING,,File part 0 missing
 FILE_PART_EMPTY,400,The provided file part is empty
 FILE_PART_INVALID,400,The file part number is invalid
 FILE_PART_LENGTH_INVALID,400,The length of a file part is invalid
+FILE_PART_SIZE_CHANGED,400,The file part size (chunk size) cannot change during upload
 FILE_PART_SIZE_INVALID,400,The provided file part size is invalid
 FILE_PART_X_MISSING,400,Part {which} of the file is missing from storage
 FILEREF_UPGRADE_NEEDED,406,The file reference needs to be refreshed before being used again
@@ -104,12 +107,15 @@ FLOOD_TEST_PHONE_WAIT_X,420,A wait of {seconds} seconds is required in the test 
 FLOOD_WAIT_X,420,A wait of {seconds} seconds is required
 FOLDER_ID_EMPTY,400,The folder you tried to delete was already empty
 FOLDER_ID_INVALID,400,The folder you tried to use was not valid
+FRESH_CHANGE_ADMINS_FORBIDDEN,400,Recently logged-in users cannot add or change admins
 FRESH_RESET_AUTHORISATION_FORBIDDEN,406,The current session is too new and cannot be used to reset other authorisations yet
+GAME_BOT_INVALID,400,You cannot send that game with the current bot
 GIF_ID_INVALID,400,The provided GIF ID is invalid
 GROUPED_MEDIA_INVALID,400,Invalid grouped media
 HASH_INVALID,400,The provided hash is invalid
 HISTORY_GET_FAILED,500,Fetching of history failed
 IMAGE_PROCESS_FAILED,400,Failure while processing image
+INLINE_BOT_REQUIRED,403,The action must be performed through an inline bot callback
 INLINE_RESULT_EXPIRED,400,The inline query expired
 INPUT_CONSTRUCTOR_INVALID,400,The provided constructor is invalid
 INPUT_FETCH_ERROR,,An error occurred while deserializing TL parameters
@@ -132,7 +138,7 @@ MAX_ID_INVALID,400,The provided max ID is invalid
 MAX_QTS_INVALID,400,The provided QTS were invalid
 MD5_CHECKSUM_INVALID,,The MD5 check-sums do not match
 MEDIA_CAPTION_TOO_LONG,400,The caption is too long
-MEDIA_EMPTY,400,The provided media object is invalid
+MEDIA_EMPTY,400,The provided media object is invalid or the current account may not be able to send it (such as games as users)
 MEDIA_INVALID,400,Media invalid
 MEDIA_NEW_INVALID,400,The new media to edit the message with is invalid (such as stickers or voice notes)
 MEDIA_PREV_INVALID,400,The old media cannot be edited with anything else (such as stickers or voice notes)
@@ -147,7 +153,10 @@ MESSAGE_EMPTY,400,Empty or invalid UTF-8 message was sent
 MESSAGE_IDS_EMPTY,400,No message ids were provided
 MESSAGE_ID_INVALID,400,"The specified message ID is invalid or you can't do that operation on such message"
 MESSAGE_NOT_MODIFIED,400,Content of the message was not modified
+MESSAGE_POLL_CLOSED,400,The poll was closed and can no longer be voted on
 MESSAGE_TOO_LONG,400,Message was too long. Current maximum length is 4096 UTF-8 characters
+MSGID_DECREASE_RETRY,500,The request should be retried with a lower message ID
+MSG_ID_INVALID,400,The message ID used in the peer was invalid
 MSG_WAIT_FAILED,400,A waiting call returned an error
 MT_SEND_QUEUE_TOO_LONG,500,
 NEED_CHAT_INVALID,500,The provided chat is invalid
@@ -157,6 +166,7 @@ NEW_SALT_INVALID,400,The new salt is invalid
 NEW_SETTINGS_INVALID,400,The new settings are invalid
 OFFSET_INVALID,400,"The given offset was invalid, it must be divisible by 1KB. See https://core.telegram.org/api/files#downloading-files"
 OFFSET_PEER_ID_INVALID,400,The provided offset peer is invalid
+OPTION_INVALID,400,The option specified is invalid and does not exist in the target poll
 OPTIONS_TOO_MUCH,400,You defined too many options for the poll
 PACK_SHORT_NAME_INVALID,400,"Invalid sticker pack name. It must begin with a letter, can't contain consecutive underscores and must end in ""_by_<bot username>""."
 PACK_SHORT_NAME_OCCUPIED,400,A stickerpack with this name already exists
@@ -194,13 +204,20 @@ PHOTO_INVALID_DIMENSIONS,400,The photo dimensions are invalid (hint: `pip instal
 PHOTO_SAVE_FILE_INVALID,400,The photo you tried to send cannot be saved by Telegram. A reason may be that it exceeds 10MB. Try resizing it locally
 PHOTO_THUMB_URL_EMPTY,400,The URL used as a thumbnail appears to be empty or has caused another HTTP error
 PIN_RESTRICTED,400,You can't pin messages in private chats with other people
+POLL_ANSWERS_INVALID,400,The poll did not have enough answers or had too many
 POLL_OPTION_DUPLICATE,400,A duplicate option was sent in the same poll
+POLL_OPTION_INVALID,400,A poll option used invalid data (the data may be too long)
+POLL_QUESTION_INVALID,400,The poll question was either empty or too long
 POLL_UNSUPPORTED,400,This layer does not support polls in the issued method
 PRIVACY_KEY_INVALID,400,The privacy key is invalid
 PTS_CHANGE_EMPTY,500,No PTS change
 QUERY_ID_EMPTY,400,The query ID is empty
 QUERY_ID_INVALID,400,The query ID is invalid
 QUERY_TOO_SHORT,400,The query string is too short
+QUIZ_CORRECT_ANSWERS_EMPTY,400,A quiz must specify one correct answer
+QUIZ_CORRECT_ANSWERS_TOO_MUCH,400,There can only be one correct answer
+QUIZ_CORRECT_ANSWER_INVALID,400,The correct answer is not an existing answer
+QUIZ_MULTIPLE_INVALID,400,A poll cannot be both multiple choice and quiz
 RANDOM_ID_DUPLICATE,500,You provided a random ID that was already used
 RANDOM_ID_INVALID,400,A provided random ID is invalid
 RANDOM_LENGTH_INVALID,400,Random length invalid
@@ -217,7 +234,9 @@ RIGHT_FORBIDDEN,403,Either your admin rights do not allow you to do this or you 
 RPC_CALL_FAIL,,"Telegram is having internal issues, please try again later."
 RPC_MCGET_FAIL,,"Telegram is having internal issues, please try again later."
 RSA_DECRYPT_FAILED,400,Internal RSA decryption failed
+SCHEDULE_BOT_NOT_ALLOWED,400,Bots are not allowed to schedule messages
 SCHEDULE_DATE_TOO_LATE,400,The date you tried to schedule is too far in the future (last known limit of 1 year and a few hours)
+SCHEDULE_STATUS_PRIVATE,400,You cannot schedule a message until the person comes online if their privacy does not show this information
 SCHEDULE_TOO_MUCH,400,You cannot schedule more messages in this chat (last known limit of 100 per chat)
 SEARCH_QUERY_EMPTY,400,The search query is empty
 SECONDS_INVALID,400,"Slow mode only supports certain values (e.g. 0, 10s, 30s, 1m, 5m, 15m and 1h)"
@@ -238,6 +257,7 @@ STICKER_FILE_INVALID,400,Sticker file invalid
 STICKER_ID_INVALID,400,The provided sticker ID is invalid
 STICKER_INVALID,400,The provided sticker is invalid
 STICKER_PNG_DIMENSIONS,400,Sticker png dimensions invalid
+STICKER_PNG_NOPNG,400,Stickers must be a png file but the used image was not a png
 STORAGE_CHECK_FAILED,500,Server storage check failed
 STORE_INVALID_SCALAR_TYPE,500,
 TAKEOUT_INIT_DELAY_X,420,A wait of {seconds} seconds is required before being able to initiate the takeout
@@ -284,6 +304,7 @@ VIDEO_CONTENT_TYPE_INVALID,400,The video content type is not supported with the 
 WALLPAPER_FILE_INVALID,400,The given file cannot be used as a wallpaper
 WALLPAPER_INVALID,400,The input wallpaper was not valid
 WC_CONVERT_URL_INVALID,400,WC convert URL invalid
+WEBDOCUMENT_URL_INVALID,400,The given URL cannot be used
 WEBPAGE_CURL_FAILED,400,Failure while fetching the webpage with cURL
 WEBPAGE_MEDIA_EMPTY,400,Webpage media empty
 WORKER_BUSY_TOO_LONG_RETRY,500,Telegram workers are too busy to respond immediately
