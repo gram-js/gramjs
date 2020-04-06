@@ -3,7 +3,7 @@ const { sleep } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
 const { addKey } = require('../crypto/RSA')
-const { TLObject, TLRequest } = require('../tl/tlobject')
+const { TLRequest } = require('../tl/tlobject')
 const utils = require('../Utils')
 const Session = require('../sessions/Abstract')
 const SQLiteSession = require('../sessions/SQLiteSession')
@@ -16,7 +16,6 @@ const MTProtoSender = require('../network/MTProtoSender')
 const Helpers = require('../Helpers')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { BinaryWriter } = require('../extensions')
-const events = require('../events')
 const StateCache = require('../StateCache')
 const { Markdown } = require('../extensions')
 
@@ -177,37 +176,6 @@ class BaseClient {
         ))
 
         this._updatesHandle = this._updateLoop()
-    }
-
-    async _updateLoop() {
-        while (this.isConnected()) {
-            const rnd = Helpers.getRandomInt(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-            await Helpers.sleep(1000 * 60)
-            // We don't care about the result we just want to send it every
-            // 60 seconds so telegram doesn't stop the connection
-            try {
-                this._sender.send(new functions.PingRequest({
-                    pingId: rnd,
-                }))
-            } catch (e) {
-                this._log.error('err is', e)
-            }
-
-            // this.session.save()
-
-            // We need to send some content-related request at least hourly
-            // for Telegram to keep delivering updates, otherwise they will
-            // just stop even if we're connected. Do so every 30 minutes.
-
-            // TODO Call getDifference instead since it's more relevant
-            if (new Date().getTime() - this._lastRequest > 30 * 60 * 1000) {
-                try {
-                    await this.invoke(new functions.updates.GetStateRequest())
-                } catch (e) {
-                    this._log.error('err is', e)
-                }
-            }
-        }
     }
 
     /**
@@ -582,58 +550,6 @@ class BaseClient {
         return result
     }
 
-
-    /**
-     * Adds an event handler, allowing the specified callback to be
-     * called when a matching event (or events) is received.
-     */
-    addEventHandler(callback, event = null) {
-        if (Array.isArray(event)) {
-            event.forEach((e) => this.addEventHandler(callback, e))
-            return
-        }
-
-        if (!event) {
-            event = new events.Raw()
-        } else if (event.prototype instanceof TLObject) {
-            event = new events.Raw(event)
-        }
-
-        this._eventBuilders.push([event, callback])
-    }
-
-    _handleUpdate(update) {
-        this.session.processEntities(update)
-        this._entityCache.add(update)
-
-        if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
-            // TODO deal with entities
-            const entities = {}
-            for (const x of [...update.users, ...update.chats]) {
-                entities[utils.getPeerId(x)] = x
-            }
-            for (const u of update.updates) {
-                this._processUpdate(u, update.updates, entities)
-            }
-        } else if (update instanceof types.UpdateShort) {
-            this._processUpdate(update.update, null)
-        } else {
-            this._processUpdate(update, null)
-        }
-
-        this._stateCache.update(update)
-    }
-
-    _processUpdate(update, others, entities) {
-        update._entities = entities || {}
-        const args = {
-            update: update,
-            others: others,
-        }
-        this._dispatchUpdate(args)
-    }
-
-
     // endregion
 
     // region private methods
@@ -714,20 +630,6 @@ class BaseClient {
     }
 
     // endregion
-
-    async _dispatchUpdate(args = {
-        update: null,
-        others: null,
-        channelId: null,
-        ptsDate: null,
-    }) {
-        for (const [builder, callback] of this._eventBuilders) {
-            const event = builder.build(args.update)
-            if (event) {
-                await callback(event)
-            }
-        }
-    }
 
     isConnected() {
         if (this._sender) {
