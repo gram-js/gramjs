@@ -302,6 +302,62 @@ function regExpEscape(str) {
     return str.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, '\\$&')
 }
 
+class MixinBuilder {
+    constructor(superclass) {
+        this.superclass = superclass
+    }
+
+    with(...mixins) {
+        return mixins.reduce((c, mixin) => mixin(c), this.superclass)
+    }
+}
+
+// Makes mixin classes easier. For information on mixins,
+// see https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
+const mix = (superclass) => new MixinBuilder(superclass)
+
+const EntityType = {
+    USER: 0,
+    CHAT: 1,
+    CHANNEL: 2,
+}
+
+/**
+ * This could be a `utils` method that just ran a few `isinstance` on
+ * `utils.getPeer(...)`'s result. However, there are *a lot* of auto
+ * casts going on, plenty of calls and temporary short-lived objects.
+ *
+ * So we just check if a string is in the class name.
+ * Still, assert that it's the right type to not return false results.
+ */
+function entityType(entity) {
+    if (!entity.SUBCLASS_OF_ID) {
+        throw new TypeError('${entity} is not a TLObject, cannot determine entity type')
+    }
+
+    if (![
+        0x2d45687, // crc32 of Peer
+        0xc91c90b6, // crc32 of InputPeer
+        0xe669bf46, // crc32 of InputUser
+        0x40f202fd, // crc32 of InputChannel
+        0x2da17977, // crc32 of User
+        0xc5af5d94, // crc32 of Chat
+        0x1f4661b9, // crc32 of UserFull
+        0xd49a2697, // crc32 of ChatFull
+    ].includes(entity.SUBCLASS_OF_ID)) {
+        throw new TypeError(`${entity} does not have any entity type`)
+    }
+
+    const name = entity.constructor.name
+    if (name.includes('User') || name.includes('Self')) {
+        return EntityType.USER
+    } else if (name.includes('Chat')) {
+        return EntityType.CHAT
+    } else if (name.includes('Channel')) {
+        return EntityType.CHANNEL
+    }
+}
+
 module.exports = {
     readBigIntFromBuffer,
     readBufferFromBigInt,
@@ -320,4 +376,7 @@ module.exports = {
     ensureParentDirExists,
     stripText,
     regExpEscape,
+    mix,
+    EntityType,
+    entityType,
 }

@@ -32,7 +32,7 @@ const MIN_CHUNK_SIZE = 4096
 const MAX_CHUNK_SIZE = 512 * 1024
 
 
-class TelegramClient {
+class BaseClient {
     static DEFAULT_OPTIONS = {
         connection: ConnectionTCPObfuscated,
         useIPV6: false,
@@ -53,12 +53,12 @@ class TelegramClient {
     }
 
 
-    constructor(session, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
+    constructor(session, apiId, apiHash, opts = BaseClient.DEFAULT_OPTIONS) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
         }
 
-        const args = { ...TelegramClient.DEFAULT_OPTIONS, ...opts }
+        const args = { ...BaseClient.DEFAULT_OPTIONS, ...opts }
 
         this.apiId = apiId
         this.apiHash = apiHash
@@ -328,13 +328,6 @@ class TelegramClient {
         }
         throw new Error(`Request was unsuccessful ${attempt} time(s)`)
     }
-
-    async getMe() {
-        const me = (await this.invoke(new functions.users
-            .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
-        return me
-    }
-
 
     async start(args = {
         phone: null,
@@ -722,171 +715,6 @@ class TelegramClient {
 
     // endregion
 
-
-    // users region
-
-    async getEntity(entity) {
-        entity = await this.getInputEntity(entity)
-        if (entity instanceof types.InputPeerUser || entity instanceof types.InputPeerSelf) {
-            const user = await this.invoke(new functions.users.GetUsersRequest({ id: [entity] }))
-            return user[0]
-        } else if (entity instanceof types.InputPeerChat) {
-            const chat = await this.invoke(new functions.messages.GetChatsRequest({ id: [entity] }))
-            return chat[0]
-        } else if (entity instanceof types.InputPeerChannel) {
-            const channel = await this.invoke(new functions.channels.GetChannelsRequest({ id: [entity] }))
-            return channel[0]
-        }
-    }
-
-
-    /**
-     Turns the given entity into its input entity version.
-
-     Most requests use this kind of :tl:`InputPeer`, so this is the most
-     suitable call to make for those cases. **Generally you should let the
-     library do its job** and don't worry about getting the input entity
-     first, but if you're going to use an entity often, consider making the
-     call:
-
-     Arguments
-     entity (`str` | `int` | :tl:`Peer` | :tl:`InputPeer`):
-     If a username or invite link is given, **the library will
-     use the cache**. This means that it's possible to be using
-     a username that *changed* or an old invite link (this only
-     happens if an invite link for a small group chat is used
-     after it was upgraded to a mega-group).
-
-     If the username or ID from the invite link is not found in
-     the cache, it will be fetched. The same rules apply to phone
-     numbers (``'+34 123456789'``) from people in your contact list.
-
-     If an exact name is given, it must be in the cache too. This
-     is not reliable as different people can share the same name
-     and which entity is returned is arbitrary, and should be used
-     only for quick tests.
-
-     If a positive integer ID is given, the entity will be searched
-     in cached users, chats or channels, without making any call.
-
-     If a negative integer ID is given, the entity will be searched
-     exactly as either a chat (prefixed with ``-``) or as a channel
-     (prefixed with ``-100``).
-
-     If a :tl:`Peer` is given, it will be searched exactly in the
-     cache as either a user, chat or channel.
-
-     If the given object can be turned into an input entity directly,
-     said operation will be done.
-
-     Unsupported types will raise ``TypeError``.
-
-     If the entity can't be found, ``ValueError`` will be raised.
-
-     Returns
-     :tl:`InputPeerUser`, :tl:`InputPeerChat` or :tl:`InputPeerChannel`
-     or :tl:`InputPeerSelf` if the parameter is ``'me'`` or ``'self'``.
-
-     If you need to get the ID of yourself, you should use
-     `get_me` with ``input_peer=True``) instead.
-
-     Example
-     .. code-block:: python
-
-     // If you're going to use "username" often in your code
-     // (make a lot of calls), consider getting its input entity
-     // once, and then using the "user" everywhere instead.
-     user = await client.get_input_entity('username')
-
-     // The same applies to IDs, chats or channels.
-     chat = await client.get_input_entity(-123456789)
-
-     * @param peer
-     * @returns {Promise<void>}
-     */
-    async getInputEntity(peer) {
-        // Short-circuit if the input parameter directly maps to an InputPeer
-        try {
-            return utils.getInputPeer(peer)
-            // eslint-disable-next-line no-empty
-        } catch (e) {
-        }
-        // Next in priority is having a peer (or its ID) cached in-memory
-        try {
-            // 0x2d45687 == crc32(b'Peer')
-            if (typeof peer === 'number' || peer.SUBCLASS_OF_ID === 0x2d45687) {
-                if (this._entityCache.has(peer)) {
-                    return this._entityCache[peer]
-                }
-            }
-            // eslint-disable-next-line no-empty
-        } catch (e) {
-        }
-        // Then come known strings that take precedence
-        if (['me', 'this'].includes(peer)) {
-            return new types.InputPeerSelf()
-        }
-        // No InputPeer, cached peer, or known string. Fetch from disk cache
-        try {
-            return this.session.getInputEntity(peer)
-            // eslint-disable-next-line no-empty
-        } catch (e) {
-        }
-        // Only network left to try
-        if (typeof peer === 'string') {
-            return utils.getInputPeer(await this._getEntityFromString(peer))
-        }
-        // If we're a bot and the user has messaged us privately users.getUsers
-        // will work with access_hash = 0. Similar for channels.getChannels.
-        // If we're not a bot but the user is in our contacts, it seems to work
-        // regardless. These are the only two special-cased requests.
-        peer = utils.getPeer(peer)
-        if (peer instanceof types.PeerUser) {
-            const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: [new types.InputUser({
-                    userId: peer.userId, accessHash: 0,
-                })],
-            }))
-            if (users && !(users[0] instanceof types.UserEmpty)) {
-                // If the user passed a valid ID they expect to work for
-                // channels but would be valid for users, we get UserEmpty.
-                // Avoid returning the invalid empty input peer for that.
-                //
-                // We *could* try to guess if it's a channel first, and if
-                // it's not, work as a chat and try to validate it through
-                // another request, but that becomes too much work.
-                return utils.getInputPeer(users[0])
-            }
-        } else if (peer instanceof types.PeerChat) {
-            return new types.InputPeerChat({
-                chatId: peer.chatId,
-            })
-        } else if (peer instanceof types.PeerChannel) {
-            try {
-                const channels = await this.invoke(new functions.channels.GetChannelsRequest({
-                    id: [new types.InputChannel({
-                        channelId: peer.channelId,
-                        accessHash: 0,
-                    })],
-                }))
-
-                return utils.getInputPeer(channels.chats[0])
-                // eslint-disable-next-line no-empty
-            } catch (e) {
-                this._log.error(e)
-            }
-        }
-        throw new Error(`Could not find the input entity for ${peer.id || peer.channelId || peer.chatId || peer.userId}.
-         Please read https://` +
-            'docs.telethon.dev/en/latest/concepts/entities.html to' +
-            ' find out more details.',
-        )
-    }
-
-
-    // endregion
-
-
     async _dispatchUpdate(args = {
         update: null,
         others: null,
@@ -1244,4 +1072,4 @@ class TelegramClient {
     // endregion
 }
 
-module.exports = TelegramClient
+module.exports = BaseClient
