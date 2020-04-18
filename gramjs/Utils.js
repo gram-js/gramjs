@@ -1,8 +1,9 @@
 const path = require('path')
 const mime = require('mime-types')
 const struct = require('python-struct')
-const { markdown, html } = require('./extensions')
-const { types } = require('./tl')
+const Markdown = require('./extensions/Markdown')
+const HTML = require('./extensions/HTML')
+const types = require('./tl/types')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
     '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?')
@@ -840,20 +841,17 @@ function resolveId(markedId) {
  * @returns {{inputEntity: *, entity: *}}
  * @private
  */
-function _getEntityPair(entityId, entities, cache, getInputPeer = getInputPeer) {
-    const entity = entities.get(entityId)
+function _getEntityPair(entityId, entities, cache, _getInputPeer = getInputPeer) {
+    const entity = entities[entityId]
     let inputEntity = cache[entityId]
     if (inputEntity === undefined) {
         try {
-            inputEntity = getInputPeer(inputEntity)
+            inputEntity = _getInputPeer(inputEntity)
         } catch (e) {
             inputEntity = null
         }
     }
-    return {
-        entity,
-        inputEntity,
-    }
+    return [entity, inputEntity]
 }
 
 function getMessageId(message) {
@@ -892,10 +890,10 @@ function sanitizeParseMode(mode) {
         switch (mode.toLowerCase()) {
         case 'md':
         case 'markdown':
-            return markdown
+            return Markdown
         case 'htm':
         case 'html':
-            return html
+            return HTML
         default:
             throw new Error(`Unknown parse mode ${mode}`)
         }

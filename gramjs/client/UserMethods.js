@@ -28,7 +28,7 @@ const UserMethods = (superclass) => class extends superclass {
      * @param {bool} inputPeer whether to return the `InputPeerUser` version or
      * the normal `User`. This can be useful if you just need to know the ID
      * of yourself.
-     * @returns {(Promise<User|InputPeerUser>)} your own `User`.
+     * @returns {Promise<types.User|types.InputPeerUser>} your own `User`.
      */
     async getMe(inputPeer = false) {
         const me = (await this.invoke(new functions.users

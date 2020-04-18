@@ -105,6 +105,8 @@ class TimedOutError extends RPCError {
     message = 'Timeout'
 }
 
+const BotTimeout = TimedOutError
+
 module.exports = {
     RPCError,
     InvalidDCError,
@@ -116,4 +118,5 @@ module.exports = {
     FloodError,
     ServerError,
     TimedOutError,
+    BotTimeout,
 }

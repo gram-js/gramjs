@@ -29,6 +29,9 @@
         ],
         "object-curly-spacing": ["error", "always"],
         "require-jsdoc": "off",
-        "valid-jsdoc": "off"
+        "valid-jsdoc": "off",
+        "new-cap": "off",
+        "operator-linebreak": "off",
+        "curly": "off"
     }
 }

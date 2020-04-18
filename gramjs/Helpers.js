@@ -302,6 +302,18 @@ function regExpEscape(str) {
     return str.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, '\\$&')
 }
 
+function sum(...args) {
+    return args.reduce((a, b) => a + b, 0)
+}
+
+/**
+ * Returns `true` if the object is a function, false otherwise
+ * @param {*} obj Object to test
+ */
+function callable(obj) {
+    return !!(obj && obj.constructor && obj.call && obj.apply)
+}
+
 class MixinBuilder {
     constructor(superclass) {
         this.superclass = superclass
@@ -358,6 +370,14 @@ function entityType(entity) {
     }
 }
 
+function isinstance(object, types) {
+    types = Array.isArray(types) ? types : [types]
+    for (const type of types) {
+        if (object instanceof type) return true
+    }
+    return false
+}
+
 module.exports = {
     readBigIntFromBuffer,
     readBufferFromBigInt,
@@ -376,7 +396,10 @@ module.exports = {
     ensureParentDirExists,
     stripText,
     regExpEscape,
+    sum,
+    callable,
     mix,
     EntityType,
     entityType,
+    isinstance,
 }

@@ -38,13 +38,12 @@ const NAMED_BLACKLIST = new Set(['messages.discardEncryption'])
 // Patched types {fullname: custom.ns.Name}
 
 // No patches currently
-/**
- const PATCHED_TYPES = {
-    messageEmpty: 'message.Message',
-    message: 'message.Message',
-    messageService: 'message.Message',
-};*/
-const PATCHED_TYPES = {}
+
+const PATCHED_TYPES = {
+    messageEmpty: 'Message',
+    message: 'Message',
+    messageService: 'Message',
+}
 
 const writeModules = (outDir, depth, kind, namespaceTlobjects, typeConstructors) => {
     // namespace_tlobjects: {'namespace', [TLObject]}
@@ -309,11 +308,16 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
     // Set the arguments
     for (const arg of tlobject.realArgs) {
         if (!arg.canBeInferred) {
-            builder.writeln(
-                `this.${variableSnakeToCamelCase(arg.name)} = args.${variableSnakeToCamelCase(
-                    arg.name,
-                )}${arg.isFlag || arg.canBeInferred ? ' || null' : ''};`,
-            )
+            const argname = variableSnakeToCamelCase(arg.name)
+            let code = `this.${argname} = `
+
+            if (arg.isVector) {
+                code += `args.${argname} && args.${argname}.length > 0 ? args.${argname} : null`
+            } else {
+                code += `args.${argname}${arg.isFlag || arg.canBeInferred ? '|| null' : ''}`
+            }
+
+            builder.writeln(code)
 
             // Currently the only argument that can be
             // inferred are those called 'random_id'
@@ -766,7 +770,9 @@ const writePatched = (outDir, namespaceTlobjects) => {
 
         builder.writeln(AUTO_GEN_NOTICE)
         builder.writeln('const struct = require(\'python-struct\');')
-        builder.writeln(`const { TLObject, types, custom } = require('..');`)
+        builder.writeln(`const { TLObject } = require('../tlobject');`)
+        builder.writeln(`const types = require('../types');`)
+        builder.writeln(`const custom = require('../custom');`)
 
         builder.writeln()
 
@@ -775,8 +781,8 @@ const writePatched = (outDir, namespaceTlobjects) => {
             builder.writeln(`static CONSTRUCTOR_ID = 0x${t.id.toString(16)}`)
             builder.writeln(`static SUBCLASS_OF_ID = 0x${crc32(t.result).toString('16')}`)
             builder.writeln()
-            builder.writeln('constructor() {')
-            builder.writeln('super();')
+            builder.writeln('constructor(args) {')
+            builder.writeln('super(args);')
             builder.writeln(`this.CONSTRUCTOR_ID = 0x${t.id.toString(16)}`)
             builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(t.result).toString('16')}`)
 
@@ -789,7 +795,7 @@ const writePatched = (outDir, namespaceTlobjects) => {
             builder.writeln()
             builder.endBlock()
             builder.currentIndent = 0
-            builder.writeln('types.%s%s = %s', t.namespace ? `${t.namespace}.` : '', t.className, t.className)
+            builder.writeln('exports.%s%s = %s', t.namespace ? `${t.namespace}.` : '', t.className, t.className)
             builder.writeln()
         }
     }
@@ -907,7 +913,7 @@ const writeModuleExports = (tlobjects, builder) => {
     }
 
     builder.currentIndent--
-    builder.writeln('};')
+    builder.writeln('}\n')
 }
 
 module.exports = {
