@@ -5,7 +5,7 @@
         "node": true,
         "jest": true
     },
-    "extends": ["google","eslint:recommended"],
+    "extends": ["eslint:recommended"],
     "globals": {
         "BigInt": true,
         "Atomics": "readonly",
@@ -16,8 +16,17 @@
         "ecmaVersion": 2018
     },
     "rules": {
-        "semi": [1,"never"],
+        "arrow-parens": ["error", "as-needed"],
+        "brace-style": ["error", "stroustrup"],
+        "comma-dangle": ["error", "always-multiline"],
+        "curly": ["error", "all"],
         "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "no-var": "error",
+        "operator-linebreak": ["error", "after"],
+        "prefer-const": ["error", { "destructuring": "any" }],
+        "quotes": ["error", "single", { "avoidEscape": true }],
+        "semi": ["error", "never"],
         "max-len": [
             "error",
             {
@@ -26,9 +35,6 @@
                 "ignoreStrings": true,
                 "ignoreTemplateLiterals": true
             }
-        ],
-        "object-curly-spacing": ["error", "always"],
-        "require-jsdoc": "off",
-        "valid-jsdoc": "off"
+        ]
     }
 }
