@@ -17,7 +17,7 @@
     },
     "rules": {
         "arrow-parens": ["error", "as-needed"],
-        "brace-style": ["error", "stroustrup"],
+        "brace-style": ["error", "1tbs"],
         "comma-dangle": ["error", "always-multiline"],
         "curly": ["error", "all"],
         "indent": ["error", 4],
