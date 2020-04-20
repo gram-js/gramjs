@@ -36,8 +36,8 @@ const findall = (regex, str, matches) => {
         matches = []
     }
 
-    if (!regex.flags.includes(`g`)) {
-        regex = new RegExp(regex.source, `g`)
+    if (!regex.flags.includes('g')) {
+        regex = new RegExp(regex.source, 'g')
     }
 
     const res = regex.exec(str)
@@ -170,7 +170,7 @@ const parseTl = function* (filePath, layer, methods, ignoreIds = CORE_TYPES) {
 /**
  * Finds the layer used on the specified scheme.tl file.
  */
-const findLayer = (filePath) => {
+const findLayer = filePath => {
     const layerRegex = /^\/\/\s*LAYER\s*(\d+)/
 
     const file = fs.readFileSync(filePath, { encoding: 'utf-8' })

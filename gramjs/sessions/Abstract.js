@@ -20,6 +20,8 @@ class Session {
      * @param serverAddress {string}
      * @param port {number}
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     setDC(dcId, serverAddress, port) {
         throw new Error('Not implemented')
     }
@@ -84,6 +86,8 @@ class Session {
      * it should ``return None``.
      * @param entityId
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     getUpdateState(entityId) {
         throw new Error('Not Implemented')
     }
@@ -95,6 +99,8 @@ class Session {
      * @param entityId
      * @param state
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     setUpdateState(entityId, state) {
         throw new Error('Not Implemented')
     }
@@ -135,6 +141,8 @@ class Session {
      * whatever information is relevant (e.g., ID or access hash).
      * @param tlo
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     processEntities(tlo) {
         throw new Error('Not Implemented')
     }
@@ -145,6 +153,8 @@ class Session {
      * to suit several purposes (e.g. user only provided its ID or wishes
      * to use a cached username to avoid extra RPC).
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     getInputEntity(key) {
         throw new Error('Not Implemented')
     }

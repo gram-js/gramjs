@@ -32,7 +32,9 @@ class MessageBase extends TLObject {
         // For MessageAction (mandatory)
         action = null,
     } = {}) {
-        if (!id) throw new TypeError('id is a required attribute for Message')
+        if (!id) {
+            throw new TypeError('id is a required attribute for Message')
+        }
         super()
 
         // Common properties to all messages
@@ -131,7 +133,7 @@ class MessageBase extends TLObject {
         if (this.action) {
             if ((this.action instanceof types.MessageActionChatAddUser) ||
                     (this.action instanceof types.MessageActionChatCreate)) {
-                this._actionEntities = this.action.users.map((i) => entities.get(i))
+                this._actionEntities = this.action.users.map(i => entities.get(i))
             } else if (this.action instanceof types.MessageActionChatDeleteUser) {
                 this._actionEntities = [entities.get(this.action.userId)]
             } else if (this.action instanceof types.MessageActionChatJoinedByLink) {
@@ -209,7 +211,9 @@ class MessageBase extends TLObject {
     async getButtons() {
         if (!this._buttons && this.replyMarkup) {
             const chat = await this.getInputChat()
-            if (!chat) return
+            if (!chat) {
+                return
+            }
             let bot = this._neededMarkupBot()
             if (!bot) {
                 await this._reloadMessage()
@@ -224,7 +228,7 @@ class MessageBase extends TLObject {
         if (!this._buttonsCount) {
             if ((this.replyMarkup instanceof types.ReplyInlineMarkup) ||
                     (this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-                this._buttonsCount = sum(this.replyMarkup.rows.map((r) => r.buttons.length))
+                this._buttonsCount = sum(this.replyMarkup.rows.map(r => r.buttons.length))
             } else {
                 this._buttonsCount = 0
             }
@@ -245,44 +249,47 @@ class MessageBase extends TLObject {
 
     get photo() {
         if (this.media instanceof types.MessageMediaPhoto) {
-            if (this.media.photo instanceof types.Photo)
+            if (this.media.photo instanceof types.Photo) {
                 return this.media.photo
+            }
         } else if (this.action instanceof types.MessageActionChatEditPhoto) {
             return this.action.photo
         } else {
-            return this.webPreview && this.webPreview instanceof types.Photo
-                ? this.webPreview.photo
-                : null
+            return this.webPreview && this.webPreview instanceof types.Photo ?
+                this.webPreview.photo :
+                null
         }
         return null
     }
 
     get document() {
         if (this.media instanceof types.MessageMediaDocument) {
-            if (this.media.document instanceof types.Document)
+            if (this.media.document instanceof types.Document) {
                 return this.media.document
+            }
         } else {
-            return this.webPreview && this.webPreview instanceof types.Document
-                ? this.webPreview.document
-                : null
+            return this.webPreview && this.webPreview instanceof types.Document ?
+                this.webPreview.document :
+                null
         }
         return null
     }
 
     get webPreview() {
         if (this.media instanceof types.MessageMediaWebPage) {
-            if (this.media.webpage instanceof types.WebPage)
+            if (this.media.webpage instanceof types.WebPage) {
                 return this.media.webpage
+            }
         }
         return null
     }
 
     get audio() {
-        return this._documentByAttribute(types.DocumentAttributeAudio, (attr) => !attr.voice)
+        return this._documentByAttribute(types.DocumentAttributeAudio, attr => !attr.voice)
     }
 
     get voice() {
-        return this._documentByAttribute(types.DocumentAttributeAudio, (attr) => !!attr.voice)
+        return this._documentByAttribute(types.DocumentAttributeAudio, attr => !!attr.voice)
     }
 
     get video() {
@@ -290,7 +297,7 @@ class MessageBase extends TLObject {
     }
 
     get videoNote() {
-        return this._documentByAttribute(types.DocumentAttributeVideo, (attr) => !!attr.roundMessage)
+        return this._documentByAttribute(types.DocumentAttributeVideo, attr => !!attr.roundMessage)
     }
 
     get gif() {
@@ -302,14 +309,16 @@ class MessageBase extends TLObject {
     }
 
     get contact() {
-        if (this.media instanceof types.DocumentAttributeContact)
+        if (this.media instanceof types.DocumentAttributeContact) {
             return this.media
+        }
         return null
     }
 
     get game() {
-        if (this.media instanceof types.MessageMediaGame)
+        if (this.media instanceof types.MessageMediaGame) {
             return this.media.game
+        }
         return null
     }
 
@@ -323,20 +332,23 @@ class MessageBase extends TLObject {
     }
 
     get invoice() {
-        if (this.media instanceof types.MessageMediaInvoice)
+        if (this.media instanceof types.MessageMediaInvoice) {
             return this.media
+        }
         return null
     }
 
     get poll() {
-        if (this.media instanceof types.MessageMediaPoll)
+        if (this.media instanceof types.MessageMediaPoll) {
             return this.media
+        }
         return null
     }
 
     get venu() {
-        if (this.media instanceof types.MessageMediaVenue)
+        if (this.media instanceof types.MessageMediaVenue) {
             return this.media
+        }
         return null
     }
 
@@ -354,10 +366,13 @@ class MessageBase extends TLObject {
 
     getEntitiesText(cls = null) {
         let ent = this.entities
-        if (!ent || ent.length == 0) return
+        if (!ent || ent.length == 0) {
+            return
+        }
 
-        if (cls)
-            ent = ent.filter((v) => v instanceof cls)
+        if (cls) {
+            ent = ent.filter(v => v instanceof cls)
+        }
 
         const texts = utils.getInnerText(this.message, ent)
         return zip(ent, texts)
@@ -365,7 +380,9 @@ class MessageBase extends TLObject {
 
     async getReplyMessage() {
         if (!this._replyMessage && this._client) {
-            if (!this.replyToMsgId) return null
+            if (!this.replyToMsgId) {
+                return null
+            }
 
             // Bots cannot access other bots' messages by their ID.
             // However they can access them through replies...
@@ -410,15 +427,19 @@ class MessageBase extends TLObject {
     }
 
     async edit(args) {
-        if (this.fwdFrom || !this.out || !this._client) return null
+        if (this.fwdFrom || !this.out || !this._client) {
+            return null
+        }
         args.entity = await this.getInputChat()
         args.message = this.id
 
-        if (!('linkPreview' in args))
+        if (!('linkPreview' in args)) {
             args.linkPreview = !!this.webPreview
+        }
 
-        if (!('buttons' in args))
+        if (!('buttons' in args)) {
             args.buttons = this.replyMarkup
+        }
 
         return this._client.editMessage(args)
     }
@@ -432,16 +453,20 @@ class MessageBase extends TLObject {
     }
 
     async downloadMedia(args) {
-        if (this._client)
+        if (this._client) {
             return this._client.downloadMedia(args)
+        }
     }
 
     async click({ i = null, j = null, text = null, filter = null, data = null }) {
-        if (!this._client) return
+        if (!this._client) {
+            return
+        }
 
         if (data) {
-            if (!(await this._getInputChat()))
+            if (!(await this._getInputChat())) {
                 return null
+            }
 
             try {
                 return await this._client.invoke(functions.messages.GetBotCallbackAnswerRequest({
@@ -450,16 +475,19 @@ class MessageBase extends TLObject {
                     data: data,
                 }))
             } catch (e) {
-                if (e instanceof errors.BotTimeout)
+                if (e instanceof errors.BotTimeout) {
                     return null
+                }
             }
         }
 
-        if ([i, text, filter].filter((x) => !!x) > 1)
+        if ([i, text, filter].filter(x => !!x) > 1) {
             throw new Error('You can only set either of i, text or filter')
+        }
 
-        if (!(await this.getButtons()))
+        if (!(await this.getButtons())) {
             return
+        }
 
         if (text) {
             if (callable(text)) {
@@ -487,8 +515,11 @@ class MessageBase extends TLObject {
         }
 
         i = !i ? 0 : i
-        if (!j) return this._buttonsFlat[i].click()
-        else return this._buttons[i][j].click()
+        if (!j) {
+            return this._buttonsFlat[i].click()
+        } else {
+            return this._buttons[i][j].click()
+        }
     }
 
     async markRead() {
@@ -511,12 +542,16 @@ class MessageBase extends TLObject {
     }
 
     async _reloadMessage() {
-        if (!this._client) return
+        if (!this._client) {
+            return
+        }
 
         const chat = this.isChannel ? this.getInputChat() : null
         const msg = this._client.getMessages({ chat, ids: this.id })
 
-        if (!msg) return
+        if (!msg) {
+            return
+        }
 
         this._sender = msg._sender
         this._inputSender = msg._inputender
@@ -532,6 +567,8 @@ class MessageBase extends TLObject {
         await this._reloadMessage()
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     _setButtons(chat, bot) {
         // TODO: Implement MessageButton
         // if (this._client && (this.replyMarkup instanceof types.ReplyInlineMarkup ||
@@ -553,11 +590,15 @@ class MessageBase extends TLObject {
                 if (button instanceof types.KeyboardButtonSwitchInline) {
                     if (button.samePeer) {
                         const bot = this._inputSender
-                        if (!bot) throw new Error('No input sender')
+                        if (!bot) {
+                            throw new Error('No input sender')
+                        }
                         return bot
                     } else {
                         const ent = this._client._entityCache[this.viaBotId]
-                        if (!ent) throw new Error('No input sender')
+                        if (!ent) {
+                            throw new Error('No input sender')
+                        }
                         return ent
                     }
                 }

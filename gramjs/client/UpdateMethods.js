@@ -4,7 +4,7 @@ const events = require('../events')
 const Helpers = require('../Helpers')
 const utils = require('../Utils')
 
-const UpdateMethods = (superclass) => class extends superclass {
+const UpdateMethods = superclass => class extends superclass {
     async _updateLoop() {
         while (this.isConnected()) {
             const rnd = Helpers.getRandomInt(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
@@ -42,7 +42,7 @@ const UpdateMethods = (superclass) => class extends superclass {
      */
     addEventHandler(callback, event = null) {
         if (Array.isArray(event)) {
-            event.forEach((e) => this.addEventHandler(callback, e))
+            event.forEach(e => this.addEventHandler(callback, e))
             return
         }
 
@@ -166,8 +166,10 @@ const UpdateMethods = (superclass) => class extends superclass {
      * @param {number} channelId
      * @param {number} ptsDate
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     _getDifference(update, channelId, ptsDate) {
-        // TODO
+
     }
 }
 

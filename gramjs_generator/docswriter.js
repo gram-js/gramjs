@@ -19,7 +19,7 @@ class DocsWriter {
         this.menuSeparatorTag = null
 
         // Utility functions
-        this.typeToPath = (t) => this._rel(typeToPath(t))
+        this.typeToPath = t => this._rel(typeToPath(t))
 
         // Control signals
         this.menuBegan = false
@@ -54,7 +54,7 @@ class DocsWriter {
     <title>${title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link id="style" href="${this._rel(
-        cssPath
+        cssPath,
     )}/docs.dark.css" rel="stylesheet">
     <script>
     document.getElementById("style").href = "${this._rel(cssPath)}/docs."
@@ -65,7 +65,7 @@ class DocsWriter {
           rel="stylesheet">
 </head>
 <body>
-<div id="main_div">`
+<div id="main_div">`,
         )
     }
 
@@ -142,7 +142,7 @@ class DocsWriter {
      */
     writeCode(tlobject) {
         this.write(
-            `<pre>---${tlobject.isFunction ? 'functions' : 'types'}---\n`
+            `<pre>---${tlobject.isFunction ? 'functions' : 'types'}---\n`,
         )
 
         // Write the function or type and its ID
@@ -152,7 +152,7 @@ class DocsWriter {
         }
 
         this.write(
-            `${tlobject.name}#${tlobject.id.toString(16).padStart(8, '0')}`
+            `${tlobject.name}#${tlobject.id.toString(16).padStart(8, '0')}`,
         )
 
         // Write all the arguments (or do nothing if there's none)
@@ -180,7 +180,7 @@ class DocsWriter {
 
             if (arg.isVector) {
                 this.write(
-                    `<a href="${this.typeToPath('vector')}">Vector</a>&lt;`
+                    `<a href="${this.typeToPath('vector')}">Vector</a>&lt;`,
                 )
             }
 
@@ -212,8 +212,8 @@ class DocsWriter {
         // Now write the resulting type (result from a function/type)
         this.write(' = ')
         const [genericName] = tlobject.args
-            .filter((arg) => arg.genericDefinition)
-            .map((arg) => arg.name)
+            .filter(arg => arg.genericDefinition)
+            .map(arg => arg.name)
 
         if (tlobject.result === genericName) {
             // Generic results cannot have any link
@@ -227,16 +227,16 @@ class DocsWriter {
                 inner = inner.replace(/>+$/, '')
 
                 this.write(
-                    `<a href="${this.typeToPath(vector)}">${vector}</a>&lt;`
+                    `<a href="${this.typeToPath(vector)}">${vector}</a>&lt;`,
                 )
                 this.write(
-                    `<a href="${this.typeToPath(inner)}">${inner}</a>&gt;`
+                    `<a href="${this.typeToPath(inner)}">${inner}</a>&gt;`,
                 )
             } else {
                 this.write(
                     `<a href="${this.typeToPath(tlobject.result)}">${
                         tlobject.result
-                    }</a>`
+                    }</a>`,
                 )
             }
         }
@@ -324,8 +324,8 @@ class DocsWriter {
         this.write(
             `<button onclick="cp('${textToCopy.replace(
                 /'/g,
-                '\\\''
-            )}');">${text}</button>`
+                '\\\'',
+            )}');">${text}</button>`,
         )
     }
 
@@ -351,7 +351,7 @@ class DocsWriter {
                     'c.select();' +
                     'try{document.execCommand("copy")}' +
                     'catch(e){}}' +
-                    '</script>'
+                    '</script>',
             )
         }
 

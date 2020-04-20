@@ -150,12 +150,16 @@ class PacketCodec {
         this._conn = connection
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     encodePacket(data) {
         throw new Error('Not Implemented')
 
         // Override
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async readPacket(reader) {
         // override
         throw new Error('Not Implemented')

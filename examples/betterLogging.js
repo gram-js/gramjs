@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 rewireLoggingToElement(
     () => document.getElementById('log'),
     () => document.getElementById('log-container'),
@@ -30,7 +32,7 @@ function rewireLoggingToElement(eleLocator, eleOverflowLocator, autoScroll) {
     }
 
     function produceOutput(name, args) {
-        arg = args[0].replace('%c', '')
-        return '<span style="'+ args[1]+'">'+arg+'</span>&nbsp;'
+        const arg = args[0].replace('%c', '')
+        return '<span style="'+ args[1]+'">' + arg + '</span>&nbsp;'
     }
 }

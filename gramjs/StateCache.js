@@ -57,7 +57,7 @@ class StateCache extends Map {
             types.UpdateShortMessage,
             types.UpdateShortChatMessage,
             types.UpdateShortSentMessage,
-        ].map((t) => t.CONSTRUCTOR_ID),
+        ].map(t => t.CONSTRUCTOR_ID),
         hasDate = [
             types.UpdateUserPhoto,
             types.UpdateEncryption,
@@ -70,7 +70,7 @@ class StateCache extends Map {
             types.UpdatesCombined,
             types.Updates,
             types.UpdateShortSentMessage,
-        ].map((t) => t.CONSTRUCTOR_ID),
+        ].map(t => t.CONSTRUCTOR_ID),
         hasChannelPts = [
             types.UpdateChannelTooLong,
             types.UpdateNewChannelMessage,
@@ -80,7 +80,7 @@ class StateCache extends Map {
             types.updates.ChannelDifferenceEmpty,
             types.updates.ChannelDifferenceTooLong,
             types.updates.ChannelDifference,
-        ].map((t) => t.CONSTRUCTOR_ID),
+        ].map(t => t.CONSTRUCTOR_ID),
         checkOnly = false,
     } = {}) {
         const cid = update.CONSTRUCTOR_ID
@@ -123,7 +123,7 @@ class StateCache extends Map {
         hasMessage = [
             types.UpdateNewChannelMessage,
             types.UpdateEditChannelMessage,
-        ].map((t) => t.CONSTRUCTOR_ID),
+        ].map(t => t.CONSTRUCTOR_ID),
     } = {}) {
         const cid = update.CONSTRUCTOR_ID
         if (cid in hasChannelId) {

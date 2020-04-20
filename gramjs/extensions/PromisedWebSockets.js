@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 const WebSocketClient = require('websocket').w3cwebsocket
 
 const closeError = new Error('WebSocket was closed')
@@ -16,12 +18,13 @@ class PromisedWebSockets {
             console.log('couldn\'t read')
             throw closeError
         }
-        const canWe = await this.canRead
+
+        await this.canRead 
 
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
-            this.canRead = new Promise((resolve) => {
+            this.canRead = new Promise(resolve => {
                 this.resolveRead = resolve
             })
         }
@@ -35,7 +38,7 @@ class PromisedWebSockets {
         }
         const toReturn = this.stream
         this.stream = Buffer.alloc(0)
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
         return toReturn
@@ -55,7 +58,7 @@ class PromisedWebSockets {
         this.stream = Buffer.alloc(0)
         this.client = null
 
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
 
@@ -91,7 +94,7 @@ class PromisedWebSockets {
     }
 
     async receive() {
-        this.client.onmessage = async (message) => {
+        this.client.onmessage = async message => {
             let data
             if (this.isBrowser) {
                 data = Buffer.from(await new Response(message.data).arrayBuffer())

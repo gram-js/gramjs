@@ -22,7 +22,7 @@ const utils = require('../Utils')
  * Handles all user related methods for `TelegramClient`
  * @param {TelegramClient} superclass the TelegramClient class
  */
-const UserMethods = (superclass) => class extends superclass {
+const UserMethods = superclass => class extends superclass {
     /**
      * Gets "me", the current `User` that's logged in.
      * @param {bool} inputPeer whether to return the `InputPeerUser` version or
@@ -30,6 +30,8 @@ const UserMethods = (superclass) => class extends superclass {
      * of yourself.
      * @returns {Promise<types.User|types.InputPeerUser>} your own `User`.
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async getMe(inputPeer = false) {
         const me = (await this.invoke(new functions.users
             .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
@@ -148,7 +150,7 @@ const UserMethods = (superclass) => class extends superclass {
         if (chats.length > 0) {
             // TODO: Handle a chat slice as above
             chats = await this.invoke(
-                new functions.messages.GetChatsRequest({ id: chats.map((c) => c.chatId) })).chats
+                new functions.messages.GetChatsRequest({ id: chats.map(c => c.chatId) })).chats
         }
 
         if (channels.length > 0) {

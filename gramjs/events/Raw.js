@@ -8,8 +8,10 @@ class Raw extends EventBuilder {
         this.types = Array.isArray(types) ? types : [types]
     }
 
-    build(update, others = null) {
-        if (this.types.length < 1) return update
+    build(update) {
+        if (this.types.length < 1) {
+            return update
+        }
         for (const _type of this.types) {
             if (update instanceof _type) {
                 return update

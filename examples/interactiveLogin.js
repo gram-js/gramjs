@@ -27,6 +27,6 @@ const rl = readline.default.createInterface({
 
     // Start the authentication proceedure and generate the session file
     await client.start({ phone, code })
-    console.log(`Generated session file as gramjs.session`)
+    console.log('Generated session file as gramjs.session')
     client.disconnect().then(() => process.exit(0))
 })()

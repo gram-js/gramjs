@@ -44,7 +44,7 @@ const parseMethods = function* (csvFile, friendlyCsvFile, errorsDict) {
         errors = errors
             .split(' ')
             .filter(Boolean)
-            .map((x) => {
+            .map(x => {
                 if (x && !(x in errorsDict)) {
                     throw new Error(`Method ${method} references unknown errors ${errors}`)
                 }

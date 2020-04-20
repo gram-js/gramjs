@@ -39,7 +39,7 @@ const TLOBJECT_OUT = `${LIBRARY_DIR}/tl`
 const IMPORT_DEPTH = 2
 
 const DOCS_IN_RES = `../${GENERATOR_DIR}/data/html`
-const DOCS_OUT = `./docs`
+const DOCS_OUT = './docs'
 
 const generate = (which, action = 'gen') => {
     const {
@@ -65,13 +65,13 @@ const generate = (which, action = 'gen') => {
             errors.reduce((errors, error) => {
                 errors[error.stringCode] = error
                 return errors
-            }, {})
+            }, {}),
         ),
     ]
 
     const tlobjects = TLOBJECT_IN_TLS.reduce(
         (files, file) => [...files, ...parseTl(file, layer, methods)],
-        []
+        [],
     )
 
     if (!which || which.length === 0) {
@@ -136,7 +136,7 @@ const generate = (which, action = 'gen') => {
         console.log(action, 'JSON schema...')
 
         const jsonFiles = TLOBJECT_IN_TLS.map(
-            (x) => x.slice(0, x.lastIndexOf('.')) + '.json'
+            x => x.slice(0, x.lastIndexOf('.')) + '.json',
         )
 
         if (clean) {
@@ -173,9 +173,7 @@ const generate = (which, action = 'gen') => {
     if (which.length) {
         console.log('The following items were not understood:', which)
         console.log('  Consider using only "tl", "errors" and/or "docs".')
-        console.log(
-            '  Using only "clean" will clean them. "all" to act on all.'
-        )
+        console.log('  Using only "clean" will clean them. "all" to act on all.')
         console.log('  For instance "gen tl errors".')
     }
 }

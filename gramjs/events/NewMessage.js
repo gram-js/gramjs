@@ -31,10 +31,12 @@ class NewMessage extends EventBuilder {
         // this.fromUsers = await _intoIdSet(client, this.fromUsers)
     }
 
-    build(update, others = null, thisId = null) {
+    build(update, _, thisId = null) {
         let event
 
-        if (!this.filter(update)) return
+        if (!this.filter(update)) {
+            return
+        }
 
         if (update instanceof types.UpdateNewMessage || update instanceof types.UpdateNewChannelMessage) {
             event = new Event(update.message)
@@ -98,28 +100,41 @@ class NewMessage extends EventBuilder {
         // Check if the message is incoming or outgoing, and if
         // we want to accept whichever one it is
         if (message.out) {
-            if (!this.outgoing) return false
+            if (!this.outgoing) {
+                return false
+            }
         } else {
-            if (!this.incoming) return false
+            if (!this.incoming) {
+                return false
+            }
         }
 
         // See if the message was sent by one of the `fromUsers`
         if (this.fromUsers.length > 0) {
-            const valid = this.fromUsers.map((user) => {
+            const valid = this.fromUsers.map(user => {
                 const id = 'id' in user ? user.id : user
-                if (message.fromId === id) return true
-                else return false
+                if (message.fromId === id) {
+                    return true
+                } else {
+                    return false
+                }
             })
 
-            if (!valid.includes(true)) return false
+            if (!valid.includes(true)) {
+                return false
+            }
         }
 
         // Check if the message was forwarded
-        if (message.fwdFrom && !this.forwards) return false
+        if (message.fwdFrom && !this.forwards) {
+            return false
+        }
 
         // Finally check the message text against a pattern
         if (this.pattern) {
-            if (!message.message.match(this.pattern)) return false
+            if (!message.message.match(this.pattern)) {
+                return false
+            }
         }
 
         return true
