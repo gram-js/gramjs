@@ -30,10 +30,14 @@ class Scanner {
             match = null
         }
 
-        if (!match) return null
+        if (!match) {
+            return null
+        }
 
         let len = match.index
-        if (consumeMatch) len += match[0].size
+        if (consumeMatch) {
+            len += match[0].size
+        }
 
         return this.consume(len)
     }

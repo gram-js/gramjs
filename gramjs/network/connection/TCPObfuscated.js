@@ -1,4 +1,3 @@
-const { generateRandomBytes } = require('../../Helpers')
 const { ObfuscatedConnection } = require('./Connection')
 const { AbridgedPacketCodec } = require('./TCPAbridged')
 const AESModeCTR = require('../../crypto/AESCTR')

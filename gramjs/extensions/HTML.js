@@ -42,11 +42,11 @@ class HTMLParser extends Scanner {
                     [tag, ...attrs] = tag.split(/\s+/)
                     attrs = attrs
                         // Split on `=`
-                        .map((a) => a.split('='))
+                        .map(a => a.split('='))
                         // Take non key/value items and make them `true`
-                        .map((a) => a.length === 1 ? a.concat([true]) : a)
+                        .map(a => a.length === 1 ? a.concat([true]) : a)
                         // Remove quotes if they exist
-                        .map((a) => {
+                        .map(a => {
                             const attr = a[1].replace(/^('|")|('|")$/g, '')
                             return [a[0], attr]
                         })
@@ -59,7 +59,9 @@ class HTMLParser extends Scanner {
                 }
                 break
             default:
-                if (this.eof()) break
+                if (this.eof()) {
+                    break
+                }
                 this.handleData(this.chr)
                 this.pos += 1
             }
@@ -212,7 +214,9 @@ class HTMLParser extends Scanner {
             break
         case 'a':
             let url = attrs['href']
-            if (!url) return
+            if (!url) {
+                return
+            }
 
             if (url.indexOf('mailto:') === 0) {
                 EntityType = MessageEntityEmail
@@ -259,7 +263,7 @@ class HTMLParser extends Scanner {
     }
 }
 
-const parse = (str) => {
+const parse = str => {
     const parser = new HTMLParser(str)
     return parser.parse()
 }

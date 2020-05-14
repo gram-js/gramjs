@@ -18,7 +18,7 @@ const KNOWN_BASE_CLASSES = {
  * Gets the corresponding class name for the given error code,
  * this either being an integer (thus base error name) or str.
  */
-const getClassName = (errorCode) => {
+const getClassName = errorCode => {
     if (typeof errorCode === 'number') {
         return KNOWN_BASE_CLASSES[Math.abs(errorCode)] || 'RPCError' + errorCode.toString().replace('-', 'Neg')
     }
@@ -73,7 +73,7 @@ const parseErrors = function* (csvFile) {
         codes =
             codes === '' ?
                 [400] :
-                codes.split(' ').map((x) => {
+                codes.split(' ').map(x => {
                     if (isNaN(x)) {
                         throw new Error(`Not all codes are integers (line ${line + 2})`)
                     }

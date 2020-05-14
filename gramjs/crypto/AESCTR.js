@@ -1,5 +1,4 @@
 const aesjs = require('aes-js')
-const stackTrace = require('stack-trace')
 
 class AESModeCTR {
     constructor(key, iv) {

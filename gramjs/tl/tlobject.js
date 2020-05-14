@@ -54,6 +54,8 @@ class TLObject {
         throw Error(`Cannot interpret "${dt}" as a date`)
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     fromReader(reader) {
         throw Error('not implemented')
     }
@@ -72,6 +74,8 @@ class TLRequest extends TLObject {
         return reader.tgReadObject()
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async resolve(client, utils) {}
 }
 

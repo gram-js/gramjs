@@ -2,7 +2,7 @@ const types = require('../types')
 const errors = require('../../errors')
 const utils = require('../../Utils')
 
-const ChatGetter = (superclass) => class extends superclass {
+const ChatGetter = superclass => class extends superclass {
     _chatGetterInit({
         chatPeer = null,
         inputChat = null,
@@ -136,8 +136,11 @@ const ChatGetter = (superclass) => class extends superclass {
         }
 
         if (this._chatPeer instanceof types.PeerChannel) {
-            if (!this._broadcast) return null
-            else return !this._broadcast
+            if (!this._broadcast) {
+                return null
+            } else {
+                return !this._broadcast
+            }
         }
 
         return this._chatPeer instanceof types.PeerChat

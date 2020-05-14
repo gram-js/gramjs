@@ -121,7 +121,7 @@ class BaseClient {
 
         this._floodWaitedRequests = {}
 
-        this._initWith = (x) => {
+        this._initWith = x => {
             return new functions.InvokeWithLayerRequest({
                 layer: LAYER,
                 query: new functions.InitConnectionRequest({
@@ -883,6 +883,8 @@ class BaseClient {
         }
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     _downloadCachedPhotoSize(size, file) {
         // No need to download anything, simply write the bytes
         let data
@@ -963,10 +965,14 @@ class BaseClient {
         return result
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     _downloadContact(media, file) {
         throw new Error('not implemented')
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async _downloadWebDocument(media, file, progressCallback) {
         throw new Error('not implemented')
     }

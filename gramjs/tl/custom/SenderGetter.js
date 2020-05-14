@@ -1,4 +1,4 @@
-const SenderGetter = (superclass) => class extends superclass {
+const SenderGetter = superclass => class extends superclass {
     _senderGetterInit({
         senderId = null,
         sender = null,

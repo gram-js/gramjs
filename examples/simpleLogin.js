@@ -1,4 +1,6 @@
-const phoneDiv = document.getElementById('phoneDiv')
+/* eslint-env browser */
+/* global gramjs */
+
 const phone = document.getElementById('phone')
 const phoneSend = document.getElementById('phoneSend')
 const codeDiv = document.getElementById('codeDiv')
@@ -7,13 +9,12 @@ const codeSend = document.getElementById('codeSend')
 const passDiv = document.getElementById('passDiv')
 const pass = document.getElementById('pass')
 const passSend = document.getElementById('passSend')
-const logger = document.getElementById('log')
 
 function phoneCallback() {
     phone.disabled = false
     phoneSend.disabled = false
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         phoneSend.addEventListener('click', function() {
             phone.disabled = true
             phoneSend.disabled = true
@@ -22,11 +23,10 @@ function phoneCallback() {
     })
 }
 
-
 function passwordCallback() {
     passDiv.style.visibility = 'visible'
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         passSend.addEventListener('click', function() {
             code.disabled = true
             codeSend.disabled = true
@@ -43,7 +43,7 @@ function codeCallback() {
 
     codeDiv.style.visibility = 'visible'
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         codeSend.addEventListener('click', function() {
             code.disabled = true
             codeSend.disabled = true
@@ -51,11 +51,6 @@ function codeCallback() {
         })
     })
 }
-
-const { TelegramClient } = require('../gramjs')
-const { StringSession } = require('../gramjs').session
-const apiId = 12345 // put your api id here
-const apiHash = 'f3a230e12345d1234df5b2134d1e1357' // put you api hash here
 
 const { TelegramClient } = gramjs
 const { StringSession } = gramjs.session

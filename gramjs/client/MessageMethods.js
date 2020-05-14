@@ -1,7 +1,7 @@
 const { functions, types } = require('../tl')
 const utils = require('../Utils')
 
-const MessageMethods = (superclass) => class extends superclass {
+const MessageMethods = superclass => class extends superclass {
     async sendMessage(entity, message, {
         replyTo = null,
         parseMode = null,

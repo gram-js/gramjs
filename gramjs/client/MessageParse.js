@@ -4,12 +4,17 @@ const { range, reverse } = require('ramda')
 const { types } = require('../tl')
 const isinstance = helpers.isinstance
 
-const MessageParse = (superclass) => class extends superclass {
+const MessageParse = superclass => class extends superclass {
     async _parseMessageText(message, parseMode) {
-        if (!parseMode) parseMode = this.parseMode
-        else parseMode = utils.sanitizeParseMode(parseMode)
+        if (!parseMode) {
+            parseMode = this.parseMode
+        } else {
+            parseMode = utils.sanitizeParseMode(parseMode)
+        }
 
-        if (!parseMode) return [message, []]
+        if (!parseMode) {
+            return [message, []]
+        }
 
         let msgEntities
         [message, msgEntities] = parseMode.parse(message)
@@ -20,12 +25,16 @@ const MessageParse = (superclass) => class extends superclass {
                 if (m) {
                     const user = m[1] ? Number(m[1]) : e.url
                     const isMention = await this._replaceWithMention(msgEntities, i, user)
-                    if (!isMention) delete msgEntities[i]
+                    if (!isMention) {
+                        delete msgEntities[i]
+                    }
                 }
             } else if ((e instanceof types.MessageEntityMentionName) ||
                     (e instanceof types.InputMessageEntityMentionName)) {
                 const isMention = await this._replaceWithMention(msgEntities, i, e.userId)
-                if (!isMention) delete msgEntities[i]
+                if (!isMention) {
+                    delete msgEntities[i]
+                }
             }
         }
         return [message, msgEntities]
@@ -53,8 +62,9 @@ const MessageParse = (superclass) => class extends superclass {
         } else if ((result instanceof types.Updates) || (result instanceof types.UpdatesCombined)) {
             updates = result.updates
             entities = [result.users, result.chats].flat().reduce((acc, x) => {
-                if (x)
+                if (x) {
                     acc[utils.getPeerId(x)] = x
+                }
                 return acc
             }, {})
         } else {
@@ -76,10 +86,11 @@ const MessageParse = (superclass) => class extends superclass {
 
                 // Live locations use `sendMedia` but Telegram responds with
                 // `updateEditMessage`, which means we won't have `id` field.
-                if (request.randomId)
+                if (request.randomId) {
                     idToMessage[update.message.id] = update.message
-                else if (request.id === update.message.id)
+                } else if (request.id === update.message.id) {
                     return update.message
+                }
             } else if (isinstance(update, types.UpdateEditChannelMessage) &&
                     utils.getPeerId(request.peer) === utils.getPeerId(update.message.toId)) {
                 if (request.id === update.message.id) {
@@ -102,8 +113,9 @@ const MessageParse = (superclass) => class extends superclass {
             }
         }
 
-        if (!request)
+        if (!request) {
             return idToMessage
+        }
 
 
         let mapping
@@ -121,28 +133,32 @@ const MessageParse = (superclass) => class extends superclass {
             opposite = idToMessage // scheduled may be treated as normal, though
         }
 
-        const randomId = typeof request === 'number' || isinstance(request, Array)
-            ? request
-            : request.randomId
+        const randomId = typeof request === 'number' || isinstance(request, Array) ?
+            request :
+            request.randomId
 
         if (!Array.isArray(randomId)) {
             let msg = mapping[randomToId[randomId]]
-            if (!msg) msg = opposite[randomToId[randomId]]
-            if (!msg) this._log.warn(`Request ${request} had missing message mapping ${result}`)
+            if (!msg) {
+                msg = opposite[randomToId[randomId]]
+            }
+            if (!msg) {
+                this._log.warn(`Request ${request} had missing message mapping ${result}`)
+            }
             return msg
         }
 
         try {
-            return randomId.map((a) => mapping[randomToId[a]])
+            return randomId.map(a => mapping[randomToId[a]])
         } catch {
             try {
-                return randomId.map((a) => opposite[randomToId[a]])
+                return randomId.map(a => opposite[randomToId[a]])
             } catch {
                 this._log.warn(`Request ${request} had missing message mapping ${result}`)
             }
         }
 
-        return randomToId.map((rnd) =>
+        return randomToId.map(rnd =>
             mapping[randomToId[rnd]] || opposite[randomToId[rnd]])
     }
 }

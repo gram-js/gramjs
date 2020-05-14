@@ -15,12 +15,13 @@ class PromisedNetSockets {
             console.log('couldn\'t read')
             throw closeError
         }
-        const canWe = await this.canRead
+        
+        await this.canRead
 
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
-            this.canRead = new Promise((resolve) => {
+            this.canRead = new Promise(resolve => {
                 this.resolveRead = resolve
             })
         }
@@ -34,7 +35,7 @@ class PromisedNetSockets {
         }
         const toReturn = this.stream
         this.stream = Buffer.alloc(0)
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
         return toReturn
@@ -50,7 +51,7 @@ class PromisedNetSockets {
         this.stream = Buffer.alloc(0)
 
         this.client = new Socket()
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
         this.closed = false
@@ -83,7 +84,7 @@ class PromisedNetSockets {
     }
 
     async receive() {
-        this.client.on('data', async (message) => {
+        this.client.on('data', async message => {
             const data = Buffer.from(message)
             this.stream = Buffer.concat([this.stream, data])
             this.resolveRead(true)

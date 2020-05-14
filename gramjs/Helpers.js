@@ -230,7 +230,7 @@ function getRandomInt(min, max) {
  * @param ms time in milliseconds
  * @returns {Promise}
  */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 /**
  * Checks if the obj is an array
@@ -238,15 +238,25 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * @returns {boolean}
  */
 function isArrayLike(obj) {
-    if (!obj) return false
+    if (!obj) {
+        return false
+    }
     const l = obj.length
-    if (typeof l != 'number' || l < 0) return false
-    if (Math.floor(l) !== l) return false
+    if (typeof l != 'number' || l < 0) {
+        return false
+    }
+    if (Math.floor(l) !== l) {
+        return false
+    }
     // fast check
-    if (l > 0 && !(l - 1 in obj)) return false
+    if (l > 0 && !(l - 1 in obj)) {
+        return false
+    }
     // more complete check (optional)
     for (let i = 0; i < l; ++i) {
-        if (!(i in obj)) return false
+        if (!(i in obj)) {
+            return false
+        }
     }
     return true
 }
@@ -257,7 +267,9 @@ function isArrayLike(obj) {
  * is greater or equal to one, and that their length is not out of bounds.
  */
 function stripText(text, entities) {
-    if (!entities || entities.length === 0) return text.trim()
+    if (!entities || entities.length === 0) {
+        return text.trim()
+    }
 
     entities = Array.isArray(entities) ? entities : [entities]
     while (text && text.slice(-1).match(/\s/)) {
@@ -265,7 +277,9 @@ function stripText(text, entities) {
         if (e.offset + e.length === text.length) {
             if (e.length === 1) {
                 delete entities[entities.length - 1]
-                if (!entities) return text.trim()
+                if (!entities) {
+                    return text.trim()
+                }
             } else {
                 e.length -= 1
             }
@@ -326,7 +340,7 @@ class MixinBuilder {
 
 // Makes mixin classes easier. For information on mixins,
 // see https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
-const mix = (superclass) => new MixinBuilder(superclass)
+const mix = superclass => new MixinBuilder(superclass)
 
 const EntityType = {
     USER: 0,
@@ -373,7 +387,9 @@ function entityType(entity) {
 function isinstance(object, types) {
     types = Array.isArray(types) ? types : [types]
     for (const type of types) {
-        if (object instanceof type) return true
+        if (object instanceof type) {
+            return true
+        }
     }
     return false
 }

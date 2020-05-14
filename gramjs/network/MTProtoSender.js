@@ -256,6 +256,8 @@ class MTProtoSender {
         this._log.info('Connection to %s complete!'.replace('%s', this._connection.toString()))
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async _disconnect(error = null) {
         if (this._connection === null) {
             this._log.info('Not disconnecting (already have no connection)')
@@ -702,6 +704,8 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async _handleMsgAll(message) {
     }
 
@@ -712,6 +716,8 @@ class MTProtoSender {
         }
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     async _reconnect(e) {
         this._log.debug('Closing current connection...')
         await this._connection.disconnect()

@@ -34,8 +34,12 @@ class MTProtoRequest {
         throw Error('Not overload ' + this.constructor.name)
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     onResponse(buffer) {}
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     onException(exception) {}
 }
 

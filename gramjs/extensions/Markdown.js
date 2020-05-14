@@ -32,24 +32,36 @@ class MarkdownParser extends Scanner {
             switch (this.chr) {
             case '*':
                 if (this.peek(2) == '**') {
-                    if (this.parseEntity(MessageEntityBold, '**')) break
+                    if (this.parseEntity(MessageEntityBold, '**')) {
+                        break
+                    }
                 }
             case '_':
                 if (this.peek(2) == '__') {
-                    if (this.parseEntity(MessageEntityItalic, '__')) break
+                    if (this.parseEntity(MessageEntityItalic, '__')) {
+                        break
+                    }
                 }
             case '~':
                 if (this.peek(2) == '~~') {
-                    if (this.parseEntity(MessageEntityStrike, '~~')) break
+                    if (this.parseEntity(MessageEntityStrike, '~~')) {
+                        break
+                    }
                 }
             case '`':
                 if (this.peek(3) == '```') {
-                    if (this.parseEntity(MessageEntityPre, '```')) break
+                    if (this.parseEntity(MessageEntityPre, '```')) {
+                        break
+                    }
                 } else if (this.peek(1) == '`') {
-                    if (this.parseEntity(MessageEntityCode, '`')) break
+                    if (this.parseEntity(MessageEntityCode, '`')) {
+                        break
+                    }
                 }
             case '[':
-                if (this.parseURL()) break
+                if (this.parseURL()) {
+                    break
+                }
             default:
                 this.text += this.chr
                 this.pos += 1
@@ -60,7 +72,9 @@ class MarkdownParser extends Scanner {
     }
 
     static unparse(text, entities) {
-        if (!text || !entities) return text
+        if (!text || !entities) {
+            return text
+        }
         entities = Array.isArray(entities) ? entities : [entities]
 
         let insertAt = []
@@ -131,7 +145,9 @@ class MarkdownParser extends Scanner {
 
     parseURL() {
         const match = this.rest.match(URL_RE)
-        if (match.index !== 0) return
+        if (match.index !== 0) {
+            return
+        }
 
         const [full, txt, url] = match
         const len = full.length
@@ -152,7 +168,7 @@ class MarkdownParser extends Scanner {
     }
 }
 
-const parse = (str) => {
+const parse = str => {
     const parser = new MarkdownParser(str)
     return parser.parse()
 }

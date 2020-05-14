@@ -107,6 +107,8 @@ class SQLiteSession extends MemorySession {
         return super.authKey
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     _upgradeDatabase(old) {
         // nothing so far
     }
@@ -246,10 +248,14 @@ class SQLiteSession extends MemorySession {
 
     // File processing
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     getFile(md5Digest, fileSize, cls) {
         // nope
     }
 
+    // TODO:
+    // eslint-disable-next-line no-unused-vars
     cacheFile(md5Digest, fileSize, instance) {
         // nope
     }

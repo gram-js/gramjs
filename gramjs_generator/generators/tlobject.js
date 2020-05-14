@@ -67,7 +67,7 @@ const writeModules = (outDir, depth, kind, namespaceTlobjects, typeConstructors)
         if (!ns) {
             const imports = Object.keys(namespaceTlobjects)
                 .filter(Boolean)
-                .join(`, `)
+                .join(', ')
 
             builder.writeln(`const { ${imports} } = require('.');`)
         }
@@ -262,8 +262,8 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
     builder.writeln()
     // Write the __init__ function if it has any argument
     if (!tlobject.realArgs.length) {
-        builder.writeln(`constructor() {`)
-        builder.writeln(`super();`)
+        builder.writeln('constructor() {')
+        builder.writeln('super();')
         builder.writeln(`this.CONSTRUCTOR_ID = 0x${tlobject.id.toString(16).padStart(8, '0')};`)
         builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(tlobject.result).toString(16)};`)
 
@@ -292,13 +292,13 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
     } else if (constructors.length === 1) {
         builder.writeln(`Instance of ${constructors[0].className}`)
     } else {
-        builder.writeln(`Instance of either ${constructors.map((c) => c.className).join(', ')}`)
+        builder.writeln(`Instance of either ${constructors.map(c => c.className).join(', ')}`)
     }
 
     builder.writeln('*/')
-    builder.writeln(`constructor(args) {`)
-    builder.writeln(`super();`)
-    builder.writeln(`args = args || {}`)
+    builder.writeln('constructor(args) {')
+    builder.writeln('super();')
+    builder.writeln('args = args || {}')
     // Class-level variable to store its Telegram's constructor ID
     builder.writeln(`this.CONSTRUCTOR_ID = 0x${tlobject.id.toString(16).padStart(8, '0')};`)
     builder.writeln(`this.SUBCLASS_OF_ID = 0x${crc32(tlobject.result).toString(16)};`)
@@ -330,7 +330,7 @@ const writeClassConstructor = (tlobject, kind, typeConstructors, builder) => {
             if (arg.isVector) {
                 // Currently for the case of "messages.forwardMessages"
                 // Ensure we can infer the length from id:Vector<>
-                if (!tlobject.realArgs.find((a) => a.name === 'id').isVector) {
+                if (!tlobject.realArgs.find(a => a.name === 'id').isVector) {
                     throw new Error(`Cannot infer list of random ids for ${tlobject}`)
                 }
 
@@ -350,7 +350,7 @@ const writeResolve = (tlobject, builder) => {
     if (
         tlobject.isFunction &&
         tlobject.realArgs.some(
-            (arg) =>
+            arg =>
                 arg.type in AUTO_CASTS ||
                 (`${arg.name},${arg.type}` in NAMED_AUTO_CASTS && !NAMED_BLACKLIST.has(tlobject.fullname)),
         )
@@ -373,9 +373,9 @@ const writeResolve = (tlobject, builder) => {
             }
 
             if (arg.isVector) {
-                builder.write(`const _tmp = [];`)
+                builder.write('const _tmp = [];')
                 builder.writeln(`for (const _x of this.${variableSnakeToCamelCase(arg.name)}) {`)
-                builder.writeln(`_tmp.push(%s);`, util.format(ac, '_x'))
+                builder.writeln('_tmp.push(%s);', util.format(ac, '_x'))
                 builder.endBlock()
                 builder.writeln(`this.${variableSnakeToCamelCase(arg.name)} = _tmp;`)
             } else {
@@ -576,16 +576,16 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
         builder.write('))')
     } else if (arg.flagIndicator) {
         // Calculate the flags with those items which are not None
-        if (!args.some((f) => f.isFlag)) {
+        if (!args.some(f => f.isFlag)) {
             // There's a flag indicator, but no flag arguments so it's 0
             builder.write('Buffer.alloc(4)')
         } else {
             builder.write('struct.pack(\'<I\', ')
             builder.write(
                 args
-                    .filter((flag) => flag.isFlag)
+                    .filter(flag => flag.isFlag)
                     .map(
-                        (flag) =>
+                        flag =>
                             `(this.${variableSnakeToCamelCase(
                                 flag.name,
                             )} === undefined || this.${variableSnakeToCamelCase(
@@ -770,9 +770,9 @@ const writePatched = (outDir, namespaceTlobjects) => {
 
         builder.writeln(AUTO_GEN_NOTICE)
         builder.writeln('const struct = require(\'python-struct\');')
-        builder.writeln(`const { TLObject } = require('../tlobject');`)
-        builder.writeln(`const types = require('../types');`)
-        builder.writeln(`const custom = require('../custom');`)
+        builder.writeln('const { TLObject } = require(\'../tlobject\');')
+        builder.writeln('const types = require(\'../types\');')
+        builder.writeln('const custom = require(\'../custom\');')
 
         builder.writeln()
 
@@ -809,7 +809,7 @@ const writeAllTLObjects = (tlobjects, layer, builder) => {
     builder.writeln()
 
     // Create a constant variable to indicate which layer this is
-    builder.writeln(`const LAYER = %s;`, layer)
+    builder.writeln('const LAYER = %s;', layer)
     builder.writeln()
 
     // Then create the dictionary containing constructor_id: class
@@ -889,7 +889,7 @@ const generateTLObjects = (tlobjects, layer, importDepth, outputDir) => {
     writeAllTLObjects(tlobjects, layer, builder)
 }
 
-const cleanTLObjects = (outputDir) => {
+const cleanTLObjects = outputDir => {
     for (let d of ['functions', 'types', 'patched']) {
         d = `${outputDir}/d`
 

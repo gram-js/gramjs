@@ -568,11 +568,14 @@ function getInputGeo(geo) {
  */
 function getInputMedia(media, {
     isPhoto = false,
+    // TODO:
+    /* eslint-disable no-unused-vars */
     attributes = null,
     forceDocument = false,
     voiceNote = false,
     videoNote = false,
     supportsStreaming = false,
+    /* eslint-enable no-unused-vars */
 } = {}) {
     try {
         switch (media.SUBCLASS_OF_ID) {
@@ -871,10 +874,14 @@ function getMessageId(message) {
  Converts the given parse mode into a matching parser.
  */
 function sanitizeParseMode(mode) {
-    if (!mode) return null
+    if (!mode) {
+        return null
+    }
 
     if (mode instanceof Function) {
         class CustomMode {
+            // TODO:
+            // eslint-disable-next-line no-unused-vars
             static unparse(text, entities) {
                 throw new Error('Not implemented')
             }
@@ -1096,13 +1103,17 @@ function _encodeTelegramBase64(string) {
  */
 function resolveBotFileId(fileId) {
     let data = _rleDecode(_decodeTelegramBase64(fileId))
-    if (!data) return null
+    if (!data) {
+        return null
+    }
 
     // Not officially documented anywhere, but we
     // assume the last byte is some kind of "version".
     let version
     [data, version] = data.slice(0, data.length - 1), data.slice(-1)
-    if (![2, 4].includes(version)) return null
+    if (![2, 4].includes(version)) {
+        return null
+    }
 
     if ((version === 2 && data.size === 24) ||
         (version === 4 && data.size === 25)) {
