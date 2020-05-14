@@ -351,7 +351,7 @@ class BaseClient {
         while (attempts < args.maxAttempts) {
             try {
                 let value = args.code
-                if (typeof(value) === 'function') {
+                if (typeof value === 'function') {
                     value = await value()
                 }
 
