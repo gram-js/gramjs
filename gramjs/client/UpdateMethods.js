@@ -141,15 +141,15 @@ const UpdateMethods = superclass => class extends superclass {
         this._dispatchUpdate(args)
     }
 
-    async _dispatchUpdate(args = {
-        update: null,
-        others: null,
-        channelId: null,
-        ptsDate: null,
-    }) {
+    async _dispatchUpdate(
+        update = null,
+        // others = null,
+        // channelId = null,
+        // ptsDate = null,
+    ) {
         for (const [builder, callback] of this._eventBuilders) {
             console.log(builder)
-            const event = builder.build(args.update)
+            const event = builder.build(update)
             if (event) {
                 await callback(event)
             }
@@ -166,7 +166,7 @@ const UpdateMethods = superclass => class extends superclass {
      * @param {number} channelId
      * @param {number} ptsDate
      */
-    // TODO:
+    // TODO =
     // eslint-disable-next-line no-unused-vars
     _getDifference(update, channelId, ptsDate) {
 

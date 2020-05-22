@@ -564,7 +564,7 @@ class MTProtoSender {
         const badMsg = message.obj
         const states = this._popStates(badMsg.badMsgId)
         this._log.debug(`Handling bad msg ${badMsg}`)
-        if ([16, 17].contains(badMsg.errorCode)) {
+        if ([16, 17].includes(badMsg.errorCode)) {
             // Sent msg_id too low or too high (respectively).
             // Use the current msg_id to determine the right time offset.
             const to = this._state.updateTimeOffset(message.msgId)

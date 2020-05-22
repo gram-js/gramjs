@@ -1,7 +1,91 @@
 const { functions, types } = require('../tl')
 const utils = require('../Utils')
+const MessagesIter = require('./MessagesIter')
+const IDsIter = require('./IDsIter')
 
 const MessageMethods = superclass => class extends superclass {
+    iterMessages( entity, {
+        limit = null,
+        offsetDate = null,
+        offsetId = 0,
+        maxId = 0,
+        minId = 0,
+        addOffset = 0,
+        search = null,
+        filter = null,
+        fromUser = null,
+        waitTime = null,
+        ids = null,
+        reverse = false,
+    } = {}) {
+        if (ids) {
+            if (!Array.isArray(ids)) {
+                ids = [ids]
+            }
+
+            return new IDsIter(this, {
+                reverse: reverse,
+                waitTime: waitTime,
+                limit: ids.length,
+                entity: entity,
+                ids: ids,
+            })
+        }
+
+        return new MessagesIter(this, {
+            reverse: reverse,
+            waitTime: waitTime,
+            limit: limit,
+            entity: entity,
+            offsetId: offsetId,
+            minId: minId,
+            maxId: maxId,
+            fromUser: fromUser,
+            offsetDate: offsetDate,
+            addOffset: addOffset,
+            filter: filter,
+            search: search,
+        })
+    }
+
+    async getMessages(entity, options) {
+        if (!('limit' in options)) {
+            if ('minId' in options && 'maxId' in options) {
+                options.limit = null
+            } else {
+                options.limit = 1
+            }
+        }
+
+        const it = this.iterMessages(entity, options)
+        return it.collect()
+    }
+
+    // async forwardMessages(
+    //     entity,
+    //     messages,
+    //     fromPeer = null,
+    //     silent = false,
+    //     asAlbum = false,
+    //     schedule = null
+    // ) {
+    //     const single = !array.isArray(messages)
+    //     if (single) {
+    //         messages = [messages]
+    //     }
+
+    //     entity = await this.getInputEntity(entity)
+        
+    //     if (fromPeer) {
+    //         fromPeer = await this.getInputEntity(fromPeer)
+    //         fromPeerId = await this.getPeerId(fromPeer)
+    //     } else {
+    //         fromPeerId = null
+    //     }
+
+        
+    // }
+
     async sendMessage(entity, message, {
         replyTo = null,
         parseMode = null,

@@ -195,7 +195,7 @@ class MTProtoState {
         const old = this.timeOffset
         const now = Math.floor(new Date().getTime() / 1000)
         const correct = correctMsgId >> BigInt(32)
-        this.timeOffset = correct - now
+        this.timeOffset = Number(correct - BigInt(now))
 
         if (this.timeOffset !== old) {
             this._lastMsgId = 0

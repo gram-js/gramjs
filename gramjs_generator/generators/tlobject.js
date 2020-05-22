@@ -551,7 +551,8 @@ const writeArgToBytes = (builder, arg, args, name = null) => {
                 name,
             )
         } else {
-            builder.write('(%s === undefined || %s === false || %s ===null) ? Buffer.alloc(0) : [', name, name, name)
+            builder.write(
+                '(%s === undefined || %s === false || %s ===null) ? Buffer.alloc(0) : [', name, name, name)
         }
     }
 

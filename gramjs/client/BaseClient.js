@@ -32,43 +32,38 @@ const MAX_CHUNK_SIZE = 512 * 1024
 
 
 class BaseClient {
-    static DEFAULT_OPTIONS = {
-        connection: ConnectionTCPObfuscated,
-        useIPV6: false,
-        proxy: null,
-        timeout: 10,
-        requestRetries: 5,
-        connectionRetries: 5,
-        retryDelay: 1,
-        autoReconnect: true,
-        sequentialUpdates: false,
-        floodSleepLimit: 60,
-        deviceModel: null,
-        systemVersion: null,
-        appVersion: null,
-        langCode: 'en',
-        systemLangCode: 'en',
-        baseLogger: Logger,
-    }
-
-
-    constructor(session, apiId, apiHash, opts = BaseClient.DEFAULT_OPTIONS) {
+    constructor(session, apiId, apiHash, {
+        connection = ConnectionTCPObfuscated,
+        useIPV6 = false,
+        proxy = null,
+        timeout = 10,
+        requestRetries = 5,
+        connectionRetries = 5,
+        retryDelay = 1,
+        autoReconnect = true,
+        sequentialUpdates = false,
+        floodSleepLimit = 60,
+        deviceModel = null,
+        systemVersion = null,
+        appVersion = null,
+        langCode = 'en',
+        systemLangCode = 'en',
+        baseLogger = Logger,
+    } = {}) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
         }
 
-        const args = { ...BaseClient.DEFAULT_OPTIONS, ...opts }
-
         this.apiId = apiId
         this.apiHash = apiHash
-        this._useIPV6 = args.useIPV6
+        this._useIPV6 = useIPV6
         this._entityCache = new Set()
 
-        if (typeof(args.baseLogger) == 'function') {
+        if (typeof(baseLogger) == 'function') {
             // eslint-disable-next-line new-cap
-            this._log = new args.baseLogger()
-        } else if (typeof(args.baseLogger) == 'object') {
-            this._log = args.baseLogger
+            this._log = new baseLogger()
+        } else if (typeof(baseLogger) == 'object') {
+            this._log = baseLogger
         } else {
             this._log = new Logger()
         }
@@ -93,7 +88,7 @@ class BaseClient {
 
         // Some further state for subclasses
         this._eventBuilders = []
-        this.floodSleepLimit = args.floodSleepLimit
+        this.floodSleepLimit = floodSleepLimit
 
         // Default parse mode
         this._parseMode = Markdown
@@ -106,17 +101,17 @@ class BaseClient {
         this.apiId = parseInt(apiId)
         this.apiHash = apiHash
 
-        this._requestRetries = args.requestRetries
-        this._connectionRetries = args.connectionRetries
-        this._retryDelay = args.retryDelay || 0
-        if (args.proxy) {
+        this._requestRetries = requestRetries
+        this._connectionRetries = connectionRetries
+        this._retryDelay = retryDelay || 0
+        if (proxy) {
             this._log.warn('proxies are not yet supported')
         }
-        this._proxy = args.proxy
-        this._timeout = args.timeout
-        this._autoReconnect = args.autoReconnect
+        this._proxy = proxy
+        this._timeout = timeout
+        this._autoReconnect = autoReconnect
 
-        this._connection = args.connection
+        this._connection = connection
         // TODO add proxy support
 
         this._floodWaitedRequests = {}
@@ -126,12 +121,12 @@ class BaseClient {
                 layer: LAYER,
                 query: new functions.InitConnectionRequest({
                     apiId: this.apiId,
-                    deviceModel: args.deviceModel || os.type().toString() || 'Unknown',
-                    systemVersion: args.systemVersion || os.release().toString() || '1.0',
-                    appVersion: args.appVersion || '1.0',
-                    langCode: args.langCode,
+                    deviceModel: deviceModel || os.type().toString() || 'Unknown',
+                    systemVersion: systemVersion || os.release().toString() || '1.0',
+                    appVersion: appVersion || '1.0',
+                    langCode: langCode,
                     langPack: '', // this should be left empty.
-                    systemLangCode: args.systemLangCode,
+                    systemLangCode: systemLangCode,
                     query: x,
                     proxy: null, // no proxies yet.
                 }),
@@ -297,44 +292,44 @@ class BaseClient {
         throw new Error(`Request was unsuccessful ${attempt} time(s)`)
     }
 
-    async start(args = {
-        phone: null,
-        code: null,
-        password: null,
-        botToken: null,
-        forceSMS: null,
-        firstName: null,
-        lastName: null,
-        maxAttempts: 5,
-    }) {
-        args.maxAttempts = args.maxAttempts || 5
+    async start({
+        phone = null,
+        code = null,
+        password = null,
+        botToken = null,
+        forceSMS = null,
+        firstName = null,
+        lastName = null,
+        maxAttempts = 5,
+    } = {}) {
+        maxAttempts = maxAttempts || 5
         if (!this.isConnected()) {
             await this.connect()
         }
         if (await this.isUserAuthorized()) {
             return this
         }
-        if (args.code == null && !args.botToken) {
+        if (code == null && !botToken) {
             throw new Error('Please pass a string or a promise to the code arg')
         }
-        if (!args.botToken && !args.phone) {
+        if (!botToken && !phone) {
             throw new Error('Please provide either a phone or a bot token')
         }
-        if (!args.botToken) {
-            while (typeof args.phone === 'function') {
-                const value = await args.phone()
+        if (!botToken) {
+            while (typeof phone === 'function') {
+                const value = await phone()
                 if (value.indexOf(':') !== -1) {
                     // eslint-disable-next-line require-atomic-updates
-                    args.botToken = value
+                    botToken = value
                     break
                 }
                 // eslint-disable-next-line require-atomic-updates
-                args.phone = utils.parsePhone(value) || args.phone
+                phone = utils.parsePhone(value) || phone
             }
         }
-        if (args.botToken) {
+        if (botToken) {
             await this.signIn({
-                botToken: args.botToken,
+                botToken: botToken,
             })
             return this
         }
@@ -344,13 +339,13 @@ class BaseClient {
         let twoStepDetected = false
         let signUp = false
 
-        if (typeof(args.code) === 'function') {
-            await this.sendCodeRequest(args.phone, args.forceSMS)
+        if (typeof(code) === 'function') {
+            await this.sendCodeRequest(phone, forceSMS)
         }
 
-        while (attempts < args.maxAttempts) {
+        while (attempts < maxAttempts) {
             try {
-                let value = args.code
+                let value = code
                 if (typeof value === 'function') {
                     value = await value()
                 }
@@ -364,13 +359,13 @@ class BaseClient {
                 if (signUp) {
                     me = await this.signUp({
                         code: value,
-                        firstName: args.firstName,
-                        lastName: args.lastName,
+                        firstName: firstName,
+                        lastName: lastName,
                     })
                 } else {
                     // this throws SessionPasswordNeededError if 2FA enabled
                     me = await this.signIn({
-                        phone: args.phone,
+                        phone: phone,
                         code: value,
                     })
                 }
@@ -394,20 +389,20 @@ class BaseClient {
             }
             attempts++
         }
-        if (attempts >= args.maxAttempts) {
-            throw new Error(`${args.maxAttempts} consecutive sign-in attempts failed. Aborting`)
+        if (attempts >= maxAttempts) {
+            throw new Error(`${maxAttempts} consecutive sign-in attempts failed. Aborting`)
         }
         if (twoStepDetected) {
-            if (!args.password) {
+            if (!password) {
                 throw new Error('Two-step verification is enabled for this account. ' +
                     'Please provide the \'password\' argument to \'start()\'.')
             }
-            if (typeof args.password == 'function') {
-                for (let i = 0; i < args.maxAttempts; i++) {
+            if (typeof password == 'function') {
+                for (let i = 0; i < maxAttempts; i++) {
                     try {
-                        const pass = await args.password()
+                        const pass = await password()
                         me = await this.signIn({
-                            phone: args.phone,
+                            phone: phone,
                             password: pass,
                         })
                         break
@@ -418,8 +413,8 @@ class BaseClient {
                 }
             } else {
                 me = await this.signIn({
-                    phone: args.phone,
-                    password: args.password,
+                    phone: phone,
+                    password: password,
                 })
             }
         }
@@ -428,36 +423,36 @@ class BaseClient {
         return this
     }
 
-    async signIn(args = {
-        phone: null,
-        code: null,
-        password: null,
-        botToken: null,
-        phoneCodeHash: null,
-    }) {
+    async signIn({
+        phone = null,
+        code = null,
+        password = null,
+        botToken = null,
+        phoneCodeHash = null,
+    } = {}) {
         let result
-        if (args.phone && !args.code && !args.password) {
-            return await this.sendCodeRequest(args.phone)
-        } else if (args.code) {
+        if (phone && !code && !password) {
+            return await this.sendCodeRequest(phone)
+        } else if (code) {
             const [phone, phoneCodeHash] =
-                this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
+                this._parsePhoneAndHash(phone, phoneCodeHash)
             // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
             // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
             result = await this.invoke(new functions.auth.SignInRequest({
                 phoneNumber: phone,
                 phoneCodeHash: phoneCodeHash,
-                phoneCode: args.code.toString(),
+                phoneCode: code.toString(),
             }))
-        } else if (args.password) {
+        } else if (password) {
             const pwd = await this.invoke(new functions.account.GetPasswordRequest())
             result = await this.invoke(new functions.auth.CheckPasswordRequest({
-                password: computeCheck(pwd, args.password),
+                password: computeCheck(pwd, password),
             }))
-        } else if (args.botToken) {
+        } else if (botToken) {
             result = await this.invoke(new functions.auth.ImportBotAuthorizationRequest(
                 {
                     flags: 0,
-                    botAuthToken: args.botToken,
+                    botAuthToken: botToken,
                     apiId: this.apiId,
                     apiHash: this.apiHash,
                 },
@@ -679,20 +674,22 @@ class BaseClient {
     // download region
 
 
-    async downloadFile(inputLocation, file, args = {
-        partSizeKb: null,
-        fileSize: null,
-        progressCallback: null,
-        dcId: null,
-    }) {
-        if (!args.partSizeKb) {
-            if (!args.fileSize) {
-                args.partSizeKb = 64
+    async downloadFile({
+        inputLocation,
+        file,
+        partSizeKb = null,
+        fileSize = null,
+        progressCallback = null,
+        dcId = null,
+    } = {}) {
+        if (!partSizeKb) {
+            if (!fileSize) {
+                partSizeKb = 64
             } else {
-                args.partSizeKb = utils.getAppropriatedPartSize(args.fileSize)
+                partSizeKb = utils.getAppropriatedPartSize(fileSize)
             }
         }
-        const partSize = parseInt(args.partSizeKb * 1024)
+        const partSize = parseInt(partSizeKb * 1024)
         if (partSize % MIN_CHUNK_SIZE !== 0) {
             throw new Error('The part size must be evenly divisible by 4096')
         }
@@ -704,12 +701,12 @@ class BaseClient {
             throw new Error('not supported')
         }
         const res = utils.getInputLocation(inputLocation)
-        let exported = args.dcId && this.session.dcId !== args.dcId
+        let exported = dcId && this.session.dcId !== dcId
 
         let sender
         if (exported) {
             try {
-                sender = await this._borrowExportedSender(args.dcId)
+                sender = await this._borrowExportedSender(dcId)
             } catch (e) {
                 if (e instanceof errors.DcIdInvalidError) {
                     // Can't export a sender for the ID we are currently in
@@ -760,8 +757,8 @@ class BaseClient {
                 }
                 this._log.debug(`Saving ${result.bytes.length} more bytes`)
                 f.write(result.bytes)
-                if (args.progressCallback) {
-                    await args.progressCallback(f.getValue().length, args.fileSize)
+                if (progressCallback) {
+                    await progressCallback(f.getValue().length, fileSize)
                 }
             }
         } finally {
@@ -769,10 +766,12 @@ class BaseClient {
         }
     }
 
-    async downloadMedia(message, file, args = {
-        thumb: null,
-        progressCallback: null,
-    }) {
+    async downloadMedia({
+        message,
+        file,
+        thumb = null,
+        progressCallback = null,
+    } = {}) {
         let date
         let media
         if (message instanceof types.Message) {
@@ -792,14 +791,14 @@ class BaseClient {
             }
         }
         if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
-            return await this._downloadPhoto(media, file, date, args.thumb, args.progressCallback)
+            return await this._downloadPhoto(media, file, date, thumb, progressCallback)
         } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
-            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
-        } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
+            return await this._downloadDocument(media, file, date, thumb, progressCallback, media.dcId)
+        } else if (media instanceof types.MessageMediaContact && thumb == null) {
             return this._downloadContact(media, file)
         } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) &&
-                    args.thumb == null) {
-            return await this._downloadWebDocument(media, file, args.progressCallback)
+                    thumb == null) {
+            return await this._downloadWebDocument(media, file, progressCallback)
         }
     }
 
