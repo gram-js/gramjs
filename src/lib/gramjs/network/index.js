@@ -5,7 +5,8 @@ const MTProtoSender = require('./MTProtoSender')
 class UpdateConnectionState {
     static states = {
         disconnected: -1,
-        connected: 1
+        connected: 1,
+        broken: 0,
     }
 
     constructor(state) {

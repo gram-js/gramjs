@@ -17,7 +17,8 @@ export type ApiUpdateAuthorizationStateType = (
 
 export type ApiUpdateConnectionStateType = (
   'connectionStateConnecting' |
-  'connectionStateReady'
+  'connectionStateReady' |
+  'connectionStateBroken'
 );
 
 export type ApiUpdateAuthorizationState = {

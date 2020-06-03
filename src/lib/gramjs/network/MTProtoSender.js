@@ -53,6 +53,8 @@ class MTProtoSender {
         authKeyCallback: null,
         updateCallback: null,
         autoReconnectCallback: null,
+        isMainSender: null,
+        senderCallback: null,
     }
 
     /**
@@ -71,6 +73,8 @@ class MTProtoSender {
         this._authKeyCallback = args.authKeyCallback
         this._updateCallback = args.updateCallback
         this._autoReconnectCallback = args.autoReconnectCallback
+        this._isMainSender = args.isMainSender;
+        this._senderCallback = args.senderCallback;
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -381,12 +385,23 @@ class MTProtoSender {
                     continue
                 } else if (e instanceof InvalidBufferError) {
                     this._log.info('Broken authorization key; resetting')
-                    await this.authKey.setKey(null)
+                    if (this._updateCallback && this._isMainSender){
+                        // 0 == broken
+                        this._updateCallback(0)
+                    } else if (this._senderCallback && !this._isMainSender){
+                        // Deletes the current sender from the object
+                        this._senderCallback(this._dcId)
+                    }
+
+                    // We don't really need to do this if we're going to sign in again
+                    /*await this.authKey.setKey(null)
 
                     if (this._authKeyCallback) {
                         await this._authKeyCallback(null)
-                    }
-                    await this.disconnect()
+                    }*/
+                    // We can disconnect at sign in
+                    /* await this.disconnect()
+                    */
                     return
                 } else {
                     this._log.error('Unhandled error while receiving data')

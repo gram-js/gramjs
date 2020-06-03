@@ -161,7 +161,7 @@ class TelegramClient {
             connectTimeout: this._timeout,
             authKeyCallback: this._authKeyCallback.bind(this),
             updateCallback: this._handleUpdate.bind(this),
-
+            isMainSender: true,
         })
 
         const connection = new this._connection(this.session.serverAddress
@@ -256,6 +256,7 @@ class TelegramClient {
     // endregion
     // export region
 
+<<<<<<< HEAD
     _onAuth() {
         this._setupAdditionalDcConnections()
     }
@@ -266,6 +267,10 @@ class TelegramClient {
                 this._borrowExportedSender(i)
             }
         }
+=======
+    removeSender(dcId) {
+        delete this._borrowedSenderPromises[dcId];
+>>>>>>> 6129de89... GramJS: Log out on `InvalidBufferError` (#481)
     }
 
     async _borrowExportedSender(dcId, retries = 5) {
@@ -288,6 +293,8 @@ class TelegramClient {
                 autoReconnect: this._autoReconnect,
                 connectTimeout: this._timeout,
                 authKeyCallback: this._authKeyCallback.bind(this),
+                isMainSender: dcId===this.session.dcId,
+                senderCallback: this.removeSender.bind(this),
             })
         for (let i = 0; i < retries; i++) {
             try {
@@ -1097,10 +1104,7 @@ class TelegramClient {
     }
 
     _handleUpdate(update) {
-        if (update === 1) {
-            this._dispatchUpdate({ update: new UpdateConnectionState(update) })
-            return
-        } else if (update === -1) {
+        if ([-1, 0, 1].includes(update)){
             this._dispatchUpdate({ update: new UpdateConnectionState(update) })
             return
         }
