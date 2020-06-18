@@ -231,7 +231,7 @@ class TelegramClient {
                 return promise
                     .then((sender) => sender.disconnect())
             })
-        ]);
+        ])
 
         this._eventBuilders = []
     }
@@ -269,8 +269,12 @@ class TelegramClient {
         }
 =======
     removeSender(dcId) {
+<<<<<<< HEAD
         delete this._borrowedSenderPromises[dcId];
 >>>>>>> 6129de89... GramJS: Log out on `InvalidBufferError` (#481)
+=======
+        delete this._borrowedSenderPromises[dcId]
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
     }
 
     async _borrowExportedSender(dcId, retries = 5) {
@@ -341,11 +345,12 @@ class TelegramClient {
      * @param [args[fileSize] {number}]
      * @param [args[progressCallback] {Function}]
      * @param [args[dcId] {number}]
+     * @param [args[workers] {number}]
      * @returns {Promise<Buffer>}
      */
     async downloadFile(inputLocation, args = {}) {
 
-        let { partSizeKb, fileSize } = args
+        let { partSizeKb, fileSize, workers } = args
         const { dcId } = args
 
         if (!partSizeKb) {
@@ -390,6 +395,7 @@ class TelegramClient {
         }
 
         this._log.info(`Downloading file in chunks of ${partSize} bytes`)
+<<<<<<< HEAD
 
         try {
             let offset = 0
@@ -418,22 +424,73 @@ class TelegramClient {
                         continue
                     } else {
                         throw e
+=======
+        if (args.progressCallback) {
+            args.progressCallback(0)
+        }
+
+        if (!workers) {
+            workers = 1
+        }
+
+        try {
+            let limit = partSize
+            let offset = args.start || 0
+            while (true) {
+                let results = []
+                let i = 0
+                while (true) {
+                    let precise = false;
+                    if (Math.floor(offset / ONE_MB) !== Math.floor((offset + limit - 1) / ONE_MB)) {
+                        limit = ONE_MB - offset % ONE_MB
+                        precise = true
+                    }
+
+                    results.push(sender.send(new requests.upload.GetFile({
+                        location: inputLocation,
+                        offset,
+                        limit,
+                        precise
+                    })))
+
+                    offset += partSize
+                    i++
+                    if ((args.end && (offset + partSize) > args.end) || workers === i) {
+                        break
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
                     }
                 }
-                offset += partSize
+                results = await Promise.all(results)
+                for (const result of results) {
+                    if (result.bytes.length) {
+                        this._log.debug(`Saving ${result.bytes.length} more bytes`)
 
-                if (result.bytes.length) {
-                    this._log.debug(`Saving ${result.bytes.length} more bytes`)
+                        fileWriter.write(result.bytes)
+                        if (args.progressCallback) {
+                            if (args.progressCallback.isCanceled) {
+                                throw new Error('USER_CANCELED')
+                            }
 
-                    fileWriter.write(result.bytes)
-
+<<<<<<< HEAD
                     if (args.progressCallback) {
                         await args.progressCallback(fileWriter.getValue().length, fileSize)
+=======
+                            const progress = offset / fileSize
+                            args.progressCallback(progress)
+                        }
+                    }
+                    // Last chunk.
+                    if (result.bytes.length < partSize) {
+                        return fileWriter.getValue()
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
                     }
                 }
-
                 // Last chunk.
+<<<<<<< HEAD
                 if (result.bytes.length < partSize) {
+=======
+                if (args.end && (offset + results[results.length - 1].bytes.length) > args.end) {
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
                     return fileWriter.getValue()
                 }
             }
@@ -657,9 +714,22 @@ class TelegramClient {
             return
         }
 
+<<<<<<< HEAD
         const size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null
         if (size && (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize)) {
             return this._downloadCachedPhotoSize(size)
+=======
+        let size = null
+        if (args.sizeType) {
+            size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null
+            if (!size && doc.mimeType.startsWith('video/')) {
+                return
+            }
+
+            if (size && (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize)) {
+                return this._downloadCachedPhotoSize(size)
+            }
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
         }
 <<<<<<< HEAD
         const result = await this.downloadFile(
@@ -681,6 +751,7 @@ class TelegramClient {
                 fileSize: size ? size.size : doc.size,
                 progressCallback: args.progressCallback,
                 dcId: doc.dcId,
+                workers: args.workers,
             },
         )
         return result
@@ -831,6 +902,7 @@ class TelegramClient {
         if (await this.isUserAuthorized()) {
             this._onAuth()
 
+<<<<<<< HEAD
             return this
         }
         if (args.code == null && !args.botToken) {
@@ -872,6 +944,16 @@ class TelegramClient {
                 if (!value) {
                     throw new Error('the phone code is empty')
                 }
+=======
+        if (await checkAuthorization(this)) {
+            return
+        }
+
+        const apiCredentials = {
+            apiId: this.apiId,
+            apiHash: this.apiHash
+        }
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
 
                 if (signUp) {
                     const [firstName, lastName] = await args.firstAndLastNames()
@@ -944,6 +1026,7 @@ class TelegramClient {
         return this
     }
 
+<<<<<<< HEAD
     async signIn(args = {
         phone: null,
         code: null,
@@ -1019,6 +1102,10 @@ class TelegramClient {
         }
 
         return [phone, phoneHash]
+=======
+    uploadFile(fileParams) {
+        return uploadFile(this, fileParams)
+>>>>>>> bb792a8a... GramJS: Parallel download; Progressive: Fix caching
     }
 
     // endregion
