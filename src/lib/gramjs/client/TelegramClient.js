@@ -429,8 +429,11 @@ class TelegramClient {
             args.progressCallback(0)
         }
 
-        if (!workers) {
+        if (!workers || !fileSize) {
             workers = 1
+        }
+        if (!args.end){
+            args.end = fileSize
         }
 
         try {
@@ -495,7 +498,7 @@ class TelegramClient {
                 }
             }
         } finally {
-            // TODO
+
         }
     }
 
@@ -817,22 +820,7 @@ class TelegramClient {
         }
         //await request.resolve(this, utils)
 
-        if (request.CONSTRUCTOR_ID in this._floodWaitedRequests) {
-            const due = this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            const diff = Math.round(due - new Date().getTime() / 1000)
-            if (diff <= 3) {
-                delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            } else if (diff <= this.floodSleepLimit) {
-                this._log.info(`Sleeping early for ${diff}s on flood wait`)
-                await sleep(diff)
-                delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            } else {
-                throw new FloodWaitError({
-                    request: request,
-                    capture: diff,
-                })
-            }
-        }
+
         this._lastRequest = new Date().getTime()
         let attempt = 0
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
@@ -848,7 +836,6 @@ class TelegramClient {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
-                    this._floodWaitedRequests[request.CONSTRUCTOR_ID] = new Date().getTime() / 1000 + e.seconds
                     if (e.seconds <= this.floodSleepLimit) {
                         this._log.info(`Sleeping for ${e.seconds}s on flood wait`)
                         await sleep(e.seconds * 1000)

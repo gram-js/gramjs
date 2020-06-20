@@ -11,7 +11,13 @@ import { getEntityTypeById } from '../gramjsBuilders';
 import { blobToDataUri } from '../../../util/files';
 import * as cacheApi from '../../../util/cacheApi';
 
+<<<<<<< HEAD
 type EntityType = 'msg' | 'sticker' | 'gif' | 'channel' | 'chat' | 'user' | 'stickerSet';
+=======
+type EntityType = 'msg' | 'sticker' | 'wallpaper' | 'gif' | 'channel' | 'chat' | 'user' | 'stickerSet';
+
+const MAX_WORKERS = 16;
+>>>>>>> 90fbcf87... GramJS: Various fixes for download and floodwaits (#623)
 
 export default async function downloadMedia(
   {
@@ -112,7 +118,11 @@ async function download(
 
   if (entityType === 'msg' || entityType === 'sticker' || entityType === 'gif') {
     const data = await client.downloadMedia(entity, {
+<<<<<<< HEAD
       sizeType, start, end, progressCallback: onProgress, workers: 16,
+=======
+      sizeType, start, end, progressCallback: onProgress, workers: MAX_WORKERS,
+>>>>>>> 90fbcf87... GramJS: Various fixes for download and floodwaits (#623)
     });
     let mimeType;
     let fullSize;
