@@ -5,7 +5,9 @@ import {
   ApiMediaFormat, ApiOnProgress, ApiParsedMedia, ApiPreparedMedia,
 } from '../../types';
 
-import { MEDIA_CACHE_DISABLED, MEDIA_CACHE_MAX_BYTES, MEDIA_CACHE_NAME } from '../../../config';
+import {
+  DOWNLOAD_WORKERS, MEDIA_CACHE_DISABLED, MEDIA_CACHE_MAX_BYTES, MEDIA_CACHE_NAME,
+} from '../../../config';
 import localDb from '../localDb';
 import { getEntityTypeById } from '../gramjsBuilders';
 import { blobToDataUri } from '../../../util/files';
@@ -16,9 +18,12 @@ type EntityType = 'msg' | 'sticker' | 'gif' | 'channel' | 'chat' | 'user' | 'sti
 =======
 type EntityType = 'msg' | 'sticker' | 'wallpaper' | 'gif' | 'channel' | 'chat' | 'user' | 'stickerSet';
 
+<<<<<<< HEAD
 const MAX_WORKERS = 16;
 >>>>>>> 90fbcf87... GramJS: Various fixes for download and floodwaits (#623)
 
+=======
+>>>>>>> edef29da... [Perf] GramJs: Add parallel uploads (#659)
 export default async function downloadMedia(
   {
     url, mediaFormat, start, end,
@@ -119,10 +124,14 @@ async function download(
   if (entityType === 'msg' || entityType === 'sticker' || entityType === 'gif') {
     const data = await client.downloadMedia(entity, {
 <<<<<<< HEAD
+<<<<<<< HEAD
       sizeType, start, end, progressCallback: onProgress, workers: 16,
 =======
       sizeType, start, end, progressCallback: onProgress, workers: MAX_WORKERS,
 >>>>>>> 90fbcf87... GramJS: Various fixes for download and floodwaits (#623)
+=======
+      sizeType, start, end, progressCallback: onProgress, workers: entityType === 'msg' ? DOWNLOAD_WORKERS : 1,
+>>>>>>> edef29da... [Perf] GramJs: Add parallel uploads (#659)
     });
     let mimeType;
     let fullSize;
