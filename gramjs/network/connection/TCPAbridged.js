@@ -17,10 +17,6 @@ class AbridgedPacketCodec extends PacketCodec {
         if (length < 127) {
             length = struct.pack('B', length)
         } else {
-            // here we get a string '\u0000\u0000', because here is '+', not Buffer.concat([..., ...])
-            // length = Buffer.from('7f', 'hex') + readBufferFromBigInt(BigInt(length), 3)
-
-            // fix
             length = Buffer.concat([Buffer.from('7f', 'hex'), readBufferFromBigInt(BigInt(length), 3)])
         }
         return Buffer.concat([length, data])
