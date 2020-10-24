@@ -20,7 +20,7 @@ can be changed later as long as I'm aware.
 ## Examples
 ### Terminal example
 1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
-2. From a root folder run `node ./examples/main.js APP_ID=your_apps_id APP_HASH=your_apps_hash`.
+2. From a root folder run `APP_ID=your_apps_id APP_HASH=your_apps_hash node ./examples/main.js`.
 
 ### Browser example
 1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
