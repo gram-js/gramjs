@@ -11,10 +11,22 @@ There is no need to enter any `URL`, and only the first two fields (`App title` 
 can be changed later as long as I'm aware.
 4. Click on `Create application` at the end. Now that you have the `API ID` and `Hash`
 
-## Running GramJS
-First of all, you need to run the `index.js` by issuing `node index.js gen`. This will generate all the
-TLObjects from the given `scheme.tl` file.
-Then check the `examples` folder to check how to use the library
+## Installing
+1. Clone a repository `https://github.com/gram-js/gramjs.git`.
+2. Install dependencies `npm i`.
+3. Generate all the TLObjects from the given `scheme.tl` file `node index.js gen`.
+4. Feel free to examine examples for [terminal](#terminal-example) or [browser](#browser-example).
+
+## Examples
+### Terminal example
+1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
+2. From a root folder run `node ./examples/main.js APP_ID=your_apps_id APP_HASH=your_apps_hash`.
+
+### Browser usage
+1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
+2. Open `examples/simpleLogin.js`
+3. Set constants `APP_ID` and `APP_HASH` values on the top of the file.
+4. Open `examples/simpleLogin.html` with your favorite browser.
 
 ## Using raw api
 Currently you can use any raw api function using `await client.invoke(new RequestClass(args))` .

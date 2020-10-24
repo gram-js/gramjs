@@ -1,3 +1,10 @@
+const APP_ID = null // put your api id here [for example 123456789]
+const APP_HASH = null // put your api hash here [for example '123456abcfghe']
+
+if (!APP_ID || !APP_HASH) {
+    alert('You must provide APP_ID and APP_HASH in the simpleLogin.js')
+}
+
 const phoneDiv = document.getElementById('phoneDiv')
 const phone = document.getElementById('phone')
 const phoneSend = document.getElementById('phoneSend')
@@ -56,8 +63,8 @@ function codeCallback() {
 
 const { TelegramClient } = gramjs
 const { StringSession } = gramjs.session
-const apiId = process.env.APP_ID // put your api id here [for example 123456789]
-const apiHash = process.env.APP_HASH // put your api hash here [for example '123456abcfghe']
+const apiId = APP_ID // put your api id here [for example 123456789]
+const apiHash = APP_HASH // put your api hash here [for example '123456abcfghe']
 
 const client = new TelegramClient(new StringSession(''), apiId, apiHash) // you can pass a string session here from previous logins.
 // If you want to run this example in the test servers uncomment this line
