@@ -15,7 +15,7 @@ can be changed later as long as I'm aware.
 1. Clone a repository `git clone https://github.com/gram-js/gramjs.git`.
 2. Install dependencies `npm i`.
 3. Generate all the TLObjects from the given `scheme.tl` file `node index.js gen`.
-4. Feel free to examine examples for [terminal](#terminal-example) or [browser](#browser-example).
+4. Check out examples for [terminal](#terminal-example) or [browser](#browser-example).
 
 ## Examples
 ### Terminal example

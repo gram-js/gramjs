@@ -63,8 +63,8 @@ function codeCallback() {
 
 const { TelegramClient } = gramjs
 const { StringSession } = gramjs.session
-const apiId = APP_ID // put your api id here [for example 123456789]
-const apiHash = APP_HASH // put your api hash here [for example '123456abcfghe']
+const apiId = APP_ID
+const apiHash = APP_HASH
 
 const client = new TelegramClient(new StringSession(''), apiId, apiHash) // you can pass a string session here from previous logins.
 // If you want to run this example in the test servers uncomment this line
