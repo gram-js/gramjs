@@ -22,7 +22,7 @@ can be changed later as long as I'm aware.
 1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
 2. From a root folder run `node ./examples/main.js APP_ID=your_apps_id APP_HASH=your_apps_hash`.
 
-### Browser usage
+### Browser example
 1. Obtain your `API ID` and `Hash`. [How to](#obtaining-your-api-id-and-hash).
 2. Open `examples/simpleLogin.js`
 3. Set constants `APP_ID` and `APP_HASH` values on the top of the file.
