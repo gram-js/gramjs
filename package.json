@@ -1,95 +1,57 @@
 {
-  "name": "telegram-t",
-  "version": "1.0.0-0",
-  "description": "",
+  "name": "telegram",
+  "version": "1.0.0-alpha.2",
+  "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "scripts": {
-    "dev": "shx mkdir -p dist/ && shx cp node_modules/tdweb/dist/* dist/ && parcel src/index.html",
-    "build:staging:gramjs": "parcel build src/index.html --public-url ./",
-    "build:contest:tdlib": "./deploy/contest-tdlib.sh",
-    "build:contest:gramjs": "./deploy/contest-gramjs.sh",
-    "build:github:all": "./deploy/github.sh",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "gramjs:types": "node ./src/lib/gramjs/tl/types-generator/generate.js"
+    "test": "jest",
+    "lint": "eslint .",
+    "postinstall": "node index.js gen tl errors"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged -- --fix"
-    }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gram-js/gramjs.git"
   },
-  "lint-staged": {
-    "*.{ts,tsx}": "eslint"
+  "browser": {
+    "fs": false
   },
-  "author": "Alexander Zinchuk (alexander@zinchuk.com)",
-  "license": "GPL-3.0-or-later",
-  "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/plugin-proposal-class-properties": "^7.7.0",
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "@types/react": "^16.9.11",
-    "@types/react-dom": "^16.9.3",
-    "@typescript-eslint/eslint-plugin": "^2.6.1",
-    "@typescript-eslint/parser": "^2.6.1",
-    "babel-eslint": "^10.0.3",
-    "babel-preset-env": "^1.7.0",
-    "eslint": "^6.6.0",
-    "eslint-config-airbnb-typescript": "^6.0.0",
-    "eslint-config-react-app": "^5.0.2",
-    "eslint-plugin-flowtype": "^3.13.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-no-async-without-await": "^1.2.0",
-    "eslint-plugin-react": "^7.16.0",
-    "eslint-plugin-react-hooks": "^1.7.0",
-    "husky": "^3.0.9",
-    "lint-staged": "^9.4.2",
-    "parcel": "^1.12.4",
-    "react": "^16.11.0",
-    "sass": "^1.23.3",
-    "shx": "^0.3.2",
-    "terser": "^4.3.9",
-    "typescript": "^3.6.4"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gram-js/gramjs/issues"
   },
+  "homepage": "https://github.com/gram-js/gramjs#readme",
   "dependencies": {
-<<<<<<< HEAD
-<<<<<<< HEAD
+    "@babel/core": "^7.7.7",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/preset-env": "^7.7.7",
     "aes-js": "^3.1.2",
+    "babel-loader": "^8.0.6",
+    "babel-register": "^6.26.0",
+    "better-sqlite3": "^5.4.3",
+    "chalk": "^2.4.2",
     "crc": "^3.8.0",
-    "crypto": "^1.0.1",
-    "emoji-regex": "^8.0.0",
-    "events": "^3.0.0",
+    "csv-parse": "^4.4.6",
+    "fast-csv": "^3.4.0",
+    "glob": "^7.1.4",
+    "mime-types": "^2.1.25",
+    "net": "^1.0.2",
     "node-gzip": "^1.1.2",
     "node-rsa": "^1.0.6",
-    "python-struct": "^1.1.2",
+    "python-struct": "^1.1.1",
+    "regenerator-runtime": "^0.13.3",
+    "sqlite3": "^4.1.1",
+    "stack-trace": "0.0.10",
     "string-format": "^2.0.0",
-    "td": "^0.3.2",
-=======
-=======
-    "async-mutex": "^0.1.4",
-<<<<<<< HEAD
->>>>>>> 1a0b5c54... GramJS: Fix images loading: add `async-mutex`; Fix signed LE ints; Bring back `readExactly`
-    "big-integer": "latest",
-=======
-    "big-integer": "painor/BigInteger.js",
->>>>>>> ddb2a0ed... GramJS: Fix downloading images of uncommon (small) size
-    "croppie": "^2.6.4",
-    "emoji-regex": "^8.0.0",
-    "events": "^3.0.0",
-<<<<<<< HEAD
->>>>>>> 1ab480fe... Gram JS: Remove deps; Fix Factorizator and remove leemon lib
-    "tdweb": "^1.5.0",
-    "websocket": "^1.0.30",
-<<<<<<< HEAD
-    "big-integer": "latest"
-=======
-    "pako": "latest"
->>>>>>> f8f1a405... GramJS : Remove zlib and other small fixes.
-=======
-    "pako": "latest",
-    "tdweb": "^1.5.0",
     "websocket": "^1.0.30"
->>>>>>> 1a0b5c54... GramJS: Fix images loading: add `async-mutex`; Fix signed LE ints; Bring back `readExactly`
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-async-to-generator": "^7.7.0",
+    "babel-eslint": "^10.0.3",
+    "babel-jest": "^24.9.0",
+    "eslint": "^6.5.1",
+    "jest": "^24.9.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "websocket-as-promised": "^0.10.1"
   }
 }

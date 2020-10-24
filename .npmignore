@@ -9,7 +9,6 @@
 /gramjs/tl/AllTLObjects.js
 /gramjs/errors/RPCErrorList.js
 /dist/
-/coverage/
 
 # User session
 *.session
@@ -24,3 +23,9 @@ example.js
 settings
 
 /browser/
+
+.babelrc
+.eslintignore
+.eslintrc.json
+webpack.config.babel.js
+/examples/
