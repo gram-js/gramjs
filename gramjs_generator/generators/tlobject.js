@@ -20,7 +20,7 @@ const AUTO_CASTS = {
 }
 
 const NAMED_AUTO_CASTS = {
-    'chatId,int': 'await client.getPeerId(%s, add_mark=False)',
+    'chatId,int': 'await utils.getPeerId(%s, false)',
 }
 
 // Secret chats have a chat_id which may be negative.
