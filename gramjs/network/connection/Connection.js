@@ -1,4 +1,5 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
+const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
 
 /**
@@ -27,9 +28,9 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        //this.socket = new PromiseSocket(new Socket())
+        this.socket = new PromisedNetSockets()
 
-        this.socket = new PromisedWebSockets()
+        //this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
@@ -67,6 +68,7 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop()
+
             // null = sentinel value = keep trying
             if (result) {
                 return result
@@ -102,7 +104,7 @@ class Connection {
             } catch (e) {
                 this._log.info('connection closed')
                 //await this._recvArray.push()
-
+                console.log(e)
                 this.disconnect()
                 return
             }

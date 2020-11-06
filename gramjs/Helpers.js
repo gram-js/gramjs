@@ -1,5 +1,7 @@
-const crypto = require('./crypto/crypto')
+
 const BigInt = require('big-integer')
+const IS_NODE = !(this.window === this)
+const crypto = require(IS_NODE ? 'crypto' : './crypto/crypto')
 
 /**
  * converts a buffer to big int
@@ -343,6 +345,6 @@ module.exports = {
     getByteArray,
     //isArrayLike,
     toSignedLittleBuffer,
-    convertToLittle
-
+    convertToLittle,
+    IS_NODE
 }

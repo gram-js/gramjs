@@ -1,7 +1,6 @@
 const AES = require('@cryptography/aes').default;
 const { i2ab, ab2i } = require('./converters');
 const { getWords } = require('./words');
-
 class Counter {
     constructor(initialValue) {
         this.setBytes(initialValue)

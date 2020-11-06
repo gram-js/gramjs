@@ -19,7 +19,6 @@ async function doAuthentication(sender, log) {
     let bytes = Helpers.generateRandomBytes(16)
 
     const nonce = Helpers.readBigIntFromBuffer(bytes, false, true)
-
     const resPQ = await sender.send(new requests.ReqPqMulti({ nonce: nonce }))
     log.debug('Starting authKey generation step 1')
 
@@ -41,7 +40,6 @@ async function doAuthentication(sender, log) {
 
     bytes = Helpers.generateRandomBytes(32)
     const newNonce = Helpers.readBigIntFromBuffer(bytes, true, true)
-
     const pqInnerData = new constructors.PQInnerData({
         pq: Helpers.getByteArray(pq), // unsigned
         p: p,

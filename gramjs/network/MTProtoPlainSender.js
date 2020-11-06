@@ -31,6 +31,7 @@ class MTProtoPlainSender {
     async send(request) {
 
         let body = request.getBytes()
+
         let msgId = this._state._getNewMsgId()
         const m = toSignedLittleBuffer(msgId, 8)
         const b = Buffer.alloc(4)
@@ -40,6 +41,7 @@ class MTProtoPlainSender {
 
         await this._connection.send(res)
         body = await this._connection.recv()
+
         if (body.length < 8) {
             throw new InvalidBufferError(body)
         }

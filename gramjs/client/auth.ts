@@ -1,6 +1,6 @@
-import { default as Api } from '../tl/api';
+import  * as Api  from '../tl/api';
 import TelegramClient from './TelegramClient';
-import utils from '../Utils';
+import * as utils from '../Utils';
 import { sleep } from '../Helpers';
 import { computeCheck as computePasswordSrpCheck } from '../Password';
 
@@ -308,6 +308,5 @@ async function signInBot(client: TelegramClient, apiCredentials: ApiCredentials,
         apiHash,
         botAuthToken,
     })) as Api.auth.Authorization;
-
     return user;
 }

@@ -3,10 +3,17 @@ const {
     serializeBytes,
     serializeDate
 } = require('./generationHelpers')
-const { readBufferFromBigInt,toSignedLittleBuffer } = require('../Helpers')
+const { IS_NODE,toSignedLittleBuffer } = require('../Helpers')
+let tlContent,schemeContent;
+if (IS_NODE){
+    const fs = require("fs");
+    tlContent = fs.readFileSync('./static/api.tl',"utf-8");
+    schemeContent = fs.readFileSync('./static/schema.tl',"utf-8");
+}else{
+     tlContent = require('./static/api.reduced.tl').default;
+     schemeContent = require('./static/schema.reduced.tl').default;
 
-const tlContent = require('./static/api.reduced.tl').default;
-const schemeContent = require('./static/schema.reduced.tl').default;
+}
 
 /*CONTEST
 const NAMED_AUTO_CASTS = new Set([

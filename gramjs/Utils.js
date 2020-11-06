@@ -1,4 +1,6 @@
+const {IS_NODE} = require("./Helpers");
 const { constructors } = require('./tl')
+const { requests } = require('./tl')
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
     '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?')
@@ -612,12 +614,13 @@ function isListLike(item) {
     )
 }
 */
-function getDC(dcId, cdn = false) {
+async function getDC(dcId,client, cdn = false) {
+    if (!IS_NODE){
     switch (dcId) {
         case 1:
             return {
                 id: 1,
-                ipAddress: 'pluto.web.telegram.org',
+                ipAddress: IS_NODE?'':'pluto.web.telegram.org',
                 port: 443
             }
         case 2:
@@ -647,22 +650,23 @@ function getDC(dcId, cdn = false) {
         default:
             throw new Error(`Cannot find the DC with the ID of ${dcId}`)
     }
-    // TODO chose based on current connection method
-    /*
-    if (!this._config) {
-        this._config = await this.invoke(new requests.help.GetConfig())
     }
-    if (cdn && !this._cdnConfig) {
-        this._cdnConfig = await this.invoke(new requests.help.GetCdnConfig())
-        for (const pk of this._cdnConfig.publicKeys) {
-            addKey(pk.publicKey)
+    if (!client._config) {
+        client._config = await client.invoke(new requests.help.GetConfig())
+    }
+    if (cdn) {
+        throw new Error(`CDNs are Not supported`)
+    }
+
+    for (const DC of client._config.dcOptions) {
+        if (DC.id === dcId && Boolean(DC.ipv6) === client._useIPV6 && Boolean(DC.cdn) === cdn) {
+            return {
+                id:DC.id,
+                ipAddress:DC.ipAddress,
+                port:443
+            }
         }
     }
-    for (const DC of this._config.dcOptions) {
-        if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
-            return DC
-        }
-    }*/
 }
 
 module.exports = {

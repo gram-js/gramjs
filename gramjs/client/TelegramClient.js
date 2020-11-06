@@ -1,5 +1,5 @@
 const Logger = require('../extensions/Logger')
-const { sleep } = require('../Helpers')
+const { sleep,IS_NODE } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
 const Helpers = require('../Helpers')
@@ -12,12 +12,13 @@ const { constructors, requests } = require('../tl')
 const MTProtoSender = require('../network/MTProtoSender')
 const { UpdateConnectionState } = require("../network")
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
+const { ConnectionTCPFull } = require('../network/connection/TCPFull')
 const { authFlow, checkAuthorization } = require('./auth')
 const { downloadFile } = require('./downloadFile')
 const { uploadFile } = require('./uploadFile')
 
-const DEFAULT_DC_ID = 2
-const DEFAULT_IPV4_IP = 'venus.web.telegram.org'
+const DEFAULT_DC_ID = 1
+const DEFAULT_IPV4_IP = IS_NODE?'149.154.167.51':'pluto.web.telegram.org'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
 
 // All types
@@ -26,7 +27,7 @@ const sizeTypes = ['w', 'y', 'd', 'x', 'c', 'm', 'b', 'a', 's']
 
 class TelegramClient {
     static DEFAULT_OPTIONS = {
-        connection: ConnectionTCPObfuscated,
+        connection:IS_NODE? ConnectionTCPFull: ConnectionTCPObfuscated,
         useIPV6: false,
         proxy: null,
         timeout: 10,
@@ -68,11 +69,7 @@ class TelegramClient {
         }
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
-            try {
-                throw new Error('not implemented')
-            } catch (e) {
-                session = new MemorySession()
-            }
+            throw new Error('not implemented')
         } else if (!(session instanceof Session)) {
             throw new Error('The given session must be str or a session instance')
         }
@@ -231,7 +228,7 @@ class TelegramClient {
 
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
-        const DC = utils.getDC(newDc)
+        const DC = await utils.getDC(newDc,this)
         this.session.setDC(newDc, DC.ipAddress, DC.port)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
@@ -268,7 +265,7 @@ class TelegramClient {
     }
 
     async _createExportedSender(dcId, retries) {
-        const dc = utils.getDC(dcId)
+        const dc = await utils.getDC(dcId,this)
         const sender = new MTProtoSender(this.session.getAuthKey(dcId),
             {
                 logger: this._log,

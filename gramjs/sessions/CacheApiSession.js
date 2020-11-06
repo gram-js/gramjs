@@ -20,7 +20,7 @@ class CacheApi extends MemorySession {
         try {
             const json = await fetchFromCache(this._storageKey)
             const { mainDcId, keys, hashes } = JSON.parse(json)
-            const { ipAddress, port } = utils.getDC(mainDcId)
+            const { ipAddress, port } = await utils.getDC(mainDcId)
 
             this.setDC(mainDcId, ipAddress, port, true)
 
