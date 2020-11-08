@@ -1,7 +1,9 @@
 import { default as Api } from '../tl/api';
 
 import TelegramClient from './TelegramClient';
+// @ts-ignore
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from '../Helpers';
+// @ts-ignore
 import { getAppropriatedPartSize } from '../Utils';
 
 interface OnProgress {

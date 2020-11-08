@@ -1,6 +1,8 @@
 import { default as Api } from '../tl/api';
 import TelegramClient from './TelegramClient';
+// @ts-ignore
 import { getAppropriatedPartSize } from '../Utils';
+// @ts-ignore
 import { sleep } from '../Helpers';
 
 export interface progressCallback {
@@ -48,6 +50,7 @@ export async function downloadFile(
         partSizeKb = fileSize ? getAppropriatedPartSize(fileSize) : DEFAULT_CHUNK_SIZE;
     }
 
+    // @ts-ignore
     const partSize = partSizeKb * 1024;
     const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
 

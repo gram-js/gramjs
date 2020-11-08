@@ -1,7 +1,10 @@
 import  { default as Api }  from '../tl/api';
 import TelegramClient from './TelegramClient';
+// @ts-ignore
 import * as utils from '../Utils';
+// @ts-ignore
 import { sleep } from '../Helpers';
+// @ts-ignore
 import { computeCheck as computePasswordSrpCheck } from '../Password';
 
 export interface UserAuthParams {
