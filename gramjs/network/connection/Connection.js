@@ -1,6 +1,7 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
+const {IS_NODE} = require("../../Helpers");
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -28,7 +29,7 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        this.socket = new PromisedNetSockets()
+        this.socket = IS_NODE ? new PromisedNetSockets() : new PromisedWebSockets()
 
         //this.socket = new PromisedWebSockets()
     }

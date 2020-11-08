@@ -1,6 +1,7 @@
+const { isBrowser, isNode } = require("browser-or-node" );
 
 const BigInt = require('big-integer')
-const IS_NODE = !(this.window === this)
+const IS_NODE = isNode
 const crypto = require(IS_NODE ? 'crypto' : './crypto/crypto')
 
 /**

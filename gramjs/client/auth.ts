@@ -1,4 +1,4 @@
-import  * as Api  from '../tl/api';
+import  { default as Api }  from '../tl/api';
 import TelegramClient from './TelegramClient';
 import * as utils from '../Utils';
 import { sleep } from '../Helpers';
@@ -13,9 +13,12 @@ export interface UserAuthParams {
     onError: (err: Error) => void;
     forceSMS?: boolean;
 }
+interface ReturnString {
+    (): string
+}
 
 export interface BotAuthParams {
-    botAuthToken: string;
+    botAuthToken: string | ReturnString;
 }
 
 interface ApiCredentials {
@@ -301,8 +304,22 @@ async function signInWithPassword(
 
 async function signInBot(client: TelegramClient, apiCredentials: ApiCredentials, authParams: BotAuthParams) {
     const { apiId, apiHash } = apiCredentials;
-    const { botAuthToken } = authParams;
+    let { botAuthToken } = authParams;
+    if (!botAuthToken){
+        throw new Error('a valid BotToken is required');
+    }
+    if (typeof botAuthToken === "function") {
+        let token;
+        while (true){
+            token = await botAuthToken();
+            if (token){
+                botAuthToken = token;
+                break;
+            }
+        }
+    }
 
+    console.dir(botAuthToken)
     const { user } = await client.invoke(new Api.auth.ImportBotAuthorization({
         apiId,
         apiHash,

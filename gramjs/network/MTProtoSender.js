@@ -170,10 +170,9 @@ class MTProtoSender {
                 if (attempt===0 && eventDispatch!==null){
                     eventDispatch({ update: new UpdateConnectionState(-1) })
                 }
-                console.log(e);
+                console.dir(e);
 
                 this._log.error("WebSocket connection failed attempt : "+(attempt+1))
-                process.exit(0)
                 await Helpers.sleep(this._delay)
             }
         }

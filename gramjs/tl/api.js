@@ -7,11 +7,12 @@ const { IS_NODE,toSignedLittleBuffer } = require('../Helpers')
 let tlContent,schemeContent;
 if (IS_NODE){
     const fs = require("fs");
-    tlContent = fs.readFileSync('./static/api.tl',"utf-8");
-    schemeContent = fs.readFileSync('./static/schema.tl',"utf-8");
+
+    tlContent = fs.readFileSync(__dirname+'/static/api.tl',"utf-8");
+    schemeContent = fs.readFileSync(__dirname+'/static/schema.tl',"utf-8");
 }else{
-     tlContent = require('./static/api.reduced.tl').default;
-     schemeContent = require('./static/schema.reduced.tl').default;
+     tlContent = require('./static/api.tl').default;
+     schemeContent = require('./static/schema.tl').default;
 
 }
 
