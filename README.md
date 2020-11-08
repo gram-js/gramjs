@@ -12,9 +12,11 @@ can be changed later as long as I'm aware.
 4. Click on `Create application` at the end. Now that you have the `API ID` and `Hash`
 
 ## Running GramJS
-First of all, you need to run the `index.js` by issuing `node index.js gen`. This will generate all the
-TLObjects from the given `scheme.tl` file.
-Then check the `examples` folder to check how to use the library
+If you want to run in it in a browser just use webpack (a configuration file is already present). 
+The output will be in `browser` folder.
+In the browser gramjs will use localstorage to not regenerate api methods each run.
+check the `examples` folder for more info.
+Docs coming soon
 
 ## Using raw api
 Currently you can use any raw api function using `await client.invoke(new RequestClass(args))` .
