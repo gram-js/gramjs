@@ -7,10 +7,11 @@ const RPCResult = require('../tl/core/RPCResult')
 const MessageContainer = require('../tl/core/MessageContainer')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const RequestState = require('./RequestState')
-const format = require('string-format')
-const { MsgsAck, File, MsgsStateInfo, Pong } = require('../tl/types')
+const { MsgsAck, upload, MsgsStateInfo, Pong } = require('../tl').constructors
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
+const { UpdateConnectionState } = require("./index");
+const { BadMessageError } = require("../errors/Common")
 const {
     BadServerSalt,
     BadMsgNotification,
@@ -21,15 +22,13 @@ const {
     MsgsStateReq,
     MsgResendReq,
     MsgsAllInfo,
-} = require('../tl/types')
+} = require('../tl').constructors
 const { SecurityError } = require('../errors/Common')
 const { InvalidBufferError } = require('../errors/Common')
-const { LogOutRequest } = require('../tl/functions/auth')
+const { LogOut } = require('../tl').requests.auth
 const { RPCMessageToError } = require('../errors')
 const { TypeNotFoundError } = require('../errors/Common')
 
-// const { tlobjects } = require("../gramjs/tl/alltlobjects");
-format.extend(String.prototype, {})
 
 /**
  * MTProto Mobile Protocol sender
@@ -47,13 +46,15 @@ format.extend(String.prototype, {})
 class MTProtoSender {
     static DEFAULT_OPTIONS = {
         logger: null,
-        retries: 5,
-        delay: 1,
+        retries: Infinity,
+        delay: 2000,
         autoReconnect: true,
         connectTimeout: null,
         authKeyCallback: null,
         updateCallback: null,
         autoReconnectCallback: null,
+        isMainSender: null,
+        senderCallback: null,
     }
 
     /**
@@ -64,6 +65,7 @@ class MTProtoSender {
         const args = { ...MTProtoSender.DEFAULT_OPTIONS, ...opts }
         this._connection = null
         this._log = args.logger
+        this._dcId = args.dcId
         this._retries = args.retries
         this._delay = args.delay
         this._autoReconnect = args.autoReconnect
@@ -71,6 +73,8 @@ class MTProtoSender {
         this._authKeyCallback = args.authKeyCallback
         this._updateCallback = args.updateCallback
         this._autoReconnectCallback = args.autoReconnectCallback
+        this._isMainSender = args.isMainSender;
+        this._senderCallback = args.senderCallback;
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -93,7 +97,7 @@ class MTProtoSender {
         /**
          * Preserving the references of the AuthKey and state is important
          */
-        this.authKey = authKey || new AuthKey(null)
+        this.authKey = authKey || new AuthKey()
         this._state = new MTProtoState(this.authKey, this._log)
 
         /**
@@ -146,15 +150,32 @@ class MTProtoSender {
     /**
      * Connects to the specified given connection using the given auth key.
      * @param connection
+     * @param eventDispatch {function}
      * @returns {Promise<boolean>}
      */
-    async connect(connection) {
+    async connect(connection, eventDispatch=null) {
         if (this._user_connected) {
             this._log.info('User is already connected!')
             return false
         }
         this._connection = connection
-        await this._connect()
+
+        const retries = this._retries
+
+        for (let attempt = 0; attempt < retries; attempt++) {
+            try {
+                await this._connect()
+                break
+            } catch (e) {
+                if (attempt===0 && eventDispatch!==null){
+                    eventDispatch({ update: new UpdateConnectionState(-1) })
+                }
+                console.dir(e);
+
+                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
+                await Helpers.sleep(this._delay)
+            }
+        }
         return true
     }
 
@@ -167,6 +188,7 @@ class MTProtoSender {
      * all pending requests, and closes the send and receive loops.
      */
     async disconnect() {
+
         await this._disconnect()
     }
 
@@ -199,14 +221,18 @@ class MTProtoSender {
         if (!this._user_connected) {
             throw new Error('Cannot send requests while disconnected')
         }
-
+        //CONTEST
+        const state = new RequestState(request)
+        this._send_queue.append(state)
+        return state.promise
+        /*
         if (!Helpers.isArrayLike(request)) {
             const state = new RequestState(request)
             this._send_queue.append(state)
             return state.promise
         } else {
             throw new Error('not supported')
-        }
+        }*/
     }
 
     /**
@@ -218,15 +244,16 @@ class MTProtoSender {
      */
     async _connect() {
         this._log.info('Connecting to {0}...'.replace('{0}', this._connection))
-
         await this._connection.connect()
         this._log.debug('Connection success!')
-        if (!this.authKey._key) {
+        //process.exit(0)
+        if (!this.authKey.getKey()) {
             const plain = new MtProtoPlainSender(this._connection, this._log)
             this._log.debug('New auth_key attempt ...')
             const res = await doAuthentication(plain, this._log)
             this._log.debug('Generated new auth_key successfully')
-            this.authKey.key = res.authKey
+            await this.authKey.setKey(res.authKey)
+
             this._state.time_offset = res.timeOffset
 
             /**
@@ -236,12 +263,13 @@ class MTProtoSender {
              * switch to different data centers.
              */
             if (this._authKeyCallback) {
-                this._authKeyCallback(this.authKey)
+                await this._authKeyCallback(this.authKey, this._dcId)
             }
         } else {
             this._log.debug('Already have an auth key ...')
         }
         this._user_connected = true
+        this._reconnecting = false
 
         this._log.debug('Starting send loop')
         this._send_loop_handle = this._sendLoop()
@@ -261,6 +289,9 @@ class MTProtoSender {
             this._log.info('Not disconnecting (already have no connection)')
             return
         }
+        if (this._updateCallback){
+            this._updateCallback(-1)
+        }
         this._log.info('Disconnecting from %s...'.replace('%s', this._connection.toString()))
         this._user_connected = false
         this._log.debug('Closing current connection...')
@@ -275,6 +306,8 @@ class MTProtoSender {
      * @private
      */
     async _sendLoop() {
+        this._send_queue = new MessagePacker(this._state, this._log)
+
         while (this._user_connected && !this._reconnecting) {
             if (this._pending_ack.size) {
                 const ack = new RequestState(new MsgsAck({ msgIds: Array(...this._pending_ack) }))
@@ -282,12 +315,16 @@ class MTProtoSender {
                 this._last_acks.push(ack)
                 this._pending_ack.clear()
             }
-            // this._log.debug('Waiting for messages to send...');
-            this._log.debug('Waiting for messages to send...')
+            this._log.debug('Waiting for messages to send...'+this._reconnecting)
             // TODO Wait for the connection send queue to be empty?
             // This means that while it's not empty we can wait for
             // more messages to be added to the send queue.
             const res = await this._send_queue.get()
+
+            if (this._reconnecting) {
+                return
+            }
+
             if (!res) {
                 continue
             }
@@ -295,17 +332,27 @@ class MTProtoSender {
             const batch = res.batch
             this._log.debug(`Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`)
 
-            data = this._state.encryptMessageData(data)
+            data = await this._state.encryptMessageData(data)
 
             try {
                 await this._connection.send(data)
             } catch (e) {
-                console.log(e)
+                this._log.error(e)
                 this._log.info('Connection closed while sending data')
                 return
             }
             for (const state of batch) {
-                this._pending_state[state.msgId] = state
+                if (!Array.isArray(state)) {
+                    if (state.request.classType === 'request') {
+                        this._pending_state[state.msgId] = state
+                    }
+                } else {
+                    for (const s of state) {
+                        if (s.request.classType === 'request') {
+                            this._pending_state[s.msgId] = s
+                        }
+                    }
+                }
             }
             this._log.debug('Encrypted messages put in a queue to be sent')
         }
@@ -323,13 +370,12 @@ class MTProtoSender {
             } catch (e) {
                 // this._log.info('Connection closed while receiving data');
                 this._log.warn('Connection closed while receiving data')
+                this._startReconnect()
                 return
             }
             try {
                 message = await this._state.decryptMessageData(body)
             } catch (e) {
-                console.log(e)
-
                 if (e instanceof TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
                     this._log.info(`Type ${e.invalidConstructorId} not found, remaining data ${e.remaining}`)
@@ -341,23 +387,38 @@ class MTProtoSender {
                     continue
                 } else if (e instanceof InvalidBufferError) {
                     this._log.info('Broken authorization key; resetting')
-                    this.authKey.key = null
+                    if (this._updateCallback && this._isMainSender){
+                        // 0 == broken
+                        this._updateCallback(0)
+                    } else if (this._senderCallback && !this._isMainSender){
+                        // Deletes the current sender from the object
+                        this._senderCallback(this._dcId)
+                    }
+
+                    // We don't really need to do this if we're going to sign in again
+                    /*await this.authKey.setKey(null)
+
                     if (this._authKeyCallback) {
                         await this._authKeyCallback(null)
-                    }
-                    this._startReconnect(e)
-
+                    }*/
+                    // We can disconnect at sign in
+                    /* await this.disconnect()
+                    */
                     return
                 } else {
                     this._log.error('Unhandled error while receiving data')
+                    this._log.error(e)
+                    console.log(e)
+                    this._startReconnect()
                     return
                 }
             }
             try {
                 await this._processMessage(message)
             } catch (e) {
-                console.log(e)
                 this._log.error('Unhandled error while receiving data')
+                console.log(e)
+                this._log.error(e)
             }
         }
     }
@@ -400,8 +461,8 @@ class MTProtoSender {
 
         const toPop = []
 
-        for (state in this._pending_state) {
-            if (state.containerId === msgId) {
+        for (state of Object.values(this._pending_state)) {
+            if (state.containerId && state.containerId.equals(msgId)) {
                 toPop.push(state.msgId)
             }
         }
@@ -432,7 +493,7 @@ class MTProtoSender {
      * @returns {Promise<void>}
      * @private
      */
-    async _handleRPCResult(message) {
+    _handleRPCResult(message) {
         const RPCResult = message.obj
         const state = this._pending_state[RPCResult.reqMsgId]
         if (state) {
@@ -447,10 +508,11 @@ class MTProtoSender {
             // which contain the real response right after.
             try {
                 const reader = new BinaryReader(RPCResult.body)
-                if (!(reader.tgReadObject() instanceof File)) {
+                if (!(reader.tgReadObject() instanceof upload.File)) {
                     throw new TypeNotFoundError('Not an upload.File')
                 }
             } catch (e) {
+                this._log.error(e)
                 if (e instanceof TypeNotFoundError) {
                     this._log.info(`Received response without parent request: ${RPCResult.body}`)
                     return
@@ -466,7 +528,7 @@ class MTProtoSender {
             state.reject(error)
         } else {
             const reader = new BinaryReader(RPCResult.body)
-            const read = await state.request.readResult(reader)
+            const read = state.request.readResult(reader)
             state.resolve(read)
         }
     }
@@ -502,10 +564,10 @@ class MTProtoSender {
     async _handleUpdate(message) {
         if (message.obj.SUBCLASS_OF_ID !== 0x8af52aac) {
             // crc32(b'Updates')
-            this._log.warn(`Note: ${message.obj.constructor.name} is not an update, not dispatching it`)
+            this._log.warn(`Note: ${message.obj.className} is not an update, not dispatching it`)
             return
         }
-        this._log.debug('Handling update ' + message.obj.constructor.name)
+        this._log.debug('Handling update ' + message.obj.className)
         if (this._updateCallback) {
             this._updateCallback(message.obj)
         }
@@ -561,8 +623,8 @@ class MTProtoSender {
     async _handleBadNotification(message) {
         const badMsg = message.obj
         const states = this._popStates(badMsg.badMsgId)
-        this._log.debug(`Handling bad msg ${badMsg}`)
-        if ([16, 17].contains(badMsg.errorCode)) {
+        this._log.debug(`Handling bad msg ${JSON.stringify(badMsg)}`)
+        if ([16, 17].includes(badMsg.errorCode)) {
             // Sent msg_id too low or too high (respectively).
             // Use the current msg_id to determine the right time offset.
             const to = this._state.updateTimeOffset(message.msgId)
@@ -575,11 +637,10 @@ class MTProtoSender {
             // msg_seqno too high never seems to happen but just in case
             this._state._sequence -= 16
         } else {
-            // for (const state of states) {
-            // TODO set errors;
-            /* state.future.set_exception(
-            BadMessageError(state.request, bad_msg.error_code))*/
-            // }
+
+            for (const state of states) {
+                state.reject(new BadMessageError(state.request, badMsg.errorCode))
+            }
 
             return
         }
@@ -655,7 +716,7 @@ class MTProtoSender {
         this._log.debug(`Handling acknowledge for ${ack.msgIds}`)
         for (const msgId of ack.msgIds) {
             const state = this._pending_state[msgId]
-            if (state && state.request instanceof LogOutRequest) {
+            if (state && state.request instanceof LogOut) {
                 delete this._pending_state[msgId]
                 state.resolve(true)
             }
@@ -705,30 +766,46 @@ class MTProtoSender {
     async _handleMsgAll(message) {
     }
 
-    _startReconnect(e) {
+    async _startReconnect() {
         if (this._user_connected && !this._reconnecting) {
             this._reconnecting = true
-            this._reconnect(e)
+            // TODO Should we set this?
+            // this._user_connected = false
+            this._log.info("Started reconnecting")
+            this._reconnect()
         }
     }
 
-    async _reconnect(e) {
+    async _reconnect() {
         this._log.debug('Closing current connection...')
-        await this._connection.disconnect()
-        this._reconnecting = false
+        try {
+            await this.disconnect()
+        } catch (err) {
+            this._log.warn(err)
+        }
+        this._send_queue.append(null)
+
         this._state.reset()
         const retries = this._retries
+
+
         for (let attempt = 0; attempt < retries; attempt++) {
             try {
                 await this._connect()
-                this._send_queue.extend(Object.values(this._pending_state))
+                // uncomment this if you want to resend
+                //this._send_queue.extend(Object.values(this._pending_state))
                 this._pending_state = {}
                 if (this._autoReconnectCallback) {
-                    this._autoReconnectCallback()
+                    await this._autoReconnectCallback()
                 }
+                if (this._updateCallback){
+                    this._updateCallback(1)
+                }
+
                 break
             } catch (e) {
-                this._log.error(e)
+                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
+                console.log(e)
                 await Helpers.sleep(this._delay)
             }
         }

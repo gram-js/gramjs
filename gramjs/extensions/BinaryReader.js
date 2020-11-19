@@ -1,4 +1,3 @@
-const { unpack } = require('python-struct')
 const { TypeNotFoundError } = require('../errors/Common')
 const { coreObjects } = require('../tl/core')
 const { tlobjects } = require('../tl/AllTLObjects')
@@ -44,7 +43,7 @@ class BinaryReader {
     /**
      * Reads a long integer (8 bytes or 64 bits) value.
      * @param signed
-     * @returns {bigint}
+     * @returns {BigInteger}
      */
     readLong(signed = true) {
         return this.readLargeInt(64, signed)
@@ -55,15 +54,16 @@ class BinaryReader {
      * @returns {number}
      */
     readFloat() {
-        return unpack('<f', this.read(4))[0]
+        return this.read(4).readFloatLE(0)
     }
 
     /**
      * Reads a real floating point (8 bytes) value.
-     * @returns {BigInt}
+     * @returns {BigInteger}
      */
     readDouble() {
-        return unpack('<f', this.read(8))[0]
+        // was this a bug ? it should have been <d
+        return this.read(8).readDoubleLE(0)
     }
 
     /**

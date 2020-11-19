@@ -2,7 +2,6 @@
  * Errors not related to the Telegram API itself
  */
 
-const struct = require('python-struct')
 
 /**
  * Occurs when a read operation was cancelled.
@@ -21,7 +20,10 @@ class TypeNotFoundError extends Error {
     constructor(invalidConstructorId, remaining) {
         super(`Could not find a matching Constructor ID for the TLObject that was supposed to be
         read with ID ${invalidConstructorId}. Most likely, a TLObject was trying to be read when
-         it should not be read. Remaining bytes: ${remaining}`)
+         it should not be read. Remaining bytes: ${remaining.length}`)
+        if (typeof alert !== 'undefined') {
+            alert(`Missing MTProto Entity: Please, make sure to add TL definition for ID ${invalidConstructorId}`)
+        }
         this.invalidConstructorId = invalidConstructorId
         this.remaining = remaining
     }
@@ -45,14 +47,14 @@ class InvalidChecksumError extends Error {
  */
 class InvalidBufferError extends Error {
     constructor(payload) {
+        let code = null
         if (payload.length === 4) {
-            const code = -(struct.unpack('<i', payload)[0])
+            code = -payload.readInt32LE(0)
             super(`Invalid response buffer (HTTP code ${code})`)
-            this.code = code
         } else {
             super(`Invalid response buffer (too short ${payload})`)
-            this.code = null
         }
+        this.code = code
         this.payload = payload
     }
 }
@@ -76,15 +78,6 @@ class SecurityError extends Error {
 class CdnFileTamperedError extends SecurityError {
     constructor() {
         super('The CDN file has been altered and its download cancelled.')
-    }
-}
-
-/**
- * Occurs when another exclusive conversation is opened in the same chat.
- */
-class AlreadyInConversationError extends Error {
-    constructor() {
-        super('Cannot open exclusive conversation in a chat that already has one open conversation')
     }
 }
 
@@ -132,8 +125,12 @@ class BadMessageError extends Error {
         64: 'Invalid container.',
     }
 
-    constructor(code) {
-        super(BadMessageError.ErrorMessages[code] || `Unknown error code (this should not happen): ${code}.`)
+    constructor(request,code) {
+        let errorMessage = BadMessageError.ErrorMessages[code] ||
+            `Unknown error code (this should not happen): ${code}.`
+        errorMessage+= `  Caused by ${request.className}`
+        super(errorMessage)
+        this.message = errorMessage
         this.code = code
     }
 }
@@ -147,6 +144,5 @@ module.exports = {
     InvalidBufferError,
     SecurityError,
     CdnFileTamperedError,
-    AlreadyInConversationError,
     BadMessageError,
 }

@@ -64,9 +64,7 @@ const client = new TelegramClient(new StringSession(''), apiId, apiHash) // you 
 // client.session.setDC(2, '149.154.167.40', 80)
 
 client.start({
-    phone: phoneCallback,
-    password: passwordCallback,
-    code: codeCallback,
+    botAuthToken: phoneCallback,
 }).then(() => {
     console.log('%c you should now be connected', 'color:#B54128')
     console.log('%c your string session is ' + client.session.save(), 'color:#B54128')

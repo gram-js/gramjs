@@ -1,23 +1,43 @@
+const Mutex = require('async-mutex').Mutex
+const mutex = new Mutex()
+
 const WebSocketClient = require('websocket').w3cwebsocket
 
 const closeError = new Error('WebSocket was closed')
 
 class PromisedWebSockets {
     constructor() {
+        /*CONTEST
         this.isBrowser = typeof process === 'undefined' ||
             process.type === 'renderer' ||
             process.browser === true ||
             process.__nwjs
+
+         */
+        this.client = null
         this.closed = true
+    }
+
+    async readExactly(number) {
+        let readData = Buffer.alloc(0)
+        while (true) {
+            const thisTime = await this.read(number)
+            readData = Buffer.concat([readData, thisTime])
+            number = number - thisTime.length
+            if (!number) {
+                return readData
+            }
+        }
     }
 
     async read(number) {
         if (this.closed) {
-            console.log('couldn\'t read')
             throw closeError
         }
-        const canWe = await this.canRead
-
+        await this.canRead
+        if (this.closed) {
+            throw closeError
+        }
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
@@ -43,22 +63,17 @@ class PromisedWebSockets {
 
     getWebSocketLink(ip, port) {
         if (port === 443) {
-            return 'ws://' + ip + '/apiws'
+            return `wss://${ip}:${port}/apiws`
         } else {
-            return 'ws://' + ip + '/apiws'
+            return `ws://${ip}:${port}/apiws`
         }
     }
 
     async connect(port, ip) {
-        console.log('trying to connect')
-
         this.stream = Buffer.alloc(0)
-        this.client = null
-
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve
         })
-
         this.closed = false
         this.website = this.getWebSocketLink(ip, port)
         this.client = new WebSocketClient(this.website, 'binary')
@@ -67,12 +82,19 @@ class PromisedWebSockets {
                 this.receive()
                 resolve(this)
             }
-            this.client.onerror = reject
+            this.client.onerror = (error) => {
+                reject(error)
+            }
             this.client.onclose = () => {
-                if (this.client.closed) {
                     this.resolveRead(false)
                     this.closed = true
-                }
+            }
+            //CONTEST
+            if (typeof window !== 'undefined'){
+                window.addEventListener('offline', async () => {
+                    await this.close()
+                    this.resolveRead(false)
+                });
             }
         })
     }
@@ -85,21 +107,22 @@ class PromisedWebSockets {
     }
 
     async close() {
-        console.log('something happened. closing')
         await this.client.close()
         this.closed = true
     }
 
     async receive() {
         this.client.onmessage = async (message) => {
-            let data
-            if (this.isBrowser) {
-                data = Buffer.from(await new Response(message.data).arrayBuffer())
-            } else {
-                data = Buffer.from(message.data)
+            const release = await mutex.acquire()
+            try {
+                let data
+                //CONTEST BROWSER
+                    data = Buffer.from(await new Response(message.data).arrayBuffer())
+                this.stream = Buffer.concat([this.stream, data])
+                this.resolveRead(true)
+            } finally {
+                release()
             }
-            this.stream = Buffer.concat([this.stream, data])
-            this.resolveRead(true)
         }
     }
 }

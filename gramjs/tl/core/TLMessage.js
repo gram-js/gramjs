@@ -1,13 +1,13 @@
-const { TLObject } = require('../tlobject')
 
-class TLMessage extends TLObject {
+class TLMessage {
     static SIZE_OVERHEAD = 12;
+    static classType = "constructor"
 
     constructor(msgId, seqNo, obj) {
-        super()
         this.msgId = msgId
         this.seqNo = seqNo
         this.obj = obj
+        this.classType = "constructor"
     }
 }
 

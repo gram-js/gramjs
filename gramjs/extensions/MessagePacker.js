@@ -1,8 +1,6 @@
 const MessageContainer = require('../tl/core/MessageContainer')
 const TLMessage = require('../tl/core/TLMessage')
-const { TLRequest } = require('../tl/tlobject')
 const BinaryWriter = require('../extensions/BinaryWriter')
-const struct = require('python-struct')
 
 class MessagePacker {
     constructor(state, logger) {
@@ -31,14 +29,19 @@ class MessagePacker {
     }
 
     async get() {
+
         if (!this._queue.length) {
             this._ready = new Promise(((resolve) => {
                 this.setReady = resolve
             }))
             await this._ready
         }
+        if (!this._queue[this._queue.length - 1]) {
+            this._queue = []
+            return
+        }
         let data
-        const buffer = new BinaryWriter(Buffer.alloc(0))
+        let buffer = new BinaryWriter(Buffer.alloc(0))
 
         const batch = []
         let size = 0
@@ -52,11 +55,10 @@ class MessagePacker {
                     afterId = state.after.msgId
                 }
                 state.msgId = await this._state.writeDataAsMessage(
-                    buffer, state.data, state.request instanceof TLRequest,
+                    buffer, state.data, state.request.classType === 'request',
                     afterId,
                 )
-
-                this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.constructor.name}`)
+                this._log.debug(`Assigned msgId = ${state.msgId} to ${state.request.className || state.request.constructor.name}`)
                 batch.push(state)
                 continue
             }
@@ -64,7 +66,7 @@ class MessagePacker {
                 this._queue.unshift(state)
                 break
             }
-            this._log.warn(`Message payload for ${state.request.constructor.name} is too long ${state.data.length} and cannot be sent`)
+            this._log.warn(`Message payload for ${state.request.className || state.request.constructor.name} is too long ${state.data.length} and cannot be sent`)
             state.promise.reject('Request Payload is too big')
             size = 0
             continue
@@ -73,10 +75,11 @@ class MessagePacker {
             return null
         }
         if (batch.length > 1) {
-            data = Buffer.concat([struct.pack(
-                '<Ii', MessageContainer.CONSTRUCTOR_ID, batch.length,
-            ), buffer.getValue()])
-
+            const b = Buffer.alloc(8)
+            b.writeUInt32LE(MessageContainer.CONSTRUCTOR_ID, 0)
+            b.writeInt32LE(batch.length, 4)
+            data = Buffer.concat([b, buffer.getValue()])
+            buffer = new BinaryWriter(Buffer.alloc(0))
             const containerId = await this._state.writeDataAsMessage(
                 buffer, data, false,
             )

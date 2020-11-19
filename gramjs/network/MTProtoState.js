@@ -1,11 +1,13 @@
-const struct = require('python-struct')
 const Helpers = require('../Helpers')
-const AES = require('../crypto/AES')
+const IGE = require('../crypto/IGE')
 const BinaryReader = require('../extensions/BinaryReader')
 const GZIPPacked = require('../tl/core/GZIPPacked')
 const { TLMessage } = require('../tl/core')
 const { SecurityError, InvalidBufferError } = require('../errors/Common')
-const { InvokeAfterMsgRequest } = require('../tl/functions')
+const { InvokeAfterMsg } = require('../tl').requests
+const BigInt = require('big-integer')
+const { toSignedLittleBuffer,readBufferFromBigInt } = require("../Helpers")
+const { readBigIntFromBuffer } = require("../Helpers")
 
 class MTProtoState {
     /**
@@ -50,7 +52,7 @@ class MTProtoState {
         // Session IDs can be random on every connection
         this.id = Helpers.generateRandomLong(true)
         this._sequence = 0
-        this._lastMsgId = 0
+        this._lastMsgId = BigInt(0)
     }
 
     /**
@@ -69,11 +71,12 @@ class MTProtoState {
      * @param client
      * @returns {{iv: Buffer, key: Buffer}}
      */
-    _calcKey(authKey, msgKey, client) {
+    async _calcKey(authKey, msgKey, client) {
         const x = client === true ? 0 : 8
-        const sha256a = Helpers.sha256(Buffer.concat([msgKey, authKey.slice(x, x + 36)]))
-        const sha256b = Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey]))
-
+        const [sha256a , sha256b] = await Promise.all([
+            Helpers.sha256(Buffer.concat([msgKey, authKey.slice(x, x + 36)])),
+            Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey]))
+        ])
         const key = Buffer.concat([sha256a.slice(0, 8), sha256b.slice(8, 24), sha256a.slice(24, 32)])
         const iv = Buffer.concat([sha256b.slice(0, 8), sha256a.slice(8, 24), sha256b.slice(24, 32)])
         return { key, iv }
@@ -94,9 +97,14 @@ class MTProtoState {
         if (!afterId) {
             body = await GZIPPacked.gzipIfSmaller(contentRelated, data)
         } else {
-            body = await GZIPPacked.gzipIfSmaller(contentRelated, new InvokeAfterMsgRequest(afterId, data).toBuffer())
+            body = await GZIPPacked.gzipIfSmaller(contentRelated, new InvokeAfterMsg(afterId, data).getBytes())
         }
-        buffer.write(struct.pack('<qii', msgId.toString(), seqNo, body.length))
+        const s = Buffer.alloc(4)
+        s.writeInt32LE(seqNo, 0)
+        const b = Buffer.alloc(4)
+        b.writeInt32LE(body.length, 0)
+        const m = toSignedLittleBuffer(msgId, 8)
+        buffer.write(Buffer.concat([m, s, b]))
         buffer.write(body)
         return msgId
     }
@@ -106,19 +114,22 @@ class MTProtoState {
      * following MTProto 2.0 guidelines core.telegram.org/mtproto/description.
      * @param data
      */
-    encryptMessageData(data) {
-        data = Buffer.concat([struct.pack('<qq', this.salt.toString(), this.id.toString()), data])
+    async encryptMessageData(data) {
+        await this.authKey.waitForKey()
+        const s = toSignedLittleBuffer(this.salt,8)
+        const i = toSignedLittleBuffer(this.id,8)
+        data = Buffer.concat([Buffer.concat([s,i]), data])
         const padding = Helpers.generateRandomBytes(Helpers.mod(-(data.length + 12), 16) + 12)
         // Being substr(what, offset, length); x = 0 for client
         // "msg_key_large = SHA256(substr(auth_key, 88+x, 32) + pt + padding)"
-        const msgKeyLarge = Helpers.sha256(Buffer.concat([this.authKey.key.slice(88, 88 + 32), data, padding]))
+        const msgKeyLarge = await Helpers.sha256(Buffer.concat([this.authKey.getKey().slice(88, 88 + 32), data, padding]))
         // "msg_key = substr (msg_key_large, 8, 16)"
         const msgKey = msgKeyLarge.slice(8, 24)
 
-        const { iv, key } = this._calcKey(this.authKey.key, msgKey, true)
+        const { iv, key } = await this._calcKey(this.authKey.getKey(), msgKey, true)
 
         const keyId = Helpers.readBufferFromBigInt(this.authKey.keyId, 8)
-        return Buffer.concat([keyId, msgKey, AES.encryptIge(Buffer.concat([data, padding]), key, iv)])
+        return Buffer.concat([keyId, msgKey, new IGE(key,iv).encryptIge(Buffer.concat([data, padding]))])
     }
 
     /**
@@ -132,19 +143,18 @@ class MTProtoState {
 
         // TODO Check salt,sessionId, and sequenceNumber
         const keyId = Helpers.readBigIntFromBuffer(body.slice(0, 8))
-
-        if (keyId !== this.authKey.keyId) {
+        if (keyId.neq(this.authKey.keyId)) {
             throw new SecurityError('Server replied with an invalid auth key')
         }
 
         const msgKey = body.slice(8, 24)
-        const { iv, key } = this._calcKey(this.authKey.key, msgKey, false)
-        body = AES.decryptIge(body.slice(24), key, iv)
+        const { iv, key } = await this._calcKey(this.authKey.getKey(), msgKey, false)
+        body = new IGE(key,iv).decryptIge(body.slice(24))
 
         // https://core.telegram.org/mtproto/security_guidelines
         // Sections "checking sha256 hash" and "message length"
 
-        const ourKey = Helpers.sha256(Buffer.concat([this.authKey.key.slice(96, 96 + 32), body]))
+        const ourKey = await Helpers.sha256(Buffer.concat([this.authKey.getKey().slice(96, 96 + 32), body]))
 
         if (!msgKey.equals(ourKey.slice(8, 24))) {
             throw new SecurityError('Received msg_key doesn\'t match with expected one')
@@ -154,7 +164,7 @@ class MTProtoState {
         reader.readLong() // removeSalt
         const serverId = reader.readLong()
         if (serverId !== this.id) {
-            throw new SecurityError('Server replied with a wrong session ID')
+            // throw new SecurityError('Server replied with a wrong session ID');
         }
 
         const remoteMsgId = reader.readLong()
@@ -164,7 +174,7 @@ class MTProtoState {
         // We could read msg_len bytes and use those in a new reader to read
         // the next TLObject without including the padding, but since the
         // reader isn't used for anything else after this, it's unnecessary.
-        const obj = await reader.tgReadObject()
+        const obj = reader.tgReadObject()
 
         return new TLMessage(remoteMsgId, remoteSequence, obj)
     }
@@ -177,9 +187,9 @@ class MTProtoState {
     _getNewMsgId() {
         const now = new Date().getTime() / 1000 + this.timeOffset
         const nanoseconds = Math.floor((now - Math.floor(now)) * 1e9)
-        let newMsgId = (BigInt(Math.floor(now)) << BigInt(32)) | (BigInt(nanoseconds) << BigInt(2))
-        if (this._lastMsgId >= newMsgId) {
-            newMsgId = this._lastMsgId + BigInt(4)
+        let newMsgId = (BigInt(Math.floor(now)).shiftLeft(BigInt(32))).or(BigInt(nanoseconds).shiftLeft(BigInt(2)))
+        if (this._lastMsgId.greaterOrEquals(newMsgId)) {
+            newMsgId = this._lastMsgId.add(BigInt(4))
         }
         this._lastMsgId = newMsgId
         return newMsgId
@@ -188,17 +198,17 @@ class MTProtoState {
     /**
      * Updates the time offset to the correct
      * one given a known valid message ID.
-     * @param correctMsgId
+     * @param correctMsgId {BigInteger}
      */
     updateTimeOffset(correctMsgId) {
         const bad = this._getNewMsgId()
         const old = this.timeOffset
         const now = Math.floor(new Date().getTime() / 1000)
-        const correct = correctMsgId >> BigInt(32)
+        const correct = correctMsgId.shiftRight(BigInt(32))
         this.timeOffset = correct - now
 
         if (this.timeOffset !== old) {
-            this._lastMsgId = 0
+            this._lastMsgId = BigInt(0)
             this._log.debug(
                 `Updated time offset (old offset ${old}, bad ${bad}, good ${correctMsgId}, new ${this.timeOffset})`,
             )

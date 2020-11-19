@@ -1,10 +1,13 @@
-let logger = null
+let _level = null
 
 class Logger {
-    static levels = ['debug', 'info', 'warn', 'error']
+    static levels = ['error', 'warn', 'info', 'debug']
 
     constructor(level) {
-        this.level = level
+        if (!_level) {
+            _level = level || 'debug'
+        }
+
         this.isBrowser = typeof process === 'undefined' ||
             process.type === 'renderer' ||
             process.browser === true ||
@@ -37,34 +40,34 @@ class Logger {
      * @returns {boolean}
      */
     canSend(level) {
-        return (Logger.levels.indexOf(this.level) <= Logger.levels.indexOf(level))
+        return (Logger.levels.indexOf(_level) >= Logger.levels.indexOf(level))
     }
 
     /**
      * @param message {string}
      */
-    warn(...message) {
+    warn(message) {
         this._log('warn', message, this.colors.warn)
     }
 
     /**
      * @param message {string}
      */
-    info(...message) {
+    info(message) {
         this._log('info', message, this.colors.info)
     }
 
     /**
      * @param message {string}
      */
-    debug(...message) {
+    debug(message) {
         this._log('debug', message, this.colors.debug)
     }
 
     /**
      * @param message {string}
      */
-    error(...message) {
+    error(message) {
         this._log('error', message, this.colors.error)
     }
 
@@ -74,11 +77,8 @@ class Logger {
             .replace('%m', message)
     }
 
-    static getLogger() {
-        if (!logger) {
-            logger = new Logger('debug')
-        }
-        return logger
+    static setLevel(level) {
+        _level = level;
     }
 
     /**
@@ -87,10 +87,9 @@ class Logger {
      * @param color {string}
      */
     _log(level, message, color) {
-        if (Array.isArray(message)) {
-            message = message.join(' ')
+        if (!_level){
+            return
         }
-
         if (this.canSend(level)) {
             if (!this.isBrowser) {
                 console.log(color + this.format(message, level) + this.colors.end)
@@ -98,7 +97,7 @@ class Logger {
                 console.log(this.colors.start + this.format(message, level), color)
             }
         } else {
-            // console.log('can\'t send')
+
         }
     }
 }

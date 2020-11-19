@@ -1,7 +1,7 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
-
 const AsyncQueue = require('../../extensions/AsyncQueue')
+const {IS_NODE} = require("../../Helpers");
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -17,7 +17,7 @@ const AsyncQueue = require('../../extensions/AsyncQueue')
 class Connection {
     PacketCodecClass = null
 
-    constructor(ip, port, dcId, loggers, browser = false) {
+    constructor(ip, port, dcId, loggers) {
         this._ip = ip
         this._port = port
         this._dcId = dcId
@@ -29,25 +29,24 @@ class Connection {
         this._obfuscation = null // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue()
         this._recvArray = new AsyncQueue()
-        if (browser) {
-            this.socket = new PromisedWebSockets()
-        } else {
-            this.socket = new PromisedNetSockets()
-        }
+        this.socket = IS_NODE ? new PromisedNetSockets() : new PromisedWebSockets()
+
+        //this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
         this._log.debug('Connecting')
-        await this.socket.connect(this._port, this._ip)
+        this._codec = new this.PacketCodecClass(this)
+        await this.socket.connect(this._port, this._ip, this)
         this._log.debug('Finished connecting')
         // await this.socket.connect({host: this._ip, port: this._port});
-        this._codec = new this.PacketCodecClass(this)
         await this._initConn()
     }
 
     async connect() {
         await this._connect()
         this._connected = true
+
         if (!this._sendTask) {
             this._sendTask = this._sendLoop()
         }
@@ -56,6 +55,7 @@ class Connection {
 
     async disconnect() {
         this._connected = false
+        await this._recvArray.push(null)
         await this.socket.close()
     }
 
@@ -69,6 +69,7 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop()
+
             // null = sentinel value = keep trying
             if (result) {
                 return result
@@ -82,10 +83,13 @@ class Connection {
         try {
             while (this._connected) {
                 const data = await this._sendArray.pop()
+                if (!data) {
+                    this._sendTask = null
+                    return
+                }
                 await this._send(data)
             }
         } catch (e) {
-            console.log(e)
             this._log.info('The server closed the connection while sending')
         }
     }
@@ -96,11 +100,13 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
-                    return
+                    throw new Error("no data received")
                 }
             } catch (e) {
+                this._log.info('connection closed')
+                //await this._recvArray.push()
                 console.log(e)
-                this._log.info('an error occured')
+                this.disconnect()
                 return
             }
             await this._recvArray.push(data)
