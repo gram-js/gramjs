@@ -6,8 +6,6 @@
 /gramjs/tl/functions/
 /gramjs/tl/types/
 /gramjs/tl/patched/
-/gramjs/tl/AllTLObjects.js
-/gramjs/errors/RPCErrorList.js
 /dist/
 /coverage/
 

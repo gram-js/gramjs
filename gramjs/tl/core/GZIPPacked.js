@@ -1,20 +1,20 @@
-const { TLObject } = require('../tlobject')
-const struct = require('python-struct')
-const { ungzip } = require('node-gzip')
-const { gzip } = require('node-gzip')
+const { serializeBytes } = require('../index')
+const { inflate } = require('pako/dist/pako_inflate')
+//CONTEST const { deflate } = require('pako/dist/pako_deflate')
 
-class GZIPPacked extends TLObject {
-    static CONSTRUCTOR_ID = 0x3072cfa1;
+class GZIPPacked {
+    static CONSTRUCTOR_ID = 0x3072cfa1
+    static classType = 'constructor'
 
     constructor(data) {
-        super()
         this.data = data
         this.CONSTRUCTOR_ID = 0x3072cfa1
+        this.classType = 'constructor'
     }
 
     static async gzipIfSmaller(contentRelated, data) {
         if (contentRelated && data.length > 512) {
-            const gzipped = await new GZIPPacked(data).toBytes()
+            const gzipped = await (new GZIPPacked(data)).toBytes()
             if (gzipped.length < data.length) {
                 return gzipped
             }
@@ -22,10 +22,22 @@ class GZIPPacked extends TLObject {
         return data
     }
 
+    static gzip(input) {
+        return Buffer.from(input)
+        // TODO this usually makes it faster for large requests
+        //return Buffer.from(deflate(input, { level: 9, gzip: true }))
+    }
+
+    static ungzip(input) {
+        return Buffer.from(inflate(input))
+    }
+
     async toBytes() {
+        const g = Buffer.alloc(4)
+        g.writeUInt32LE(GZIPPacked.CONSTRUCTOR_ID, 0)
         return Buffer.concat([
-            struct.pack('<I', GZIPPacked.CONSTRUCTOR_ID),
-            TLObject.serializeBytes(await gzip(this.data)),
+            g,
+            serializeBytes(await GZIPPacked.gzip(this.data)),
         ])
     }
 
@@ -34,11 +46,11 @@ class GZIPPacked extends TLObject {
         if (constructor !== GZIPPacked.CONSTRUCTOR_ID) {
             throw new Error('not equal')
         }
-        return await gzip(reader.tgReadBytes())
+        return await GZIPPacked.gzip(reader.tgReadBytes())
     }
 
     static async fromReader(reader) {
-        return new GZIPPacked(await ungzip(reader.tgReadBytes()))
+        return new GZIPPacked(await GZIPPacked.ungzip(reader.tgReadBytes()))
     }
 }
 

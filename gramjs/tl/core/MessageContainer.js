@@ -1,9 +1,8 @@
-const { TLObject } = require('../tlobject')
 const TLMessage = require('./TLMessage')
 
-class MessageContainer extends TLObject {
+class MessageContainer {
     static CONSTRUCTOR_ID = 0x73f1f8dc;
-
+    static classType = "constructor"
     // Maximum size in bytes for the inner payload of the container.
     // Telegram will close the connection if the payload is bigger.
     // The overhead of the container itself is subtracted.
@@ -20,9 +19,10 @@ class MessageContainer extends TLObject {
     static MAXIMUM_LENGTH = 100;
 
     constructor(messages) {
-        super()
+
         this.CONSTRUCTOR_ID = 0x73f1f8dc
         this.messages = messages
+        this.classType = "constructor"
     }
 
     static async fromReader(reader) {

@@ -1,16 +1,16 @@
-const { TLObject } = require('../tlobject')
-const { RpcError } = require('../types')
+const { RpcError } = require('../index').constructors
 const GZIPPacked = require('./GZIPPacked')
 
-class RPCResult extends TLObject {
+class RPCResult {
     static CONSTRUCTOR_ID = 0xf35c6d01;
+    static classType = "constructor"
 
     constructor(reqMsgId, body, error) {
-        super()
         this.CONSTRUCTOR_ID = 0xf35c6d01
         this.reqMsgId = reqMsgId
         this.body = body
         this.error = error
+        this.classType = "constructor"
     }
 
     static async fromReader(reader) {

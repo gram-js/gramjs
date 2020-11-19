@@ -1,44 +1,39 @@
 const Logger = require('../extensions/Logger')
-const { sleep } = require('../Helpers')
+const { sleep,IS_NODE } = require('../Helpers')
 const errors = require('../errors')
 const MemorySession = require('../sessions/Memory')
-const { addKey } = require('../crypto/RSA')
-const { TLObject, TLRequest } = require('../tl/tlobject')
+const Helpers = require('../Helpers')
+const { BinaryWriter } = require('../extensions')
 const utils = require('../Utils')
 const Session = require('../sessions/Abstract')
-const SQLiteSession = require('../sessions/SQLiteSession')
 const os = require('os')
-const { GetConfigRequest } = require('../tl/functions/help')
 const { LAYER } = require('../tl/AllTLObjects')
-const { functions, types } = require('../tl')
-const { computeCheck } = require('../Password')
+const { constructors, requests } = require('../tl')
 const MTProtoSender = require('../network/MTProtoSender')
-const Helpers = require('../Helpers')
+const { UpdateConnectionState } = require("../network")
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
-const { BinaryWriter } = require('../extensions')
-const events = require('../events')
+const { ConnectionTCPFull } = require('../network/connection/TCPFull')
+const { authFlow, checkAuthorization } = require('./auth')
+const { downloadFile } = require('./downloadFile')
+const { uploadFile } = require('./uploadFile')
 
-const DEFAULT_DC_ID = 4
-const DEFAULT_IPV4_IP = '149.154.167.51'
+const DEFAULT_DC_ID = 1
+const DEFAULT_IPV4_IP = IS_NODE?'149.154.167.51':'pluto.web.telegram.org'
 const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]'
-const DEFAULT_PORT = 443
 
-// Chunk sizes for upload.getFile must be multiples of the smallest size
-const MIN_CHUNK_SIZE = 4096
-
-// eslint-disable-next-line no-unused-vars
-const MAX_CHUNK_SIZE = 512 * 1024
+// All types
+const sizeTypes = ['w', 'y', 'd', 'x', 'c', 'm', 'b', 'a', 's']
 
 
 class TelegramClient {
     static DEFAULT_OPTIONS = {
-        connection: ConnectionTCPObfuscated,
+        connection:IS_NODE? ConnectionTCPFull: ConnectionTCPObfuscated,
         useIPV6: false,
         proxy: null,
         timeout: 10,
         requestRetries: 5,
-        connectionRetries: 5,
-        retryDelay: 1,
+        connectionRetries: Infinity,
+        retryDelay: 1000,
         autoReconnect: true,
         sequentialUpdates: false,
         floodSleepLimit: 60,
@@ -48,9 +43,16 @@ class TelegramClient {
         langCode: 'en',
         systemLangCode: 'en',
         baseLogger: 'gramjs',
+        useWSS: false,
     }
 
-
+    /**
+     *
+     * @param session {StringSession|LocalStorageSession}
+     * @param apiId
+     * @param apiHash
+     * @param opts
+     */
     constructor(session, apiId, apiHash, opts = TelegramClient.DEFAULT_OPTIONS) {
         if (apiId === undefined || apiHash === undefined) {
             throw Error('Your API ID or Hash are invalid. Please read "Requirements" on README.md')
@@ -67,17 +69,11 @@ class TelegramClient {
         }
         // Determine what session we will use
         if (typeof session === 'string' || !session) {
-            try {
-                session = new SQLiteSession(session)
-            } catch (e) {
-                session = new MemorySession()
-            }
+            throw new Error('not implemented')
         } else if (!(session instanceof Session)) {
             throw new Error('The given session must be str or a session instance')
         }
-        if (!session.serverAddress || (session.serverAddress.includes(':') !== this._useIPV6)) {
-            session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, DEFAULT_PORT)
-        }
+
         this.floodSleepLimit = args.floodSleepLimit
         this._eventBuilders = []
 
@@ -103,12 +99,14 @@ class TelegramClient {
         this._floodWaitedRequests = {}
 
         this._initWith = (x) => {
-            return new functions.InvokeWithLayerRequest({
+            return new requests.InvokeWithLayer({
                 layer: LAYER,
-                query: new functions.InitConnectionRequest({
+                query: new requests.InitConnection({
                     apiId: this.apiId,
-                    deviceModel: args.deviceModel || os.type().toString() || 'Unknown',
-                    systemVersion: args.systemVersion || os.release().toString() || '1.0',
+                    deviceModel: args.deviceModel || os.type()
+                        .toString() || 'Unknown',
+                    systemVersion: args.systemVersion || os.release()
+                        .toString() || '1.0',
                     appVersion: args.appVersion || '1.0',
                     langCode: args.langCode,
                     langPack: '', // this should be left empty.
@@ -118,21 +116,12 @@ class TelegramClient {
                 }),
             })
         }
+
+        this._args = args
         // These will be set later
         this._config = null
-        this._sender = new MTProtoSender(this.session.authKey, {
-            logger: this._log,
-            retries: this._connectionRetries,
-            delay: this._retryDelay,
-            autoReconnect: this._autoReconnect,
-            connectTimeout: this._timeout,
-            authKeyCallback: this._authKeyCallback.bind(this),
-            updateCallback: this._handleUpdate.bind(this),
-
-        })
         this.phoneCodeHashes = []
-        this._borrowedSenders = {}
-        this._updatesHandle = null
+        this._borrowedSenderPromises = {}
     }
 
 
@@ -145,18 +134,40 @@ class TelegramClient {
      * @returns {Promise<void>}
      */
     async connect() {
+        await this._initSession()
+
+        this._sender = new MTProtoSender(this.session.getAuthKey(), {
+            logger: this._log,
+            dcId: this.session.dcId,
+            retries: this._connectionRetries,
+            delay: this._retryDelay,
+            autoReconnect: this._autoReconnect,
+            connectTimeout: this._timeout,
+            authKeyCallback: this._authKeyCallback.bind(this),
+            updateCallback: this._handleUpdate.bind(this),
+            isMainSender: true,
+        })
+
         const connection = new this._connection(this.session.serverAddress
             , this.session.port, this.session.dcId, this._log)
-        if (!await this._sender.connect(connection)) {
+        if (!await this._sender.connect(connection,this._dispatchUpdate.bind(this))) {
             return
         }
-        this.session.authKey = this._sender.authKey
-        await this.session.save()
+        this.session.setAuthKey(this._sender.authKey)
         await this._sender.send(this._initWith(
-            new GetConfigRequest(),
+            new requests.help.GetConfig({}),
         ))
 
-        this._updatesHandle = this._updateLoop()
+        this._dispatchUpdate({ update: new UpdateConnectionState(1) })
+        this._updateLoop()
+    }
+
+    async _initSession() {
+        await this.session.load()
+
+        if (!this.session.serverAddress || (this.session.serverAddress.includes(':') !== this._useIPV6)) {
+            this.session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, this._args.useWSS ? 443 : 80)
+        }
     }
 
     async _updateLoop() {
@@ -166,14 +177,12 @@ class TelegramClient {
             // We don't care about the result we just want to send it every
             // 60 seconds so telegram doesn't stop the connection
             try {
-                this._sender.send(new functions.PingRequest({
+                this._sender.send(new requests.Ping({
                     pingId: rnd,
                 }))
             } catch (e) {
-                this._log.error('err is', e)
-            }
 
-            // this.session.save()
+            }
 
             // We need to send some content-related request at least hourly
             // for Telegram to keep delivering updates, otherwise they will
@@ -182,9 +191,9 @@ class TelegramClient {
             // TODO Call getDifference instead since it's more relevant
             if (new Date().getTime() - this._lastRequest > 30 * 60 * 1000) {
                 try {
-                    await this.invoke(new functions.updates.GetStateRequest())
+                    await this.invoke(new requests.updates.GetState())
                 } catch (e) {
-                    this._log.error('err is', e)
+
                 }
             }
         }
@@ -200,48 +209,340 @@ class TelegramClient {
         }
     }
 
+    /**
+     * Disconnects all senders and removes all handlers
+     * @returns {Promise<void>}
+     */
+    async destroy() {
+        await Promise.all([
+            this.disconnect(),
+            this.session.delete(),
+            ...Object.values(this._borrowedSenderPromises).map((promise) => {
+                return promise
+                    .then((sender) => sender.disconnect())
+            })
+        ])
+
+        this._eventBuilders = []
+    }
 
     async _switchDC(newDc) {
         this._log.info(`Reconnecting to new data center ${newDc}`)
-        const DC = await this._getDC(newDc)
-        this.session.setDC(DC.id, DC.ipAddress, DC.port)
+        const DC = await utils.getDC(newDc,this)
+        this.session.setDC(newDc, DC.ipAddress, DC.port)
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to None to force recreating it.
-        this._sender.authKey.key = null
-        this.session.authKey = null
-        await this.session.save()
+        await this._sender.authKey.setKey(null)
+        this.session.setAuthKey(null)
         await this.disconnect()
-        return await this.connect()
+        return this.connect()
     }
 
-    async _authKeyCallback(authKey) {
-        this.session.authKey = authKey
-        await this.session.save()
-    }
-
-    // endregion
-
-    // region Working with different connections/Data Centers
-
-    async _getDC(dcId, cdn = false) {
-        await Helpers.sleep(1000)
-        if (!this._config) {
-            this._config = await this.invoke(new functions.help.GetConfigRequest())
-        }
-        if (cdn && !this._cdnConfig) {
-            this._cdnConfig = await this.invoke(new functions.help.GetCdnConfigRequest())
-            for (const pk of this._cdnConfig.publicKeys) {
-                addKey(pk.publicKey)
-            }
-        }
-        for (const DC of this._config.dcOptions) {
-            if (DC.id === dcId && Boolean(DC.ipv6) === this._useIPV6 && Boolean(DC.cdn) === cdn) {
-                return DC
-            }
-        }
+    async _authKeyCallback(authKey, dcId) {
+        this.session.setAuthKey(authKey, dcId)
     }
 
     // endregion
+    // export region
+
+    removeSender(dcId) {
+        delete this._borrowedSenderPromises[dcId]
+    }
+
+    async _borrowExportedSender(dcId, retries = 5) {
+        let senderPromise = this._borrowedSenderPromises[dcId]
+        if (!senderPromise) {
+            senderPromise = this._createExportedSender(dcId, retries)
+            this._borrowedSenderPromises[dcId] = senderPromise
+
+            senderPromise.then((sender) => {
+                if (!sender) {
+                    delete this._borrowedSenderPromises[dcId];
+                }
+            });
+        }
+        return senderPromise
+    }
+
+    async _createExportedSender(dcId, retries) {
+        const dc = await utils.getDC(dcId,this)
+        const sender = new MTProtoSender(this.session.getAuthKey(dcId),
+            {
+                logger: this._log,
+                dcId: dcId,
+                retries: this._connectionRetries,
+                delay: this._retryDelay,
+                autoReconnect: this._autoReconnect,
+                connectTimeout: this._timeout,
+                authKeyCallback: this._authKeyCallback.bind(this),
+                isMainSender: dcId===this.session.dcId,
+                senderCallback: this.removeSender.bind(this),
+            })
+        for (let i = 0; i < retries; i++) {
+            try {
+                await sender.connect(new this._connection(
+                    dc.ipAddress,
+                    dc.port,
+                    dcId,
+                    this._log,
+                ))
+                if (this.session.dcId !== dcId) {
+                    this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
+                    const auth = await this.invoke(new requests.auth.ExportAuthorization({ dcId: dcId }))
+                    const req = this._initWith(new requests.auth.ImportAuthorization({
+                            id: auth.id,
+                            bytes: auth.bytes,
+                        },
+                    ))
+                    await sender.send(req)
+                }
+                sender.dcId = dcId
+                return sender
+            } catch (e) {
+                console.log(e)
+                await sender.disconnect()
+            }
+        }
+        return null
+    }
+
+    // end region
+
+    // download region
+
+    /**
+     * Complete flow to download a file.
+     * @param inputLocation {constructors.InputFileLocation}
+     * @param [args[partSizeKb] {number}]
+     * @param [args[fileSize] {number}]
+     * @param [args[progressCallback] {Function}]
+     * @param [args[start] {number}]
+     * @param [args[end] {number}]
+     * @param [args[dcId] {number}]
+     * @param [args[workers] {number}]
+     * @returns {Promise<Buffer>}
+     */
+    async downloadFile(inputLocation, args = {}) {
+        return downloadFile(this, inputLocation, args)
+    }
+
+    async downloadMedia(messageOrMedia, args) {
+        let date
+        let media
+        if (messageOrMedia instanceof constructors.Message) {
+            date = messageOrMedia.date
+            media = messageOrMedia.media
+        } else {
+            date = new Date().getTime()
+            media = messageOrMedia
+        }
+        if (typeof media == 'string') {
+            throw new Error('not implemented')
+        }
+
+        if (media instanceof constructors.MessageMediaWebPage) {
+            if (media.webpage instanceof constructors.WebPage) {
+                media = media.webpage.document || media.webpage.photo
+            }
+        }
+        if (media instanceof constructors.MessageMediaPhoto || media instanceof constructors.Photo) {
+            return this._downloadPhoto(media, args)
+        } else if (media instanceof constructors.MessageMediaDocument || media instanceof constructors.Document) {
+            return this._downloadDocument(media, args)
+        } else if (media instanceof constructors.MessageMediaContact) {
+            return this._downloadContact(media, args)
+        } else if (media instanceof constructors.WebDocument || media instanceof constructors.WebDocumentNoProxy) {
+            return this._downloadWebDocument(media, args)
+        }
+    }
+
+    async downloadProfilePhoto(entity, isBig = false) {
+        // ('User', 'Chat', 'UserFull', 'ChatFull')
+        const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
+        // ('InputPeer', 'InputUser', 'InputChannel')
+        // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
+        // Todo account for input methods
+        const sizeType = isBig ? 'x' : 'm'
+        let photo
+        if (!(ENTITIES.includes(entity.SUBCLASS_OF_ID))) {
+            photo = entity
+        } else {
+            if (!entity.photo) {
+                // Special case: may be a ChatFull with photo:Photo
+                if (!entity.chatPhoto) {
+                    return null
+                }
+
+                return this._downloadPhoto(
+                    entity.chatPhoto, { sizeType },
+                )
+            }
+            photo = entity.photo
+        }
+
+        let dcId
+        let loc
+        if (photo instanceof constructors.UserProfilePhoto || photo instanceof constructors.ChatPhoto) {
+            dcId = photo.dcId
+            const size = isBig ? photo.photoBig : photo.photoSmall
+            loc = new constructors.InputPeerPhotoFileLocation({
+                peer: utils.getInputPeer(entity),
+                localId: size.localId,
+                volumeId: size.volumeId,
+                big: isBig,
+            })
+        } else {
+            // It doesn't make any sense to check if `photo` can be used
+            // as input location, because then this method would be able
+            // to "download the profile photo of a message", i.e. its
+            // media which should be done with `download_media` instead.
+            return null
+        }
+        try {
+            return this.downloadFile(loc, {
+                dcId: dcId,
+            })
+        } catch (e) {
+            // TODO this should never raise
+            throw e;
+            /*if (e.message === 'LOCATION_INVALID') {
+                const ie = await this.getInputEntity(entity)
+                if (ie instanceof constructors.InputPeerChannel) {
+                    const full = await this.invoke(new requests.channels.GetFullChannel({
+                        channel: ie,
+                    }))
+                    return this._downloadPhoto(full.fullChat.chatPhoto, { sizeType })
+                } else {
+                    return null
+                }
+            } else {
+                throw e
+            }*/
+        }
+    }
+
+    async downloadStickerSetThumb(stickerSet) {
+        if (!stickerSet.thumb || !stickerSet.thumb.location) {
+            return undefined
+        }
+
+        const { location } = stickerSet.thumb
+
+        return this.downloadFile(
+            new constructors.InputStickerSetThumb({
+                stickerset: new constructors.InputStickerSetID({
+                    id: stickerSet.id,
+                    accessHash: stickerSet.accessHash
+                }),
+                localId: location.localId,
+                volumeId: location.volumeId,
+            }),
+            { dcId: stickerSet.thumbDcId }
+        )
+    }
+
+    _pickFileSize(sizes, sizeType) {
+        if (!sizeType || !sizes || !sizes.length) {
+            return null
+        }
+        const indexOfSize = sizeTypes.indexOf(sizeType)
+        let size
+        for (let i = indexOfSize; i < sizeTypes.length; i++) {
+            size = sizes.find((s) => s.type === sizeTypes[i])
+            if (size) {
+                return size
+            }
+        }
+        return null
+    }
+
+
+    _downloadCachedPhotoSize(size) {
+        // No need to download anything, simply write the bytes
+        let data
+        if (size instanceof constructors.PhotoStrippedSize) {
+            data = utils.strippedPhotoToJpg(size.bytes)
+        } else {
+            data = size.bytes
+        }
+        return data
+    }
+
+    async _downloadPhoto(photo, args) {
+        if (photo instanceof constructors.MessageMediaPhoto) {
+            photo = photo.photo
+        }
+        if (!(photo instanceof constructors.Photo)) {
+            return
+        }
+        const size = this._pickFileSize(photo.sizes, args.sizeType)
+        if (!size || (size instanceof constructors.PhotoSizeEmpty)) {
+            return
+        }
+
+        if (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize) {
+            return this._downloadCachedPhotoSize(size)
+        }
+        return this.downloadFile(
+            new constructors.InputPhotoFileLocation({
+                id: photo.id,
+                accessHash: photo.accessHash,
+                fileReference: photo.fileReference,
+                thumbSize: size.type,
+            }),
+            {
+                dcId: photo.dcId,
+                fileSize: size.size,
+                progressCallback: args.progressCallback,
+            },
+        )
+    }
+
+    async _downloadDocument(doc, args) {
+        if (doc instanceof constructors.MessageMediaDocument) {
+            doc = doc.document
+        }
+        if (!(doc instanceof constructors.Document)) {
+            return
+        }
+
+        let size = null
+        if (args.sizeType) {
+            size = doc.thumbs ? this._pickFileSize(doc.thumbs, args.sizeType) : null
+            if (!size && doc.mimeType.startsWith('video/')) {
+                return
+            }
+
+            if (size && (size instanceof constructors.PhotoCachedSize || size instanceof constructors.PhotoStrippedSize)) {
+                return this._downloadCachedPhotoSize(size)
+            }
+        }
+
+        return this.downloadFile(
+            new constructors.InputDocumentFileLocation({
+                id: doc.id,
+                accessHash: doc.accessHash,
+                fileReference: doc.fileReference,
+                thumbSize: size ? size.type : '',
+            }),
+            {
+                fileSize: size ? size.size : doc.size,
+                progressCallback: args.progressCallback,
+                start: args.start,
+                end: args.end,
+                dcId: doc.dcId,
+                workers: args.workers,
+            },
+        )
+    }
+
+    _downloadContact(media, args) {
+        throw new Error('not implemented')
+    }
+
+    _downloadWebDocument(media, args) {
+        throw new Error('not implemented')
+    }
 
     // region Invoking Telegram request
     /**
@@ -250,43 +551,28 @@ class TelegramClient {
      * @returns {Promise}
      */
     async invoke(request) {
-        if (!(request instanceof TLRequest)) {
+        if (request.classType !== 'request') {
             throw new Error('You can only invoke MTProtoRequests')
         }
-        await request.resolve(this, utils)
+        // This causes issues for now because not enough utils
+        // await request.resolve(this, utils)
 
-        if (request.CONSTRUCTOR_ID in this._floodWaitedRequests) {
-            const due = this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            const diff = Math.round(due - new Date().getTime() / 1000)
-            if (diff <= 3) { // Flood waits below 3 seconds are 'ignored'
-                delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            } else if (diff <= this.floodSleepLimit) {
-                this._log.info(`Sleeping early for ${diff}s on flood wait`)
-                await sleep(diff)
-                delete this._floodWaitedRequests[request.CONSTRUCTOR_ID]
-            } else {
-                throw new errors.FloodWaitError({
-                    request: request,
-                    capture: diff,
-                })
-            }
-        }
+
         this._lastRequest = new Date().getTime()
         let attempt = 0
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
                 const promise = this._sender.send(request)
                 const result = await promise
-                this.session.processEntities(result)
+                //this.session.processEntities(result)
                 this._entityCache.add(result)
                 return result
             } catch (e) {
-                if (e instanceof errors.ServerError || e instanceof errors.RpcCallFailError ||
-                    e instanceof errors.RpcMcgetFailError) {
+                if (e instanceof errors.ServerError || e.message === 'RPC_CALL_FAIL' ||
+                    e.message === 'RPC_MCGET_FAIL') {
                     this._log.warn(`Telegram is having internal issues ${e.constructor.name}`)
                     await sleep(2000)
                 } else if (e instanceof errors.FloodWaitError || e instanceof errors.FloodTestPhoneWaitError) {
-                    this._floodWaitedRequests[request.CONSTRUCTOR_ID] = new Date().getTime() / 1000 + e.seconds
                     if (e.seconds <= this.floodSleepLimit) {
                         this._log.info(`Sleeping for ${e.seconds}s on flood wait`)
                         await sleep(e.seconds * 1000)
@@ -297,7 +583,7 @@ class TelegramClient {
                     e instanceof errors.UserMigrateError) {
                     this._log.info(`Phone migrated to ${e.newDc}`)
                     const shouldRaise = e instanceof errors.PhoneMigrateError || e instanceof errors.NetworkMigrateError
-                    if (shouldRaise && await this.isUserAuthorized()) {
+                    if (shouldRaise && await checkAuthorization(this)) {
                         throw e
                     }
                     await this._switchDC(e.newDc)
@@ -310,293 +596,57 @@ class TelegramClient {
     }
 
     async getMe() {
-        const me = (await this.invoke(new functions.users
-            .GetUsersRequest({ id: [new types.InputUserSelf()] })))[0]
-        return me
+        try {
+            return (await this.invoke(new requests.users
+                .GetUsers({ id: [new constructors.InputUserSelf()] })))[0]
+        } catch (e) {
+        }
     }
 
-
-    async start(args = {
-        phone: null,
-        code: null,
-        password: null,
-        botToken: null,
-        forceSMS: null,
-        firstName: null,
-        lastName: null,
-        maxAttempts: 5,
-    }) {
-        args.maxAttempts = args.maxAttempts || 5
+    async start(authParams) {
         if (!this.isConnected()) {
             await this.connect()
         }
-        if (await this.isUserAuthorized()) {
-            return this
-        }
-        if (args.code == null && !args.botToken) {
-            throw new Error('Please pass a promise to the code arg')
-        }
-        if (!args.botToken && !args.phone) {
-            throw new Error('Please provide either a phone or a bot token')
-        }
-        if (!args.botToken) {
-            while (typeof args.phone == 'function') {
-                const value = await args.phone()
-                if (value.indexOf(':') !== -1) {
-                    // eslint-disable-next-line require-atomic-updates
-                    args.botToken = value
-                    break
-                }
-                // eslint-disable-next-line require-atomic-updates
-                args.phone = utils.parsePhone(value) || args.phone
-            }
-        }
-        if (args.botToken) {
-            await this.signIn({
-                botToken: args.botToken,
-            })
-            return this
-        }
 
-        let me
-        let attempts = 0
-        let twoStepDetected = false
-
-        await this.sendCodeRequest(args.phone, args.forceSMS)
-
-        let signUp = false
-        while (attempts < args.maxAttempts) {
-            try {
-                const value = await args.code()
-                if (!value) {
-                    throw new errors.PhoneCodeEmptyError({
-                        request: null,
-                    })
-                }
-
-                if (signUp) {
-                    me = await this.signUp({
-                        code: value,
-                        firstName: args.firstName,
-                        lastName: args.lastName,
-                    })
-                } else {
-                    // this throws SessionPasswordNeededError if 2FA enabled
-                    me = await this.signIn({
-                        phone: args.phone,
-                        code: value,
-                    })
-                }
-                break
-            } catch (e) {
-                if (e instanceof errors.SessionPasswordNeededError) {
-                    twoStepDetected = true
-                    break
-                } else if (e instanceof errors.PhoneNumberOccupiedError) {
-                    signUp = true
-                } else if (e instanceof errors.PhoneNumberUnoccupiedError) {
-                    signUp = true
-                } else if (e instanceof errors.PhoneCodeEmptyError ||
-                    e instanceof errors.PhoneCodeExpiredError ||
-                    e instanceof errors.PhoneCodeHashEmptyError ||
-                    e instanceof errors.PhoneCodeInvalidError) {
-                    this._log.error('Invalid code. Please try again.')
-                } else {
-                    throw e
-                }
-            }
-            attempts++
-        }
-        if (attempts >= args.maxAttempts) {
-            throw new Error(`${args.maxAttempts} consecutive sign-in attempts failed. Aborting`)
-        }
-        if (twoStepDetected) {
-            if (!args.password) {
-                throw new Error('Two-step verification is enabled for this account. ' +
-                    'Please provide the \'password\' argument to \'start()\'.')
-            }
-            if (typeof args.password == 'function') {
-                for (let i = 0; i < args.maxAttempts; i++) {
-                    try {
-                        const pass = await args.password()
-                        me = await this.signIn({
-                            phone: args.phone,
-                            password: pass,
-                        })
-                        break
-                    } catch (e) {
-                        this._log.error(e)
-                        this._log.error('Invalid password. Please try again')
-                    }
-                }
-            } else {
-                me = await this.signIn({
-                    phone: args.phone,
-                    password: args.password,
-                })
-            }
-        }
-        const name = utils.getDisplayName(me)
-        this._log.error('Signed in successfully as', name)
-        return this
-    }
-
-    async signIn(args = {
-        phone: null,
-        code: null,
-        password: null,
-        botToken: null,
-        phoneCodeHash: null,
-    }) {
-        let result
-        if (args.phone && !args.code && !args.password) {
-            return await this.sendCodeRequest(args.phone)
-        } else if (args.code) {
-            const [phone, phoneCodeHash] =
-                this._parsePhoneAndHash(args.phone, args.phoneCodeHash)
-            // May raise PhoneCodeEmptyError, PhoneCodeExpiredError,
-            // PhoneCodeHashEmptyError or PhoneCodeInvalidError.
-            result = await this.invoke(new functions.auth.SignInRequest({
-                phoneNumber: phone,
-                phoneCodeHash: phoneCodeHash,
-                phoneCode: args.code.toString(),
-            }))
-        } else if (args.password) {
-            const pwd = await this.invoke(new functions.account.GetPasswordRequest())
-            result = await this.invoke(new functions.auth.CheckPasswordRequest({
-                password: computeCheck(pwd, args.password),
-            }))
-        } else if (args.botToken) {
-            result = await this.invoke(new functions.auth.ImportBotAuthorizationRequest(
-                {
-                    flags: 0,
-                    botAuthToken: args.botToken,
-                    apiId: this.apiId,
-                    apiHash: this.apiHash,
-                },
-            ))
-        } else {
-            throw new Error('You must provide a phone and a code the first time, ' +
-                'and a password only if an RPCError was raised before.')
-        }
-        return this._onLogin(result.user)
-    }
-
-
-    _parsePhoneAndHash(phone, phoneHash) {
-        phone = utils.parsePhone(phone) || this._phone
-        if (!phone) {
-            throw new Error('Please make sure to call send_code_request first.')
-        }
-        phoneHash = phoneHash || this._phoneCodeHash[phone]
-        if (!phoneHash) {
-            throw new Error('You also need to provide a phone_code_hash.')
-        }
-
-        return [phone, phoneHash]
-    }
-
-    // endregion
-    async isUserAuthorized() {
-        if (this._authorized === undefined || this._authorized === null) {
-            try {
-                await this.invoke(new functions.updates.GetStateRequest())
-                this._authorized = true
-            } catch (e) {
-                this._authorized = false
-            }
-        }
-        return this._authorized
-    }
-
-    /**
-     * Callback called whenever the login or sign up process completes.
-     * Returns the input user parameter.
-     * @param user
-     * @private
-     */
-    _onLogin(user) {
-        this._bot = Boolean(user.bot)
-        this._authorized = true
-        return user
-    }
-
-    async sendCodeRequest(phone, forceSMS = false) {
-        let result
-        phone = utils.parsePhone(phone) || this._phone
-        let phoneHash = this._phoneCodeHash[phone]
-
-        if (!phoneHash) {
-            try {
-                result = await this.invoke(new functions.auth.SendCodeRequest({
-                    phoneNumber: phone,
-                    apiId: this.apiId,
-                    apiHash: this.apiHash,
-                    settings: new types.CodeSettings(),
-                }))
-            } catch (e) {
-                if (e instanceof errors.AuthRestartError) {
-                    return await this.sendCodeRequest(phone, forceSMS)
-                }
-                throw e
-            }
-
-            // If we already sent a SMS, do not resend the code (hash may be empty)
-            if (result.type instanceof types.auth.SentCodeTypeSms) {
-                forceSMS = false
-            }
-            if (result.phoneCodeHash) {
-                this._phoneCodeHash[phone] = phoneHash = result.phoneCodeHash
-            }
-        } else {
-            forceSMS = true
-        }
-        this._phone = phone
-        if (forceSMS) {
-            result = await this.invoke(new functions.auth.ResendCodeRequest({
-                phone: phone,
-                phoneHash: phoneHash,
-            }))
-
-            this._phoneCodeHash[phone] = result.phoneCodeHash
-        }
-        return result
-    }
-
-
-    /**
-     * Adds an event handler, allowing the specified callback to be
-     * called when a matching event (or events) is received.
-     */
-    addEventHandler(callback, event = null) {
-        if (Array.isArray(event)) {
-            event.forEach((e) => this.addEventHandler(callback, e))
+        if (await checkAuthorization(this)) {
             return
         }
 
-        if (!event) {
-            event = new events.Raw()
-        } else if (event.prototype instanceof TLObject) {
-            event = new events.Raw(event)
+        const apiCredentials = {
+            apiId: this.apiId,
+            apiHash: this.apiHash
         }
 
+        await authFlow(this, apiCredentials, authParams)
+    }
+
+    uploadFile(fileParams) {
+        return uploadFile(this, fileParams)
+    }
+
+    // event region
+    addEventHandler(callback, event) {
         this._eventBuilders.push([event, callback])
     }
 
     _handleUpdate(update) {
-        this.session.processEntities(update)
+        if ([-1, 0, 1].includes(update)){
+            this._dispatchUpdate({ update: new UpdateConnectionState(update) })
+            return
+        }
+        //this.session.processEntities(update)
         this._entityCache.add(update)
 
-        if (update instanceof types.Updates || update instanceof types.UpdatesCombined) {
+        if (update instanceof constructors.Updates || update instanceof constructors.UpdatesCombined) {
             // TODO deal with entities
-            const entities = {}
+            const entities = []
             for (const x of [...update.users, ...update.chats]) {
-                entities[utils.getPeerId(x)] = x
+                entities.push(x)
             }
             for (const u of update.updates) {
                 this._processUpdate(u, update.updates, entities)
             }
-        } else if (update instanceof types.UpdateShort) {
+        } else if (update instanceof constructors.UpdateShort) {
             this._processUpdate(update.update, null)
         } else {
             this._processUpdate(update, null)
@@ -633,44 +683,45 @@ class TelegramClient {
      * @returns {Promise<void>}
      * @private
      */
+    /*CONTEST
     async _getEntityFromString(string) {
         const phone = utils.parsePhone(string)
         if (phone) {
             try {
                 for (const user of (await this.invoke(
-                    new functions.contacts.GetContactsRequest(0))).users) {
+                    new requests.contacts.GetContacts(0))).users) {
                     if (user.phone === phone) {
                         return user
                     }
                 }
             } catch (e) {
-                if (e instanceof errors.BotMethodInvalidError) {
+                if (e.message === 'BOT_METHOD_INVALID') {
                     throw new Error('Cannot get entity by phone number as a ' +
                         'bot (try using integer IDs, not strings)')
                 }
                 throw e
             }
         } else if (['me', 'this'].includes(string.toLowerCase())) {
-            return await this.getMe()
+            return this.getMe()
         } else {
             const { username, isJoinChat } = utils.parseUsername(string)
             if (isJoinChat) {
-                const invite = await this.invoke(new functions.messages.CheckChatInviteRequest({
+                const invite = await this.invoke(new requests.messages.CheckChatInvite({
                     'hash': username,
                 }))
-                if (invite instanceof types.ChatInvite) {
+                if (invite instanceof constructors.ChatInvite) {
                     throw new Error('Cannot get entity from a channel (or group) ' +
                         'that you are not part of. Join the group and retry',
                     )
-                } else if (invite instanceof types.ChatInviteAlready) {
+                } else if (invite instanceof constructors.ChatInviteAlready) {
                     return invite.chat
                 }
             } else if (username) {
                 try {
                     const result = await this.invoke(
-                        new functions.contacts.ResolveUsernameRequest(username))
+                        new requests.contacts.ResolveUsername(username))
                     const pid = utils.getPeerId(result.peer, false)
-                    if (result.peer instanceof types.PeerUser) {
+                    if (result.peer instanceof constructors.PeerUser) {
                         for (const x of result.users) {
                             if (x.id === pid) {
                                 return x
@@ -684,7 +735,7 @@ class TelegramClient {
                         }
                     }
                 } catch (e) {
-                    if (e instanceof errors.UsernameNotOccupiedError) {
+                    if (e.message === 'USERNAME_NOT_OCCUPIED') {
                         throw new Error(`No user has "${username}" as username`)
                     }
                     throw e
@@ -693,27 +744,11 @@ class TelegramClient {
         }
         throw new Error(`Cannot find any entity corresponding to "${string}"`)
     }
-
+    */
     // endregion
 
 
     // users region
-
-    async getEntity(entity) {
-        entity = await this.getInputEntity(entity)
-        if (entity instanceof types.InputPeerUser || entity instanceof types.InputPeerSelf) {
-            const user = await this.invoke(new functions.users.GetUsersRequest({ id: [entity] }))
-            return user[0]
-        } else if (entity instanceof types.InputPeerChat) {
-            const chat = await this.invoke(new functions.messages.GetChatsRequest({ id: [entity] }))
-            return chat[0]
-        } else if (entity instanceof types.InputPeerChannel) {
-            const channel = await this.invoke(new functions.channels.GetChannelsRequest({ id: [entity] }))
-            return channel[0]
-        }
-    }
-
-
     /**
      Turns the given entity into its input entity version.
 
@@ -776,8 +811,9 @@ class TelegramClient {
      chat = await client.get_input_entity(-123456789)
 
      * @param peer
-     * @returns {Promise<void>}
+     * @returns {Promise<>}
      */
+    /*CONTEST
     async getInputEntity(peer) {
         // Short-circuit if the input parameter directly maps to an InputPeer
         try {
@@ -798,7 +834,7 @@ class TelegramClient {
         }
         // Then come known strings that take precedence
         if (['me', 'this'].includes(peer)) {
-            return new types.InputPeerSelf()
+            return new constructors.InputPeerSelf()
         }
         // No InputPeer, cached peer, or known string. Fetch from disk cache
         try {
@@ -811,17 +847,18 @@ class TelegramClient {
             return utils.getInputPeer(await this._getEntityFromString(peer))
         }
         // If we're a bot and the user has messaged us privately users.getUsers
-        // will work with access_hash = 0. Similar for channels.getChannels.
+        // will work with accessHash = 0. Similar for channels.getChannels.
         // If we're not a bot but the user is in our contacts, it seems to work
         // regardless. These are the only two special-cased requests.
         peer = utils.getPeer(peer)
-        if (peer instanceof types.PeerUser) {
-            const users = await this.invoke(new functions.users.GetUsersRequest({
-                id: [new types.InputUser({
-                    userId: peer.userId, accessHash: 0,
+        if (peer instanceof constructors.PeerUser) {
+            const users = await this.invoke(new requests.users.GetUsers({
+                id: [new constructors.InputUser({
+                    userId: peer.userId,
+                    accessHash: 0,
                 })],
             }))
-            if (users && !(users[0] instanceof types.UserEmpty)) {
+            if (users && !(users[0] instanceof constructors.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
                 // channels but would be valid for users, we get UserEmpty.
                 // Avoid returning the invalid empty input peer for that.
@@ -831,14 +868,14 @@ class TelegramClient {
                 // another request, but that becomes too much work.
                 return utils.getInputPeer(users[0])
             }
-        } else if (peer instanceof types.PeerChat) {
-            return new types.InputPeerChat({
+        } else if (peer instanceof constructors.PeerChat) {
+            return new constructors.InputPeerChat({
                 chatId: peer.chatId,
             })
-        } else if (peer instanceof types.PeerChannel) {
+        } else if (peer instanceof constructors.PeerChannel) {
             try {
-                const channels = await this.invoke(new functions.channels.GetChannelsRequest({
-                    id: [new types.InputChannel({
+                const channels = await this.invoke(new requests.channels.GetChannels({
+                    id: [new constructors.InputChannel({
                         channelId: peer.channelId,
                         accessHash: 0,
                     })],
@@ -847,7 +884,7 @@ class TelegramClient {
                 return utils.getInputPeer(channels.chats[0])
                 // eslint-disable-next-line no-empty
             } catch (e) {
-                this._log.error(e)
+                console.log(e)
             }
         }
         throw new Error(`Could not find the input entity for ${peer.id || peer.channelId || peer.chatId || peer.userId}.
@@ -856,11 +893,7 @@ class TelegramClient {
             ' find out more details.',
         )
     }
-
-
-    // endregion
-
-
+    */
     async _dispatchUpdate(args = {
         update: null,
         others: null,
@@ -883,339 +916,6 @@ class TelegramClient {
         }
         return false
     }
-
-    async signUp() {
-
-    }
-
-    // export region
-
-    async _borrowExportedSender(dcId) {
-        let sender = this._borrowedSenders[dcId]
-        if (!sender) {
-            sender = await this._createExportedSender(dcId)
-            sender.dcId = dcId
-            this._borrowedSenders[dcId] = sender
-        }
-        return sender
-    }
-
-    async _createExportedSender(dcId) {
-        const dc = await this._getDC(dcId)
-        const sender = new MTProtoSender(null, { logger: this._log })
-        await sender.connect(new this._connection(
-            dc.ipAddress,
-            dc.port,
-            dcId,
-            this._log,
-        ))
-        this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
-        const auth = await this.invoke(new functions.auth.ExportAuthorizationRequest({ dcId: dcId }))
-        const req = this._initWith(new functions.auth.ImportAuthorizationRequest({
-            id: auth.id, bytes: auth.bytes,
-        }))
-        await sender.send(req)
-        return sender
-    }
-
-    // end region
-
-    // download region
-
-
-    async downloadFile(inputLocation, file, args = {
-        partSizeKb: null,
-        fileSize: null,
-        progressCallback: null,
-        dcId: null,
-    }) {
-        if (!args.partSizeKb) {
-            if (!args.fileSize) {
-                args.partSizeKb = 64
-            } else {
-                args.partSizeKb = utils.getAppropriatedPartSize(args.fileSize)
-            }
-        }
-        const partSize = parseInt(args.partSizeKb * 1024)
-        if (partSize % MIN_CHUNK_SIZE !== 0) {
-            throw new Error('The part size must be evenly divisible by 4096')
-        }
-        const inMemory = !file || file === Buffer
-        let f
-        if (inMemory) {
-            f = new BinaryWriter(Buffer.alloc(0))
-        } else {
-            throw new Error('not supported')
-        }
-        const res = utils.getInputLocation(inputLocation)
-        let exported = args.dcId && this.session.dcId !== args.dcId
-
-        let sender
-        if (exported) {
-            try {
-                sender = await this._borrowExportedSender(args.dcId)
-            } catch (e) {
-                if (e instanceof errors.DcIdInvalidError) {
-                    // Can't export a sender for the ID we are currently in
-                    sender = this._sender
-                    exported = false
-                } else {
-                    throw e
-                }
-            }
-        } else {
-            sender = this._sender
-        }
-
-        this._log.info(`Downloading file in chunks of ${partSize} bytes`)
-
-        try {
-            let offset = 0
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-                let result
-                try {
-                    result = await sender.send(new functions.upload.GetFileRequest({
-                        location: res.inputLocation,
-                        offset: offset,
-                        limit: partSize,
-                    }))
-                    if (result instanceof types.upload.FileCdnRedirect) {
-                        throw new Error('not implemented')
-                    }
-                } catch (e) {
-                    if (e instanceof errors.FileMigrateError) {
-                        this._log.info('File lives in another DC')
-                        sender = await this._borrowExportedSender(e.newDc)
-                        exported = true
-                        continue
-                    } else {
-                        throw e
-                    }
-                }
-                offset += partSize
-
-                if (!result.bytes.length) {
-                    if (inMemory) {
-                        return f.getValue()
-                    } else {
-                        // Todo implement
-                    }
-                }
-                this._log.debug(`Saving ${result.bytes.length} more bytes`)
-                f.write(result.bytes)
-                if (args.progressCallback) {
-                    await args.progressCallback(f.getValue().length, args.fileSize)
-                }
-            }
-        } finally {
-            // TODO
-        }
-    }
-
-    async downloadMedia(message, file, args = {
-        thumb: null,
-        progressCallback: null,
-    }) {
-        let date
-        let media
-        if (message instanceof types.Message) {
-            date = message.date
-            media = message.media
-        } else {
-            date = new Date().getTime()
-            media = message
-        }
-        if (typeof media == 'string') {
-            throw new Error('not implemented')
-        }
-
-        if (media instanceof types.MessageMediaWebPage) {
-            if (media.webpage instanceof types.WebPage) {
-                media = media.webpage.document || media.webpage.photo
-            }
-        }
-        if (media instanceof types.MessageMediaPhoto || media instanceof types.Photo) {
-            return await this._downloadPhoto(media, file, date, args.thumb, args.progressCallback)
-        } else if (media instanceof types.MessageMediaDocument || media instanceof types.Document) {
-            return await this._downloadDocument(media, file, date, args.thumb, args.progressCallback, media.dcId)
-        } else if (media instanceof types.MessageMediaContact && args.thumb == null) {
-            return this._downloadContact(media, file)
-        } else if ((media instanceof types.WebDocument || media instanceof types.WebDocumentNoProxy) &&
-                    args.thumb == null) {
-            return await this._downloadWebDocument(media, file, args.progressCallback)
-        }
-    }
-
-    async downloadProfilePhoto(entity, file, downloadBig = false) {
-        // ('User', 'Chat', 'UserFull', 'ChatFull')
-        const ENTITIES = [0x2da17977, 0xc5af5d94, 0x1f4661b9, 0xd49a2697]
-        // ('InputPeer', 'InputUser', 'InputChannel')
-        // const INPUTS = [0xc91c90b6, 0xe669bf46, 0x40f202fd]
-        // Todo account for input methods
-        const thumb = downloadBig ? -1 : 0
-        let photo
-        if (!(ENTITIES.includes(entity.SUBCLASS_OF_ID))) {
-            photo = entity
-        } else {
-            if (!entity.photo) {
-                // Special case: may be a ChatFull with photo:Photo
-                if (!entity.chatPhoto) {
-                    return null
-                }
-
-                return await this._downloadPhoto(
-                    entity.chatPhoto, file, null, thumb, null,
-                )
-            }
-            photo = entity.photo
-        }
-        let dcId
-        let which
-        let loc
-        if (photo instanceof types.UserProfilePhoto || photo instanceof types.ChatPhoto) {
-            dcId = photo.dcId
-            which = downloadBig ? photo.photoBig : photo.photoSmall
-            loc = new types.InputPeerPhotoFileLocation({
-                peer: await this.getInputEntity(entity),
-                localId: which.localId,
-                volumeId: which.volumeId,
-                big: downloadBig,
-            })
-            this._log.debug(loc)
-        } else {
-            // It doesn't make any sense to check if `photo` can be used
-            // as input location, because then this method would be able
-            // to "download the profile photo of a message", i.e. its
-            // media which should be done with `download_media` instead.
-            return null
-        }
-        file = file ? file : Buffer
-        try {
-            const result = await this.downloadFile(loc, file, {
-                dcId: dcId,
-            })
-            return result
-        } catch (e) {
-            if (e instanceof errors.LocationInvalidError) {
-                const ie = await this.getInputEntity(entity)
-                if (ie instanceof types.InputPeerChannel) {
-                    const full = await this.invoke(new functions.channels.GetFullChannelRequest({
-                        channel: ie,
-                    }))
-                    return await this._downloadPhoto(full.fullChat.chatPhoto, file, null, null, thumb)
-                } else {
-                    return null
-                }
-            } else {
-                throw e
-            }
-        }
-    }
-
-    _getThumb(thumbs, thumb) {
-        if (thumb === null || thumb === undefined) {
-            return thumbs[thumbs.length - 1]
-        } else if (typeof thumb === 'number') {
-            return thumbs[thumb]
-        } else if (thumb instanceof types.PhotoSize ||
-            thumb instanceof types.PhotoCachedSize ||
-            thumb instanceof types.PhotoStrippedSize) {
-            return thumb
-        } else {
-            return null
-        }
-    }
-
-    _downloadCachedPhotoSize(size, file) {
-        // No need to download anything, simply write the bytes
-        let data
-        if (size instanceof types.PhotoStrippedSize) {
-            data = utils.strippedPhotoToJpg(size.bytes)
-        } else {
-            data = size.bytes
-        }
-        return data
-    }
-
-    async _downloadPhoto(photo, file, date, thumb, progressCallback) {
-        if (photo instanceof types.MessageMediaPhoto) {
-            photo = photo.photo
-        }
-        if (!(photo instanceof types.Photo)) {
-            return
-        }
-        const size = this._getThumb(photo.sizes, thumb)
-        if (!size || (size instanceof types.PhotoSizeEmpty)) {
-            return
-        }
-
-        file = file ? file : Buffer
-        if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-            return this._downloadCachedPhotoSize(size, file)
-        }
-
-        const result = await this.downloadFile(
-            new types.InputPhotoFileLocation({
-                id: photo.id,
-                accessHash: photo.accessHash,
-                fileReference: photo.fileReference,
-                thumbSize: size.type,
-            }),
-            file,
-            {
-                dcId: photo.dcId,
-                fileSize: size.size,
-                progressCallback: progressCallback,
-            },
-        )
-        return result
-    }
-
-    async _downloadDocument(document, file, date, thumb, progressCallback, dcId) {
-        if (document instanceof types.MessageMediaPhoto) {
-            document = document.document
-        }
-        if (!(document instanceof types.Document)) {
-            return
-        }
-        let size
-        file = file ? file : Buffer
-
-        if (thumb === null || thumb === undefined) {
-            size = null
-        } else {
-            size = this._getThumb(document.thumbs, thumb)
-            if (size instanceof types.PhotoCachedSize || size instanceof types.PhotoStrippedSize) {
-                return this._downloadCachedPhotoSize(size, file)
-            }
-        }
-        const result = await this.downloadFile(
-            new types.InputDocumentFileLocation({
-                id: document.id,
-                accessHash: document.accessHash,
-                fileReference: document.fileReference,
-                thumbSize: size ? size.type : '',
-            }),
-            file,
-            {
-                fileSize: size ? size.size : document.size,
-                progressCallback: progressCallback,
-                dcId,
-            },
-        )
-        return result
-    }
-
-    _downloadContact(media, file) {
-        throw new Error('not implemented')
-    }
-
-    async _downloadWebDocument(media, file, progressCallback) {
-        throw new Error('not implemented')
-    }
-
-    // endregion
 }
 
 module.exports = TelegramClient

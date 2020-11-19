@@ -1,90 +1,78 @@
-const { getRandomInt } = require('../Helpers')
+const BigInt = require('big-integer')
+const { modExp } = require('../Helpers')
 
 class Factorizator {
     /**
-     * Finds the small multiplier by using Lopatin's method
-     * @param what {BigInt}
-     * @return {BigInt}
-     */
-    static findSmallMultiplierLopatin(what) {
-        let g = BigInt(0)
-        for (let i = BigInt(0); i < BigInt(3); i++) {
-            const q = BigInt(30) || BigInt((getRandomInt(0, 127) & 15) + 17)
-            let x = BigInt(40) || BigInt(getRandomInt(0, 1000000000) + 1)
-
-            let y = x
-            const lim = BigInt(1) << (i + BigInt(18))
-            for (let j = BigInt(1); j < lim; j++) {
-                let a = x
-                let b = x
-
-                let c = q
-                while (b !== BigInt(0)) {
-                    if (BigInt(b & BigInt(1)) !== BigInt(0)) {
-                        c += a
-                        if (c >= what) {
-                            c -= what
-                        }
-                    }
-                    a += a
-                    if (a >= what) {
-                        a -= what
-                    }
-                    b >>= BigInt(1)
-                }
-
-                x = c
-                const z = BigInt(x < y ? y - x : x - y)
-                g = this.gcd(z, what)
-
-                if (g !== BigInt(1)) {
-                    break
-                }
-
-                if ((j & (j - BigInt(1))) === BigInt(0)) {
-                    y = x
-                }
-            }
-            if (g > 1) {
-                break
-            }
-        }
-        const p = what / g
-
-        return p < g ? p : g
-    }
-
-    /**
      * Calculates the greatest common divisor
-     * @param a {BigInt}
-     * @param b {BigInt}
-     * @returns {BigInt}
+     * @param a {BigInteger}
+     * @param b {BigInteger}
+     * @returns {BigInteger}
      */
     static gcd(a, b) {
-        while (a !== BigInt(0) && b !== BigInt(0)) {
-            while ((b & BigInt(1)) === BigInt(0)) {
-                b >>= BigInt(1)
-            }
-            while ((a & BigInt(1)) === BigInt(0)) {
-                a >>= BigInt(1)
-            }
-            if (a > b) {
-                a -= b
-            } else {
-                b -= a
-            }
+        while (b.neq(BigInt.zero)) {
+            let temp = b
+            b = a.remainder(b)
+            a = temp
         }
-        return b === BigInt(0) ? a : b
+        return a
     }
 
     /**
      * Factorizes the given number and returns both the divisor and the number divided by the divisor
-     * @param pq {BigInt}
-     * @returns {{p: BigInt, q: BigInt}}
+     * @param pq {BigInteger}
+     * @returns {{p: *, q: *}}
      */
     static factorize(pq) {
-        const divisor = this.findSmallMultiplierLopatin(pq)
-        return { p: divisor, q: pq / divisor }
+        if (pq.remainder(2).equals(BigInt.zero)) {
+            return { p: BigInt(2), q: pq.divide(BigInt(2)) }
+        }
+        let y = BigInt.randBetween(BigInt(1),pq.minus(1))
+        const c = BigInt.randBetween(BigInt(1),pq.minus(1))
+        const m = BigInt.randBetween(BigInt(1),pq.minus(1))
+
+        let g = BigInt.one
+        let r = BigInt.one
+        let q = BigInt.one
+        let x = BigInt.zero
+        let ys = BigInt.zero
+        let k
+
+        while (g.eq(BigInt.one)) {
+            x = y
+            for (let i = 0; BigInt(i).lesser(r); i++) {
+                y = (modExp(y, BigInt(2), pq)).add(c).remainder(pq)
+            }
+            k = BigInt.zero
+
+            while (k.lesser(r) && g.eq(BigInt.one)) {
+
+                ys = y
+                let condition = BigInt.min(m, r.minus(k))
+                for (let i = 0; BigInt(i).lesser(condition); i++) {
+                    y = (modExp(y, BigInt(2), pq)).add(c).remainder(pq)
+                    q = q.multiply(x.minus(y).abs()).remainder(pq)
+                }
+                g = Factorizator.gcd(q, pq)
+                k = k.add(m)
+            }
+
+            r = r.multiply(2)
+        }
+
+
+        if (g.eq(pq)) {
+            while (true) {
+                ys = (modExp(ys, BigInt(2), pq)).add(c).remainder(pq)
+                g = Factorizator.gcd(x.minus(ys).abs(), pq)
+
+                if (g.greater(1)) {
+                    break
+                }
+            }
+        }
+        const p = g
+        q = pq.divide(g)
+        return p < q ? { p: p, q: q } : { p: q, q: p }
     }
 }
 

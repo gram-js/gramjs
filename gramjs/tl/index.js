@@ -1,13 +1,12 @@
-const types = require('./types')
-const functions = require('./functions')
-const custom = require('./custom')
+const api = require('./api')
+const { serializeBytes, serializeDate } = require('./generationHelpers')
 const patched = null
-const { TLObject, TLRequest } = require('./tlobject')
+
 module.exports = {
-    types,
-    functions,
-    custom,
+    // TODO Refactor internal usages to always use `api`.
+    constructors: api,
+    requests: api,
     patched,
-    TLObject,
-    TLRequest,
+    serializeBytes,
+    serializeDate
 }
