@@ -6,7 +6,7 @@ const RSA = require('../crypto/RSA')
 const Helpers = require('../Helpers')
 const { constructors, requests } = require('../tl')
 const BinaryReader = require('../extensions/BinaryReader')
-const { SecurityError } = require("../errors/Common")
+const { SecurityError } = require('../errors/Common')
 
 /**
  * Executes the authentication process with the Telegram servers.
@@ -35,8 +35,8 @@ async function doAuthentication(sender, log) {
     let { p, q } = Factorizator.factorize(pq)
 
     // TODO Bring back after `Factorizator` fix.
-     p = Helpers.getByteArray(p)
-     q = Helpers.getByteArray(q)
+    p = Helpers.getByteArray(p)
+    q = Helpers.getByteArray(q)
 
     bytes = Helpers.generateRandomBytes(32)
     const newNonce = Helpers.readBigIntFromBuffer(bytes, true, true)

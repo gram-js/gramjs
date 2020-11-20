@@ -6,8 +6,8 @@ const { TLMessage } = require('../tl/core')
 const { SecurityError, InvalidBufferError } = require('../errors/Common')
 const { InvokeAfterMsg } = require('../tl').requests
 const BigInt = require('big-integer')
-const { toSignedLittleBuffer,readBufferFromBigInt } = require("../Helpers")
-const { readBigIntFromBuffer } = require("../Helpers")
+const { toSignedLittleBuffer,readBufferFromBigInt } = require('../Helpers')
+const { readBigIntFromBuffer } = require('../Helpers')
 
 class MTProtoState {
     /**
@@ -75,7 +75,7 @@ class MTProtoState {
         const x = client === true ? 0 : 8
         const [sha256a , sha256b] = await Promise.all([
             Helpers.sha256(Buffer.concat([msgKey, authKey.slice(x, x + 36)])),
-            Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey]))
+            Helpers.sha256(Buffer.concat([authKey.slice(x + 40, x + 76), msgKey])),
         ])
         const key = Buffer.concat([sha256a.slice(0, 8), sha256b.slice(8, 24), sha256a.slice(24, 32)])
         const iv = Buffer.concat([sha256b.slice(0, 8), sha256a.slice(8, 24), sha256b.slice(24, 32)])

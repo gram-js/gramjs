@@ -1,13 +1,13 @@
 const { crc32 } = require('../Helpers')
-const snakeToCamelCase = (name) => {
+const snakeToCamelCase = name => {
     const result = name.replace(/(?:^|_)([a-z])/g, (_, g) => g.toUpperCase())
     return result.replace(/_/g, '')
 }
-const variableSnakeToCamelCase = (str) => str.replace(
+const variableSnakeToCamelCase = str => str.replace(
     /([-_][a-z])/g,
-    (group) => group.toUpperCase()
+    group => group.toUpperCase()
         .replace('-', '')
-        .replace('_', '')
+        .replace('_', ''),
 )
 
 const CORE_TYPES = new Set([
@@ -15,7 +15,7 @@ const CORE_TYPES = new Set([
     0x997275b5, // boolTrue#997275b5 = Bool;
     0x3fedd339, // true#3fedd339 = True;
     0xc4b9f9bb, // error#c4b9f9bb code:int text:string = Error;
-    0x56730bcc // null#56730bcc = Null;
+    0x56730bcc, // null#56730bcc = Null;
 ])
 const AUTH_KEY_TYPES = new Set([
     0x05162463, // resPQ,
@@ -28,7 +28,7 @@ const AUTH_KEY_TYPES = new Set([
     0x6643b654, // client_DH_inner_data
     0xd712e4be, // req_DH_params
     0xf5045f1f, // set_client_DH_params
-    0x3072cfa1 // gzip_packed
+    0x3072cfa1, // gzip_packed
 ])
 
 
@@ -47,15 +47,15 @@ const fromLine = (line, isFunction) => {
         subclassOfId: crc32(match[3]),
         result: match[3],
         isFunction: isFunction,
-        namespace: null
+        namespace: null,
     }
     if (!currentConfig.constructorId) {
 
-        let hexId = ''
+        const hexId = ''
         let args
 
         if (Object.values(currentConfig.argsConfig).length) {
-            args = ` ${Object.keys(currentConfig.argsConfig).map((arg) => arg.toString()).join(' ')}`
+            args = ` ${Object.keys(currentConfig.argsConfig).map(arg => arg.toString()).join(' ')}`
         } else {
             args = ''
         }
@@ -104,14 +104,14 @@ function buildArgConfig(name, argType) {
         flagIndex: -1,
         flagIndicator: true,
         type: null,
-        useVectorId: null
+        useVectorId: null,
     }
 
     // Special case: some types can be inferred, which makes it
     // less annoying to type. Currently the only type that can
     // be inferred is if the name is 'random_id', to which a
     // random ID will be assigned if left as None (the default)
-    let canBeInferred = name === 'random_id'
+    const canBeInferred = name === 'random_id'
 
     // The type can be an indicator that other arguments will be flags
     if (argType !== '#') {
@@ -154,7 +154,7 @@ function buildArgConfig(name, argType) {
         // @ts-ignore
         if (/^[a-z]$/.test(currentConfig.type.split('.')
             .pop()
-            .charAt(0)
+            .charAt(0),
         )
         ) {
             currentConfig.skipConstructorId = true
@@ -251,8 +251,8 @@ const parseTl = function* (content, layer, methods = [], ignoreIds = CORE_TYPES)
 }
 
 const findAll = (regex, str, matches = []) => {
-    if (!regex.flags.includes(`g`)) {
-        regex = new RegExp(regex.source, `g`)
+    if (!regex.flags.includes('g')) {
+        regex = new RegExp(regex.source, 'g')
     }
 
     const res = regex.exec(str)
@@ -322,5 +322,5 @@ module.exports = {
     serializeDate,
     serializeBytes,
     snakeToCamelCase,
-    variableSnakeToCamelCase
+    variableSnakeToCamelCase,
 }

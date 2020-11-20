@@ -33,12 +33,12 @@ function extractParams(fileContent) {
             functions.push(def)
         } else {
             if (!types[def.result]) {
-                let [namespace, name] = def.result.includes('.') ? def.result.split('.') : [undefined, def.result]
+                const [namespace, name] = def.result.includes('.') ? def.result.split('.') : [undefined, def.result]
 
                 types[def.result] = {
                     namespace,
                     name,
-                    constructors: []
+                    constructors: [],
                 }
             }
 
@@ -50,7 +50,7 @@ function extractParams(fileContent) {
     return {
         types: Object.values(types),
         constructors,
-        functions
+        functions,
     }
 }
 

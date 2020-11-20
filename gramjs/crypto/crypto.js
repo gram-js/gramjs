@@ -1,6 +1,6 @@
-const AES = require('@cryptography/aes').default;
-const { i2ab, ab2i } = require('./converters');
-const { getWords } = require('./words');
+const AES = require('@cryptography/aes').default
+const { i2ab, ab2i } = require('./converters')
+const { getWords } = require('./words')
 class Counter {
     constructor(initialValue) {
         this.setBytes(initialValue)
@@ -61,7 +61,7 @@ class CTR {
 // endregion
 function createDecipheriv(algorithm, key, iv) {
     if (algorithm.includes('ECB')) {
-        throw new Error('Not supported');
+        throw new Error('Not supported')
     } else {
         return new CTR(key, iv)
     }
@@ -69,7 +69,7 @@ function createDecipheriv(algorithm, key, iv) {
 
 function createCipheriv(algorithm, key, iv) {
     if (algorithm.includes('ECB')) {
-        throw new Error('Not supported');
+        throw new Error('Not supported')
     } else {
         return new CTR(key, iv)
     }
@@ -106,8 +106,8 @@ async function pbkdf2(password, salt, iterations) {
         {name: 'PBKDF2'}, false, ['deriveBits'])
     return Buffer.from(await crypto.subtle.deriveBits({
         name: 'PBKDF2',
-        hash: 'SHA-512', salt, iterations
-    }, passwordKey, 512));
+        hash: 'SHA-512', salt, iterations,
+    }, passwordKey, 512))
 }
 
 function createHash(algorithm) {
@@ -119,5 +119,5 @@ module.exports = {
     createDecipheriv,
     randomBytes,
     createHash,
-    pbkdf2
+    pbkdf2,
 }

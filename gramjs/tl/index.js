@@ -8,5 +8,5 @@ module.exports = {
     requests: api,
     patched,
     serializeBytes,
-    serializeDate
+    serializeDate,
 }

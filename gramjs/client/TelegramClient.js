@@ -10,7 +10,7 @@ const os = require('os')
 const { LAYER } = require('../tl/AllTLObjects')
 const { constructors, requests } = require('../tl')
 const MTProtoSender = require('../network/MTProtoSender')
-const { UpdateConnectionState } = require("../network")
+const { UpdateConnectionState } = require('../network')
 const { ConnectionTCPObfuscated } = require('../network/connection/TCPObfuscated')
 const { ConnectionTCPFull } = require('../network/connection/TCPFull')
 const { authFlow, checkAuthorization } = require('./auth')
@@ -98,7 +98,7 @@ class TelegramClient {
 
         this._floodWaitedRequests = {}
 
-        this._initWith = (x) => {
+        this._initWith = x => {
             return new requests.InvokeWithLayer({
                 layer: LAYER,
                 query: new requests.InitConnection({
@@ -217,10 +217,10 @@ class TelegramClient {
         await Promise.all([
             this.disconnect(),
             this.session.delete(),
-            ...Object.values(this._borrowedSenderPromises).map((promise) => {
+            ...Object.values(this._borrowedSenderPromises).map(promise => {
                 return promise
-                    .then((sender) => sender.disconnect())
-            })
+                    .then(sender => sender.disconnect())
+            }),
         ])
 
         this._eventBuilders = []
@@ -255,11 +255,11 @@ class TelegramClient {
             senderPromise = this._createExportedSender(dcId, retries)
             this._borrowedSenderPromises[dcId] = senderPromise
 
-            senderPromise.then((sender) => {
+            senderPromise.then(sender => {
                 if (!sender) {
-                    delete this._borrowedSenderPromises[dcId];
+                    delete this._borrowedSenderPromises[dcId]
                 }
-            });
+            })
         }
         return senderPromise
     }
@@ -290,9 +290,9 @@ class TelegramClient {
                     this._log.info(`Exporting authorization for data center ${dc.ipAddress}`)
                     const auth = await this.invoke(new requests.auth.ExportAuthorization({ dcId: dcId }))
                     const req = this._initWith(new requests.auth.ImportAuthorization({
-                            id: auth.id,
-                            bytes: auth.bytes,
-                        },
+                        id: auth.id,
+                        bytes: auth.bytes,
+                    },
                     ))
                     await sender.send(req)
                 }
@@ -404,7 +404,7 @@ class TelegramClient {
             })
         } catch (e) {
             // TODO this should never raise
-            throw e;
+            throw e
             /*if (e.message === 'LOCATION_INVALID') {
                 const ie = await this.getInputEntity(entity)
                 if (ie instanceof constructors.InputPeerChannel) {
@@ -432,12 +432,12 @@ class TelegramClient {
             new constructors.InputStickerSetThumb({
                 stickerset: new constructors.InputStickerSetID({
                     id: stickerSet.id,
-                    accessHash: stickerSet.accessHash
+                    accessHash: stickerSet.accessHash,
                 }),
                 localId: location.localId,
                 volumeId: location.volumeId,
             }),
-            { dcId: stickerSet.thumbDcId }
+            { dcId: stickerSet.thumbDcId },
         )
     }
 
@@ -448,7 +448,7 @@ class TelegramClient {
         const indexOfSize = sizeTypes.indexOf(sizeType)
         let size
         for (let i = indexOfSize; i < sizeTypes.length; i++) {
-            size = sizes.find((s) => s.type === sizeTypes[i])
+            size = sizes.find(s => s.type === sizeTypes[i])
             if (size) {
                 return size
             }
@@ -614,7 +614,7 @@ class TelegramClient {
 
         const apiCredentials = {
             apiId: this.apiId,
-            apiHash: this.apiHash
+            apiHash: this.apiHash,
         }
 
         await authFlow(this, apiCredentials, authParams)

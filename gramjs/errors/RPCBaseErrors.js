@@ -7,7 +7,7 @@ class RPCError extends Error {
             'RPCError {0}: {1}{2}'
                 .replace('{0}', code)
                 .replace('{1}', message)
-                .replace('{2}', RPCError._fmtRequest(request))
+                .replace('{2}', RPCError._fmtRequest(request)),
         )
         this.code = code
         this.message = message

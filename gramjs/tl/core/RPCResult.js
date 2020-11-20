@@ -3,14 +3,14 @@ const GZIPPacked = require('./GZIPPacked')
 
 class RPCResult {
     static CONSTRUCTOR_ID = 0xf35c6d01;
-    static classType = "constructor"
+    static classType = 'constructor'
 
     constructor(reqMsgId, body, error) {
         this.CONSTRUCTOR_ID = 0xf35c6d01
         this.reqMsgId = reqMsgId
         this.body = body
         this.error = error
-        this.classType = "constructor"
+        this.classType = 'constructor'
     }
 
     static async fromReader(reader) {

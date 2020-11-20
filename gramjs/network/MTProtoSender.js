@@ -10,8 +10,8 @@ const RequestState = require('./RequestState')
 const { MsgsAck, upload, MsgsStateInfo, Pong } = require('../tl').constructors
 const MessagePacker = require('../extensions/MessagePacker')
 const BinaryReader = require('../extensions/BinaryReader')
-const { UpdateConnectionState } = require("./index");
-const { BadMessageError } = require("../errors/Common")
+const { UpdateConnectionState } = require('./index')
+const { BadMessageError } = require('../errors/Common')
 const {
     BadServerSalt,
     BadMsgNotification,
@@ -73,8 +73,8 @@ class MTProtoSender {
         this._authKeyCallback = args.authKeyCallback
         this._updateCallback = args.updateCallback
         this._autoReconnectCallback = args.autoReconnectCallback
-        this._isMainSender = args.isMainSender;
-        this._senderCallback = args.senderCallback;
+        this._isMainSender = args.isMainSender
+        this._senderCallback = args.senderCallback
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -170,9 +170,9 @@ class MTProtoSender {
                 if (attempt===0 && eventDispatch!==null){
                     eventDispatch({ update: new UpdateConnectionState(-1) })
                 }
-                console.dir(e);
+                console.dir(e)
 
-                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
+                this._log.error('WebSocket connection failed attempt : '+(attempt+1))
                 await Helpers.sleep(this._delay)
             }
         }
@@ -771,7 +771,7 @@ class MTProtoSender {
             this._reconnecting = true
             // TODO Should we set this?
             // this._user_connected = false
-            this._log.info("Started reconnecting")
+            this._log.info('Started reconnecting')
             this._reconnect()
         }
     }
@@ -804,7 +804,7 @@ class MTProtoSender {
 
                 break
             } catch (e) {
-                this._log.error("WebSocket connection failed attempt : "+(attempt+1))
+                this._log.error('WebSocket connection failed attempt : '+(attempt+1))
                 console.log(e)
                 await Helpers.sleep(this._delay)
             }

@@ -5,5 +5,5 @@ const CacheApiSession = require('./CacheApiSession')
 module.exports = {
     Memory,
     StringSession,
-    CacheApiSession
+    CacheApiSession,
 }

@@ -1,4 +1,4 @@
-const {IS_NODE} = require("./Helpers");
+const {IS_NODE} = require('./Helpers')
 const { constructors } = require('./tl')
 const { requests } = require('./tl')
 
@@ -70,7 +70,7 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
             return new constructors.InputPeerChannel({
                 channelId: entity.id,
-                accessHash: entity.accessHash
+                accessHash: entity.accessHash,
             })
         } else {
             throw new TypeError('Channel without accessHash or min info cannot be input')
@@ -81,20 +81,20 @@ function getInputPeer(entity, allowSelf = true, checkHash = true) {
         // also not optional, we assume that this truly is the case.
         return new constructors.InputPeerChannel({
             channelId: entity.id,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         })
     }
 
     if (entity instanceof constructors.InputUser) {
         return new constructors.InputPeerUser({
             userId: entity.userId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         })
     }
     if (entity instanceof constructors.InputChannel) {
         return new constructors.InputPeerChannel({
             channelId: entity.channelId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         })
     }
     if (entity instanceof constructors.UserEmpty) {
@@ -616,46 +616,46 @@ function isListLike(item) {
 */
 async function getDC(dcId,client, cdn = false) {
     if (!IS_NODE){
-    switch (dcId) {
+        switch (dcId) {
         case 1:
             return {
                 id: 1,
                 ipAddress: IS_NODE?'':'pluto.web.telegram.org',
-                port: 443
+                port: 443,
             }
         case 2:
             return {
                 id: 2,
                 ipAddress: 'venus.web.telegram.org',
-                port: 443
+                port: 443,
             }
         case 3:
             return {
                 id: 3,
                 ipAddress: 'aurora.web.telegram.org',
-                port: 443
+                port: 443,
             }
         case 4:
             return {
                 id: 4,
                 ipAddress: 'vesta.web.telegram.org',
-                port: 443
+                port: 443,
             }
         case 5:
             return {
                 id: 5,
                 ipAddress: 'flora.web.telegram.org',
-                port: 443
+                port: 443,
             }
         default:
             throw new Error(`Cannot find the DC with the ID of ${dcId}`)
-    }
+        }
     }
     if (!client._config) {
         client._config = await client.invoke(new requests.help.GetConfig())
     }
     if (cdn) {
-        throw new Error(`CDNs are Not supported`)
+        throw new Error('CDNs are Not supported')
     }
 
     for (const DC of client._config.dcOptions) {
@@ -663,7 +663,7 @@ async function getDC(dcId,client, cdn = false) {
             return {
                 id:DC.id,
                 ipAddress:DC.ipAddress,
-                port:443
+                port:443,
             }
         }
     }
@@ -687,5 +687,5 @@ module.exports = {
     getAppropriatedPartSize,
     //getInputLocation,
     strippedPhotoToJpg,
-    getDC
+    getDC,
 }

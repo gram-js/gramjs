@@ -78,7 +78,7 @@ class Logger {
     }
 
     static setLevel(level) {
-        _level = level;
+        _level = level
     }
 
     /**

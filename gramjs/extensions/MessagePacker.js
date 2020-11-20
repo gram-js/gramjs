@@ -6,7 +6,7 @@ class MessagePacker {
     constructor(state, logger) {
         this._state = state
         this._queue = []
-        this._ready = new Promise(((resolve) => {
+        this._ready = new Promise((resolve => {
             this.setReady = resolve
         }))
         this._log = logger
@@ -31,7 +31,7 @@ class MessagePacker {
     async get() {
 
         if (!this._queue.length) {
-            this._ready = new Promise(((resolve) => {
+            this._ready = new Promise((resolve => {
                 this.setReady = resolve
             }))
             await this._ready

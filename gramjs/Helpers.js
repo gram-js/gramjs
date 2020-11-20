@@ -1,4 +1,4 @@
-const { isBrowser, isNode } = require("browser-or-node" );
+const { isBrowser, isNode } = require('browser-or-node' )
 
 const BigInt = require('big-integer')
 const IS_NODE = isNode
@@ -176,23 +176,23 @@ async function generateKeyDataFromNonce(serverNonce, newNonce) {
     const [hash1, hash2, hash3] = await Promise.all([
         sha1(Buffer.concat([newNonce, serverNonce])),
         sha1(Buffer.concat([serverNonce, newNonce])),
-        sha1(Buffer.concat([newNonce, newNonce]))
+        sha1(Buffer.concat([newNonce, newNonce])),
     ])
     const keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)])
     const ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)])
     return {
         key: keyBuffer,
-        iv: ivBuffer
+        iv: ivBuffer,
     }
 }
 
 function convertToLittle(buf) {
-    const correct = Buffer.alloc(buf.length * 4);
+    const correct = Buffer.alloc(buf.length * 4)
 
     for (let i = 0; i < buf.length; i++) {
         correct.writeUInt32BE(buf[i], i * 4)
     }
-    return correct;
+    return correct
 }
 
 /**
@@ -272,7 +272,7 @@ function getRandomInt(min, max) {
  * @param ms time in milliseconds
  * @returns {Promise}
  */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 /**
  * Checks if the obj is an array
@@ -347,5 +347,5 @@ module.exports = {
     //isArrayLike,
     toSignedLittleBuffer,
     convertToLittle,
-    IS_NODE
+    IS_NODE,
 }

@@ -1,18 +1,18 @@
 const {
     parseTl,
     serializeBytes,
-    serializeDate
+    serializeDate,
 } = require('./generationHelpers')
 const { IS_NODE,toSignedLittleBuffer } = require('../Helpers')
-let tlContent,schemeContent;
+let tlContent,schemeContent
 if (IS_NODE){
-    const fs = require("fs");
+    const fs = require('fs')
 
-    tlContent = fs.readFileSync(__dirname+'/static/api.tl',"utf-8");
-    schemeContent = fs.readFileSync(__dirname+'/static/schema.tl',"utf-8");
+    tlContent = fs.readFileSync(__dirname+'/static/api.tl','utf-8')
+    schemeContent = fs.readFileSync(__dirname+'/static/schema.tl','utf-8')
 }else{
-     tlContent = require('./static/api.tl').default;
-     schemeContent = require('./static/schema.tl').default;
+    tlContent = require('./static/api.tl').default
+    schemeContent = require('./static/schema.tl').default
 
 }
 
@@ -42,7 +42,7 @@ const CACHING_SUPPORTED = typeof self !== 'undefined' && self.localStorage !== u
 const CACHE_KEY = 'GramJs:apiCache'
 
 function buildApiFromTlSchema() {
-    let definitions;
+    let definitions
     const fromCache = CACHING_SUPPORTED && loadFromCache()
 
     if (fromCache) {
@@ -56,8 +56,8 @@ function buildApiFromTlSchema() {
     }
 
     return mergeWithNamespaces(
-      createClasses('constructor', definitions.constructors),
-      createClasses('request', definitions.requests)
+        createClasses('constructor', definitions.constructors),
+        createClasses('request', definitions.requests),
     )
 }
 
@@ -78,7 +78,7 @@ function loadFromTlSchemas() {
 function mergeWithNamespaces(obj1, obj2) {
     const result = { ...obj1 }
 
-    Object.keys(obj2).forEach((key) => {
+    Object.keys(obj2).forEach(key => {
         if (typeof obj2[key] === 'function' || !result[key]) {
             result[key] = obj2[key]
         } else {
@@ -101,32 +101,32 @@ function extractParams(fileContent) {
 
 function argToBytes(x, type) {
     switch (type) {
-        case 'int':
-            const i = Buffer.alloc(4)
-            i.writeInt32LE(x, 0)
-            return i
-        case 'long':
-            return toSignedLittleBuffer(x, 8)
-        case 'int128':
-            return toSignedLittleBuffer(x, 16)
-        case 'int256':
-            return toSignedLittleBuffer(x, 32)
-        case 'double':
-            const d = Buffer.alloc(8)
-            d.writeDoubleLE(x, 0)
-            return d
-        case 'string':
-            return serializeBytes(x)
-        case 'Bool':
-            return x ? Buffer.from('b5757299', 'hex') : Buffer.from('379779bc', 'hex')
-        case 'true':
-            return Buffer.alloc(0)
-        case 'bytes':
-            return serializeBytes(x)
-        case 'date':
-            return serializeDate(x)
-        default:
-            return x.getBytes()
+    case 'int':
+        const i = Buffer.alloc(4)
+        i.writeInt32LE(x, 0)
+        return i
+    case 'long':
+        return toSignedLittleBuffer(x, 8)
+    case 'int128':
+        return toSignedLittleBuffer(x, 16)
+    case 'int256':
+        return toSignedLittleBuffer(x, 32)
+    case 'double':
+        const d = Buffer.alloc(8)
+        d.writeDoubleLE(x, 0)
+        return d
+    case 'string':
+        return serializeBytes(x)
+    case 'Bool':
+        return x ? Buffer.from('b5757299', 'hex') : Buffer.from('379779bc', 'hex')
+    case 'true':
+        return Buffer.alloc(0)
+    case 'bytes':
+        return serializeBytes(x)
+    case 'date':
+        return serializeDate(x)
+    default:
+        return x.getBytes()
     }
 }
 /*
@@ -177,32 +177,32 @@ function getArgFromReader(reader, arg) {
         return reader.readInt()
     } else {
         switch (arg.type) {
-            case 'int':
-                return reader.readInt()
-            case 'long':
-                return reader.readLong()
-            case 'int128':
-                return reader.readLargeInt(128)
-            case 'int256':
-                return reader.readLargeInt(256)
-            case 'double':
-                return reader.readDouble()
-            case 'string':
-                return reader.tgReadString()
-            case 'Bool':
-                return reader.tgReadBool()
-            case 'true':
-                return true
-            case 'bytes':
-                return reader.tgReadBytes()
-            case 'date':
-                return reader.tgReadDate()
-            default:
-                if (!arg.skipConstructorId) {
-                    return reader.tgReadObject()
-                } else {
-                    return api.constructors[arg.type].fromReader(reader)
-                }
+        case 'int':
+            return reader.readInt()
+        case 'long':
+            return reader.readLong()
+        case 'int128':
+            return reader.readLargeInt(128)
+        case 'int256':
+            return reader.readLargeInt(256)
+        case 'double':
+            return reader.readDouble()
+        case 'string':
+            return reader.tgReadString()
+        case 'Bool':
+            return reader.tgReadBool()
+        case 'true':
+            return true
+        case 'bytes':
+            return reader.tgReadBytes()
+        case 'date':
+            return reader.tgReadDate()
+        default:
+            if (!arg.skipConstructorId) {
+                return reader.tgReadObject()
+            } else {
+                return api.constructors[arg.type].fromReader(reader)
+            }
         }
     }
 }
@@ -227,9 +227,9 @@ function createClasses(classesType, params) {
             constructor(args) {
                 args = args || {}
                 Object.keys(args)
-                  .forEach((argName) => {
-                      this[argName] = args[argName]
-                  })
+                    .forEach(argName => {
+                        this[argName] = args[argName]
+                    })
             }
 
             static fromReader(reader) {
@@ -269,9 +269,9 @@ function createClasses(classesType, params) {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
                         if (argsConfig[arg].isFlag) {
-                          if (this[arg]===false || this[arg]===null || this[arg]===undefined || argsConfig[arg].type==='true'){
-                              continue
-                          }
+                            if (this[arg]===false || this[arg]===null || this[arg]===undefined || argsConfig[arg].type==='true'){
+                                continue
+                            }
                         }
                         if (argsConfig[arg].isVector) {
                             if (argsConfig[arg].useVectorId) {
@@ -282,7 +282,7 @@ function createClasses(classesType, params) {
                             buffers.push(l, Buffer.concat(this[arg].map(x => argToBytes(x, argsConfig[arg].type))))
                         } else if (argsConfig[arg].flagIndicator) {
                             if (!Object.values(argsConfig)
-                              .some((f) => f.isFlag)) {
+                                .some(f => f.isFlag)) {
                                 buffers.push(Buffer.alloc(4))
                             } else {
                                 let flagCalculate = 0
@@ -324,8 +324,8 @@ function createClasses(classesType, params) {
                 const m = result.match(/Vector<(int|long)>/)
                 if (m) {
                     reader.readInt()
-                    let temp = []
-                    let len = reader.readInt()
+                    const temp = []
+                    const len = reader.readInt()
                     if (m[1] === 'int') {
                         for (let i = 0; i < len; i++) {
                             temp.push(reader.readInt())

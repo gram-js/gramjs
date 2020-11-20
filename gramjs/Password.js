@@ -86,7 +86,7 @@ function checkPrimeAndGood(primeBytes, g) {
             return // It's good
         }
     }
-    throw new Error("Changing passwords unsupported")
+    throw new Error('Changing passwords unsupported')
     //checkPrimeAndGoodCheck(readBigIntFromBuffer(primeBytes, false), g)
 }
 
@@ -248,7 +248,7 @@ async function computeCheck(request, password) {
         sha256(pForHash),
         sha256(gForHash),
         sha256(algo.salt1),
-        sha256(algo.salt2)
+        sha256(algo.salt2),
     ])
     const M1 = await sha256(Buffer.concat([
         xor(pSha,gSha),

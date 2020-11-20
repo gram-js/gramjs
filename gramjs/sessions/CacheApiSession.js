@@ -24,11 +24,11 @@ class CacheApi extends MemorySession {
 
             this.setDC(mainDcId, ipAddress, port, true)
 
-            Object.keys(keys).forEach((dcId) => {
+            Object.keys(keys).forEach(dcId => {
                 if (keys[dcId] && hashes[dcId]){
                     this._authKeys[dcId] = new AuthKey(
                         Buffer.from(keys[dcId].data),
-                        Buffer.from(hashes[dcId].data)
+                        Buffer.from(hashes[dcId].data),
                     )
                 }
             })
@@ -85,10 +85,10 @@ class CacheApi extends MemorySession {
         const sessionData = {
             mainDcId: this._dcId,
             keys: {},
-            hashes: {}
+            hashes: {},
         }
 
-        Object.keys(this._authKeys).map((dcId) => {
+        Object.keys(this._authKeys).map(dcId => {
             const authKey = this._authKeys[dcId]
             sessionData.keys[dcId] = authKey._key
             sessionData.hashes[dcId] = authKey._hash

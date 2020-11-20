@@ -41,7 +41,7 @@ class PromisedWebSockets {
         const toReturn = this.stream.slice(0, number)
         this.stream = this.stream.slice(number)
         if (this.stream.length === 0) {
-            this.canRead = new Promise((resolve) => {
+            this.canRead = new Promise(resolve => {
                 this.resolveRead = resolve
             })
         }
@@ -55,7 +55,7 @@ class PromisedWebSockets {
         }
         const toReturn = this.stream
         this.stream = Buffer.alloc(0)
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
         return toReturn
@@ -71,7 +71,7 @@ class PromisedWebSockets {
 
     async connect(port, ip) {
         this.stream = Buffer.alloc(0)
-        this.canRead = new Promise((resolve) => {
+        this.canRead = new Promise(resolve => {
             this.resolveRead = resolve
         })
         this.closed = false
@@ -82,19 +82,19 @@ class PromisedWebSockets {
                 this.receive()
                 resolve(this)
             }
-            this.client.onerror = (error) => {
+            this.client.onerror = error => {
                 reject(error)
             }
             this.client.onclose = () => {
-                    this.resolveRead(false)
-                    this.closed = true
+                this.resolveRead(false)
+                this.closed = true
             }
             //CONTEST
             if (typeof window !== 'undefined'){
                 window.addEventListener('offline', async () => {
                     await this.close()
                     this.resolveRead(false)
-                });
+                })
             }
         })
     }
@@ -112,12 +112,12 @@ class PromisedWebSockets {
     }
 
     async receive() {
-        this.client.onmessage = async (message) => {
+        this.client.onmessage = async message => {
             const release = await mutex.acquire()
             try {
                 let data
                 //CONTEST BROWSER
-                    data = Buffer.from(await new Response(message.data).arrayBuffer())
+                data = Buffer.from(await new Response(message.data).arrayBuffer())
                 this.stream = Buffer.concat([this.stream, data])
                 this.resolveRead(true)
             } finally {

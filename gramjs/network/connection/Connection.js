@@ -1,7 +1,7 @@
 const PromisedWebSockets = require('../../extensions/PromisedWebSockets')
 const PromisedNetSockets = require('../../extensions/PromisedNetSockets')
 const AsyncQueue = require('../../extensions/AsyncQueue')
-const {IS_NODE} = require("../../Helpers");
+const {IS_NODE} = require('../../Helpers')
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -100,7 +100,7 @@ class Connection {
             try {
                 data = await this._recv()
                 if (!data) {
-                    throw new Error("no data received")
+                    throw new Error('no data received')
                 }
             } catch (e) {
                 this._log.info('connection closed')

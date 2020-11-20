@@ -4,7 +4,7 @@
  * @param request the request that caused this error
  * @constructor the RPCError as a Python exception that represents this error
  */
-const { RPCError } = require("./RPCBaseErrors")
+const { RPCError } = require('./RPCBaseErrors')
 const { rpcErrorRe } = require('./RPCErrorList')
 
 function RPCMessageToError(rpcError, request) {
