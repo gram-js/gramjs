@@ -55,7 +55,7 @@ function codeCallback() {
 
 
 const { TelegramClient } = gramjs
-const { StringSession } = gramjs.session
+const { StringSession } = gramjs.sessions
 const apiId = process.env.APP_ID // put your api id here [for example 123456789]
 const apiHash = process.env.APP_HASH // put your api hash here [for example '123456abcfghe']
 
