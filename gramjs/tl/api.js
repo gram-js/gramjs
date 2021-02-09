@@ -1,27 +1,31 @@
+const { generateRandomBytes, readBigIntFromBuffer } = require('../Helpers')
+
+
+function generateRandomBigInt() {
+    return readBigIntFromBuffer(generateRandomBytes(8), false)
+}
+
 const {
     parseTl,
     serializeBytes,
     serializeDate,
 } = require('./generationHelpers')
-const { IS_NODE,toSignedLittleBuffer } = require('../Helpers')
-let tlContent,schemeContent
-if (IS_NODE){
+const { IS_NODE, toSignedLittleBuffer } = require('../Helpers')
+let tlContent, schemeContent
+if (IS_NODE) {
     const fs = require('fs')
 
-    tlContent = fs.readFileSync(__dirname+'/static/api.tl','utf-8')
-    schemeContent = fs.readFileSync(__dirname+'/static/schema.tl','utf-8')
-}else{
+    tlContent = fs.readFileSync(__dirname + '/static/api.tl', 'utf-8')
+    schemeContent = fs.readFileSync(__dirname + '/static/schema.tl', 'utf-8')
+} else {
     tlContent = require('./static/api.tl').default
     schemeContent = require('./static/schema.tl').default
-
 }
-
-/*CONTEST
 const NAMED_AUTO_CASTS = new Set([
-    'chatId,int'
+    'chatId,int',
 ])
 const NAMED_BLACKLIST = new Set([
-    'discardEncryption'
+    'discardEncryption',
 ])
 const AUTO_CASTS = new Set([
     'InputPeer',
@@ -33,10 +37,9 @@ const AUTO_CASTS = new Set([
     'InputPhoto',
     'InputMessage',
     'InputDocument',
-    'InputChatPhoto'
+    'InputChatPhoto',
 ])
 
- */
 const CACHING_SUPPORTED = typeof self !== 'undefined' && self.localStorage !== undefined
 
 const CACHE_KEY = 'GramJs:apiCache'
@@ -85,7 +88,6 @@ function mergeWithNamespaces(obj1, obj2) {
             Object.assign(result[key], obj2[key])
         }
     })
-
     return result
 }
 
@@ -129,37 +131,36 @@ function argToBytes(x, type) {
         return x.getBytes()
     }
 }
-/*
-CONTEST
+
 async function getInputFromResolve(utils, client, peer, peerType) {
     switch (peerType) {
-        case 'InputPeer':
-            return utils.getInputPeer(await client.getInputEntity(peer))
-        case 'InputChannel':
-            return utils.getInputChannel(await client.getInputEntity(peer))
-        case 'InputUser':
-            return utils.getInputUser(await client.getInputEntity(peer))
-        case 'InputDialogPeer':
-            return await client._getInputDialog(peer)
-        case 'InputNotifyPeer':
-            return await client._getInputNotify(peer)
-        case 'InputMedia':
-            return utils.getInputMedia(peer)
-        case 'InputPhoto':
-            return utils.getInputPhoto(peer)
-        case 'InputMessage':
-            return utils.getInputMessage(peer)
-        case 'InputDocument':
-            return utils.getInputDocument(peer)
-        case 'InputChatPhoto':
-            return utils.getInputChatPhoto(peer)
-        case 'chatId,int' :
-            return await client.getPeerId(peer, false)
-        default:
-            throw new Error('unsupported peer type : ' + peerType)
+    case 'InputPeer':
+        return utils.getInputPeer(await client.getInputEntity(peer))
+    case 'InputChannel':
+        return utils.getInputChannel(await client.getInputEntity(peer))
+    case 'InputUser':
+        return utils.getInputUser(await client.getInputEntity(peer))
+    case 'InputDialogPeer':
+        return await client._getInputDialog(peer)
+    case 'InputNotifyPeer':
+        return await client._getInputNotify(peer)
+    case 'InputMedia':
+        return utils.getInputMedia(peer)
+    case 'InputPhoto':
+        return utils.getInputPhoto(peer)
+    case 'InputMessage':
+        return utils.getInputMessage(peer)
+    case 'InputDocument':
+        return utils.getInputDocument(peer)
+    case 'InputChatPhoto':
+        return utils.getInputChatPhoto(peer)
+    case 'chatId,int' :
+        return await client.getPeerId(peer, false)
+    default:
+        throw new Error('unsupported peer type : ' + peerType)
     }
 }
-*/
+
 function getArgFromReader(reader, arg) {
     if (arg.isVector) {
         if (arg.useVectorId) {
@@ -207,11 +208,13 @@ function getArgFromReader(reader, arg) {
     }
 }
 
+
 function createClasses(classesType, params) {
     const classes = {}
     for (const classParams of params) {
         const { name, constructorId, subclassOfId, argsConfig, namespace, result } = classParams
         const fullName = [namespace, name].join('.').replace(/^\./, '')
+
 
         class VirtualClass {
             static CONSTRUCTOR_ID = constructorId
@@ -226,10 +229,13 @@ function createClasses(classesType, params) {
 
             constructor(args) {
                 args = args || {}
-                Object.keys(args)
-                    .forEach(argName => {
+                for (const argName in argsConfig) {
+                    if (argName === 'randomId' && !args[argName]) {
+                        this[argName] = generateRandomBigInt()
+                    } else {
                         this[argName] = args[argName]
-                    })
+                    }
+                }
             }
 
             static fromReader(reader) {
@@ -269,7 +275,7 @@ function createClasses(classesType, params) {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
                         if (argsConfig[arg].isFlag) {
-                            if (this[arg]===false || this[arg]===null || this[arg]===undefined || argsConfig[arg].type==='true'){
+                            if (this[arg] === false || this[arg] === null || this[arg] === undefined || argsConfig[arg].type === 'true') {
                                 continue
                             }
                         }
@@ -288,7 +294,7 @@ function createClasses(classesType, params) {
                                 let flagCalculate = 0
                                 for (const f in argsConfig) {
                                     if (argsConfig[f].isFlag) {
-                                        if (!this[f]) {
+                                        if (this[f] === false || this[f] === undefined || this[f] === null) {
                                             flagCalculate |= 0
                                         } else {
                                             flagCalculate |= 1 << argsConfig[f].flagIndex
@@ -341,7 +347,6 @@ function createClasses(classesType, params) {
                 }
             }
 
-            /*CONTEST
             async resolve(client, utils) {
 
                 if (classesType !== 'request') {
@@ -371,7 +376,7 @@ function createClasses(classesType, params) {
                         }
                     }
                 }
-            }*/
+            }
         }
 
         if (namespace) {
@@ -388,4 +393,6 @@ function createClasses(classesType, params) {
     return classes
 }
 
-module.exports = buildApiFromTlSchema()
+const api = buildApiFromTlSchema()
+
+module.exports = { Api: api }

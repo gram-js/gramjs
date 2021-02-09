@@ -1,5 +1,5 @@
 module.exports = {
-    entry: './gramjs/index.js',
+    entry: './gramjs/index.ts',
     mode: 'development',
     resolve: {
         extensions: ['.js', '.ts', '.tsx'],
