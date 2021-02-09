@@ -359,7 +359,7 @@ export class TelegramBaseClient {
 export interface TelegramBaseClient {
     invoke<R extends Api.AnyRequest>(request: R): Promise<R['__response']>;
 
-    _dispatchUpdate(args: { update: UpdateConnectionState | any }): Promise<void> ;
+    _dispatchUpdate(args: { update: UpdateConnectionState | any }): Promise<void>;
 
     _updateLoop(): Promise<void>;
 

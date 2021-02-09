@@ -213,7 +213,7 @@ export class AuthMethods {
         const updatePromise = new Promise((resolve) => {
             this.addEventHandler((update: Api.TypeUpdate) => {
                 if (update instanceof Api.UpdateLoginToken) {
-                    resolve();
+                    resolve(undefined);
                 }
             });
         });
