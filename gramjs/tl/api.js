@@ -348,7 +348,6 @@ function createClasses(classesType, params) {
             }
 
             async resolve(client, utils) {
-
                 if (classesType !== 'request') {
                     throw new Error('`resolve()` called for non-request instance')
                 }

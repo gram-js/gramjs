@@ -5,6 +5,8 @@ import TypeInputPeer = Api.TypeInputPeer;
 import TypeMessageEntity = Api.TypeMessageEntity;
 import * as markdown from "./extensions/markdown"
 import {EntityCache} from "./entityCache";
+import mime from 'mime-types';
+
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
     '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?');
@@ -178,8 +180,7 @@ export function getInnerText(text: string, entities: Map<number, TypeMessageEnti
  * @param entity
  * @returns {InputChannel|*}
  */
-/*CONTEST
-function getInputChannel(entity) {
+export function getInputChannel(entity: EntityLike) {
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputChannel')
     }
@@ -191,7 +192,7 @@ function getInputChannel(entity) {
     if (entity instanceof Api.Channel || entity instanceof Api.ChannelForbidden) {
         return new Api.InputChannel({
             channelId: entity.id,
-            accessHash: entity.accessHash || 0
+            accessHash: entity.accessHash || bigInt.zero
         })
     }
 
@@ -203,7 +204,7 @@ function getInputChannel(entity) {
     }
     _raiseCastFail(entity, 'InputChannel')
 }
-*/
+
 /**
  Similar to :meth:`get_input_peer`, but for :tl:`InputUser`'s alone.
 
@@ -215,8 +216,7 @@ function getInputChannel(entity) {
 
  * @param entity
  */
-/*CONTEST
-function getInputUser(entity) {
+export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputUser')
     }
@@ -225,12 +225,12 @@ function getInputUser(entity) {
     }
 
     if (entity instanceof Api.User) {
-        if (entity.isSelf) {
+        if (entity.self) {
             return new Api.InputPeerSelf()
         } else {
             return new Api.InputUser({
                 userId: entity.id,
-                accessHash: entity.accessHash || 0,
+                accessHash: entity.accessHash || bigInt.zero,
             })
         }
     }
@@ -254,11 +254,12 @@ function getInputUser(entity) {
 
     _raiseCastFail(entity, 'InputUser')
 }
-*/
+
 /**
  Similar to :meth:`get_input_peer`, but for dialogs
  * @param dialog
  */
+
 /*CONTEST
 function getInputDialog(dialog) {
     try {
@@ -281,27 +282,52 @@ function getInputDialog(dialog) {
     _raiseCastFail(dialog, 'InputDialogPeer')
 }
 */
+/**
+ *  Similar to :meth:`get_input_peer`, but for input messages.
+ */
 
-/*CONTEST
-
-function getInputMessage(message) {
-    try {
-        if (typeof message == 'number') { // This case is really common too
-            return new Api.InputMessageID({
-                id: message,
-            })
-        } else if (message.SUBCLASS_OF_ID === 0x54b6bcc5) { // crc32(b'InputMessage')
-            return message
-        } else if (message.SUBCLASS_OF_ID === 0x790009e3) { // crc32(b'Message')
-            return new Api.InputMessageID(message.id)
-        }
-        // eslint-disable-next-line no-empty
-    } catch (e) {
+function getInputMessage(message: any): Api.InputMessageID {
+    if (typeof message === "number") {
+        return new Api.InputMessageID({id: message});
     }
+    if (message === undefined || message.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(message, "InputMessage");
+    }
+    if (message.SUBCLASS_OF_ID === 0x54b6bcc5) { // crc32(b'InputMessage')
+        return message;
+    } else if (message.SUBCLASS_OF_ID === 0x790009e3) { // crc32(b'Message'):
+        return new Api.InputMessageID({id: message.id});
+    }
+    _raiseCastFail(message, "InputMessage");
 
-    _raiseCastFail(message, 'InputMessage')
 }
-*/
+
+/**
+ *  Similar to :meth:`get_input_peer`, but for input messages.
+ */
+
+function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
+    if (photo === undefined || photo.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(photo, "InputChatPhoto");
+    }
+    if ((photo.SUBCLASS_OF_ID === 0xd4eb2d74)) { //crc32(b'InputChatPhoto')
+        return photo;
+    } else if (photo.SUBCLASS_OF_ID === 0xe7655f1f) { // crc32(b'InputFile'):
+        return new Api.InputChatUploadedPhoto({
+            file: photo
+        });
+    }
+    photo = getInputPhoto(photo);
+    if ((photo instanceof Api.InputPhoto)) {
+        return new Api.InputChatPhoto({
+            id: photo
+        });
+    } else if (photo instanceof Api.InputPhotoEmpty) {
+        return new Api.InputChatPhotoEmpty();
+    }
+    _raiseCastFail(photo, "InputChatPhoto");
+
+}
 
 /**
  * Adds the JPG header and footer to a stripped image.
@@ -374,6 +400,440 @@ function getInputLocation(location) {
     _raiseCastFail(location, 'InputFileLocation')
 }
 */
+/**
+ *  Similar to :meth:`get_input_peer`, but for photos
+ */
+function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
+    if (photo.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(photo, "InputPhoto");
+    }
+
+    if ((photo.SUBCLASS_OF_ID === 2221106144)) {
+        return photo;
+    }
+
+    if ((photo instanceof Api.Message)) {
+        photo = photo.media;
+    }
+    if (((photo instanceof Api.photos.Photo) || (photo instanceof Api.MessageMediaPhoto))) {
+        photo = photo.photo;
+    }
+    if ((photo instanceof Api.Photo)) {
+        return new Api.InputPhoto({
+            id: photo.id,
+            accessHash: photo.accessHash,
+            fileReference: photo.fileReference
+        });
+    }
+    if ((photo instanceof Api.PhotoEmpty)) {
+        return new Api.InputPhotoEmpty();
+    }
+    if ((photo instanceof Api.messages.ChatFull)) {
+        photo = photo.fullChat;
+    }
+    if ((photo instanceof Api.ChannelFull)) {
+        return getInputPhoto(photo.chatPhoto);
+    } else {
+        if ((photo instanceof Api.UserFull)) {
+            return getInputPhoto(photo.profilePhoto);
+        } else {
+            if (((photo instanceof Api.Channel) || (photo instanceof Api.Chat) || (photo instanceof Api.User))) {
+                return getInputPhoto(photo.photo);
+            }
+        }
+    }
+    if (((photo instanceof Api.UserEmpty) || (photo instanceof Api.ChatEmpty) || (photo instanceof Api.ChatForbidden) || (photo instanceof Api.ChannelForbidden))) {
+        return new Api.InputPhotoEmpty();
+    }
+    _raiseCastFail(photo, "InputPhoto");
+}
+
+/**
+ *  Similar to :meth:`get_input_peer`, but for documents
+ */
+
+function getInputDocument(document: any): Api.InputDocument | Api.InputDocumentEmpty {
+    if (document.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(document, "InputDocument");
+    }
+
+    if ((document.SUBCLASS_OF_ID === 0xf33fdb68)) {
+        return document;
+    }
+
+    if ((document instanceof Api.Document)) {
+        return new Api.InputDocument({
+            id: document.id,
+            accessHash: document.accessHash,
+            fileReference: document.fileReference
+        });
+    }
+    if ((document instanceof Api.DocumentEmpty)) {
+        return new Api.InputDocumentEmpty();
+    }
+    if ((document instanceof Api.MessageMediaDocument)) {
+        return getInputDocument(document.document);
+    }
+    if ((document instanceof Api.Message)) {
+        return getInputDocument(document.media);
+    }
+    _raiseCastFail(document, "InputDocument");
+
+
+}
+
+interface GetAttributesParams {
+    attributes?: any;
+    mimeType?: string;
+    forceDocument?: boolean;
+    voiceNote?: boolean;
+    videoNote?: boolean;
+    supportsStreaming?: boolean;
+    thumb?: any;
+}
+
+/**
+ *  Returns `True` if the file has an audio mime type.
+ */
+function isAudio(file: any): boolean {
+    const ext = _getExtension(file);
+    if (!ext) {
+        const metadata = _getMetadata(file);
+        if (metadata) {
+            return (metadata.get("mimeType") || '').startsWith("audio/");
+        } else {
+            return false;
+        }
+    } else {
+        file = ("a" + ext);
+        return (mime.lookup(file) || "").startsWith("audio/");
+    }
+}
+
+function getExtension(media: any): string {
+    // Photos are always compressed as .jpg by Telegram
+
+    try {
+        getInputPhoto(media);
+        return ".jpg";
+    } catch (e) {
+
+    }
+    if (media instanceof Api.UserProfilePhoto || media instanceof Api.ChatPhoto) {
+        return ".jpg";
+    }
+
+    if ((media instanceof Api.MessageMediaDocument)) {
+        media = media.document;
+    }
+    if (((media instanceof Api.Document) || (media instanceof Api.WebDocument) || (media instanceof Api.WebDocumentNoProxy))) {
+        if ((media.mimeType === "application/octet-stream")) {
+            // Octet stream are just bytes, which have no default extension
+            return "";
+        } else {
+            return (mime.extension(media.mimeType) || "");
+        }
+    }
+    return "";
+}
+
+/**
+ * Gets the extension for the given file, which can be either a
+ * str or an ``open()``'ed file (which has a ``.name`` attribute).
+ */
+function _getExtension(file: any): string {
+
+    var kind;
+    if (typeof file === "string") {
+        // thanks Stackoverflow
+        return file.slice((file.lastIndexOf(".") - 2 >>> 0) + 2);
+    } else if ("name" in file) {
+        return _getExtension(file.name);
+    } else {
+        return getExtension(file);
+    }
+}
+
+
+function _getMetadata(file: any): Map<string, string> | undefined {
+    //TODO Return nothing for now until we find a better way
+    return undefined;
+}
+
+function isVideo(file: any): boolean {
+    const ext = _getExtension(file);
+    if (!ext) {
+        const metadata = _getMetadata(file);
+        if ((metadata && metadata.has("mimeType"))) {
+            return metadata.get("mimeType")?.startsWith("video/") || false;
+        } else {
+            return false;
+        }
+    } else {
+        file = ("a" + ext);
+        return (mime.lookup(file) || "").startsWith("video/");
+    }
+}
+
+
+/**
+ Get a list of attributes for the given file and
+ the mime type as a tuple ([attribute], mime_type).
+ */
+function getAttributes(file: any, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
+
+    const name: string = (typeof file === "string") ? file : file.name || "unnamed";
+    if (mimeType === undefined) {
+        mimeType = mime.lookup(name) || "application/octet-stream";
+    }
+    const attrObj = new Map();
+    attrObj.set(Api.DocumentAttributeFilename, new Api.DocumentAttributeFilename({
+        fileName: name.split(/[\\/]/).pop() || ''
+    }));
+    if (isAudio(file)) {
+        const m = _getMetadata(file);
+        if (m) {
+            attrObj.set(Api.DocumentAttributeAudio, new Api.DocumentAttributeAudio({
+                voice: voiceNote,
+                title: (m.has("title") ? m.get("title") : undefined),
+                performer: (m.has("author") ? m.get("author") : undefined),
+                duration: Number.parseInt(m.get("duration") ?? '0')
+            }));
+        }
+    }
+    if (((!forceDocument) && isVideo(file))) {
+        let doc;
+        const m = _getMetadata(file);
+        if (m) {
+            doc = new Api.DocumentAttributeVideo({
+                roundMessage: videoNote,
+                w: Number.parseInt(m.get("width") ?? '0'),
+                h: Number.parseInt(m.get("height") ?? '0'),
+                duration: Number.parseInt(m.get("duration") ?? '0'),
+                supportsStreaming: supportsStreaming
+            });
+        } else {
+            if (thumb) {
+                const t_m = _getMetadata(thumb);
+                const width = Number.parseInt(t_m?.get("width") || '1');
+                const height = Number.parseInt(t_m?.get("height") || '1');
+                doc = new Api.DocumentAttributeVideo({
+                    duration: 0,
+                    h: height,
+                    w: width,
+                    roundMessage: videoNote,
+                    supportsStreaming: supportsStreaming
+                });
+            } else {
+                doc = new Api.DocumentAttributeVideo({
+                    duration: 0,
+                    h: 1,
+                    w: 1,
+                    roundMessage: videoNote,
+                    supportsStreaming: supportsStreaming
+                });
+            }
+        }
+        attrObj.set(Api.DocumentAttributeVideo, doc);
+    }
+    if (videoNote) {
+        if (attrObj.has(Api.DocumentAttributeAudio)) {
+            attrObj.get(Api.DocumentAttributeAudio).voice = true;
+        } else {
+            attrObj.set(Api.DocumentAttributeAudio, new Api.DocumentAttributeAudio(
+                {
+                    duration: 0,
+                    voice: true
+                }
+            ));
+        }
+    }
+    /* Now override the attributes if any. As we have a dict of
+    {cls: instance}, we can override any class with the list
+     of attributes provided by the user easily.
+    */
+    if (attributes) {
+        for (const a of attributes) {
+            attrObj.set(a.constructor, a);
+        }
+    }
+
+    return {
+        attrs: Array.from(attrObj.values()),
+        mimeType: mimeType,
+    };
+}
+
+/**
+ *  Similar to :meth:`get_input_peer`, but for geo points
+ */
+export function getInputGeo(geo: any): Api.TypeInputGeoPoint {
+    if (geo === undefined || geo.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(geo, "InputGeoPoint");
+    }
+    if (geo.SUBCLASS_OF_ID === 0x430d225) { // crc32(b'InputGeoPoint'):
+        return geo;
+    }
+
+    if ((geo instanceof Api.GeoPoint)) {
+        return new Api.InputGeoPoint({lat: geo.lat, long: geo.long});
+    }
+    if (geo instanceof Api.GeoPointEmpty) {
+        return new Api.InputGeoPointEmpty();
+    }
+    if ((geo instanceof Api.MessageMediaGeo)) {
+        return getInputGeo(geo.geo);
+    }
+    if ((geo instanceof Api.Message)) {
+        return getInputGeo(geo.media);
+    }
+    _raiseCastFail(geo, "InputGeoPoint");
+}
+
+/**
+ *
+ Similar to :meth:`get_input_peer`, but for media.
+
+ If the media is :tl:`InputFile` and ``is_photo`` is known to be `True`,
+ it will be treated as an :tl:`InputMediaUploadedPhoto`. Else, the rest
+ of parameters will indicate how to treat it.
+ * @param media
+ * @param isPhoto
+ * @param attributes
+ * @param force_document
+ * @param voiceNote
+ * @param videoNote
+ * @param supportsStreaming
+ */
+export function getInputMedia(media: any, {isPhoto = false, attributes = null, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false} = {}): any {
+    if (media.SUBCLASS_OF_ID === undefined) {
+        _raiseCastFail(media, "InputMedia")
+    }
+
+
+    if ((media.SUBCLASS_OF_ID === 0xfaf846f4)) { // crc32(b'InputMedia')
+        return media;
+    } else {
+        if ((media.SUBCLASS_OF_ID === 2221106144)) { // crc32(b'InputPhoto')
+            return new Api.InputMediaPhoto({id: media});
+        } else {
+            if ((media.SUBCLASS_OF_ID === 4081048424)) { // crc32(b'InputDocument')
+                return new Api.InputMediaDocument({id: media});
+            }
+        }
+    }
+
+    if ((media instanceof Api.MessageMediaPhoto)) {
+        return new Api.InputMediaPhoto({id: getInputPhoto(media.photo), ttlSeconds: media.ttlSeconds});
+    }
+    if (((media instanceof Api.Photo) || (media instanceof Api.photos.Photo) || (media instanceof Api.PhotoEmpty))) {
+        return new Api.InputMediaPhoto({"id": getInputPhoto(media)});
+    }
+    if ((media instanceof Api.MessageMediaDocument)) {
+        return new Api.InputMediaDocument({
+            id: getInputDocument(media.document),
+            ttlSeconds: media.ttlSeconds
+        });
+    }
+    if (((media instanceof Api.Document) || (media instanceof Api.DocumentEmpty))) {
+        return new Api.InputMediaDocument({id: getInputDocument(media)});
+    }
+    if (((media instanceof Api.InputFile) || (media instanceof Api.InputFileBig))) {
+        if (isPhoto) {
+            return new Api.InputMediaUploadedPhoto({"file": media});
+        } else {
+            const {attrs, mimeType} = getAttributes(
+                media, {
+                    attributes: attributes,
+                    forceDocument: forceDocument,
+                    voiceNote: voiceNote,
+                    videoNote: videoNote,
+                    supportsStreaming: supportsStreaming
+                });
+            return new Api.InputMediaUploadedDocument({
+                file: media,
+                mimeType: mimeType,
+                attributes: attrs,
+                forceFile: forceDocument
+            });
+        }
+    }
+    if ((media instanceof Api.MessageMediaGame)) {
+        return new Api.InputMediaGame({
+            id: new Api.InputGameID({
+                id: media.game.id,
+                accessHash: media.game.accessHash
+            })
+        });
+    }
+    if ((media instanceof Api.MessageMediaContact)) {
+        return new Api.InputMediaContact({
+            phoneNumber: media.phoneNumber,
+            firstName: media.firstName,
+            lastName: media.lastName,
+            vcard: ""
+        });
+    }
+    if ((media instanceof Api.MessageMediaGeo)) {
+        return new Api.InputMediaGeoPoint({geoPoint: getInputGeo(media.geo)});
+    }
+    if ((media instanceof Api.MessageMediaVenue)) {
+        return new Api.InputMediaVenue({
+            geoPoint: getInputGeo(media.geo),
+            title: media.title,
+            address: media.address,
+            provider: media.provider,
+            venueId: media.venueId,
+            venueType: ""
+        });
+    }
+    if ((media instanceof Api.MessageMediaDice)) {
+        return new Api.InputMediaDice({
+            emoticon: media.emoticon
+        });
+    }
+    if (((media instanceof Api.MessageMediaEmpty) || (media instanceof Api.MessageMediaUnsupported)
+        || (media instanceof Api.ChatPhotoEmpty) || (media instanceof Api.UserProfilePhotoEmpty) ||
+        (media instanceof Api.ChatPhoto) || (media instanceof Api.UserProfilePhoto) ||
+        (media instanceof Api.FileLocationToBeDeprecated))) {
+        return new Api.InputMediaEmpty();
+    }
+    if ((media instanceof Api.Message)) {
+        return getInputMedia(media.media, {isPhoto: isPhoto});
+    }
+    if ((media instanceof Api.MessageMediaPoll)) {
+        let correctAnswers;
+        if (media.poll.quiz) {
+            if ((!media.results.results)) {
+                throw new Error("Cannot cast unanswered quiz to any kind of InputMedia.");
+            }
+
+            correctAnswers = [];
+            for (const r of media.results.results) {
+                if (r.correct) {
+                    correctAnswers.push(r.option);
+                }
+            }
+
+        } else {
+            correctAnswers = undefined;
+        }
+        return new Api.InputMediaPoll({
+            poll: media.poll,
+            correctAnswers: correctAnswers,
+            solution: media.results.solution,
+            solutionEntities: media.results.solutionEntities
+        });
+    }
+    if ((media instanceof Api.Poll)) {
+        return new Api.InputMediaPoll({
+            poll: media
+        });
+    }
+    _raiseCastFail(media, "InputMedia");
+}
+
+//# sourceMappingURL=anothatest.js.map
 
 /**
  * Gets the appropriated part size when uploading or downloading files,
@@ -381,7 +841,7 @@ function getInputLocation(location) {
  * @param fileSize
  * @returns {Number}
  */
-function getAppropriatedPartSize(fileSize: number) {
+export function getAppropriatedPartSize(fileSize: number) {
     if (fileSize <= 104857600) { // 100MB
         return 128
     }

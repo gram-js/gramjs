@@ -3,13 +3,6 @@ import {Entity, EntityLike} from "../define";
 import {getPeerId, isArrayLike} from "../Utils";
 import {_entityType, _EntityType, sleep} from "../Helpers";
 import {errors, utils} from "../index";
-import {DownloadMethods} from "./downloads";
-import {DialogMethods} from "./dialogs";
-import {BotMethods} from "./bots";
-import {MessageMethods} from "./messages";
-import {ButtonMethods} from "./buttons";
-import {UpdateMethods} from "./updates";
-import {MessageParseMethods} from "./messageParse";
 import {TelegramBaseClient} from "./telegramBaseClient";
 import bigInt from 'big-integer';
 
@@ -31,7 +24,7 @@ export class UserMethods {
 
         await request.resolve(this, utils);
         this._lastRequest = new Date().getTime();
-        let attempt = 0;
+        let attempt: number;
         for (attempt = 0; attempt < this._requestRetries; attempt++) {
             try {
                 const promise = this._sender.send(request);
@@ -354,7 +347,6 @@ export class UserMethods {
             peer = await this.getInputEntity(peer);
         }
         if (peer instanceof Api.InputPeerSelf) {
-            // @ts-ignore
             peer = await this.getMe(true);
         }
         return utils.getPeerId(peer, addMark);
@@ -372,6 +364,42 @@ export class UserMethods {
             channelId: i,
             chatId: i
         });
+    }
+
+    async _getInputDialog(dialog: any) {
+        try {
+            if (dialog.SUBCLASS_OF_ID == 0xa21c9795) { // crc32(b'InputDialogPeer')
+                dialog.peer = await this.getInputEntity(dialog.peer);
+                return dialog
+            } else if (dialog.SUBCLASS_OF_ID == 0xc91c90b6) { //crc32(b'InputPeer')
+                return new Api.InputDialogPeer({
+                    peer: dialog,
+                });
+            }
+
+        } catch (e) {
+
+        }
+        return new Api.InputDialogPeer({
+            peer: dialog
+        });
+    }
+
+    async _getInputNotify(notify: any) {
+        try {
+            if (notify.SUBCLASS_OF_ID == 0x58981615) {
+                if (notify instanceof Api.InputNotifyPeer) {
+                    notify.peer = await this.getInputEntity(notify.peer)
+                }
+                return notify;
+            }
+        } catch (e) {
+
+        }
+        return new Api.InputNotifyPeer({
+            peer: await this.getInputEntity(notify)
+        })
+
     }
 }
 

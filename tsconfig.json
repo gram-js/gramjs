@@ -1,25 +1,25 @@
 {
-    "compilerOptions": {
-        // We don't care about this since Parcel runs Babel after TypeScript
-        "module": "commonjs",
-        "target": "es6",
-        "lib": [
-            "dom",
-            "es6",
-            "es7"
-        ],
-        "inlineSourceMap": true,
-        "downlevelIteration": true,
-        "allowJs": false,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-    },
-    "include": [
-        "gramjs"
-    ]
+  "compilerOptions": {
+    // We don't care about this since Parcel runs Babel after TypeScript
+    "module": "commonjs",
+    "target": "es6",
+    "lib": [
+      "dom",
+      "es6",
+      "es7"
+    ],
+    "inlineSourceMap": true,
+    "downlevelIteration": true,
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+  },
+  "include": [
+    "gramjs"
+  ]
 }
