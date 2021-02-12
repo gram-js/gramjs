@@ -1,5 +1,5 @@
 import { default as Api } from '../tl/api';
-import TelegramClient from './TelegramClient';
+import {TelegramClient} from './TelegramClient';
 // @ts-ignore
 import { getAppropriatedPartSize } from '../Utils';
 // @ts-ignore

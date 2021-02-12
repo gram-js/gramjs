@@ -19,7 +19,7 @@ module.exports = ({ types, constructors, functions }) => {
     function renderTypes(types, indent) {
         return types.map(({ name, constructors }) => `
       ${!constructors.length ? '// ' : ''}export type Type${upperFirst(name)} = ${constructors.map(name => name)
-    .join(' | ')};
+            .join(' | ')};
     `.trim())
             .join(`\n${indent}`)
     }
@@ -37,16 +37,16 @@ module.exports = ({ types, constructors, functions }) => {
             return `
       export class ${upperFirst(name)} extends VirtualClass<{
 ${indent}  ${Object.keys(argsConfig)
-    .map(argName => `
+                .map(argName => `
         ${renderArg(argName, argsConfig[argName])};
       `.trim())
-    .join(`\n${indent}  `)}
+                .join(`\n${indent}  `)}
 ${indent}}${!hasRequiredArgs ? ' | void' : ''}> {
 ${indent}  ${Object.keys(argsConfig)
-    .map(argName => `
+                .map(argName => `
         ${renderArg(argName, argsConfig[argName])};
       `.trim())
-    .join(`\n${indent}  `)}
+                .join(`\n${indent}  `)}
 ${indent}};`.trim()
         })
             .join(`\n${indent}`)
@@ -67,12 +67,12 @@ ${indent}};`.trim()
 ${indent}  ${argKeys.map(argName => `
         ${renderArg(argName, argsConfig[argName])};
       `.trim())
-    .join(`\n${indent}  `)}
+                .join(`\n${indent}  `)}
 ${indent}}${!hasRequiredArgs ? ' | void' : ''}>, ${renderResult(result)}> {
 ${indent}  ${argKeys.map(argName => `
         ${renderArg(argName, argsConfig[argName])};
       `.trim())
-    .join(`\n${indent}  `)}
+                .join(`\n${indent}  `)}
 ${indent}};`.trim()
         })
             .join(`\n${indent}`)
@@ -88,6 +88,7 @@ ${indent}};`.trim()
     }
 
     function renderArg(argName, argConfig) {
+
         const {
             isVector, isFlag, skipConstructorId, type,
         } = argConfig
@@ -109,7 +110,9 @@ ${indent}};`.trim()
         } else {
             resType = type
         }
-
+        if (resType==='true'){
+            resType='boolean';
+        }
         if (isVector) {
             resType = `${resType}[]`
         }
@@ -135,9 +138,8 @@ ${indent}};`.trim()
 
 import { BigInteger } from 'big-integer';
 
-export default Api;
 
-namespace Api {
+export namespace Api {
 
   type AnyClass = new (...args: any[]) => any;
   type I<T extends AnyClass> = InstanceType<T>;
@@ -152,8 +154,8 @@ namespace Api {
   type Type = unknown;
   type Bool = boolean;
   type int = number;
-  type int128 = number;
-  type int256 = number;
+  type int128 = BigInteger;
+  type int256 = BigInteger;
   type long = BigInteger;
   type bytes = Buffer;
 
@@ -166,6 +168,8 @@ namespace Api {
     static serializeBytes(data: Buffer | string): Buffer;
     static serializeDate(date: Date | number): Buffer;
     static fromReader(reader: Reader): VirtualClass<Args>;
+
+    getBytes():Buffer;
 
     CONSTRUCTOR_ID: number;
     SUBCLASS_OF_ID: number;
@@ -182,23 +186,25 @@ namespace Api {
     __response: Response;
   }
 
-  ${renderTypes(typesByNs._, '  ')}
-  ${Object.keys(typesByNs)
-        .map(namespace => namespace !== '_' ? `
-  export namespace ${namespace} {
-    ${renderTypes(typesByNs[namespace], '    ')}
-  }` : '')
-        .join('\n')}
 
   ${renderConstructors(constructorsByNs._, '  ')}
+  ${renderRequests(requestsByNs._, '  ')}
+
+
+// namespaces
+
   ${Object.keys(constructorsByNs)
         .map(namespace => namespace !== '_' ? `
   export namespace ${namespace} {
     ${renderConstructors(constructorsByNs[namespace], '    ')}
   }` : '')
         .join('\n')}
-
-  ${renderRequests(requestsByNs._, '  ')}
+  ${Object.keys(typesByNs)
+        .map(namespace => namespace !== '_' ? `
+  export namespace ${namespace} {
+    ${renderTypes(typesByNs[namespace], '    ')}
+  }` : '')
+        .join('\n')}
   ${Object.keys(requestsByNs)
         .map(namespace => namespace !== '_' ? `
   export namespace ${namespace} {
@@ -206,6 +212,9 @@ namespace Api {
   }` : '')
         .join('\n')}
 
+// Types
+  ${renderTypes(typesByNs._, '  ')}
+// All requests
   export type AnyRequest = ${requestsByNs._.map(({ name }) => upperFirst(name))
         .join(' | ')}
     | ${Object.keys(requestsByNs)

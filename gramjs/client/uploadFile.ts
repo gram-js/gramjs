@@ -1,6 +1,6 @@
 import { default as Api } from '../tl/api';
 
-import TelegramClient from './TelegramClient';
+import {TelegramClient} from './TelegramClient';
 // @ts-ignore
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from '../Helpers';
 // @ts-ignore
@@ -118,10 +118,6 @@ export async function uploadFile(
             name,
             md5Checksum: '', // This is not a "flag", so not sure if we can make it optional.
         });
-}
-
-function generateRandomBigInt() {
-    return readBigIntFromBuffer(generateRandomBytes(8), false);
 }
 
 function fileToBuffer(file: File) {

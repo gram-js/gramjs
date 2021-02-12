@@ -1,4 +1,4 @@
-export { default as Api } from './tl/api';
+export  * as Api from './tl/api';
 export { default as TelegramClient } from './client/TelegramClient';
 export { default as connection } from './network';
 export { default as tl } from './tl';
