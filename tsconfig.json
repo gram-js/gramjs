@@ -19,6 +19,10 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
   },
+  "exclude": [
+    "gramjs/tl/types-generator",
+    "node_modules"
+  ],
   "include": [
     "gramjs"
   ]

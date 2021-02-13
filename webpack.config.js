@@ -1,51 +1,52 @@
+const path = require('path')
+const webpack = require('webpack');
+
 module.exports = {
-    entry: './gramjs/index.ts',
-    mode: 'development',
-    resolve: {
-        extensions: ['.js', '.ts', '.tsx'],
-    },
-    node: {
-        fs: 'empty',
-        net: 'empty',
-    },
+    entry: path.resolve(__dirname, 'gramjs/index.ts'),
+
     module: {
         rules: [
-            {   test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: [
-                    /node_modules/,
-                ],
-            },
             {
-                test: /\.js$/,
-                loader: 'babel-loader',
+                test: /\.ts$/,
+                use: 'ts-loader',
                 exclude: /node_modules/,
             },
+
             {
-                test: /\.(woff(2)?|ttf|eot|svg|png|jpg|tgs)(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[contenthash].[ext]',
-                },
+                test: /\.js$/,
+                use: 'babel-loader',
+                exclude: /node_modules/,
             },
-            {
-                test: /\.wasm$/,
-                type: 'javascript/auto',
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[contenthash].[ext]',
-                },
-            },
+
             {
                 test: /\.tl$/i,
                 loader: 'raw-loader',
             },
         ],
     },
+
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
+        fallback: {
+            'fs': false,
+            'path': require.resolve("path-browserify") ,
+            'net': false,
+            'crypto': false,
+            "os": require.resolve("os-browserify/browser")
+        },
+    },
+    mode: 'development',
+    plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        })
+    ],
+
     output: {
-        path: __dirname + '/browser',
-        filename: 'gramjs.js',
-        libraryTarget: 'var',
         library: 'gramjs',
+        libraryTarget: 'umd',
+        auxiliaryComment: 'Test Comment',
+        filename: 'gramjs.js',
+        path: path.resolve(__dirname, 'browser'),
     },
 }

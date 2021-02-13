@@ -1,6 +1,6 @@
 export {Api} from './tl';
-export  {TelegramClient} from './client/TelegramClient';
-//export {connection} from './network';
+export {TelegramClient} from './client/TelegramClient';
+export {Connection} from './network';
 export {version} from './Version';
 //export {events} from './events';
 export * as utils from './Utils';

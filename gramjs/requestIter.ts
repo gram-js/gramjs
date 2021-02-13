@@ -1,6 +1,5 @@
 import {TelegramClient} from "./client/TelegramClient";
-// @ts-ignore
-import {sleep} from '../Helpers';
+import {sleep} from './Helpers';
 import {helpers} from "./index";
 
 interface BaseRequestIterInterface {
