@@ -3,12 +3,6 @@
 /.idea/
 # Generated code
 /docs/
-/gramjs/tl/functions/
-/gramjs/tl/types/
-/gramjs/tl/patched/
-/gramjs/tl/AllTLObjects.ts
-/gramjs/errors/RPCErrorList.ts
-/dist/
 
 # User session
 *.session
@@ -27,5 +21,4 @@ settings
 .babelrc
 .eslintignore
 .eslintrc.json
-webpack.config.babel.js
 /examples/

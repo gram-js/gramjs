@@ -6,7 +6,7 @@ import PeerUser = Api.PeerUser;
 import PeerChannel = Api.PeerChannel;
 import PeerChat = Api.PeerChat;
 
-interface ChatGetterConstructorParams {
+export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
     inputChat?: EntityLike;
     chat?: EntityLike;

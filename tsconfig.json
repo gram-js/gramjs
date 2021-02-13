@@ -10,7 +10,7 @@
     ],
     "inlineSourceMap": true,
     "downlevelIteration": true,
-    "allowJs": false,
+    "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -18,6 +18,8 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "declaration": true,
+    "outDir": "./dist"
   },
   "exclude": [
     "gramjs/tl/types-generator",
