@@ -5,10 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest",
-    "postinstall": "npm run tsc",
-    "tsc": "tsc",
-    "generate": "node ./gramjs/tl/types-generator/generate.js"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
