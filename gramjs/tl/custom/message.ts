@@ -212,6 +212,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 )]
             }
         }
+
     }
 
     get client() {

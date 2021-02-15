@@ -466,7 +466,7 @@ export class MessageMethods {
                 replyMarkup: request.replyMarkup,
             })
             // @ts-ignore
-            newMessage._finishInit(this, {}, entity);
+            //newMessage._finishInit(this, new Map<>(), entity);
             return newMessage;
         }
         return this._getResponseMessage(request, result, entity);

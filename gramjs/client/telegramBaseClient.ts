@@ -3,7 +3,7 @@ import {IS_NODE} from "../Helpers";
 import {ConnectionTCPFull, ConnectionTCPObfuscated} from "../network/connection";
 import {Session} from "../sessions/Abstract";
 import {Logger} from "../extensions";
-import {StringSession} from "../sessions";
+import {StoreSession, StringSession} from "../sessions";
 import {Api} from "../tl";
 
 
@@ -45,7 +45,7 @@ export class TelegramBaseClient {
     _config ?: Api.Config;
     public _log: Logger;
     public _floodSleepThreshold: number;
-    public session: StringSession;
+    public session: StringSession|StoreSession;
     public apiHash: string;
     public apiId: number;
     public _requestRetries: number;
@@ -94,8 +94,8 @@ export class TelegramBaseClient {
         } else {
             this._log = baseLogger
         }
-        if (!(session instanceof StringSession)) {
-            throw new Error("Only StringSession is supported currently :( ");
+        if (!(session instanceof StoreSession) && !(session instanceof StringSession)) {
+            throw new Error("Only StringSession and StoreSessions are supported currently :( ");
         }
         this._floodSleepThreshold = floodSleepThreshold;
         this.session = session;

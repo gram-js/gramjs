@@ -148,6 +148,7 @@ export function _photoSizeByteCount(size: FileLike) {
 export function _getEntityPair(entityId: number, entities: Map<number, Entity>,
                                cache: EntityCache,
                                getInputPeerFunction: any = getInputPeer): [Entity?, EntityLike?] {
+
     const entity = entities.get(entityId);
     let inputEntity = cache.get(entityId);
     if (!inputEntity) {

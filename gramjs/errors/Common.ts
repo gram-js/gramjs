@@ -74,7 +74,7 @@ export class InvalidBufferError extends Error {
  * Generic security error, mostly used when generating a new AuthKey.
  */
 export class SecurityError extends Error {
-    constructor(...args: any) {
+    constructor(...args: any[]) {
         if (!args.length) {
             args = ['A security check failed.']
         }

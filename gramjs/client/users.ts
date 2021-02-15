@@ -186,6 +186,7 @@ export class UserMethods {
 
     async getInputEntity(peer: EntityLike): Promise<Api.TypeInputPeer> {
         // Short-circuit if the input parameter directly maps to an InputPeer
+
         try {
             return utils.getInputPeer(peer)
             // eslint-disable-next-line no-empty
@@ -232,7 +233,7 @@ export class UserMethods {
                     accessHash: bigInt.zero,
                 })],
             }));
-            if (users && !(users[0] instanceof Api.UserEmpty)) {
+            if (users.length && !(users[0] instanceof Api.UserEmpty)) {
                 // If the user passed a valid ID they expect to work for
                 // channels but would be valid for users, we get UserEmpty.
                 // Avoid returning the invalid empty input peer for that.

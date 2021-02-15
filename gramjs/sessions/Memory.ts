@@ -123,19 +123,19 @@ export class MemorySession extends Session {
 
     _entitiesToRows(tlo: any) {
         let entities: any = [];
-        if (tlo.classType === "constructor" && isArrayLike(tlo)) {
+        if (!(tlo.classType === "constructor") && isArrayLike(tlo)) {
             // This may be a list of users already for instance
             entities = tlo;
         } else {
-            if (tlo instanceof Object) {
+            if (typeof tlo==="object") {
                 if ('user' in tlo) {
                     entities.push(tlo.user)
                 }
                 if ('chats' in tlo && isArrayLike(tlo.chats)) {
-                    entities.concat(tlo.chats)
+                    entities = entities.concat(tlo.chats)
                 }
                 if ('users' in tlo && isArrayLike(tlo.users)) {
-                    entities.concat(tlo.users)
+                    entities = entities.concat(tlo.users)
                 }
             }
         }
