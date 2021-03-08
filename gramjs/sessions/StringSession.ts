@@ -2,7 +2,7 @@ import {MemorySession} from "./Memory";
 import {BinaryReader} from "../extensions";
 import {AuthKey} from "../crypto/AuthKey";
 
-const CURRENT_VERSION = '1'
+const CURRENT_VERSION = '1';
 
 
 export class StringSession extends MemorySession {
@@ -24,21 +24,33 @@ export class StringSession extends MemorySession {
      * @param session {string|null}
      */
     constructor(session?: string) {
-        super()
+        super();
         if (session) {
             if (session[0] !== CURRENT_VERSION) {
                 throw new Error('Not a valid string')
             }
-            session = session.slice(1)
-            const r = StringSession.decode(session)
-            const reader = new BinaryReader(r)
+            session = session.slice(1);
+            const r = StringSession.decode(session);
+
+            const reader = new BinaryReader(r);
             this._dcId = reader.read(1)
-                .readUInt8(0)
-            const serverAddressLen = reader.read(2)
-                .readInt16BE(0)
-            this._serverAddress = String(reader.read(serverAddressLen))
+                .readUInt8(0);
+            if (session.length == 352) {
+                // Telethon session
+                const ip_v4 = reader.read(4);
+                // TODO looks ugly smh
+                this._serverAddress = ip_v4[0].toString() + '.' + ip_v4[1].toString() + '.' + ip_v4[2].toString() + '.' + ip_v4[3].toString();
+
+            } else {
+                const serverAddressLen = reader.read(2)
+                    .readInt16BE(0);
+                this._serverAddress = reader.read(serverAddressLen).toString();
+
+            }
+
+
             this._port = reader.read(2)
-                .readInt16BE(0)
+                .readInt16BE(0);
             this._key = reader.read(-1)
         }
     }
@@ -75,12 +87,12 @@ export class StringSession extends MemorySession {
         if (!key) {
             return '';
         }
-        const dcBuffer = Buffer.from([this.dcId])
-        const addressBuffer = Buffer.from(this.serverAddress)
-        const addressLengthBuffer = Buffer.alloc(2)
-        addressLengthBuffer.writeInt16BE(addressBuffer.length, 0)
-        const portBuffer = Buffer.alloc(2)
-        portBuffer.writeInt16BE(this.port, 0)
+        const dcBuffer = Buffer.from([this.dcId]);
+        const addressBuffer = Buffer.from(this.serverAddress);
+        const addressLengthBuffer = Buffer.alloc(2);
+        addressLengthBuffer.writeInt16BE(addressBuffer.length, 0);
+        const portBuffer = Buffer.alloc(2);
+        portBuffer.writeInt16BE(this.port, 0);
 
         return CURRENT_VERSION + StringSession.encode(Buffer.concat([
             dcBuffer,
