@@ -32,14 +32,21 @@ module.exports = {
             'path': require.resolve("path-browserify") ,
             'net': false,
             'crypto': false,
-            "os": require.resolve("os-browserify/browser")
+            "os": require.resolve("os-browserify/browser"),
+            "util": false,
+            "assert": false,
+            "stream": false,
+            "constants": false
         },
     },
     mode: 'development',
     plugins: [
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
-        })
+        }),
+        new webpack.ProvidePlugin({
+            process: 'process/browser',
+        }),
     ],
 
     output: {
