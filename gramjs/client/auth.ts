@@ -19,8 +19,8 @@ export interface UserAuthParams {
     phoneNumber: string | (() => Promise<string>);
     phoneCode: (isCodeViaApp?: boolean) => Promise<string>;
     password: (hint?: string) => Promise<string>;
-    firstAndLastNames: () => Promise<[string, string?]>;
-    qrCode: (qrCode: { token: Buffer, expires: number }) => Promise<void>;
+    firstAndLastNames?: () => Promise<[string, string?]>;
+    qrCode?: (qrCode: { token: Buffer, expires: number }) => Promise<void>;
     onError: (err: Error) => void;
     forceSMS?: boolean;
 }
@@ -158,7 +158,13 @@ export class AuthMethods {
         if (isRegistrationRequired) {
             while (1) {
                 try {
-                    const [firstName, lastName] = await authParams.firstAndLastNames();
+                    let lastName;
+                    let  firstName = "first name";
+                    if (authParams.firstAndLastNames){
+                        const result = await authParams.firstAndLastNames();
+                        firstName = result[0];
+                        lastName = result[1];
+                    }
                     if (!firstName) {
                         throw new Error('First name is required');
                     }
@@ -202,11 +208,12 @@ export class AuthMethods {
                 }
 
                 const {token, expires} = result;
-
-                await Promise.race([
-                    authParams.qrCode({token, expires}),
-                    sleep(QR_CODE_TIMEOUT),
-                ]);
+                if (authParams.qrCode){
+                    await Promise.race([
+                        authParams.qrCode({token, expires}),
+                        sleep(QR_CODE_TIMEOUT),
+                    ]);
+                }
             }
         })();
 
