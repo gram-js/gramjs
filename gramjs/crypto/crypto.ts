@@ -114,7 +114,7 @@ export class Hash {
     }
 }
 
-export async function pbkdf2(password:any, salt:any, iterations:any) {
+export async function pbkdf2Sync(password:any, salt:any, iterations:any) {
     const passwordKey = await crypto.subtle.importKey('raw', password,
         {name: 'PBKDF2'}, false, ['deriveBits']);
     return Buffer.from(await crypto.subtle.deriveBits({

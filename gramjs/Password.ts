@@ -1,6 +1,8 @@
 import {Api} from "./tl";
 import {bigIntMod, generateRandomBytes, modExp, readBigIntFromBuffer, readBufferFromBigInt, sha256} from "./Helpers";
 import bigInt from 'big-integer';
+import {isBrowser, isNode} from "browser-or-node";
+const crypto = require(isNode ? 'crypto' : './crypto/crypto');
 
 const SIZE_FOR_HASH = 256;
 
@@ -154,8 +156,7 @@ function xor(a: Buffer, b: Buffer) {
 
 function pbkdf2sha512(password: Buffer, salt: Buffer, iterations: number) {
 
-    // @ts-ignore should probably add pollifier
-    return crypto.pbkdf2(password, salt, iterations, 64, 'sha512')
+    return crypto.pbkdf2Sync(password, salt, iterations, 64, 'sha512');
 }
 
 /**
