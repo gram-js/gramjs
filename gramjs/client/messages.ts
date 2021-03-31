@@ -189,7 +189,7 @@ class _MessagesIter extends RequestIter {
                 return true;
             }
             this.lastId = message.id;
-            message._finishInit(this.client, entities, this.entity);
+            // TODO message._finishInit(this.client, entities, this.entity);
             this.buffer?.push(message);
         }
         if (r.messages.length < this.request.limit) {
@@ -299,7 +299,7 @@ class _IDsIter extends RequestIter {
                 this.buffer?.push(undefined)
             } else {
                 // @ts-ignore
-                message._finishInit(this.client, entities, this._entity);
+                // TODO message._finishInit(this.client, entities, this._entity);
                 this.buffer?.push(message);
             }
         }

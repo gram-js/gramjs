@@ -62,7 +62,7 @@ export class MessageParseMethods {
                 randomToId.set(update.randomId, update.id);
             } else if (update instanceof Api.UpdateNewChannelMessage || update instanceof Api.UpdateNewMessage) {
                 // @ts-ignore
-                update.message._finishInit(this, entities, inputChat);
+                // TODO update.message._finishInit(this, entities, inputChat);
                 if ('randomId' in request || isArrayLike(request)) {
                     idToMessage.set(update.message.id, update.message);
                 } else {
@@ -70,7 +70,7 @@ export class MessageParseMethods {
                 }
             } else if (update instanceof Api.UpdateEditMessage && 'peer' in request && _entityType(request.peer) != _EntityType.CHANNEL) {
                 // @ts-ignore
-                update.message._finishInit(this, entities, inputChat);
+                // TODO update.message._finishInit(this, entities, inputChat);
                 if ('randomId' in request) {
                     idToMessage.set(update.message.id, update.message);
                 } else if ('id' in request && request.id === update.message.id) {

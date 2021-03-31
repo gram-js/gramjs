@@ -326,9 +326,9 @@ class _AdminLogIter extends RequestIter {
         for (const ev of r.events) {
             if (ev.action instanceof ChannelAdminLogEventActionEditMessage) {
                 // @ts-ignore
-                ev.action.prevMessage._finishInit(this.client, entities, this.entity);
+                // TODO ev.action.prevMessage._finishInit(this.client, entities, this.entity);
                 // @ts-ignore
-                ev.action.newMessage._finishInit(this.client, entities, this.entity);
+                // TODO ev.action.newMessage._finishInit(this.client, entities, this.entity);
 
             }
         }
