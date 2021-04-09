@@ -1,33 +1,10 @@
-import {TelegramClient} from "./TelegramClient";
-import {EntitiesLike, Entity, EntityLike, ValueOf} from "../define";
-// @ts-ignore
+import type{TelegramClient} from "./TelegramClient";
+import type{EntitiesLike, Entity, EntityLike, ValueOf} from "../define";
 import {sleep, getMinBigInt} from '../Helpers';
 import {RequestIter} from "../requestIter";
-import {helpers, utils} from "../index";
-import {Api} from "../tl/api";
-import GetFullChannel = Api.channels.GetFullChannel;
-import AnyRequest = Api.AnyRequest;
-import SetTyping = Api.messages.SetTyping;
-import GetParticipants = Api.channels.GetParticipants;
-import ChannelParticipantsSearch = Api.ChannelParticipantsSearch;
-import GetFullChat = Api.messages.GetFullChat;
-import ChatParticipants = Api.ChatParticipants;
-import ChannelParticipantsNotModified = Api.channels.ChannelParticipantsNotModified;
-import ChannelAdminLogEventsFilter = Api.ChannelAdminLogEventsFilter;
-import GetAdminLog = Api.channels.GetAdminLog;
+import {helpers, utils} from "../";
+import {Api} from "../tl";
 import bigInt, {BigInteger} from "big-integer";
-import ChannelAdminLogEventActionEditMessage = Api.ChannelAdminLogEventActionEditMessage;
-import {AccountMethods} from "./account";
-import {AuthMethods} from "./auth";
-import {DownloadMethods} from "./downloads";
-import {DialogMethods} from "./dialogs";
-import {BotMethods} from "./bots";
-import {MessageMethods} from "./messages";
-import {ButtonMethods} from "./buttons";
-import {UpdateMethods} from "./updates";
-import {MessageParseMethods} from "./messageParse";
-import {UserMethods} from "./users";
-import {TelegramBaseClient} from "./telegramBaseClient";
 
 const _MAX_PARTICIPANTS_CHUNK_SIZE = 200;
 const _MAX_ADMIN_LOG_CHUNK_SIZE = 100;
@@ -68,7 +45,7 @@ class _ChatAction {
     private _action: ValueOf<typeof _ChatAction._str_mapping>;
     private _delay: number;
     private autoCancel: boolean;
-    private _request?: AnyRequest;
+    private _request?: Api.AnyRequest;
     private _task: null;
     private _running: boolean;
 
@@ -87,7 +64,7 @@ class _ChatAction {
     }
 
     async start() {
-        this._request = new SetTyping({
+        this._request = new Api.messages.SetTyping({
             peer: this._chat,
             action: this._action
         });
@@ -98,7 +75,7 @@ class _ChatAction {
     async stop() {
         this._running = false;
         if (this.autoCancel) {
-            await this._client.invoke(new SetTyping({
+            await this._client.invoke(new  Api.messages.SetTyping({
                 peer: this._chat,
                 action: new Api.SendMessageCancelAction()
             }));
@@ -125,7 +102,7 @@ class _ChatAction {
 
 class _ParticipantsIter extends RequestIter {
     private filterEntity: ((entity: Entity) => boolean) | undefined;
-    private requests?: GetParticipants[];
+    private requests?: Api.channels.GetParticipants[];
 
     async _init(entity: EntityLike, filter: any, search?: string): Promise<boolean | void> {
         if (filter.constructor === Function) {
@@ -152,7 +129,7 @@ class _ParticipantsIter extends RequestIter {
         // Only used for channels, but we should always set the attribute
         this.requests = [];
         if (ty == helpers._EntityType.CHANNEL) {
-            const channel = (await this.client.invoke(new GetFullChannel({
+            const channel = (await this.client.invoke(new Api.channels.GetFullChannel({
                 channel: entity
             })));
             if (!(channel.fullChat instanceof Api.ChatFull)) {
@@ -161,9 +138,9 @@ class _ParticipantsIter extends RequestIter {
             if (this.total && this.total <= 0) {
                 return false;
             }
-            this.requests.push(new GetParticipants({
+            this.requests.push(new Api.channels.GetParticipants({
                 channel: entity,
-                filter: filter || new ChannelParticipantsSearch({
+                filter: filter || new Api.ChannelParticipantsSearch({
                     q: search || '',
                 }),
                 offset: 0,
@@ -171,7 +148,10 @@ class _ParticipantsIter extends RequestIter {
                 hash: 0,
             }))
         } else if (ty == helpers._EntityType.CHAT) {
-            const full = await this.client.invoke(new GetFullChat({
+            if (!("chatId" in entity)){
+                throw new Error("Found chat without id "+JSON.stringify(entity));
+            }
+            const full = await this.client.invoke(new Api.messages.GetFullChat({
                 chatId: entity.chatId
             }));
 
@@ -230,7 +210,7 @@ class _ParticipantsIter extends RequestIter {
         }
         for (let i = this.requests.length; i > 0; i--) {
             const participants = results[i];
-            if (participants instanceof ChannelParticipantsNotModified || !participants.users) {
+            if (participants instanceof Api.channels.ChannelParticipantsNotModified || !participants.users) {
                 this.requests.splice(i, 1);
                 continue;
             }
@@ -285,7 +265,7 @@ class _AdminLogIter extends RequestIter {
         let eventsFilter = undefined;
 
         if (filterArgs && Object.values(filterArgs).find(element => element === true)) {
-            eventsFilter = new ChannelAdminLogEventsFilter({
+            eventsFilter = new Api.ChannelAdminLogEventsFilter({
                 ...filterArgs
             });
         }
@@ -296,7 +276,7 @@ class _AdminLogIter extends RequestIter {
                 adminList.push(await this.client.getInputEntity(admin))
             }
         }
-        this.request = new GetAdminLog({
+        this.request = new Api.channels.GetAdminLog({
                 channel: this.entity,
                 q: searchArgs?.search || '',
                 minId: searchArgs?.minId,
@@ -324,7 +304,7 @@ class _AdminLogIter extends RequestIter {
         }
         this.request.maxId = getMinBigInt([bigInt.zero, ...eventIds]);
         for (const ev of r.events) {
-            if (ev.action instanceof ChannelAdminLogEventActionEditMessage) {
+            if (ev.action instanceof Api.ChannelAdminLogEventActionEditMessage) {
                 // @ts-ignore
                 // TODO ev.action.prevMessage._finishInit(this.client, entities, this.entity);
                 // @ts-ignore
@@ -335,6 +315,5 @@ class _AdminLogIter extends RequestIter {
     }
 }
 
-export class ChatMethods {
     // TODO implement
-}
+

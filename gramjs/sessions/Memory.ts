@@ -1,11 +1,11 @@
-import {Session} from './Abstract';
-import {AuthKey} from "../crypto/AuthKey";
+import  {Session} from './Abstract';
+import type {AuthKey} from "../crypto/AuthKey";
 import {Api} from "../tl";
 import bigInt from "big-integer";
 
 import {getDisplayName, getInputPeer, getPeerId, isArrayLike} from "../Utils";
-import {utils} from "../index";
-import {EntityLike} from "../define";
+import {utils} from "../";
+import type {EntityLike} from "../define";
 
 export class MemorySession extends Session {
     protected _serverAddress?: string;
@@ -200,7 +200,7 @@ export class MemorySession extends Session {
         }
     }
 
-    getInputEntity(key: EntityLike) {
+    getInputEntity(key: EntityLike):Api.TypeInputPeer {
         let exact;
             if (typeof key === 'object' && key.SUBCLASS_OF_ID) {
                 if ([0xc91c90b6, 0xe669bf46, 0x40f202fd].includes(key.SUBCLASS_OF_ID)) {
@@ -261,6 +261,8 @@ export class MemorySession extends Session {
         } else {
             throw new Error('Could not find input entity with key ' + key)
         }
+        throw new Error('Could not find input entity with key ' + key)
+
     }
 
 }

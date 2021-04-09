@@ -1,6 +1,6 @@
-import {ButtonLike, EntityLike} from "../../define";
+import type {ButtonLike, EntityLike} from "../../define";
 import {Api} from "../api";
-import {utils} from "../../index";
+import {utils} from "../../";
 
 export class Button  {
     public button: ButtonLike;
@@ -8,7 +8,7 @@ export class Button  {
     public selective: boolean | undefined;
     public singleUse: boolean | undefined;
 
-    constructor(button: ButtonLike, resize?: boolean, singleUse?: boolean, selective?: boolean) {
+    constructor(button: Api.TypeKeyboardButton, resize?: boolean, singleUse?: boolean, selective?: boolean) {
         this.button = button;
         this.resize = resize;
         this.singleUse = singleUse;

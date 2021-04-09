@@ -1,7 +1,6 @@
-import {TelegramClient} from "../../client/TelegramClient";
+import type {TelegramClient} from "../../client/TelegramClient";
 import {Api} from "../api";
-import {Entity} from "../../define";
-import Message = Api.Message;
+import type {Entity} from "../../define";
 import {getDisplayName, getInputPeer, getPeerId} from "../../Utils";
 import {Draft} from "./draft";
 
@@ -25,7 +24,7 @@ export class Dialog {
     private isGroup: boolean;
     private isChannel: boolean;
 
-    constructor(client: TelegramClient, dialog: Api.Dialog, entities: Map<number, Entity>, message: Message) {
+    constructor(client: TelegramClient, dialog: Api.Dialog, entities: Map<number, Entity>, message: Api.Message) {
         this._client = client;
         this.dialog = dialog;
         this.pinned = !!(dialog.pinned);
@@ -44,7 +43,9 @@ export class Dialog {
 
         this.unreadCount = dialog.unreadCount;
         this.unreadMentionsCount = dialog.unreadMentionsCount;
-
+        if (!this.entity){
+            throw new Error("Entity not found for dialog");
+        }
         this.draft = new Draft(client, this.entity, this.dialog.draft);
 
         this.isUser = this.entity instanceof Api.User;

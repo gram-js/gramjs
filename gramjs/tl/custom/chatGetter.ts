@@ -1,10 +1,7 @@
-import {Entity, EntityLike} from "../../define";
-import {TelegramClient} from "../../client/TelegramClient";
-import {utils} from "../../index";
+import type {Entity, EntityLike} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
+import {utils} from "../../";
 import {Api} from "../api";
-import PeerUser = Api.PeerUser;
-import PeerChannel = Api.PeerChannel;
-import PeerChat = Api.PeerChat;
 
 export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
@@ -80,26 +77,26 @@ export class ChatGetter {
         return this._chatPeer ? utils.getPeerId(this._chatPeer) : undefined;
     }
 
-    get is() {
-        return this._chatPeer ? this._chatPeer instanceof PeerUser : undefined;
+    get isPrivate() {
+        return this._chatPeer ? this._chatPeer instanceof Api.PeerUser : undefined;
     }
 
     get isGroup() {
         if (!this._broadcast && this.chat && 'broadcast' in this.chat) {
             this._broadcast = Boolean(this.chat.broadcast);
         }
-        if (this._chatPeer instanceof PeerChannel) {
+        if (this._chatPeer instanceof Api.PeerChannel) {
             if (this._broadcast === undefined) {
                 return undefined;
             } else {
                 return !this._broadcast;
             }
         }
-        return this._chatPeer instanceof PeerChat;
+        return this._chatPeer instanceof Api.PeerChat;
     }
 
     get isChannel() {
-        return this._chatPeer instanceof PeerChannel;
+        return this._chatPeer instanceof Api.PeerChannel;
     }
 
     async _refetchChat() {

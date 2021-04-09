@@ -1,3 +1,4 @@
+import bigInt from "big-integer"
 export class TLMessage {
     static SIZE_OVERHEAD = 12;
     static classType = 'constructor';

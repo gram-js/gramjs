@@ -2,13 +2,12 @@
  *  This module contains the class used to communicate with Telegram's servers
  *  in plain text, when no authorization key has been created yet.
  */
-import bigInt from 'big-integer';
 import {MTProtoState} from "./MTProtoState";
 import {Api} from "../tl";
 import {toSignedLittleBuffer} from "../Helpers";
 import {InvalidBufferError} from "../errors";
 import {BinaryReader} from "../extensions";
-import {Connection} from "./connection";
+import type {Connection} from "./connection";
 
 /**
  * MTProto Mobile Protocol plain sender (https://core.telegram.org/mtproto/description#unencrypted-messages)

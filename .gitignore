@@ -3,9 +3,6 @@
 /.idea/
 # Generated code
 /docs/
-/gramjs/tl/functions/
-/gramjs/tl/types/
-/gramjs/tl/patched/
 /dist/
 /coverage/
 
@@ -13,8 +10,10 @@
 *.session
 usermedia/
 
-# Quick tests should live in this file
+# Quick tests should live in these files
 example.js
+example.ts
+example.d.ts
 
 # dotenv
 .env

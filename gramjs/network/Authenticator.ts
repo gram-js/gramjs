@@ -10,10 +10,10 @@ import {Factorizator} from "../crypto/Factorizator";
 import {IGE} from "../crypto/IGE";
 import {BinaryReader} from "../extensions";
 import {AuthKey} from "../crypto/AuthKey";
-import {helpers} from "../index";
+import {helpers} from "../";
 import {encrypt} from "../crypto/RSA";
 import bigInt from 'big-integer';
-import {MTProtoPlainSender} from "./MTProtoPlainSender";
+import type {MTProtoPlainSender} from "./MTProtoPlainSender";
 
 export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random

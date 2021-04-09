@@ -1,4 +1,4 @@
-import {FileLike} from "../../define";
+import type {FileLike} from "../../define";
 import {Api} from "../api";
 import {_photoSizeByteCount} from "../../Utils";
 

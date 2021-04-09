@@ -1,6 +1,6 @@
 import {Api} from '../api';
-import {BinaryReader} from "../../extensions";
-import {GZIPPacked} from "./index";
+import type {BinaryReader} from "../../extensions";
+import {GZIPPacked} from "./";
 
 
 

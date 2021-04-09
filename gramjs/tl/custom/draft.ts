@@ -1,9 +1,9 @@
-import {Entity} from "../../define";
-import {TelegramClient} from "../../client/TelegramClient";
+import type {Entity} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
 import {getInputPeer, getPeer} from "../../Utils";
 import {Api} from "../api";
-import DraftMessage = Api.DraftMessage;
-import {unparse} from "../../extensions/markdown";
+import {MarkdownParser} from "../../extensions/markdown";
+
 
 export class Draft {
     private _client: TelegramClient;
@@ -16,7 +16,7 @@ export class Draft {
     private linkPreview?: boolean;
     private replyToMsgId?: Api.int;
 
-    constructor(client: TelegramClient, entity: Entity | undefined, draft: Api.TypeDraftMessage | undefined) {
+    constructor(client: TelegramClient, entity: Entity, draft: Api.TypeDraftMessage | undefined) {
         this._client = client;
         this._peer = getPeer(entity);
         this._entity = entity;
@@ -29,7 +29,7 @@ export class Draft {
         }
         if (!(draft instanceof Api.DraftMessageEmpty)) {
             this.linkPreview = !draft.noWebpage;
-            this._text = unparse(draft.message,draft.entities);
+            this._text = MarkdownParser.unparse(draft.message,draft.entities);
             this._rawText = draft.message;
             this.date = draft.date;
             this.replyToMsgId = draft.replyToMsgId;

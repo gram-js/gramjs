@@ -1,9 +1,8 @@
 import {MessageContainer} from '../tl/core';
 import {TLMessage} from '../tl/core';
 import {BinaryWriter} from './BinaryWriter';
-import {Api} from "../tl";
-import {MTProtoState} from "../network/MTProtoState";
-import {RequestState} from "../network/RequestState";
+import type{MTProtoState} from "../network/MTProtoState";
+import type{RequestState} from "../network/RequestState";
 
 export class MessagePacker {
     private _state: any;

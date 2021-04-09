@@ -8,6 +8,22 @@ const INPUT_FILE = path.resolve(__dirname, '../static/api.tl')
 const SCHEMA_FILE = path.resolve(__dirname, '../static/schema.tl')
 
 const OUTPUT_FILE = path.resolve(__dirname, '../api.d.ts')
+const peersToPatch = ['InputPeer', 'Peer', 'InputUser', 'User', 'UserFull', 'Chat', 'ChatFull', 'InputChannel']
+
+function patchMethods(methods) {
+    for (const method of methods) {
+        for (const arg in method['argsConfig']) {
+            if (peersToPatch.includes(method['argsConfig'][arg]['type'])) {
+                method['argsConfig'][arg]['type'] = 'EntityLike'
+            } else if (method['argsConfig'][arg]['type'] && arg.toLowerCase().includes('msgid')) {
+                if (method['argsConfig'][arg]['type'] !== 'long') {
+                    method['argsConfig'][arg]['type'] = 'MessageIDLike'
+                }
+            }
+        }
+    }
+
+}
 
 function main() {
     const tlContent = fs.readFileSync(INPUT_FILE, 'utf-8')
@@ -17,6 +33,9 @@ function main() {
     const types = [...apiConfig.types, ...schemeConfig.types]
     const functions = [...apiConfig.functions, ...schemeConfig.functions]
     const constructors = [...apiConfig.constructors, ...schemeConfig.constructors]
+    // patching custom types
+
+    patchMethods(functions)
     const generated = templateFn({ types: types, functions: functions, constructors: constructors })
 
     fs.writeFileSync(OUTPUT_FILE, generated)

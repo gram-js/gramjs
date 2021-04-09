@@ -1,5 +1,5 @@
-import {BinaryReader, PromisedWebSockets} from '../../extensions'
-import {PromisedNetSockets} from '../../extensions'
+import type{BinaryReader} from '../../extensions'
+import {PromisedNetSockets,PromisedWebSockets} from '../../extensions'
 import {AsyncQueue} from '../../extensions'
 import {IS_NODE} from '../../Helpers'
 

@@ -1,10 +1,11 @@
 import bigInt from 'big-integer';
-import {AuthKey} from "../crypto/AuthKey";
-import {helpers} from "../index";
+import type {AuthKey} from "../crypto/AuthKey";
+import {helpers} from "../";
 import {Api} from '../tl';
 import {sha256, toSignedLittleBuffer} from "../Helpers";
 import {GZIPPacked, TLMessage} from "../tl/core";
-import {BinaryReader, BinaryWriter} from "../extensions";
+import {BinaryReader} from "../extensions";
+import type {BinaryWriter} from "../extensions";
 import {IGE} from "../crypto/IGE";
 import {InvalidBufferError, SecurityError} from "../errors";
 

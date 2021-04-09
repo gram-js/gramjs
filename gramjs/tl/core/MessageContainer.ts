@@ -1,5 +1,5 @@
 import {TLMessage} from './TLMessage';
-import {BinaryReader} from "../../extensions";
+import type {BinaryReader} from "../../extensions";
 
 export class MessageContainer {
     static CONSTRUCTOR_ID = 0x73f1f8dc;

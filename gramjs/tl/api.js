@@ -263,7 +263,7 @@ function createClasses(classesType, params) {
                         }
                     }
                 }
-                return new VirtualClass(args)
+                return new this(args)
             }
 
             getBytes() {

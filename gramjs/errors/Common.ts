@@ -3,7 +3,7 @@
  */
 
 
-import {Api} from "../tl/api";
+import {Api} from "../tl";
 
 /**
  * Occurs when a read operation was cancelled.

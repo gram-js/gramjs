@@ -1,4 +1,6 @@
-import {AuthKey} from "../crypto/AuthKey";
+import type {AuthKey} from "../crypto/AuthKey";
+import type {EntityLike} from "../define";
+import {Api} from "../tl";
 
 export class Session {
     constructor() {
@@ -31,7 +33,7 @@ export class Session {
     /**
      * Returns the currently-used data center ID.
      */
-    get dcId(): number | undefined {
+    get dcId(): number {
         throw new Error('Not Implemented')
     }
 
@@ -65,6 +67,36 @@ export class Session {
         throw new Error('Not Implemented')
     }
 
+    /**
+     * Called before using the session
+     */
+    async load() {
+        throw new Error('Not Implemented')
+
+    }
+
+    /**
+     *  sets auth key for a dc
+     */
+    setAuthKey(authKey?: AuthKey, dcId?: number) {
+        throw new Error('Not Implemented')
+    }
+
+    /**
+     *  gets auth key for a dc
+     */
+
+    getAuthKey(dcId?: number): AuthKey | undefined {
+        throw new Error('Not Implemented')
+    }
+
+    /**
+     *
+     * @param key
+     */
+    getInputEntity(key: EntityLike) : Api.TypeInputPeer{
+        throw new Error('Not Implemented')
+    }
     /**
      * Returns an ID of the takeout process initialized for this session,
      * or `None` if there's no were any unfinished takeout requests.
@@ -143,6 +175,7 @@ export class Session {
     /**
      * Lists available sessions. Not used by the library itself.
      */
+
     /*CONTEST
     listSessions() {
         throw new Error('Not Implemented')
@@ -155,7 +188,7 @@ export class Session {
      * whatever information is relevant (e.g., ID or access hash).
      * @param tlo
      */
-    processEntities(tlo:any) {
+    processEntities(tlo: any) {
         throw new Error('Not Implemented')
     }
 

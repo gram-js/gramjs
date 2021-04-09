@@ -1,6 +1,6 @@
-import {TelegramClient} from "./client/TelegramClient";
+import type {TelegramClient} from "./client/TelegramClient";
 import {sleep} from './Helpers';
-import {helpers} from "./index";
+import {helpers} from "./";
 
 interface BaseRequestIterInterface {
     reverse?: boolean,

@@ -1,15 +1,13 @@
 import {SenderGetter} from "./senderGetter";
-import {DateLike, EntitiesLike, Entity, EntityLike} from "../../define";
+import type {Entity, EntityLike} from "../../define";
 import {Api} from "../api";
-import MessageMediaEmpty = Api.MessageMediaEmpty;
-import PeerUser = Api.PeerUser;
-import {TelegramClient} from "../../client/TelegramClient";
+import type {TelegramClient} from "../../client/TelegramClient";
 import {ChatGetter} from "./chatGetter";
 import * as utils from "../../Utils";
 import {Forward} from "./forward";
-import {File} from "./file";
-import {getInnerText} from "../../Utils";
+import type {File} from "./file";
 import {Mixin} from "ts-mixer";
+import bigInt from "big-integer";
 
 interface MessageBaseInterface {
     id: any;
@@ -40,7 +38,7 @@ interface MessageBaseInterface {
     forwards?: any;
     replies?: any;
     action?: any;
-    _entities?: any;
+    _entities?: Map<number, Entity>;
 }
 
 
@@ -53,14 +51,14 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     fromScheduled: any | undefined;
     legacy: any | undefined;
     editHide: any | undefined;
-    id: number;
+    id: bigInt.BigInteger;
     fromId?: EntityLike;
     peerId: any;
-    fwdFrom: any;
+    fwdFrom: Api.TypeMessageFwdHeader;
     viaBotId: any;
     replyTo: Api.MessageReplyHeader;
     date: any | undefined;
-    message: any | undefined;
+    message: string;
     media: any;
     replyMarkup: any | undefined;
     entities: any | undefined;
@@ -77,50 +75,50 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     public _client?: TelegramClient;
     _text?: string;
     _file?: File;
-    _replyMessage: null;
-    _buttons: null;
-    _buttonsFlat: null;
+    _replyMessage: undefined;
+    _buttons: undefined;
+    _buttonsFlat: undefined;
     _buttonsCount: number;
     _viaBot?: EntityLike;
     _viaInputBot?: EntityLike;
     _inputSender: any;
     _forward?: Forward;
     _sender: any;
-    _entities: any[]
+    _entities: Map<number, Entity>
+    patternMatch?: RegExpMatchArray;
 
     constructor(
         {
             id,
-            peerId = undefined, date = null,
+            peerId = undefined, date = undefined,
 
-            out = null, mentioned = null, mediaUnread = null, silent = null,
-            post = null, fromId = null, replyTo = null,
+            out = undefined, mentioned = undefined, mediaUnread = undefined, silent = undefined,
+            post = undefined, fromId = undefined, replyTo = undefined,
 
-            message = null,
-
-
-            fwdFrom = null, viaBotId = null, media = null, replyMarkup = null,
-            entities = null, views = null, editDate = null, postAuthor = null,
-            groupedId = null, fromScheduled = null, legacy = null,
-            editHide = null, pinned = null, restrictionReason = null, forwards = null, replies = null,
+            message = undefined,
 
 
-            action = null,
+            fwdFrom = undefined, viaBotId = undefined, media = undefined, replyMarkup = undefined,
+            entities = undefined, views = undefined, editDate = undefined, postAuthor = undefined,
+            groupedId = undefined, fromScheduled = undefined, legacy = undefined,
+            editHide = undefined, pinned = undefined, restrictionReason = undefined, forwards = undefined, replies = undefined,
 
 
-            _entities = [],
+            action = undefined,
+
+
+            _entities = new Map<number, Entity>(),
         }: MessageBaseInterface) {
-        if (!id) throw new TypeError('id is a required attribute for Message');
+        if (!id) throw new Error('id is a required attribute for Message');
         let senderId = undefined;
         if (fromId) {
             senderId = utils.getPeerId(fromId);
         } else if (peerId) {
-            if (post || (!out && peerId instanceof PeerUser)) {
+            if (post || (!out && peerId instanceof Api.PeerUser)) {
                 senderId = utils.getPeerId(peerId);
             }
         }
-        // @ts-ignore
-        super({chatPeer: peerId, broadcast: post, senderId: senderId});
+        super({});
         // Common properties to all messages
         this._entities = _entities;
         this.out = out;
@@ -139,7 +137,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         this.replyTo = replyTo;
         this.date = date;
         this.message = message;
-        this.media = media instanceof MessageMediaEmpty ? media : null;
+        this.media = media instanceof Api.MessageMediaEmpty ? media : undefined;
         this.replyMarkup = replyMarkup;
         this.entities = entities;
         this.views = views;
@@ -155,14 +153,13 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         this._client = undefined;
         this._text = undefined;
         this._file = undefined;
-        this._replyMessage = null;
-        this._buttons = null;
-        this._buttonsFlat = null;
+        this._replyMessage = undefined;
+        this._buttons = undefined;
+        this._buttonsFlat = undefined;
         this._buttonsCount = 0;
         this._viaBot = undefined;
         this._viaInputBot = undefined;
-        this._actionEntities = null;
-
+        this._actionEntities = undefined;
 
         // Note: these calls would reset the client
         ChatGetter.initClass(this, {chatPeer: peerId, broadcast: post});
@@ -172,7 +169,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
 
-    _finishInit(client: TelegramClient, entities: Map<number, Entity>, inputChat: EntityLike) {
+    _finishInit(client: TelegramClient, entities: Map<number, Entity>, inputChat?: EntityLike) {
         this._client = client;
         const cache = client._entityCache;
 
@@ -266,7 +263,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         get buttons() {
             if (!this._buttons && this.replyMarkup) {
                 if (!this.inputChat) {
-                    return null
+                    return undefined
                 }
 
                 const bot = this._neededMarkupBot();
@@ -323,9 +320,9 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             } else {
                 return this.webPreview && this.webPreview instanceof Api.Photo
                     ? this.webPreview.photo
-                    : null
+                    : undefined
             }
-            return null
+            return undefined
         }
 
         get document() {
@@ -337,9 +334,9 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
 
                 return web && web.document instanceof Api.Document
                     ? web.document
-                    : null
+                    : undefined
             }
-            return null
+            return undefined
         }
 
         get webPreview() {
@@ -444,7 +441,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 return this.peerId;
             }
 
-            getEntitiesText(cls: any = null) {
+            getEntitiesText(cls: any = undefined) {
                 let ent = this.entities;
                 if (!ent || ent.length == 0) return;
 
@@ -459,12 +456,12 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
 
             async getReplyMessage() {
                 if (!this._replyMessage && this._client) {
-                    if (!this.replyTo) return null;
+                    if (!this.replyTo) return undefined;
 
                     // Bots cannot access other bots' messages by their ID.
                     // However they can access them through replies...
                     this._replyMessage = await this._client.getMessages(
-                        this.isChannel ? await this.getInputChat() : null, {
+                        this.isChannel ? await this.getInputChat() : undefined, {
                             ids: Api.InputMessageReplyTo({id: this.id})
                         });
 
@@ -474,7 +471,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                         // If that's the case, give it a second chance accessing
                         // directly by its ID.
                         this._replyMessage = await this._client.getMessages(
-                            this.isChannel ? this._inputChat : null, {
+                            this.isChannel ? this._inputChat : undefined, {
                                 ids: this.replyToMsgId
                             })
                     }
@@ -506,7 +503,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             }
 
             async edit(args) {
-                if (this.fwdFrom || !this.out || !this._client) return null;
+                if (this.fwdFrom || !this.out || !this._client) return undefined;
                 args.entity = await this.getInputChat();
                 args.message = this.id;
 
@@ -531,12 +528,12 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 if (this._client)
                     return this._client.downloadMedia(args)
             }
-            async click({i = null, j = null, text = null, filter = null, data = null}) {
+            async click({i = undefined, j = undefined, text = undefined, filter = undefined, data = undefined}) {
                 if (!this._client) return;
 
                 if (data) {
                     if (!(await this._getInputChat()))
-                        return null;
+                        return undefined;
 
                     try {
                         return await this._client.invoke(functions.messages.GetBotCallbackAnswerRequest({
@@ -546,7 +543,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                         }))
                     } catch (e) {
                         if (e instanceof errors.BotTimeout)
-                            return null
+                            return undefined
                     }
                 }
 
@@ -578,7 +575,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                             return button.click()
                         }
                     }
-                    return null
+                    return undefined
                 }
 
                 i = !i ? 0 : i;
@@ -608,7 +605,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             async _reloadMessage() {
                 if (!this._client) return;
 
-                const chat = this.isChannel ? this.getInputChat() : null;
+                const chat = this.isChannel ? this.getInputChat() : undefined;
                 const msg = this._client.getMessages({chat, ids: this.id});
 
                 if (!msg) return;
@@ -640,7 +637,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             _neededMarkupBot() {
                 if (this._client && !(this.replyMarkup instanceof types.ReplyInlineMarkup ||
                     this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-                    return null
+                    return undefined
                 }
 
                 for (const row of this.replyMarkup.rows) {
@@ -661,7 +658,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             }
             // TODO fix this
 
-            _documentByAttribute(kind, condition = null) {
+            _documentByAttribute(kind, condition = undefined) {
                 const doc = this.document;
                 if (doc) {
                     for (const attr of doc.attributes) {
@@ -669,7 +666,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                             if (!condition || (callable(condition) && condition(attr))) {
                                 return doc
                             }
-                            return null
+                            return undefined
                         }
                     }
                 }

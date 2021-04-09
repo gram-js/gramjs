@@ -11,11 +11,17 @@ class MessageService extends Mixin(_Message, Api.MessageService) {
 
 }
 
-class Message extends Mixin(_Message, Api.MessageEmpty) {
+class Message extends Mixin(_Message, Api.Message) {
 
 }
+export function patchAll(){
 
-tlobjects[MessageEmpty.CONSTRUCTOR_ID] = MessageEmpty;
-tlobjects[MessageService.CONSTRUCTOR_ID] = MessageService;
-tlobjects[Message.CONSTRUCTOR_ID] = Message;
-console.log("called");
+    tlobjects[MessageEmpty.CONSTRUCTOR_ID.toString()] = MessageEmpty;
+    tlobjects[MessageService.CONSTRUCTOR_ID.toString()] = MessageService;
+    tlobjects[Message.CONSTRUCTOR_ID.toString()] = Message;
+}
+export {
+    Message,
+    MessageService,
+    MessageEmpty
+}

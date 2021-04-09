@@ -1,11 +1,11 @@
-import {Entity, EntityLike, FileLike} from "./define";
+import type {Entity, EntityLike, FileLike} from "./define";
 import {Api} from "./tl";
 import bigInt from "big-integer";
-import TypeInputPeer = Api.TypeInputPeer;
-import TypeMessageEntity = Api.TypeMessageEntity;
 import * as markdown from "./extensions/markdown"
 import {EntityCache} from "./entityCache";
 import mime from 'mime-types';
+import type {ParseInterface} from "./client/messageParse";
+import  {MarkdownParser} from "./extensions/markdown";
 
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
@@ -44,7 +44,7 @@ function _raiseCastFail(entity: EntityLike, target: any): never {
  * @param allowSelf
  * @param checkHash
  */
-export function getInputPeer(entity: any, allowSelf = true, checkHash = true): TypeInputPeer {
+export function getInputPeer(entity: any, allowSelf = true, checkHash = true): Api.TypeInputPeer {
     if (entity.SUBCLASS_OF_ID === undefined) {
         // e.g. custom.Dialog (can't cyclic import).
         if (allowSelf && 'inputEntity' in entity) {
@@ -147,7 +147,7 @@ export function _photoSizeByteCount(size: FileLike) {
 
 export function _getEntityPair(entityId: number, entities: Map<number, Entity>,
                                cache: EntityCache,
-                               getInputPeerFunction: any = getInputPeer): [Entity?, EntityLike?] {
+                               getInputPeerFunction: any = getInputPeer): [Entity?, Api.TypeInputPeer?] {
 
     const entity = entities.get(entityId);
     let inputEntity = cache.get(entityId);
@@ -158,7 +158,7 @@ export function _getEntityPair(entityId: number, entities: Map<number, Entity>,
 
 }
 
-export function getInnerText(text: string, entities: Map<number, TypeMessageEntity>) {
+export function getInnerText(text: string, entities: Map<number, Api.TypeMessageEntity>) {
 
     const result: string[] = [];
     entities.forEach(function (value, key) {
@@ -182,6 +182,9 @@ export function getInnerText(text: string, entities: Map<number, TypeMessageEnti
  * @returns {InputChannel|*}
  */
 export function getInputChannel(entity: EntityLike) {
+    if (typeof entity==="string" || typeof entity=="number"){
+        _raiseCastFail(entity, 'InputChannel')
+    }
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputChannel')
     }
@@ -218,6 +221,10 @@ export function getInputChannel(entity: EntityLike) {
  * @param entity
  */
 export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
+    if (typeof entity==="string" || typeof entity=="number"){
+        _raiseCastFail(entity, 'InputUser')
+    }
+
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, 'InputUser')
     }
@@ -911,12 +918,14 @@ export function getPeer(peer: EntityLike) {
 
 export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function');
 
-export function sanitizeParseMode(mode: string) {
-    if (!mode) {
-        return null;
-    }
+export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface {
     if (mode === "md" || mode === "markdown") {
-        return markdown;
+        return MarkdownParser;
+    }
+    if (typeof mode == "object") {
+        if ("parse" in mode && "unparse" in mode) {
+            return mode;
+        }
     }
     throw new Error(`Invalid parse mode type ${mode}`);
 }
@@ -942,7 +951,6 @@ export function getPeerId(peer: EntityLike, addMark = true): number {
     if (typeof peer == 'number') {
         return addMark ? peer : resolveId(peer)[0]
     }
-
     // Tell the user to use their client to resolve InputPeerSelf if we got one
     if (peer instanceof Api.InputPeerSelf) {
         _raiseCastFail(peer, 'int (you might want to use client.get_peer_id)')
@@ -962,7 +970,7 @@ export function getPeerId(peer: EntityLike, addMark = true): number {
         }
 
         return addMark ? -(peer.chatId) : peer.chatId
-    } else if ("channelId" in peer) { // if (peer instanceof Api.PeerChannel)
+    } else if (typeof peer=="object" && "channelId" in peer) { // if (peer instanceof Api.PeerChannel)
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.channelId && peer.channelId <= 0x7fffffff)) {
             peer.channelId = resolveId(peer.channelId)[0]

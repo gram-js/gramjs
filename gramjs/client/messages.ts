@@ -1,28 +1,14 @@
 import {Api} from "../tl";
-import {Message} from '../tl/custom/message';
-import {DateLike, EntityLike, FileLike, MarkupLike, MessageLike} from "../define";
+import type {Message} from '../tl/custom/message';
+import type {DateLike, EntityLike, FileLike, MarkupLike, MessageIDLike, MessageLike} from "../define";
 import {RequestIter} from "../requestIter";
 import {_EntityType, _entityType} from "../Helpers";
 import {getMessageId, getPeerId, isArrayLike} from "../Utils";
-import {TelegramClient, utils} from "../index";
-import {MessageParseMethods} from "./messageParse";
-import {ButtonMethods} from "./buttons";
+import type {TelegramClient} from "../";
+import {utils} from "../";
 
 const _MAX_CHUNK_SIZE = 100;
 
-export interface SendMessageInterface {
-    replyTo?: number | Api.Message,
-    parseMode?: any,
-    formattingEntities?: Api.TypeMessageEntity,
-    linkPreview?: boolean,
-    file?: FileLike | FileLike[],
-    forceDocument?: boolean,
-    clearDraft?: boolean,
-    buttons?: MarkupLike,
-    silent?: boolean,
-    schedule?: DateLike
-
-}
 
 interface MessageIterParams {
     offsetId: number;
@@ -33,10 +19,10 @@ interface MessageIterParams {
     addOffset: number;
     filter: any;
     search: string;
-    replyTo: EntityLike;
+    replyTo: MessageIDLike;
 }
 
-class _MessagesIter extends RequestIter {
+export class _MessagesIter extends RequestIter {
     private entity?: Api.TypeInputPeer;
 
     async _init(entity: EntityLike, {offsetId, minId, maxId, fromUser, offsetDate, addOffset, filter, search, replyTo}: MessageIterParams) {
@@ -239,7 +225,7 @@ class _MessagesIter extends RequestIter {
     }
 }
 
-class _IDsIter extends RequestIter {
+export class _IDsIter extends RequestIter {
     async _init(entity: EntityLike, ids: MessageLike[]) {
         this.total = ids.length;
         this._ids = this.reverse ? ids.reverse() : ids;
@@ -298,15 +284,13 @@ class _IDsIter extends RequestIter {
             if (message instanceof Api.MessageEmpty || fromId && message.peerId != fromId) {
                 this.buffer?.push(undefined)
             } else {
-                // @ts-ignore
-                // TODO message._finishInit(this.client, entities, this._entity);
                 this.buffer?.push(message);
             }
         }
     }
 }
 
-interface IterMessagesParams {
+export interface IterMessagesParams {
     limit?: number;
     offsetDate?: DateLike;
     offsetId?: number;
@@ -322,7 +306,7 @@ interface IterMessagesParams {
     replyTo?: number;
 }
 
-interface SendMessageParams {
+export interface SendMessageParams {
     message: MessageLike;
     replyTo?: number | Api.Message;
     parseMode?: any;
@@ -336,145 +320,138 @@ interface SendMessageParams {
     schedule?: DateLike;
 }
 
-export class MessageMethods {
+//  MessageMethods {
 
-    iterMessages(entity: EntityLike, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
-        if (ids) {
-            if (typeof ids == 'number') {
-                ids = [ids]
-            }
-            // @ts-ignore
-            return new _IDsIter(this, ids.length, {
-                reverse: reverse,
-                waitTime: waitTime
-            }, {
-                entity: entity
-            });
+export function iterMessages(client: TelegramClient, entity: EntityLike, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
+    if (ids) {
+        if (typeof ids == 'number') {
+            ids = [ids]
         }
         // @ts-ignore
-        return new _MessagesIter(this, limit, {
-            waitTime: waitTime,
-            reverse: reverse
+        return new _IDsIter(this, ids.length, {
+            reverse: reverse,
+            waitTime: waitTime
         }, {
-            entity: entity,
-            offsetId: offsetId,
-            minId: minId,
-            maxId: maxId,
-            fromUser: fromUser,
-            offsetDate: offsetDate,
-            addOffset: addOffset,
-            filter: filter,
-            search: search,
-            replyTo: replyTo
+            entity: entity
+        });
+    }
+    // @ts-ignore
+    return new _MessagesIter(client, limit, {
+        waitTime: waitTime,
+        reverse: reverse
+    }, {
+        entity: entity,
+        offsetId: offsetId,
+        minId: minId,
+        maxId: maxId,
+        fromUser: fromUser,
+        offsetDate: offsetDate,
+        addOffset: addOffset,
+        filter: filter,
+        search: search,
+        replyTo: replyTo
+    })
+}
+
+export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams) {
+    if (Object.keys(params).length == 1 && params.limit === undefined) {
+        if (params.minId === undefined && params.maxId === undefined) {
+            params.limit = undefined;
+        } else {
+            params.limit = 1;
+        }
+    }
+
+    const it = client.iterMessages(entity, params);
+    const ids = params.ids;
+    if (ids && !isArrayLike(ids)) {
+        for await (const message of it) {
+            return message;
+        }
+        return;
+
+    }
+    return await it.collect();
+}
+
+// region Message
+
+export async function sendMessage(client: TelegramClient,
+                                  entity: EntityLike,
+                                  {
+                                      message,
+                                      replyTo,
+                                      parseMode, formattingEntities,
+                                      linkPreview = true,
+                                      file, forceDocument,
+                                      clearDraft,
+                                      buttons,
+                                      silent,
+                                      schedule
+                                  }: SendMessageParams) {
+    if (file) {
+        throw new Error("Not Supported Yet");
+        //return this.sendFile();
+    }
+    entity = await client.getInputEntity(entity);
+    let markup, request;
+    if (message instanceof Api.Message) {
+        if (buttons == undefined) {
+            markup = message.replyMarkup;
+        } else {
+            markup = client.buildReplyMarkup(buttons);
+        }
+        if (silent == undefined) {
+            silent = message.silent;
+        }
+        if (message.media && !(message.media instanceof Api.MessageMediaWebPage)) {
+            throw new Error("Not Supported Yet");
+            /*
+                            return this.sendFile(entity, message.media, {
+                                caption: message.message,
+                                silent: silent,
+                                replyTo: replyTo,
+                                buttons: markup,
+                                formattingEntities: message.entities,
+                                schedule: schedule
+                            })
+
+             */
+        }
+        request = new Api.messages.SendMessage({
+            peer: entity,
+            message: message.message || '',
+            silent: silent,
+            replyToMsgId: getMessageId(replyTo),
+            replyMarkup: markup,
+            entities: message.entities,
+            clearDraft: clearDraft,
+            noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
+            scheduleDate: schedule
+        })
+        message = message.message;
+    } else {
+        if (formattingEntities == undefined) {
+            [message, formattingEntities] = await client._parseMessageText(message, parseMode);
+        }
+        if (!message) {
+            throw new Error("The message cannot be empty unless a file is provided");
+        }
+        request = new Api.messages.SendMessage({
+            peer: entity,
+            message: message.toString(),
+            entities: formattingEntities,
+            noWebpage: !linkPreview,
+            replyToMsgId: getMessageId(replyTo),
+            clearDraft: clearDraft,
+            silent: silent,
+            replyMarkup: client.buildReplyMarkup(buttons),
+            scheduleDate: schedule
         })
     }
-
-    async getMessages(entity: EntityLike, params: IterMessagesParams) {
-        if (Object.keys(params).length == 1 && params.limit === undefined) {
-            if (params.minId === undefined && params.maxId === undefined) {
-                params.limit = undefined;
-            } else {
-                params.limit = 1;
-            }
-        }
-
-        const it = this.iterMessages(entity, params);
-        const ids = params.ids;
-        if (ids && !isArrayLike(ids)) {
-            for await (const message of it) {
-                return message;
-            }
-            return;
-
-        }
-        return await it.collect();
-    }
-
-    // region Message
-
-    async sendMessage(entity: EntityLike, {message, replyTo, parseMode, formattingEntities, linkPreview = true, file, forceDocument, clearDraft, buttons, silent, schedule}: SendMessageParams) {
-        if (file) {
-            throw new Error("Not Supported Yet");
-            //return this.sendFile();
-        }
-        entity = await this.getInputEntity(entity);
-        let markup, request;
-        if (message instanceof Api.Message) {
-            if (buttons == undefined) {
-                markup = message.replyMarkup;
-            } else {
-                markup = this.buildReplyMarkup(buttons);
-            }
-            if (silent == undefined) {
-                silent = message.silent;
-            }
-            if (message.media && !(message.media instanceof Api.MessageMediaWebPage)) {
-                throw new Error("Not Supported Yet");
-                /*
-                                return this.sendFile(entity, message.media, {
-                                    caption: message.message,
-                                    silent: silent,
-                                    replyTo: replyTo,
-                                    buttons: markup,
-                                    formattingEntities: message.entities,
-                                    schedule: schedule
-                                })
-
-                 */
-            }
-            request = new Api.messages.SendMessage({
-                peer: entity,
-                message: message.message || '',
-                silent: silent,
-                replyToMsgId: getMessageId(replyTo),
-                replyMarkup: markup,
-                entities: message.entities,
-                clearDraft: clearDraft,
-                noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
-                scheduleDate: schedule
-            })
-            message = message.message;
-        } else {
-            if (formattingEntities == undefined) {
-                [message, formattingEntities] = await this._parseMessageText(message, parseMode);
-            }
-            if (!message) {
-                throw new Error("The message cannot be empty unless a file is provided");
-            }
-            request = new Api.messages.SendMessage({
-                peer: entity,
-                message: message.toString(),
-                entities: formattingEntities,
-                noWebpage: !linkPreview,
-                replyToMsgId: getMessageId(replyTo),
-                clearDraft: clearDraft,
-                silent: silent,
-                replyMarkup: this.buildReplyMarkup(buttons),
-                scheduleDate: schedule
-            })
-        }
-        const result = await this.invoke(request);
-        if (result instanceof Api.UpdateShortSentMessage) {
-            const newMessage = new Message({
-                id: result.id,
-                peerId: await this._getPeer(entity),
-                message: message,
-                date: result.date,
-                out: result.out,
-                media: result.media,
-                entities: result.entities,
-                replyMarkup: request.replyMarkup,
-            })
-            // @ts-ignore
-            //newMessage._finishInit(this, new Map<>(), entity);
-            return newMessage;
-        }
-        return this._getResponseMessage(request, result, entity);
-    }
-
-    // TODO do the rest
+    const result = await client.invoke(request);
+    return result;
+    //return client._getResponseMessage(request, result, entity);
 }
 
-export interface MessageMethods extends MessageParseMethods, ButtonMethods {
-
-}
+// TODO do the rest

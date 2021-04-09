@@ -1,6 +1,6 @@
 import {isNode} from 'browser-or-node';
 import bigInt from "big-integer";
-import {EntityLike} from "./define";
+import type {EntityLike} from "./define";
 
 export const IS_NODE = isNode;
 const crypto = require(isNode ? 'crypto' : './crypto/crypto');
@@ -284,6 +284,26 @@ export function getByteArray(integer: bigInt.BigInteger | number, signed = false
     const bits = integer.toString(2).length;
     const byteLength = Math.floor((bits + 8 - 1) / 8);
     return readBufferFromBigInt(typeof integer == "number" ? bigInt(integer) : integer, byteLength, false, signed);
+}
+
+/**
+ * Helper function to return the smaller big int in an array
+ * @param arrayOfBigInts
+ */
+export function getMinBigInt(arrayOfBigInts: bigInt.BigInteger[]) {
+    if (arrayOfBigInts.length == 0) {
+        return bigInt.zero;
+    }
+    if (arrayOfBigInts.length==1){
+        return arrayOfBigInts[0];
+    }
+    let smallest = arrayOfBigInts[0];
+    for (let i=1;i<arrayOfBigInts.length;i++){
+        if (arrayOfBigInts[i]<smallest){
+            smallest = arrayOfBigInts[i];
+        }
+    }
+    return smallest;
 }
 
 /**

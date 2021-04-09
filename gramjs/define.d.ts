@@ -1,5 +1,5 @@
-import {Button} from "./tl/custom/button";
-import {Api} from "./tl/api";
+import type {Button} from "./tl/custom/button";
+import {Api} from "./tl";
 
 type ValueOf<T> = T[keyof T];
 type Phone = string;
@@ -11,7 +11,7 @@ type PeerLike = Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity
 type EntityLike = Phone | Username | PeerID | Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity ;
 
 type EntitiesLike = EntityLike[];
-type MessageIDLike = number | types.Message | types.TypeInputMessage;
+type MessageIDLike = number | Api.Message | Api.TypeInputMessage;
 type MessageLike = string | Api.Message;
 
 type LocalPath = string;
@@ -29,7 +29,7 @@ type FileLike =
 type ProgressCallback = (total: number, downloaded: number) => void;
 type ButtonLike = Api.TypeKeyboardButton | Button;
 
-type MarkupLike = types.TypeReplyMarkup |
+type MarkupLike = Api.TypeReplyMarkup |
     ButtonLike |
     ButtonLike[] |
     ButtonLike[][];

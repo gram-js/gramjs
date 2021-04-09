@@ -1,5 +1,3 @@
-import {Api} from "../tl";
-
 export class RequestState {
     public containerId: undefined;
     public msgId?: bigInt.BigInteger;

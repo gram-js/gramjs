@@ -1,4 +1,4 @@
-import {Api} from './api'
+import {Api} from './'
 
 export const LAYER = 122;
 const tlobjects: any = {};

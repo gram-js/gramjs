@@ -1,7 +1,7 @@
 // Which updates have the following fields?
 
 import {getInputPeer, getPeerId, isArrayLike} from "./Utils";
-import {Api} from "./tl/api";
+import {Api} from "./tl";
 
 export class EntityCache {
     private cacheMap: Map<number, any>;

@@ -2,7 +2,6 @@ import {TypeNotFoundError} from '../errors';
 import {coreObjects} from '../tl/core';
 
 import {tlobjects} from '../tl/AllTLObjects';
-import {Api} from "../tl";
 import {readBigIntFromBuffer} from "../Helpers";
 
 
@@ -179,6 +178,7 @@ export class BinaryReader {
      */
     tgReadObject(): any {
         const constructorId = this.readInt(false);
+
         let clazz = tlobjects[constructorId];
         if (clazz === undefined) {
             /**

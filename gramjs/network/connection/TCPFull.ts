@@ -1,7 +1,7 @@
 import {Connection, PacketCodec} from './Connection';
 import {crc32} from '../../Helpers';
 import {InvalidChecksumError} from '../../errors';
-import {BinaryReader} from "../../extensions";
+import type {BinaryReader} from "../../extensions";
 
 class FullPacketCodec extends PacketCodec {
     private _sendCounter: number;

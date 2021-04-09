@@ -1,5 +1,5 @@
-import { default as Api } from '../tl/api';
-import {TelegramClient} from './TelegramClient';
+import { Api } from '../tl';
+import type {TelegramClient} from './TelegramClient';
 import { getAppropriatedPartSize } from '../Utils';
 import { sleep } from '../Helpers';
 
@@ -34,7 +34,7 @@ const DEFAULT_CHUNK_SIZE = 64; // kb
 const ONE_MB = 1024 * 1024;
 const REQUEST_TIMEOUT = 15000;
 
-export async function downloadFile(
+export async function downloads(
     client: TelegramClient,
     inputLocation: Api.InputFileLocation,
     fileParams: DownloadFileParams,

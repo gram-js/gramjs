@@ -1,8 +1,7 @@
-import {TelegramClient} from "../../client/TelegramClient";
-import {EntityLike, FileLike, MessageIDLike, ProgressCallback} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
+import type {EntityLike, MessageIDLike} from "../../define";
 import {Api} from "../api";
-import {utils} from "../../index";
-import SendInlineBotResult = Api.messages.SendInlineBotResult;
+import {utils} from "../../";
 
 export class InlineResult {
     ARTICLE = 'article';
@@ -18,10 +17,10 @@ export class InlineResult {
     GAME = 'game';
     private _entity: EntityLike | undefined;
     private _queryId: Api.long | undefined;
-    private result: Api.TypeInputPeer;
+    private result: Api.TypeBotInlineResult;
     private _client: TelegramClient;
 
-    constructor(client: TelegramClient, original: Api.TypeInputBotInlineMessage, queryId?: Api.long, entity?: EntityLike) {
+    constructor(client: TelegramClient, original: Api.TypeBotInlineResult, queryId?: Api.long, entity?: EntityLike) {
         this._client = client;
         this.result = original;
         this._queryId = queryId;
@@ -49,7 +48,7 @@ export class InlineResult {
     get photo() {
         if (this.result instanceof Api.BotInlineResult) {
             return this.result.thumb;
-        } else if (this.result instanceof Api.BotInlineMediaResult) {
+        } else {
             return this.result.photo;
         }
     }
@@ -57,7 +56,7 @@ export class InlineResult {
     get document() {
         if (this.result instanceof Api.BotInlineResult) {
             return this.result.content;
-        } else if (this.result instanceof Api.BotInlineMediaResult) {
+        } else {
             return this.result.document;
         }
     }
@@ -71,7 +70,7 @@ export class InlineResult {
             throw new Error("You must provide the entity where the result should be sent to");
         }
         const replyId = replyTo ? utils.getMessageId(replyTo) : undefined;
-        const request = new SendInlineBotResult({
+        const request = new Api.messages.SendInlineBotResult({
             peer: entity,
             queryId: this._queryId,
             id: this.result.id,
@@ -80,9 +79,7 @@ export class InlineResult {
             hideVia: hideVia,
             replyToMsgId: replyId,
         });
-        return this._client._getResponseMessage(
-            request, await this._client.invoke(request), entity
-        )
+        return await this._client.invoke(request);
     }
 
     /*

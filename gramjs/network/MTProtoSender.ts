@@ -13,16 +13,17 @@
  */
 import {AuthKey} from "../crypto/AuthKey";
 import {MTProtoState} from "./MTProtoState";
-import {BinaryReader, MessagePacker} from "../extensions";
+import {BinaryReader } from "../extensions";
+import  {MessagePacker } from "../extensions";
 import {GZIPPacked, MessageContainer, RPCResult, TLMessage} from "../tl/core";
 import {Api} from "../tl";
 import bigInt from 'big-integer'
 import {sleep} from "../Helpers";
 import {RequestState} from "./RequestState";
 import {doAuthentication} from "./Authenticator";
-import {MTProtoPlainSender} from "./MTProtoPlainSender";
-import {BadMessageError, InvalidBufferError, RPCMessageToError, SecurityError, TypeNotFoundError} from "../errors";
-import {UpdateConnectionState} from "./index";
+import  {MTProtoPlainSender} from "./MTProtoPlainSender";
+import {BadMessageError, TypeNotFoundError,InvalidBufferError,SecurityError,RPCMessageToError} from "../errors";
+import  {UpdateConnectionState} from "./";
 
 interface DEFAULT_OPTIONS {
     logger: any,

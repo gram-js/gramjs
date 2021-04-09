@@ -1,17 +1,16 @@
 import {ChatGetter} from "./chatGetter";
 import {SenderGetter} from "./senderGetter";
 import {Api} from "../api";
-import Message = Api.Message;
-import {TelegramClient} from "../../client/TelegramClient";
-import {Entity} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
+import type {Entity} from "../../define";
 import {_EntityType, _entityType} from "../../Helpers";
 import {_getEntityPair, getPeerId} from "../../Utils";
 
 
 export class Forward {
-    private originalFwd: Api.Message;
+    private originalFwd: Api.MessageFwdHeader;
 
-    constructor(client: TelegramClient, original: Message, entities: Map<number, Entity>) {
+    constructor(client: TelegramClient, original: Api.MessageFwdHeader, entities: Map<number, Entity>) {
         // Copy all objects here. probably need a better way tho. PRs are welcome
         Object.assign(this, original);
         this.originalFwd = original;

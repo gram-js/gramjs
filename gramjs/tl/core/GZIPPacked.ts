@@ -1,6 +1,6 @@
-import {serializeBytes} from '../index';
+import {serializeBytes} from '../';
 import {inflate} from 'pako';
-import {BinaryReader} from "../../extensions/BinaryReader";
+import type {BinaryReader} from "../../extensions";
 
 export class GZIPPacked {
     static CONSTRUCTOR_ID = 0x3072cfa1;

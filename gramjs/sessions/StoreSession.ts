@@ -60,7 +60,7 @@ export class StoreSession extends MemorySession {
     getAuthKey(dcId?: number) {
         if (dcId && dcId !== this.dcId) {
             // Not supported.
-            return undefined
+            throw  new Error("not supported");
         }
 
         return this.authKey
@@ -69,7 +69,7 @@ export class StoreSession extends MemorySession {
     setAuthKey(authKey?: AuthKey, dcId?: number) {
         if (dcId && dcId !== this.dcId) {
             // Not supported.
-            return undefined
+            throw  new Error("not supported");
         }
 
         this.authKey = authKey

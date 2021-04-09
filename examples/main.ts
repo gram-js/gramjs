@@ -1,22 +1,42 @@
-import {TelegramClient} from "../gramjs";
-import {StringSession} from "../gramjs/sessions";
+import {Logger} from "telegram/extensions";
+import {TelegramClient} from "telegram";
+import {StringSession} from "telegram/sessions";
+import {NewMessage} from "telegram/events";
+import {NewMessageEvent} from "telegram/events/NewMessage";
 
+const apiId = ;
+const apiHash = '';
+const stringSession = '';
+
+async function eventPrint(event: NewMessageEvent) {
+    const message = event.message;
+
+    // Checks if it's a private message (from user or bot)
+    if (event.isPrivate){
+        // prints sender id
+        console.log(message.senderId);
+        // read message
+        if (message.text=="hello"){
+            const sender = await message.getSender();
+            console.log("sender is",sender);
+            await client.sendMessage(sender,{
+                message:`hi your id is ${message.senderId}`
+            });
+        }
+    }
+}
+const client = new TelegramClient(new StringSession(stringSession), apiId, apiHash, {connectionRetries: 5});
 
 (async () => {
+    Logger.setLevel("debug");
     console.log('Loading interactive example...');
-    const apiId = -1; // put your api id here [for example 123456789]
-    const apiHash = ""; // put your api hash here [for example '123456abcfghe']
-    const client = new TelegramClient(new StringSession(''), apiId, apiHash, {
-        connectionRetries: 3,
-    });
     await client.start({
-        botAuthToken:'YOUR BOT TOKEN'
-
+        botAuthToken: ""
     });
-    console.log('You should now be connected.')
-    console.log(await client.getMe());
-    // USE THIS STRING TO AVOID RELOGGING EACH TIME
-    console.log(await client.session.save());
 
-
+    console.log(await client.getEntity("me"));
+    console.log(client.session.save())
 })();
+
+// adds an event handler for new messages
+client.addEventHandler(eventPrint, new NewMessage({}));

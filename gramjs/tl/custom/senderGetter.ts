@@ -1,6 +1,6 @@
-import {Entity, EntityLike} from "../../define";
-import {TelegramClient} from "../../client/TelegramClient";
-import Api from "../api";
+import type {Entity} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
+import {Api} from "../api";
 
 interface SenderGetterConstructorInterface {
     senderId?: number;
@@ -24,6 +24,7 @@ export class SenderGetter {
         c._sender = sender;
         c._inputSender = inputSender;
         c._client = undefined;
+
     }
 
     get sender() {
@@ -37,6 +38,9 @@ export class SenderGetter {
             } catch (e) {
                 await this._refetchSender();
             }
+        }
+        if (!this._sender){
+            throw new Error("Could not find sender");
         }
         return this._sender;
     }

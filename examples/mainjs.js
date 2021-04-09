@@ -1,7 +1,4 @@
-// if you're using TS import from here
-//const {TelegramClient} = require("telegram/gramjs");
-//const {StringSession} = require("telegram/gramjs/sessions");
-// if you're not then import from here
+
 const { TelegramClient } = require('telegram/dist')
 const { StringSession } = require('telegram/dist/sessions');
 

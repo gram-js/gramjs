@@ -1,6 +1,6 @@
 import {readBufferFromBigInt} from '../../Helpers';
 import {Connection, PacketCodec} from './Connection';
-import {BinaryReader} from "../../extensions";
+import type {BinaryReader} from "../../extensions";
 
 import bigInt from "big-integer";
 

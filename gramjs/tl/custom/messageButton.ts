@@ -1,8 +1,6 @@
-import {TelegramClient} from "../../client/TelegramClient";
-import {ButtonLike, EntityLike, MessageIDLike} from "../../define";
+import type {TelegramClient} from "../../client/TelegramClient";
+import type {ButtonLike, EntityLike, MessageIDLike} from "../../define";
 import {Api} from "../api";
-import GetBotCallbackAnswer = Api.messages.GetBotCallbackAnswer;
-import StartBot = Api.messages.StartBot;
 import {Button} from "./button";
 
 export class MessageButton {
@@ -53,7 +51,7 @@ export class MessageButton {
                 parseMode: undefined,
             });
         } else if (this.button instanceof Api.KeyboardButtonCallback) {
-            const request = new GetBotCallbackAnswer({
+            const request = new Api.messages.GetBotCallbackAnswer({
                 peer: this._chat,
                 msgId: this._msgId,
                 data: this.button.data,
@@ -67,7 +65,7 @@ export class MessageButton {
                 throw e;
             }
         } else if (this.button instanceof Api.KeyboardButtonSwitchInline) {
-            return this._client.invoke(new StartBot({
+            return this._client.invoke(new Api.messages.StartBot({
                 bot: this._bot,
                 peer: this._chat,
                 startParam: this.button.query
@@ -75,7 +73,7 @@ export class MessageButton {
         } else if (this.button instanceof Api.KeyboardButtonUrl) {
             return this.button.url;
         } else if (this.button instanceof Api.KeyboardButtonGame) {
-            const request = new GetBotCallbackAnswer({
+            const request = new Api.messages.GetBotCallbackAnswer({
                 peer: this._chat,
                 msgId: this._msgId,
                 game: true,
