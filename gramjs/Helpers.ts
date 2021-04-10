@@ -363,7 +363,7 @@ export function crc32(buf: Buffer | string) {
     return (crc ^ (-1)) >>> 0
 }
 
-export class TotalList extends Array {
+export class TotalList<T> extends Array<T> {
     public total?: number;
 
     constructor() {

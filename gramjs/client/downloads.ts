@@ -1,7 +1,8 @@
-import { Api } from '../tl';
+import {Api} from '../tl';
 import type {TelegramClient} from './TelegramClient';
-import { getAppropriatedPartSize } from '../Utils';
-import { sleep } from '../Helpers';
+import {getAppropriatedPartSize, strippedPhotoToJpg} from '../Utils';
+import {sleep} from '../Helpers';
+
 
 export interface progressCallback {
     (
@@ -28,19 +29,22 @@ interface Deferred {
     resolve: (value?: any) => void;
 }
 
+// All types
+const sizeTypes = ['w', 'y', 'd', 'x', 'c', 'm', 'b', 'a', 's'];
+
 // Chunk sizes for `upload.getFile` must be multiple of the smallest size
 const MIN_CHUNK_SIZE = 4096;
 const DEFAULT_CHUNK_SIZE = 64; // kb
 const ONE_MB = 1024 * 1024;
 const REQUEST_TIMEOUT = 15000;
 
-export async function downloads(
+export async function downloadFile(
     client: TelegramClient,
-    inputLocation: Api.InputFileLocation,
+    inputLocation: Api.TypeInputFileLocation,
     fileParams: DownloadFileParams,
 ) {
-    let { partSizeKb, fileSize, workers = 1, end } = fileParams;
-    const { dcId, progressCallback, start = 0 } = fileParams;
+    let {partSizeKb, fileSize, workers = 1, end} = fileParams;
+    const {dcId, progressCallback, start = 0} = fileParams;
 
     end = end && end < fileSize ? end : fileSize - 1;
 
@@ -102,7 +106,6 @@ export async function downloads(
             await foreman.releaseWorker();
             break;
         }
-
         promises.push((async () => {
             try {
                 const result = await Promise.race([
@@ -187,4 +190,158 @@ function createDeferred(): Deferred {
         promise,
         resolve: resolve!,
     };
+}
+
+export interface DownloadMediaInterface {
+    sizeType?: string,
+    /** where to start downloading **/
+    start?: number,
+    /** where to stop downloading **/
+    end?: number,
+    progressCallback?: progressCallback,
+    workers?: number,
+
+}
+
+export async function downloadMedia(client: TelegramClient, messageOrMedia: Api.Message | Api.TypeMessageMedia, args: DownloadMediaInterface): Promise<Buffer> {
+    let date;
+    let media;
+    if (messageOrMedia instanceof Api.Message) {
+        media = messageOrMedia.media
+    } else {
+        media = messageOrMedia
+    }
+    if (typeof media == 'string') {
+        throw new Error('not implemented')
+    }
+
+    if (media instanceof Api.MessageMediaWebPage) {
+        if (media.webpage instanceof Api.WebPage) {
+            media = media.webpage.document || media.webpage.photo
+        }
+    }
+    if (media instanceof Api.MessageMediaPhoto || media instanceof Api.Photo) {
+        return client._downloadPhoto(media, args);
+    } else if (media instanceof Api.MessageMediaDocument || media instanceof Api.Document) {
+        return client._downloadDocument(media, args)
+    } else if (media instanceof Api.MessageMediaContact) {
+        return client._downloadContact(media, args)
+    } else if (media instanceof Api.WebDocument || media instanceof Api.WebDocumentNoProxy) {
+        return client._downloadWebDocument(media, args)
+    } else {
+        return Buffer.alloc(0);
+    }
+}
+
+export async function _downloadDocument(client: TelegramClient, doc: Api.MessageMediaDocument | Api.Document, args: DownloadMediaInterface): Promise<Buffer> {
+    if (doc instanceof Api.MessageMediaDocument) {
+        if (!doc.document) {
+            return Buffer.alloc(0);
+        }
+
+        doc = doc.document
+
+    }
+    if (!(doc instanceof Api.Document)) {
+        return Buffer.alloc(0);
+    }
+
+    let size = undefined;
+    if (args.sizeType) {
+        size = doc.thumbs ? pickFileSize(doc.thumbs, args.sizeType) : undefined;
+        if (!size && doc.mimeType.startsWith('video/')) {
+            return Buffer.alloc(0);
+        }
+
+        if (size && (size instanceof Api.PhotoCachedSize || size instanceof Api.PhotoStrippedSize)) {
+            return client._downloadCachedPhotoSize(size)
+        }
+    }
+    return client.downloadFile(
+        new Api.InputDocumentFileLocation({
+            id: doc.id,
+            accessHash: doc.accessHash,
+            fileReference: doc.fileReference,
+            thumbSize: size ? size.type : '',
+        }),
+        {
+            fileSize: (size && !(size instanceof Api.PhotoSizeEmpty)) ? size.size : doc.size,
+            progressCallback: args.progressCallback,
+            start: args.start,
+            end: args.end,
+            dcId: doc.dcId,
+            workers: args.workers,
+        },
+    )
+
+}
+
+export async function _downloadContact(client: TelegramClient, media: Api.MessageMediaContact, args: DownloadMediaInterface): Promise<Buffer> {
+    throw new Error('not implemented')
+}
+
+export async function _downloadWebDocument(client: TelegramClient, media: Api.WebDocument | Api.WebDocumentNoProxy, args: DownloadMediaInterface): Promise<Buffer> {
+    throw new Error('not implemented')
+}
+
+function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
+    if (!sizeType || !sizes || !sizes.length) {
+        return undefined;
+    }
+    const indexOfSize = sizeTypes.indexOf(sizeType);
+    let size;
+    for (let i = indexOfSize; i < sizeTypes.length; i++) {
+        size = sizes.find((s) => s.type === sizeTypes[i]);
+        if (size && !(size instanceof Api.PhotoSizeProgressive || size instanceof Api.PhotoPathSize)) {
+            return size
+        }
+    }
+    return undefined;
+
+}
+
+export function _downloadCachedPhotoSize(client: TelegramClient, size: Api.PhotoCachedSize | Api.PhotoStrippedSize) {
+    // No need to download anything, simply write the bytes
+    let data;
+    if (size instanceof Api.PhotoStrippedSize) {
+        data = strippedPhotoToJpg(size.bytes)
+    } else {
+        data = size.bytes
+    }
+    return data
+}
+
+export async function _downloadPhoto(client: TelegramClient, photo: Api.MessageMediaPhoto | Api.Photo, args: DownloadMediaInterface): Promise<Buffer> {
+    if (photo instanceof Api.MessageMediaPhoto) {
+        if (photo.photo instanceof Api.PhotoEmpty || !photo.photo) {
+            return Buffer.alloc(0);
+        }
+        photo = photo.photo
+
+    }
+    if (!(photo instanceof Api.Photo)) {
+        return Buffer.alloc(0);
+    }
+    const size = pickFileSize(photo.sizes, args.sizeType || sizeTypes[0]);
+    if (!size || (size instanceof Api.PhotoSizeEmpty)) {
+        return Buffer.alloc(0);
+    }
+
+    if (size instanceof Api.PhotoCachedSize || size instanceof Api.PhotoStrippedSize) {
+        return client._downloadCachedPhotoSize(size)
+    }
+    return client.downloadFile(
+        new Api.InputPhotoFileLocation({
+            id: photo.id,
+            accessHash: photo.accessHash,
+            fileReference: photo.fileReference,
+            thumbSize: size.type,
+        }),
+        {
+            dcId: photo.dcId,
+            fileSize: size.size,
+            progressCallback: args.progressCallback,
+        },
+    )
+
 }

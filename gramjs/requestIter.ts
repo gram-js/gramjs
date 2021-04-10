@@ -6,6 +6,7 @@ interface BaseRequestIterInterface {
     reverse?: boolean,
     waitTime?: number,
 }
+
 export class RequestIter implements AsyncIterable<any> {
 
     public client: TelegramClient;
@@ -17,6 +18,8 @@ export class RequestIter implements AsyncIterable<any> {
     private index: number;
     protected total: number | undefined;
     private lastLoad: number;
+    kwargs: {};
+
     [key: string]: any;
 
     constructor(client: TelegramClient, limit: number, params: BaseRequestIterInterface = {}, args = {}) {
@@ -26,16 +29,14 @@ export class RequestIter implements AsyncIterable<any> {
         this.limit = Math.max(!limit ? Number.MAX_SAFE_INTEGER : limit, 0);
         this.left = this.limit;
         this.buffer = undefined;
-        for (const name in args) {
-            this[name as any] = (args as any)[name];
-        }
+        this.kwargs = args;
         this.index = 0;
         this.total = undefined;
         this.lastLoad = 0
     }
 
 
-    async _init(...args: any): Promise<boolean | void> {
+    async _init(kwargs: any): Promise<boolean | void> {
         // for overload
     }
 
@@ -49,8 +50,7 @@ export class RequestIter implements AsyncIterable<any> {
 
                 if (this.buffer == undefined) {
                     this.buffer = [];
-                    // @ts-ignore
-                    if (await this._init(this.args)) {
+                    if (await this._init(this.kwargs)) {
                         this.left = this.buffer.length;
                     }
                 }

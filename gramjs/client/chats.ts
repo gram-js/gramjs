@@ -75,7 +75,7 @@ class _ChatAction {
     async stop() {
         this._running = false;
         if (this.autoCancel) {
-            await this._client.invoke(new  Api.messages.SetTyping({
+            await this._client.invoke(new Api.messages.SetTyping({
                 peer: this._chat,
                 action: new Api.SendMessageCancelAction()
             }));
@@ -100,11 +100,17 @@ class _ChatAction {
     }
 }
 
+interface ParticipantsIterInterface {
+    entity: EntityLike,
+    filter: any,
+    search?: string
+}
+
 class _ParticipantsIter extends RequestIter {
     private filterEntity: ((entity: Entity) => boolean) | undefined;
     private requests?: Api.channels.GetParticipants[];
 
-    async _init(entity: EntityLike, filter: any, search?: string): Promise<boolean | void> {
+    async _init({entity, filter, search}: ParticipantsIterInterface): Promise<boolean | void> {
         if (filter.constructor === Function) {
             if ([Api.ChannelParticipantsBanned, Api.ChannelParticipantsKicked, Api.ChannelParticipantsSearch, Api.ChannelParticipantsContacts].includes(filter)) {
                 filter = new filter({
@@ -148,8 +154,8 @@ class _ParticipantsIter extends RequestIter {
                 hash: 0,
             }))
         } else if (ty == helpers._EntityType.CHAT) {
-            if (!("chatId" in entity)){
-                throw new Error("Found chat without id "+JSON.stringify(entity));
+            if (!("chatId" in entity)) {
+                throw new Error("Found chat without id " + JSON.stringify(entity));
             }
             const full = await this.client.invoke(new Api.messages.GetFullChat({
                 chatId: entity.chatId
@@ -315,5 +321,5 @@ class _AdminLogIter extends RequestIter {
     }
 }
 
-    // TODO implement
+// TODO implement
 

@@ -1,7 +1,7 @@
 import {Connection, PacketCodec} from './Connection';
 import {crc32} from '../../Helpers';
 import {InvalidChecksumError} from '../../errors';
-import type {BinaryReader} from "../../extensions";
+import type {PromisedNetSockets, PromisedWebSockets} from "../../extensions";
 
 class FullPacketCodec extends PacketCodec {
     private _sendCounter: number;
@@ -30,15 +30,15 @@ class FullPacketCodec extends PacketCodec {
      * @param reader {PromisedWebSockets}
      * @returns {Promise<*>}
      */
-    async readPacket(reader: BinaryReader): Promise<Buffer> {
-        const packetLenSeq = await reader.read(8); // 4 and 4
+    async readPacket(reader: PromisedNetSockets | PromisedWebSockets): Promise<Buffer> {
+        const packetLenSeq = await reader.readExactly(8); // 4 and 4
         // process.exit(0);
         if (packetLenSeq === undefined) {
             // Return empty buffer in case of issue
             return Buffer.alloc(0);
         }
         const packetLen = packetLenSeq.readInt32LE(0);
-        let body = await reader.read(packetLen - 8);
+        let body = await reader.readExactly(packetLen - 8);
         const checksum = body.slice(-4).readUInt32LE(0);
         body = body.slice(0, -4);
 

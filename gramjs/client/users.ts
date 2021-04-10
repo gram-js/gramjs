@@ -125,9 +125,6 @@ export async function getEntity(client: TelegramClient, entity: any): Promise<En
     let users = lists.get(_EntityType.USER)!;
     let chats = lists.get(_EntityType.CHAT)!;
     let channels = lists.get(_EntityType.CHANNEL)!;
-    console.log("getting users", users);
-    console.log("getting chats", chats);
-    console.log("getting channels", channels);
 
     if (users.length) {
         users = await client.invoke(new Api.users.GetUsers({

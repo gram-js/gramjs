@@ -177,7 +177,7 @@ class PacketCodec {
         // Override
     }
 
-    async readPacket(reader: BinaryReader) :Promise<Buffer>{
+    async readPacket(reader: PromisedNetSockets | PromisedWebSockets) :Promise<Buffer>{
         // override
         throw new Error('Not Implemented')
     }

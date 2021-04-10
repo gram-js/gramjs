@@ -5,7 +5,9 @@ import * as markdown from "./extensions/markdown"
 import {EntityCache} from "./entityCache";
 import mime from 'mime-types';
 import type {ParseInterface} from "./client/messageParse";
-import  {MarkdownParser} from "./extensions/markdown";
+import {MarkdownParser} from "./extensions/markdown";
+import {CustomFile} from "./client/uploads";
+import TypeInputFile = Api.TypeInputFile;
 
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' +
@@ -182,7 +184,7 @@ export function getInnerText(text: string, entities: Map<number, Api.TypeMessage
  * @returns {InputChannel|*}
  */
 export function getInputChannel(entity: EntityLike) {
-    if (typeof entity==="string" || typeof entity=="number"){
+    if (typeof entity === "string" || typeof entity == "number") {
         _raiseCastFail(entity, 'InputChannel')
     }
     if (entity.SUBCLASS_OF_ID === undefined) {
@@ -221,7 +223,7 @@ export function getInputChannel(entity: EntityLike) {
  * @param entity
  */
 export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
-    if (typeof entity==="string" || typeof entity=="number"){
+    if (typeof entity === "string" || typeof entity == "number") {
         _raiseCastFail(entity, 'InputUser')
     }
 
@@ -294,7 +296,7 @@ function getInputDialog(dialog) {
  *  Similar to :meth:`get_input_peer`, but for input messages.
  */
 
-function getInputMessage(message: any): Api.InputMessageID {
+export function getInputMessage(message: any): Api.InputMessageID {
     if (typeof message === "number") {
         return new Api.InputMessageID({id: message});
     }
@@ -314,7 +316,7 @@ function getInputMessage(message: any): Api.InputMessageID {
  *  Similar to :meth:`get_input_peer`, but for input messages.
  */
 
-function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
+export function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
     if (photo === undefined || photo.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(photo, "InputChatPhoto");
     }
@@ -344,7 +346,7 @@ function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
  * @param stripped{Buffer}
  * @returns {Buffer}
  */
-function strippedPhotoToJpg(stripped: Buffer) {
+export function strippedPhotoToJpg(stripped: Buffer) {
     // Note: Changes here should update _stripped_real_length
     if (stripped.length < 3 || stripped[0] !== 1) {
         return stripped
@@ -411,7 +413,7 @@ function getInputLocation(location) {
 /**
  *  Similar to :meth:`get_input_peer`, but for photos
  */
-function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
+export function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
     if (photo.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(photo, "InputPhoto");
     }
@@ -460,7 +462,7 @@ function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
  *  Similar to :meth:`get_input_peer`, but for documents
  */
 
-function getInputDocument(document: any): Api.InputDocument | Api.InputDocumentEmpty {
+export function getInputDocument(document: any): Api.InputDocument | Api.InputDocumentEmpty {
     if (document.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(document, "InputDocument");
     }
@@ -503,7 +505,7 @@ interface GetAttributesParams {
 /**
  *  Returns `True` if the file has an audio mime type.
  */
-function isAudio(file: any): boolean {
+export function isAudio(file: any): boolean {
     const ext = _getExtension(file);
     if (!ext) {
         const metadata = _getMetadata(file);
@@ -518,7 +520,7 @@ function isAudio(file: any): boolean {
     }
 }
 
-function getExtension(media: any): string {
+export function getExtension(media: any): string {
     // Photos are always compressed as .jpg by Telegram
 
     try {
@@ -588,9 +590,9 @@ function isVideo(file: any): boolean {
  Get a list of attributes for the given file and
  the mime type as a tuple ([attribute], mime_type).
  */
-function getAttributes(file: any, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
+export function getAttributes(file: File | CustomFile | TypeInputFile, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
 
-    const name: string = (typeof file === "string") ? file : file.name || "unnamed";
+    const name: string = file.name || "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.lookup(name) || "application/octet-stream";
     }
@@ -667,7 +669,7 @@ function getAttributes(file: any, {attributes = null, mimeType = undefined, forc
     }
 
     return {
-        attrs: Array.from(attrObj.values()),
+        attrs: Array.from(attrObj.values()) as Api.TypeDocumentAttribute[],
         mimeType: mimeType,
     };
 }
@@ -970,7 +972,7 @@ export function getPeerId(peer: EntityLike, addMark = true): number {
         }
 
         return addMark ? -(peer.chatId) : peer.chatId
-    } else if (typeof peer=="object" && "channelId" in peer) { // if (peer instanceof Api.PeerChannel)
+    } else if (typeof peer == "object" && "channelId" in peer) { // if (peer instanceof Api.PeerChannel)
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.channelId && peer.channelId <= 0x7fffffff)) {
             peer.channelId = resolveId(peer.channelId)[0]

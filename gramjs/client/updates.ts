@@ -20,7 +20,6 @@ export function addEventHandler(client: TelegramClient, callback: CallableFuncti
         const raw = require("../events/Raw");
         event = new raw({}) as Raw;
     }
-    console.log("event tpo add is", event);
     client._eventBuilders.push([event, callback])
 }
 
@@ -81,7 +80,6 @@ export async function _dispatchUpdate(client: TelegramClient, args: { update: Up
         if (!builder.resolved){
             await builder.resolve(client);
         }
-        console.log("builder is", builder);
         let event = args.update;
         if (event) {
             if (!client._selfInputPeer) {

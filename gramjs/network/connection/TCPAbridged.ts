@@ -1,6 +1,6 @@
 import {readBufferFromBigInt} from '../../Helpers';
 import {Connection, PacketCodec} from './Connection';
-import type {BinaryReader} from "../../extensions";
+import type {PromisedNetSockets, PromisedWebSockets} from "../../extensions";
 
 import bigInt from "big-integer";
 
@@ -29,7 +29,7 @@ export class AbridgedPacketCodec extends PacketCodec {
         return Buffer.concat([temp, data])
     }
 
-    async readPacket(reader: BinaryReader): Promise<Buffer> {
+    async readPacket(reader: PromisedNetSockets | PromisedWebSockets): Promise<Buffer> {
         const readData = await reader.read(1);
         let length = readData[0];
         if (length >= 127) {

@@ -1,5 +1,6 @@
 import type {Button} from "./tl/custom/button";
 import {Api} from "./tl";
+import type {CustomFile} from "./client/uploads";
 
 type ValueOf<T> = T[keyof T];
 type Phone = string;
@@ -25,7 +26,10 @@ type FileLike =
     Buffer |
     Api.TypeMessageMedia |
     Api.TypeInputFile |
-    Api.TypeInputFileLocation
+    Api.TypeInputFileLocation |
+    File |
+    CustomFile
+
 type ProgressCallback = (total: number, downloaded: number) => void;
 type ButtonLike = Api.TypeKeyboardButton | Button;
 

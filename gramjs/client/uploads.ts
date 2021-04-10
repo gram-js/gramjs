@@ -1,10 +1,11 @@
-import { Api } from '../tl';
+import {Api} from '../tl';
 
 import type {TelegramClient} from './TelegramClient';
-// @ts-ignore
-import { generateRandomBytes, readBigIntFromBuffer, sleep } from '../Helpers';
-// @ts-ignore
-import { getAppropriatedPartSize } from '../Utils';
+import {generateRandomBytes, readBigIntFromBuffer, sleep} from '../Helpers';
+import {getAppropriatedPartSize, getAttributes} from '../Utils';
+import type {EntityLike, FileLike, MessageIDLike} from "../define";
+import path from "path";
+import fs from "fs";
 
 interface OnProgress {
     // Float between 0 and 1.
@@ -14,9 +15,21 @@ interface OnProgress {
 }
 
 export interface UploadFileParams {
-    file: File;
+    file: File | CustomFile;
     workers: number;
     onProgress?: OnProgress;
+}
+
+export class CustomFile {
+    name: string;
+    size: number;
+    path: string;
+
+    constructor(name: string, size: number, path: string) {
+        this.name = name;
+        this.size = size;
+        this.path = path;
+    }
 }
 
 const KB_TO_BYTES = 1024;
@@ -27,10 +40,10 @@ export async function uploadFile(
     client: TelegramClient,
     fileParams: UploadFileParams,
 ): Promise<Api.InputFile | Api.InputFileBig> {
-    const { file, onProgress } = fileParams;
-    let { workers } = fileParams;
+    const {file, onProgress} = fileParams;
+    let {workers} = fileParams;
 
-    const { name, size } = file;
+    const {name, size} = file;
     const fileId = readBigIntFromBuffer(generateRandomBytes(8), true, true);
     const isLarge = size > LARGE_FILE_THRESHOLD;
 
@@ -120,6 +133,80 @@ export async function uploadFile(
         });
 }
 
-function fileToBuffer(file: File) {
-    return new Response(file).arrayBuffer();
+export interface SendFileInterface {
+    file: string | CustomFile | File,
+    caption?: string,
+    forceDocument?: boolean,
+    fileSize?: number,
+    progressCallback?: OnProgress,
+    replyTo?: MessageIDLike,
+    attributes?: Api.TypeDocumentAttribute[],
+    thumb?: FileLike,
+    voiceNote?: boolean,
+    videoNote?: boolean,
+    supportStreaming?: boolean,
+}
+
+export async function sendFile(client: TelegramClient, entity: EntityLike, {file, caption, forceDocument, fileSize, progressCallback, replyTo, attributes, thumb, voiceNote, videoNote, supportStreaming}: SendFileInterface) {
+    if (!file) {
+        throw new Error("You need to specify a file");
+    }
+    if (!caption) {
+        caption = ""
+    }
+    if (typeof file == "string") {
+        file = new CustomFile(path.basename(file), fs.statSync(file).size, file);
+    }
+    const media = await client.uploadFile({
+        file: file,
+        workers: 1,
+        onProgress: progressCallback,
+    });
+    if (!attributes) {
+        attributes = [];
+    }
+    let mimeType = "application/octet-stream";
+    if (file instanceof CustomFile) {
+        const result = (getAttributes(file, {
+            attributes: attributes,
+            forceDocument: forceDocument,
+            voiceNote: voiceNote,
+            videoNote: videoNote,
+            supportsStreaming: supportStreaming,
+            thumb: thumb
+        }));
+        mimeType = result.mimeType;
+        attributes.push(...result.attrs);
+    }
+    let toSend;
+    if (mimeType.startsWith("photo/")) {
+        toSend = new Api.InputMediaUploadedPhoto({
+            file: media,
+        })
+    } else {
+        toSend = new Api.InputMediaUploadedDocument({
+            file: media,
+            mimeType: mimeType,
+            attributes: attributes,
+            forceFile: forceDocument,
+        })
+    }
+    const result = await client.invoke(new Api.messages.SendMedia({
+        peer: entity,
+        media: toSend,
+        replyToMsgId: replyTo,
+        message: caption,
+    }));
+    // TODO get result
+    return result;
+}
+
+function fileToBuffer(file: File | CustomFile) {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        return new Response(file).arrayBuffer();
+    } else if (file instanceof CustomFile) {
+        return fs.readFileSync(file.path);
+    } else {
+        throw new Error("Could not create buffer from file " + file);
+    }
 }

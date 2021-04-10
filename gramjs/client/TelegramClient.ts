@@ -11,13 +11,14 @@ import * as uploadMethods from "./uploads";
 import * as userMethods from "./users";
 import type {ButtonLike, EntityLike, MarkupLike} from "../define";
 import {Api} from "../tl";
-import  {sanitizeParseMode} from "../Utils";
-import  {MarkdownParser} from "../extensions/markdown";
+import {sanitizeParseMode} from "../Utils";
+import {MarkdownParser} from "../extensions/markdown";
 import type  {EventBuilder} from "../events/common";
-import  {MTProtoSender, UpdateConnectionState} from "../network";
+import {MTProtoSender, UpdateConnectionState} from "../network";
 
 import {LAYER} from "../tl/AllTLObjects";
 import {IS_NODE} from "../Helpers";
+import {DownloadMediaInterface} from "./downloads";
 
 export class TelegramClient extends TelegramBaseClient {
 
@@ -84,13 +85,37 @@ export class TelegramClient extends TelegramBaseClient {
 
     //region download
     downloadFile(
-        inputLocation: Api.InputFileLocation,
+        inputLocation: Api.TypeInputFileLocation,
         fileParams: downloadMethods.DownloadFileParams,
     ) {
-        return downloadMethods.downloads(this,
+        return downloadMethods.downloadFile(this,
             inputLocation,
             fileParams,
         )
+    }
+
+    _downloadPhoto(photo: Api.MessageMediaPhoto | Api.Photo, args: DownloadMediaInterface) {
+        return downloadMethods._downloadPhoto(this, photo, args);
+    }
+
+    _downloadCachedPhotoSize(size: Api.PhotoCachedSize | Api.PhotoStrippedSize) {
+        return downloadMethods._downloadCachedPhotoSize(this, size);
+    }
+
+    _downloadDocument(media: Api.MessageMediaDocument | Api.Document, args: DownloadMediaInterface) {
+        return downloadMethods._downloadDocument(this, media, args);
+    }
+
+    _downloadContact(contact: Api.MessageMediaContact, args: DownloadMediaInterface) {
+        return downloadMethods._downloadContact(this, contact, args);
+    }
+
+    _downloadWebDocument(webDocument: Api.WebDocument | Api.WebDocumentNoProxy, args: DownloadMediaInterface) {
+        return downloadMethods._downloadWebDocument(this, webDocument, args);
+    }
+
+    downloadMedia(messageOrMedia: Api.Message | Api.TypeMessageMedia, args: DownloadMediaInterface) {
+        return downloadMethods.downloadMedia(this, messageOrMedia, args);
     }
 
     //endregion
@@ -100,7 +125,7 @@ export class TelegramClient extends TelegramBaseClient {
         return this._parseMode || MarkdownParser;
     }
 
-    setParseMode(mode:string | parseMethods.ParseInterface) {
+    setParseMode(mode: string | parseMethods.ParseInterface) {
         this._parseMode = sanitizeParseMode(mode);
     }
 
@@ -134,7 +159,6 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     addEventHandler(callback: CallableFunction, event?: EventBuilder) {
-        console.log("adding handler");
         return updateMethods.addEventHandler(this, callback, event);
 
     }
@@ -175,6 +199,10 @@ export class TelegramClient extends TelegramBaseClient {
     // region uploads
     uploadFile(fileParams: uploadMethods.UploadFileParams) {
         return uploadMethods.uploadFile(this, fileParams);
+    }
+
+    sendFile(entity: EntityLike, params: uploadMethods.SendFileInterface) {
+        return uploadMethods.sendFile(this, entity, params);
     }
 
     // endregion
@@ -225,6 +253,7 @@ export class TelegramClient extends TelegramBaseClient {
     _getInputNotify(notify: any) {
         return userMethods._getInputNotify(this, notify);
     }
+
     //endregion
 
     //region base methods
@@ -375,6 +404,7 @@ export class TelegramClient extends TelegramBaseClient {
         }
         throw new Error(`Cannot find the DC with the ID of ${dcId}`)
     }
+
     removeSender(dcId: number) {
         delete this._borrowedSenderPromises[dcId]
     }
@@ -395,4 +425,6 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     // endregion
+
+
 }

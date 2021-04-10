@@ -2,7 +2,7 @@ import {Api} from "../tl";
 import type {Message} from '../tl/custom/message';
 import type {DateLike, EntityLike, FileLike, MarkupLike, MessageIDLike, MessageLike} from "../define";
 import {RequestIter} from "../requestIter";
-import {_EntityType, _entityType} from "../Helpers";
+import {_EntityType, _entityType, TotalList} from "../Helpers";
 import {getMessageId, getPeerId, isArrayLike} from "../Utils";
 import type {TelegramClient} from "../";
 import {utils} from "../";
@@ -11,6 +11,7 @@ const _MAX_CHUNK_SIZE = 100;
 
 
 interface MessageIterParams {
+    entity: EntityLike;
     offsetId: number;
     minId: number;
     maxId: number;
@@ -25,7 +26,7 @@ interface MessageIterParams {
 export class _MessagesIter extends RequestIter {
     private entity?: Api.TypeInputPeer;
 
-    async _init(entity: EntityLike, {offsetId, minId, maxId, fromUser, offsetDate, addOffset, filter, search, replyTo}: MessageIterParams) {
+    async _init({entity, offsetId, minId, maxId, fromUser, offsetDate, addOffset, filter, search, replyTo}: MessageIterParams) {
         if (entity) {
             this.entity = await this.client.getInputEntity(entity);
         } else {
@@ -225,8 +226,13 @@ export class _MessagesIter extends RequestIter {
     }
 }
 
+interface IDsIterInterface {
+    entity: EntityLike,
+    ids: MessageLike[]
+}
+
 export class _IDsIter extends RequestIter {
-    async _init(entity: EntityLike, ids: MessageLike[]) {
+    async _init({entity, ids}: IDsIterInterface) {
         this.total = ids.length;
         this._ids = this.reverse ? ids.reverse() : ids;
         this._offset = 0;
@@ -327,16 +333,15 @@ export function iterMessages(client: TelegramClient, entity: EntityLike, {limit,
         if (typeof ids == 'number') {
             ids = [ids]
         }
-        // @ts-ignore
-        return new _IDsIter(this, ids.length, {
+        return new _IDsIter(client, ids.length, {
             reverse: reverse,
             waitTime: waitTime
         }, {
-            entity: entity
+            entity: entity,
+            ids: ids
         });
     }
-    // @ts-ignore
-    return new _MessagesIter(client, limit, {
+    return new _MessagesIter(client, limit || 1, {
         waitTime: waitTime,
         reverse: reverse
     }, {
@@ -353,7 +358,7 @@ export function iterMessages(client: TelegramClient, entity: EntityLike, {limit,
     })
 }
 
-export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams) {
+export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams):Promise<TotalList<Api.Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
             params.limit = undefined;
@@ -366,12 +371,12 @@ export async function getMessages(client: TelegramClient, entity: EntityLike, pa
     const ids = params.ids;
     if (ids && !isArrayLike(ids)) {
         for await (const message of it) {
-            return message;
+            return [message];
         }
-        return;
+        return [];
 
     }
-    return await it.collect();
+    return await it.collect() as TotalList<Api.Message>;
 }
 
 // region Message
