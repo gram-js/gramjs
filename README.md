@@ -16,8 +16,12 @@ If you want to run in it in a browser just use webpack (a configuration file is 
 The output will be in `browser` folder.
 In the browser gramjs will use localstorage to not regenerate api methods each run.
 check the `examples` folder for more info.
-Docs coming soon
+
 
 ## Using raw api
 Currently you can use any raw api function using `await client.invoke(new RequestClass(args))` .
 you can find all the requests and types at https://gram.js.org/
+
+## Docs
+
+you can find the docs at https://painor.gitbook.io/gramjs/ which has all the functions with a usage example
