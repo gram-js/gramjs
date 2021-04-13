@@ -217,7 +217,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     get text() {
-        if (!this._text && this._client) {
+        if (this._text===undefined && this._client) {
             if (!this._client.parseMode) {
                 this._text = this.message
             } else {

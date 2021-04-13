@@ -25,8 +25,10 @@ interface MessageIterParams {
 
 export class _MessagesIter extends RequestIter {
     private entity?: Api.TypeInputPeer;
+    private request?: Api.messages.SearchGlobal | Api.messages.GetReplies | Api.messages.GetHistory | Api.messages.Search;
 
     async _init({entity, offsetId, minId, maxId, fromUser, offsetDate, addOffset, filter, search, replyTo}: MessageIterParams) {
+
         if (entity) {
             this.entity = await this.client.getInputEntity(entity);
         } else {
@@ -85,7 +87,7 @@ export class _MessagesIter extends RequestIter {
                 offsetId: offsetId,
                 limit: 1,
             })
-        } else if (!replyTo) {
+        } else if (replyTo !== undefined) {
             this.request = new Api.messages.GetReplies({
                 peer: this.entity,
                 msgId: replyTo,
@@ -97,7 +99,7 @@ export class _MessagesIter extends RequestIter {
                 minId: 0,
                 hash: 0
             });
-        } else if (!search || filter || fromUser) {
+        } else if (search !== undefined || filter !== undefined || fromUser !== undefined) {
             const ty = _entityType(this.entity);
             if (ty == _EntityType.USER) {
                 fromUser = undefined;
@@ -140,34 +142,53 @@ export class _MessagesIter extends RequestIter {
             if (result instanceof Api.messages.MessagesNotModified) {
                 this.total = result.count;
             } else {
-                this.total = result.count ?? result.messages.length;
+                if ("count" in result) {
+                    this.total = result.count
+                } else {
+                    this.total = result.messages.length
+                }
             }
             return false;
         }
         if (!this.waitTime) {
             this.waitTime = this.limit > 3000 ? 1 : 0;
         }
-        if (this.reverse) {
+        if (this.reverse && !(this.request instanceof Api.messages.SearchGlobal)) {
             this.request.addOffset -= _MAX_CHUNK_SIZE;
         }
         this.addOffset = addOffset;
         this.maxId = maxId;
         this.minId = minId;
         this.lastId = this.reverse ? 0 : Number.MAX_SAFE_INTEGER;
+
     }
 
     async _loadNextChunk() {
+        if (!this.request) {
+            throw new Error("Request not set yet");
+        }
         this.request.limit = Math.min(this.left, _MAX_CHUNK_SIZE);
         if (this.reverse && this.request.limit != _MAX_CHUNK_SIZE) {
-            this.request.addOffset = this.addOffset - this.request.limit;
+            if (!(this.request instanceof Api.messages.SearchGlobal)) {
+                this.request.addOffset = this.addOffset - this.request.limit;
+            }
         }
         const r = await this.client.invoke(this.request);
-        this.total = r.count ?? r.messages.length;
+        if (r instanceof Api.messages.MessagesNotModified) {
+            return true;
+        }
+        if ("count" in r) {
+            this.total = r.count
+        } else {
+            this.total = r.messages.length
+        }
+
         const entities = new Map();
-        for (const x of [...r.user, ...r.chats]) {
+
+        for (const x of [...r.users, ...r.chats]) {
             entities.set(getPeerId(x), x);
         }
-        const messages: Message[] = this.reverse ? r.messages.reverse() : r.messages;
+        const messages: Message[] = this.reverse ? r.messages.reverse() as unknown as Message[] : r.messages as unknown as Message[];
         for (const message of messages) {
             if ((this.fromId && message.senderId != this.fromId)) {
                 continue;
@@ -176,7 +197,7 @@ export class _MessagesIter extends RequestIter {
                 return true;
             }
             this.lastId = message.id;
-            // TODO message._finishInit(this.client, entities, this.entity);
+            message._finishInit(this.client, entities, this.entity);
             this.buffer?.push(message);
         }
         if (r.messages.length < this.request.limit) {
@@ -206,14 +227,19 @@ export class _MessagesIter extends RequestIter {
     }
 
     _updateOffset(lastMessage: Message, response: any) {
-        this.request.offsetId = lastMessage.id;
+        if (!this.request){
+            throw new Error("Request not set yet");
+        }
+        this.request.offsetId = Number(lastMessage.id);
         if (this.reverse) {
             this.request.offsetId += 1;
         }
         if (this.request instanceof Api.messages.Search) {
             this.request.maxDate = -1;
         } else {
-            this.request.offsetDate = lastMessage.date;
+            if (!(this.request instanceof Api.messages.SearchGlobal)) {
+                this.request.offsetDate = lastMessage.date;
+            }
         }
         if (this.request instanceof Api.messages.SearchGlobal) {
             if (lastMessage.inputChat) {
@@ -358,7 +384,7 @@ export function iterMessages(client: TelegramClient, entity: EntityLike, {limit,
     })
 }
 
-export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams):Promise<TotalList<Api.Message>> {
+export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams): Promise<TotalList<Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
             params.limit = undefined;
@@ -376,7 +402,7 @@ export async function getMessages(client: TelegramClient, entity: EntityLike, pa
         return [];
 
     }
-    return await it.collect() as TotalList<Api.Message>;
+    return await it.collect() as TotalList<Message>;
 }
 
 // region Message
