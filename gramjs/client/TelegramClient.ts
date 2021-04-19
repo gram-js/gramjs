@@ -221,7 +221,7 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     isUserAuthorized() {
-        return userMethods.isBot(this);
+        return userMethods.isUserAuthorized(this);
     }
 
     getEntity(entity: any) {

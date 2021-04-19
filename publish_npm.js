@@ -28,7 +28,7 @@ tsc.on('close', (code) => {
                 console.log('FINISHED UPLOADING')
                 console.log('=====================================')
             }else{
-                throw new ERro
+                throw new Error("something went wrong")
             }
         })
     } else {
