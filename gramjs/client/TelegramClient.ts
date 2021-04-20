@@ -9,6 +9,7 @@ import * as messageMethods from "./messages";
 import * as updateMethods from "./updates";
 import * as uploadMethods from "./uploads";
 import * as userMethods from "./users";
+import * as chatMethods from "./chats";
 import type {ButtonLike, EntityLike, MarkupLike} from "../define";
 import {Api} from "../tl";
 import {sanitizeParseMode} from "../Utils";
@@ -153,6 +154,18 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     //endregion
+
+    //region chats
+    iterParticipants(entity: EntityLike, params: chatMethods.IterParticipantsParams) {
+        return chatMethods.iterParticipants(this, entity, params);
+    }
+    getParticipants(entity: EntityLike, params: chatMethods.IterParticipantsParams) {
+        return chatMethods.getParticipants(this, entity, params);
+    }
+
+    //endregion
+
+
     //region updates
     on(event: any) {
         return updateMethods.on(this, event);

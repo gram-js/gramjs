@@ -225,6 +225,9 @@ export class _MessagesIter extends RequestIter {
         }
         return true;
     }
+    [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
+        return super[Symbol.asyncIterator]();
+    }
 
     _updateOffset(lastMessage: Message, response: any) {
         if (!this.request){
@@ -269,6 +272,9 @@ export class _IDsIter extends RequestIter {
         if (!this.waitTime) {
             this.waitTile = this.limit > 300 ? 10 : 0;
         }
+    }
+    [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
+        return super[Symbol.asyncIterator]();
     }
 
     async _loadNextChunk() {

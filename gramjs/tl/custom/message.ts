@@ -7,7 +7,6 @@ import * as utils from "../../Utils";
 import {Forward} from "./forward";
 import type {File} from "./file";
 import {Mixin} from "ts-mixer";
-import bigInt from "big-integer";
 
 interface MessageBaseInterface {
     id: any;
@@ -51,7 +50,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     fromScheduled: any | undefined;
     legacy: any | undefined;
     editHide: any | undefined;
-    id: bigInt.BigInteger;
+    id: number;
     fromId?: EntityLike;
     peerId: any;
     fwdFrom: Api.TypeMessageFwdHeader;

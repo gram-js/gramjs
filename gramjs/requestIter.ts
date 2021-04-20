@@ -79,7 +79,8 @@ export class RequestIter implements AsyncIterable<any> {
                         this.left = this.buffer.length;
                     }
                 }
-                if (!this.buffer) {
+
+                if (!this.buffer || !this.buffer.length) {
                     return {
                         value: undefined,
                         done: true,

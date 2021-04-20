@@ -1,10 +1,11 @@
 import type{TelegramClient} from "./TelegramClient";
 import type{EntitiesLike, Entity, EntityLike, ValueOf} from "../define";
-import {sleep, getMinBigInt} from '../Helpers';
+import {sleep, getMinBigInt, TotalList} from '../Helpers';
 import {RequestIter} from "../requestIter";
 import {helpers, utils} from "../";
 import {Api} from "../tl";
 import bigInt, {BigInteger} from "big-integer";
+
 
 const _MAX_PARTICIPANTS_CHUNK_SIZE = 200;
 const _MAX_ADMIN_LOG_CHUNK_SIZE = 100;
@@ -106,12 +107,12 @@ interface ParticipantsIterInterface {
     search?: string
 }
 
-class _ParticipantsIter extends RequestIter {
+export class _ParticipantsIter extends RequestIter {
     private filterEntity: ((entity: Entity) => boolean) | undefined;
     private requests?: Api.channels.GetParticipants[];
 
     async _init({entity, filter, search}: ParticipantsIterInterface): Promise<boolean | void> {
-        if (filter.constructor === Function) {
+        if (filter && filter.constructor === Function) {
             if ([Api.ChannelParticipantsBanned, Api.ChannelParticipantsKicked, Api.ChannelParticipantsSearch, Api.ChannelParticipantsContacts].includes(filter)) {
                 filter = new filter({
                     q: '',
@@ -199,7 +200,7 @@ class _ParticipantsIter extends RequestIter {
     }
 
     async _loadNextChunk(): Promise<boolean | undefined> {
-        if (!this.requests) {
+        if (!this.requests?.length) {
             return true;
         }
         this.requests[0].limit = Math.min(
@@ -214,9 +215,10 @@ class _ParticipantsIter extends RequestIter {
                 await this.client.invoke(request)
             );
         }
-        for (let i = this.requests.length; i > 0; i--) {
+
+        for (let i = this.requests.length - 1; i >= 0; i--) {
             const participants = results[i];
-            if (participants instanceof Api.channels.ChannelParticipantsNotModified || !participants.users) {
+            if (participants instanceof Api.channels.ChannelParticipantsNotModified || !participants.users.length) {
                 this.requests.splice(i, 1);
                 continue;
             }
@@ -236,6 +238,11 @@ class _ParticipantsIter extends RequestIter {
         }
         return undefined;
     }
+
+    [Symbol.asyncIterator](): AsyncIterator<Api.User, any, undefined> {
+        return super[Symbol.asyncIterator]();
+    }
+
 }
 
 interface _AdminLogFilterInterface {
@@ -321,5 +328,27 @@ class _AdminLogIter extends RequestIter {
     }
 }
 
-// TODO implement
 
+export interface IterParticipantsParams {
+    limit?: number,
+    search?: string,
+    filter?: Api.TypeChannelParticipantsFilter,
+}
+
+export function iterParticipants(client: TelegramClient, entity: EntityLike, {
+    limit,
+    search,
+    filter,
+}: IterParticipantsParams) {
+    return new _ParticipantsIter(client, limit ?? Number.MAX_SAFE_INTEGER, {},
+        {
+            entity: entity,
+            filter: filter,
+            search: search
+        });
+}
+
+export async function getParticipants(client: TelegramClient, entity: EntityLike, params: IterParticipantsParams) {
+    const it = client.iterParticipants(entity, params);
+    return await it.collect() as TotalList<Api.User>;
+}
