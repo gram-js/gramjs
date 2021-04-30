@@ -100,14 +100,14 @@ export class EventBuilder {
 
 interface EventCommonInterface {
     chatPeer?: EntityLike,
-    msgId?: bigInt.BigInteger,
+    msgId?: number,
     broadcast?: boolean,
 }
 
 export class EventCommon extends ChatGetter {
     _eventName = "Event";
     _entities: any;
-    _messageId?: bigInt.BigInteger;
+    _messageId?: number;
     originalUpdate: undefined;
 
     constructor({chatPeer = undefined, msgId = undefined, broadcast = undefined}: EventCommonInterface) {

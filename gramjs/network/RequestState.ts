@@ -1,3 +1,5 @@
+import bigInt from "big-integer";
+
 export class RequestState {
     public containerId: undefined;
     public msgId?: bigInt.BigInteger;

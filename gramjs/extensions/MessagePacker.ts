@@ -31,7 +31,7 @@ export class MessagePacker {
         }
     }
 
-    extend(states: any[]) {
+    extend(states: RequestState[]) {
         for (const state of states) {
             this._queue.push(state)
         }

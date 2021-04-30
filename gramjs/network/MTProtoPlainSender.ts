@@ -40,7 +40,6 @@ export class MTProtoPlainSender {
         b.writeInt32LE(body.length, 0)
 
         const res = Buffer.concat([Buffer.concat([Buffer.alloc(8), m, b]), body])
-
         await this._connection.send(res)
         body = await this._connection.recv()
         if (body.length < 8) {

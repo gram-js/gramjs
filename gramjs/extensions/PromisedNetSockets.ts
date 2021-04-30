@@ -116,7 +116,6 @@ export class PromisedNetSockets {
     async receive() {
         if (this.client) {
             this.client.on('data', async message => {
-
                 const release = await mutex.acquire();
                 try {
                     let data;

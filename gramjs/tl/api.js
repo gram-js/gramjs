@@ -351,7 +351,6 @@ function createClasses(classesType, params) {
                 if (classesType !== 'request') {
                     throw new Error('`resolve()` called for non-request instance')
                 }
-
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
                         if (!AUTO_CASTS.has(argsConfig[arg].type)) {

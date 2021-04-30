@@ -23,7 +23,7 @@ import {RequestState} from "./RequestState";
 import {doAuthentication} from "./Authenticator";
 import  {MTProtoPlainSender} from "./MTProtoPlainSender";
 import {BadMessageError, TypeNotFoundError,InvalidBufferError,SecurityError,RPCMessageToError} from "../errors";
-import  {UpdateConnectionState} from "./";
+import {Connection, UpdateConnectionState} from "./";
 
 interface DEFAULT_OPTIONS {
     logger: any,
@@ -56,7 +56,7 @@ export class MTProtoSender {
         isMainSender: null,
         senderCallback: null,
     };
-    private _connection: any;
+    private _connection?: Connection;
     private _log: any;
     private _dcId: number;
     private _retries: number;
@@ -253,18 +253,9 @@ export class MTProtoSender {
         if (!this._userConnected) {
             throw new Error('Cannot send requests while disconnected')
         }
-        //CONTEST
         const state = new RequestState(request);
         this._sendQueue.append(state);
         return state.promise;
-        /*
-        if (!Helpers.isArrayLike(request)) {
-            const state = new RequestState(request)
-            this._send_queue.append(state)
-            return state.promise
-        } else {
-            throw new Error('not supported')
-        }*/
     }
 
     /**
@@ -276,8 +267,8 @@ export class MTProtoSender {
      */
     async _connect() {
 
-        this._log.info('Connecting to {0}...'.replace('{0}', this._connection.toString()));
-        await this._connection.connect();
+        this._log.info('Connecting to {0}...'.replace('{0}', this._connection!.toString()));
+        await this._connection!.connect();
         this._log.debug('Connection success!');
         //process.exit(0)
         if (!this.authKey.getKey()) {
@@ -303,18 +294,18 @@ export class MTProtoSender {
         }
         this._userConnected = true;
         this._reconnecting = false;
+        this._log.debug('Starting receive loop');
+        this._recvLoopHandle = this._recvLoop();
 
         this._log.debug('Starting send loop');
         this._sendLoopHandle = this._sendLoop();
 
-        this._log.debug('Starting receive loop');
-        this._recvLoopHandle = this._recvLoop();
 
         // _disconnected only completes after manual disconnection
         // or errors after which the sender cannot continue such
         // as failing to reconnect or any unexpected error.
 
-        this._log.info('Connection to %s complete!'.replace('%s', this._connection.toString()))
+        this._log.info('Connection to %s complete!'.replace('%s', this._connection!.toString()))
     }
 
     async _disconnect(error = null) {
@@ -325,10 +316,10 @@ export class MTProtoSender {
         if (this._updateCallback) {
             this._updateCallback(-1)
         }
-        this._log.info('Disconnecting from %s...'.replace('%s', this._connection.toString()));
+        this._log.info('Disconnecting from %s...'.replace('%s', this._connection!.toString()));
         this._userConnected = false;
         this._log.debug('Closing current connection...');
-        await this._connection.disconnect()
+        await this._connection!.disconnect()
     }
 
     /**
@@ -343,6 +334,7 @@ export class MTProtoSender {
 
         while (this._userConnected && !this._reconnecting) {
             if (this._pendingAck.size) {
+
                 const ack = new RequestState(new Api.MsgsAck({msgIds: Array(...this._pendingAck)}));
                 this._sendQueue.append(ack);
                 this._lastAcks.push(ack);
@@ -353,12 +345,13 @@ export class MTProtoSender {
             // This means that while it's not empty we can wait for
             // more messages to be added to the send queue.
             const res = await this._sendQueue.get();
-
             if (this._reconnecting) {
+                this._log.debug('Reconnecting. will stop loop');
                 return
             }
 
             if (!res) {
+                this._log.debug('Empty result. will stop loop');
                 continue
             }
             let data = res.data;
@@ -368,7 +361,7 @@ export class MTProtoSender {
             data = await this._state.encryptMessageData(data);
 
             try {
-                await this._connection.send(data)
+                await this._connection!.send(data)
             } catch (e) {
                 this._log.error(e);
                 this._log.info('Connection closed while sending data');
@@ -399,7 +392,7 @@ export class MTProtoSender {
             // this._log.debug('Receiving items from the network...');
             this._log.debug('Receiving items from the network...');
             try {
-                body = await this._connection.recv()
+                body = await this._connection!.recv()
             } catch (e) {
                 // this._log.info('Connection closed while receiving data');
                 this._log.warn('Connection closed while receiving data');
@@ -556,7 +549,6 @@ export class MTProtoSender {
             return;
         }
         if (RPCResult.error && state.msgId) {
-            // eslint-disable-next-line new-cap
             const error = RPCMessageToError(RPCResult.error, state.request);
             this._sendQueue.append(new RequestState(new Api.MsgsAck({msgIds: [state.msgId]})));
             state.reject(error)
@@ -823,7 +815,6 @@ export class MTProtoSender {
         }
         // @ts-ignore
         this._sendQueue.append(null);
-
         this._state.reset();
         const retries = this._retries;
 
@@ -832,7 +823,7 @@ export class MTProtoSender {
             try {
                 await this._connect();
                 // uncomment this if you want to resend
-                //this._send_queue.extend(Object.values(this._pending_state))
+                this._sendQueue.extend(Array.from(this._pendingState.values()));
                 this._pendingState = new Map<string, RequestState>();
                 if (this._autoReconnectCallback) {
                     await this._autoReconnectCallback()

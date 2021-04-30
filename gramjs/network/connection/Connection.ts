@@ -60,10 +60,9 @@ class Connection {
         await this._connect();
         this._connected = true;
 
-        if (!this._sendTask) {
-            this._sendTask = this._sendLoop()
-        }
+        this._sendTask = this._sendLoop()
         this._recvTask = this._recvLoop()
+
     }
 
     async disconnect() {
@@ -74,6 +73,9 @@ class Connection {
 
     async send(data: Buffer) {
         if (!this._connected) {
+            // this will stop the current loop
+            // @ts-ignore
+            await this._sendArray(undefined);
             throw new Error('Not connected')
         }
         await this._sendArray.push(data)
@@ -82,7 +84,6 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop();
-
             // undefined = sentinel value = keep trying
             if (result && result.length) {
                 return result
