@@ -1084,7 +1084,7 @@ export function parseUsername(username: string): { username?: string, isInvite: 
         username = username.replace(m[0], '')
         if (m[1]) {
             return {
-                username: username.toLowerCase(),
+                username: username,
                 isInvite: true
             }
         } else {
