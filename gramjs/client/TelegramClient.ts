@@ -159,6 +159,7 @@ export class TelegramClient extends TelegramBaseClient {
     iterParticipants(entity: EntityLike, params: chatMethods.IterParticipantsParams) {
         return chatMethods.iterParticipants(this, entity, params);
     }
+
     getParticipants(entity: EntityLike, params: chatMethods.IterParticipantsParams) {
         return chatMethods.getParticipants(this, entity, params);
     }
@@ -407,7 +408,7 @@ export class TelegramClient extends TelegramBaseClient {
             this._config = await this.invoke(new Api.help.GetConfig())
         }
         for (const DC of this._config.dcOptions) {
-            if (DC.id === dcId) {
+            if (DC.id === dcId && !!DC.ipv6 === this._useIPV6) {
                 return {
                     id: DC.id,
                     ipAddress: DC.ipAddress,

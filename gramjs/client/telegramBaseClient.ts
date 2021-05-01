@@ -15,11 +15,11 @@ import type {EventBuilder} from "../events/common";
 
 const DEFAULT_DC_ID = 1;
 const DEFAULT_IPV4_IP = IS_NODE ? '149.154.167.51' : 'pluto.web.telegram.org';
-const DEFAULT_IPV6_IP = '[2001:67c:4e8:f002::a]';
+const DEFAULT_IPV6_IP = '2001:67c:4e8:f002::a';
 
 export interface TelegramClientParams {
     connection?: any,
-    useIPV6?: false,
+    useIPV6?: boolean,
     timeout?: number,
     requestRetries?: number,
     connectionRetries?: number,
@@ -57,9 +57,10 @@ export class TelegramBaseClient {
     public _floodWaitedRequests: any;
     public _borrowedSenderPromises: any;
     public _bot?: boolean;
+    public _useIPV6: boolean;
     public _selfInputPeer?: Api.InputPeerUser;
     public useWSS: boolean;
-    public _eventBuilders: [EventBuilder,CallableFunction][];
+    public _eventBuilders: [EventBuilder, CallableFunction][];
     public _entityCache: EntityCache;
     public _lastRequest?: number;
     public _parseMode?: ParseInterface;
@@ -97,6 +98,7 @@ export class TelegramBaseClient {
         this.session = session;
         this.apiId = apiId;
         this.apiHash = apiHash;
+        this._useIPV6 = useIPV6;
         this._requestRetries = requestRetries;
         this._connectionRetries = connectionRetries;
         this._retryDelay = retryDelay || 0;
@@ -142,11 +144,10 @@ export class TelegramBaseClient {
     async _initSession() {
         await this.session.load();
 
-        if (!this.session.serverAddress) {
-            this.session.setDC(DEFAULT_DC_ID, DEFAULT_IPV4_IP, this.useWSS ? 443 : 80)
+        if (!this.session.serverAddress || this.session.serverAddress.includes(":") !== this._useIPV6) {
+            this.session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, this.useWSS ? 443 : 80)
         }
     }
-
 
 
     get connected() {
@@ -183,7 +184,6 @@ export class TelegramBaseClient {
     }
 
     // endregion
-
 
 
 }
