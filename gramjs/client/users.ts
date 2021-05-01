@@ -1,7 +1,7 @@
 import {Api} from "../tl";
 import type {Entity, EntityLike} from "../define";
-import {getPeerId as peerUtils, isArrayLike} from "../Utils";
-import {_entityType, _EntityType, sleep} from "../Helpers";
+import {getPeerId as peerUtils } from "../Utils";
+import {_entityType, _EntityType, sleep,isArrayLike} from "../Helpers";
 import {errors, utils} from "../";
 import type {TelegramClient} from "../";
 import bigInt from 'big-integer';

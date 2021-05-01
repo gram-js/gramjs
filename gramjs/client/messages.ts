@@ -2,8 +2,8 @@ import {Api} from "../tl";
 import type {Message} from '../tl/custom/message';
 import type {DateLike, EntityLike, FileLike, MarkupLike, MessageIDLike, MessageLike} from "../define";
 import {RequestIter} from "../requestIter";
-import {_EntityType, _entityType, TotalList} from "../Helpers";
-import {getMessageId, getPeerId, isArrayLike} from "../Utils";
+import {_EntityType, _entityType, TotalList,isArrayLike} from "../Helpers";
+import {getMessageId, getPeerId} from "../Utils";
 import type {TelegramClient} from "../";
 import {utils} from "../";
 

@@ -2,7 +2,7 @@ import {Api} from "../tl";
 import type {ButtonLike, MarkupLike} from "../define";
 import {Button} from "../tl/custom/button";
 import {MessageButton} from "../tl/custom/messageButton";
-import {isArrayLike} from "../Utils";
+import {isArrayLike} from "../Helpers";
 
 // ButtonMethods
 export function buildReplyMarkup(buttons: Api.TypeReplyMarkup | undefined | ButtonLike | ButtonLike[] | ButtonLike[][], inlineOnly: boolean = false): Api.TypeReplyMarkup | undefined {

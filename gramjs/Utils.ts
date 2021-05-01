@@ -916,7 +916,6 @@ export function getPeer(peer: EntityLike) {
     _raiseCastFail(peer, 'peer')
 }
 
-export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function');
 
 export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface {
     if (mode === "md" || mode === "markdown") {

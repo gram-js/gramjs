@@ -1,6 +1,7 @@
 // Which updates have the following fields?
 
-import {getInputPeer, getPeerId, isArrayLike} from "./Utils";
+import {getInputPeer, getPeerId, } from "./Utils";
+import {isArrayLike} from './Helpers'
 import {Api} from "./tl";
 
 export class EntityCache {

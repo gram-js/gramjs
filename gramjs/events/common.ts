@@ -4,7 +4,7 @@ import {ChatGetter} from "../tl/custom/chatGetter";
 import type {TelegramClient} from "../client/TelegramClient";
 
 import bigInt from "big-integer";
-import {isArrayLike} from "../Utils";
+import {isArrayLike} from "../Helpers";
 import {utils} from "../";
 import {Message} from "../tl/patched";
 

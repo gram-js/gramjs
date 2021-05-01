@@ -3,7 +3,8 @@ import type {AuthKey} from "../crypto/AuthKey";
 import {Api} from "../tl";
 import bigInt from "big-integer";
 
-import {getDisplayName, getInputPeer, getPeerId, isArrayLike} from "../Utils";
+import {getDisplayName, getInputPeer, getPeerId} from "../Utils";
+import {isArrayLike} from "../Helpers";
 import {utils} from "../";
 import type {EntityLike} from "../define";
 

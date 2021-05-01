@@ -35,6 +35,11 @@ export function escapeRegex(string: string) {
     return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
+/**
+ * Helper to find if a given object is an array (or similar)
+ */
+export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function' && typeof x!=='string');
+
 /*
 export function addSurrogate(text: string) {
     let temp = "";

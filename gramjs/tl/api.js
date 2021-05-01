@@ -1,4 +1,7 @@
-const { generateRandomBytes, readBigIntFromBuffer } = require('../Helpers')
+const bigInt = require('big-integer')
+
+
+const { generateRandomBytes, readBigIntFromBuffer, isArrayLike } = require('../Helpers')
 
 
 function generateRandomBigInt() {
@@ -40,6 +43,23 @@ const AUTO_CASTS = new Set([
     'InputChatPhoto',
 ])
 
+class CastError extends Error {
+    constructor(objectName, expected, actual, ...params) {
+        // Pass remaining arguments (including vendor specific ones) to parent constructor
+        const message = 'Found wrong type for ' + objectName + '. expected ' + expected + ' but received ' + actual
+        super(message, ...params)
+
+        // Maintains proper stack trace for where our error was thrown (only available on V8)
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, CastError)
+        }
+
+        this.name = 'CastError'
+        // Custom debugging information
+    }
+}
+
+
 const CACHING_SUPPORTED = typeof self !== 'undefined' && self.localStorage !== undefined
 
 const CACHE_KEY = 'GramJs:apiCache'
@@ -57,11 +77,8 @@ function buildApiFromTlSchema() {
             localStorage.setItem(CACHE_KEY, JSON.stringify(definitions))
         }
     }
+    return createClasses('all', definitions)
 
-    return mergeWithNamespaces(
-        createClasses('constructor', definitions.constructors),
-        createClasses('request', definitions.requests),
-    )
 }
 
 function loadFromCache() {
@@ -74,22 +91,9 @@ function loadFromTlSchemas() {
     const [constructorParamsSchema, functionParamsSchema] = extractParams(schemeContent)
     const constructors = [].concat(constructorParamsApi, constructorParamsSchema)
     const requests = [].concat(functionParamsApi, functionParamsSchema)
-
-    return { constructors, requests }
+    return [].concat(constructors, requests)
 }
 
-function mergeWithNamespaces(obj1, obj2) {
-    const result = { ...obj1 }
-
-    Object.keys(obj2).forEach(key => {
-        if (typeof obj2[key] === 'function' || !result[key]) {
-            result[key] = obj2[key]
-        } else {
-            Object.assign(result[key], obj2[key])
-        }
-    })
-    return result
-}
 
 function extractParams(fileContent) {
     const f = parseTl(fileContent, 109)
@@ -208,24 +212,48 @@ function getArgFromReader(reader, arg) {
     }
 }
 
+function compareType(value, type) {
+    let correct = true
+    switch (type) {
+    case 'number':
+    case 'string':
+    case 'boolean':
+        correct = typeof value === type
+        break
+    case 'bigInt':
+        correct = bigInt.isInstance(value)
+        break
+    case 'true':
+        correct = value
+    case 'buffer':
+        correct = Buffer.isBuffer(value)
+        break
+    case 'date':
+        correct = (value && Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value)) || typeof value === 'number'
+        break
+    default:
+        throw new Error('Unknown type.' + type)
+    }
+    return correct
+}
+
 
 function createClasses(classesType, params) {
     const classes = {}
     for (const classParams of params) {
-        const { name, constructorId, subclassOfId, argsConfig, namespace, result } = classParams
+        const { name, constructorId, subclassOfId, argsConfig, namespace, isFunction, result } = classParams
         const fullName = [namespace, name].join('.').replace(/^\./, '')
-
 
         class VirtualClass {
             static CONSTRUCTOR_ID = constructorId
             static SUBCLASS_OF_ID = subclassOfId
             static className = fullName
-            static classType = classesType
+            static classType = isFunction ? 'request' : 'constructor'
 
             CONSTRUCTOR_ID = constructorId
             SUBCLASS_OF_ID = subclassOfId
             className = fullName
-            classType = classesType
+            classType = isFunction ? 'request' : 'constructor'
 
             constructor(args) {
                 args = args || {}
@@ -266,8 +294,72 @@ function createClasses(classesType, params) {
                 return new this(args)
             }
 
+            validate() {
+                for (const arg in argsConfig) {
+                    if (argsConfig.hasOwnProperty(arg)) {
+                        const currentValue = this[arg]
+                        this.assertType(arg, argsConfig[arg], currentValue)
+
+
+                    }
+                }
+            }
+
+            assertType(objectName, object, value) {
+                let expected
+                if (object['isVector']) {
+                    if (!isArrayLike(value)) {
+                        throw new CastError(objectName, 'array', value)
+                    }
+                    for (const o of value) {
+                        this.assertType(objectName, { ...object, isVector: false }, o)
+                    }
+                } else {
+
+
+                    switch (object['type']) {
+                    case 'int':
+                        expected = 'number'
+                        break
+                    case 'long':
+                    case 'int128':
+                    case 'int256':
+                    case 'double':
+                        expected = 'bigInt'
+                        break
+                    case 'string':
+                        expected = 'string'
+                        break
+                    case 'Bool':
+                        expected = 'boolean'
+                        break
+                    case 'true':
+                        expected = 'true'
+                        break
+                    case 'bytes':
+                        expected = 'buffer'
+                        break
+                    case 'date':
+                        expected = 'date'
+                        break
+                    default:
+                        expected = 'object'
+                    }
+                    if (expected === 'object') {
+                        // will be validated in get byte();
+
+                    } else {
+                        const isCorrectType = compareType(value, expected)
+                        if (isCorrectType !== true) {
+                            throw new CastError(objectName, expected, value)
+                        }
+                    }
+                }
+            }
+
             getBytes() {
-                // The next is pseudo-code:
+                this.validate()
+
                 const idForBytes = this.CONSTRUCTOR_ID
                 const c = Buffer.alloc(4)
                 c.writeUInt32LE(idForBytes, 0)
@@ -323,7 +415,7 @@ function createClasses(classesType, params) {
             }
 
             readResult(reader) {
-                if (classesType !== 'request') {
+                if (!isFunction) {
                     throw new Error('`readResult()` called for non-request instance')
                 }
 
@@ -348,7 +440,7 @@ function createClasses(classesType, params) {
             }
 
             async resolve(client, utils) {
-                if (classesType !== 'request') {
+                if (!isFunction) {
                     throw new Error('`resolve()` called for non-request instance')
                 }
                 for (const arg in argsConfig) {
