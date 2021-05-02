@@ -358,7 +358,7 @@ function createClasses(classesType, params) {
             }
 
             getBytes() {
-                this.validate()
+                // this.validate()
 
                 const idForBytes = this.CONSTRUCTOR_ID
                 const c = Buffer.alloc(4)
