@@ -143,6 +143,11 @@ export class NewMessageEvent extends EventCommon {
     _setClient(client: TelegramClient) {
         super._setClient(client);
         const m = this.message;
-        m._finishInit(client, this.message._entities, undefined);
+        try {
+            // todo make sure this never fails
+            m._finishInit(client, this.message._entities, undefined);
+        } catch (e) {
+
+        }
     }
 }

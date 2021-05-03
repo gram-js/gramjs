@@ -150,9 +150,17 @@ export function _getEntityPair(entityId: number, entities: Map<number, Entity>,
                                getInputPeerFunction: any = getInputPeer): [Entity?, Api.TypeInputPeer?] {
 
     const entity = entities.get(entityId);
-    let inputEntity = cache.get(entityId);
-    if (!inputEntity) {
-        inputEntity = getInputPeerFunction(inputEntity);
+    let inputEntity;
+    try {
+        inputEntity = cache.get(entityId);
+
+    } catch (e) {
+        try {
+            inputEntity = getInputPeerFunction(inputEntity);
+
+        } catch (e) {
+
+        }
     }
     return [entity, inputEntity]
 
