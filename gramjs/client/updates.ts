@@ -17,7 +17,7 @@ export function on(client: TelegramClient, event: any) {
 export function addEventHandler(client: TelegramClient, callback: CallableFunction, event?: EventBuilder) {
     if (event == undefined) {
         // recursive imports :(
-        const raw = require("../events/Raw");
+        const raw = require("../events/Raw").Raw;
         event = new raw({}) as Raw;
     }
     client._eventBuilders.push([event, callback])
