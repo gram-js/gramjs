@@ -2,7 +2,7 @@ import {Api} from "../tl";
 import type {Message} from '../tl/custom/message';
 import type {DateLike, EntityLike, FileLike, MarkupLike, MessageIDLike, MessageLike} from "../define";
 import {RequestIter} from "../requestIter";
-import {_EntityType, _entityType, TotalList,isArrayLike} from "../Helpers";
+import {_EntityType, _entityType, TotalList, isArrayLike} from "../Helpers";
 import {getMessageId, getPeerId} from "../Utils";
 import type {TelegramClient} from "../";
 import {utils} from "../";
@@ -197,7 +197,12 @@ export class _MessagesIter extends RequestIter {
                 return true;
             }
             this.lastId = message.id;
-            message._finishInit(this.client, entities, this.entity);
+            try {
+                // if this fails it shouldn't be a big problem
+                message._finishInit(this.client, entities, this.entity);
+            } catch (e) {
+
+            }
             this.buffer?.push(message);
         }
         if (r.messages.length < this.request.limit) {
@@ -225,12 +230,13 @@ export class _MessagesIter extends RequestIter {
         }
         return true;
     }
+
     [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
         return super[Symbol.asyncIterator]();
     }
 
     _updateOffset(lastMessage: Message, response: any) {
-        if (!this.request){
+        if (!this.request) {
             throw new Error("Request not set yet");
         }
         this.request.offsetId = Number(lastMessage.id);
@@ -273,6 +279,7 @@ export class _IDsIter extends RequestIter {
             this.waitTile = this.limit > 300 ? 10 : 0;
         }
     }
+
     [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
         return super[Symbol.asyncIterator]();
     }

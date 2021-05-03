@@ -1,6 +1,6 @@
 import {Api} from "../tl";
 import type {EntityLike} from "../define";
-import {ChatGetter} from "../tl/custom/chatGetter";
+import {ChatGetter} from "../tl/custom";
 import type {TelegramClient} from "../client/TelegramClient";
 
 import bigInt from "big-integer";
@@ -82,7 +82,7 @@ export class EventBuilder {
         this.chats = await _intoIdSet(client, this.chats);
     }
 
-    filter(event: any) {
+    filter(event: any): undefined | EventBuilder {
         if (!this.resolved) {
             return
         }
@@ -91,10 +91,11 @@ export class EventBuilder {
             if (inside == this.blacklistChats) {
                 // If this chat matches but it's a blacklist ignore.
                 // If it doesn't match but it's a whitelist ignore.
-                return undefined;
+                return;
 
             }
         }
+        return event;
     }
 }
 

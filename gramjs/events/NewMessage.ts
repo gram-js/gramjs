@@ -96,26 +96,27 @@ export class NewMessage extends EventBuilder {
         }
     }
 
-    filter(event: Message): any {
+    filter(event: NewMessageEvent): any {
         if (this._noCheck) {
             return event;
         }
-        if (this.incoming && event.out) {
+        if (this.incoming && event.message.out) {
             return
         }
-        if (this.outgoing && !event.out) {
+        if (this.outgoing && !event.message.out) {
             return;
         }
         if (this.forwards != undefined) {
-            if (this.forwards != !!event.fwdFrom) {
+            if (this.forwards != !!event.message.fwdFrom) {
+                return;
             }
         }
         if (this.pattern) {
-            const match = event.message.match(this.pattern);
+            const match = event.message.message.match(this.pattern);
             if (!match) {
                 return
             }
-            event.patternMatch = match;
+            event.message.patternMatch = match;
         }
         return super.filter(event);
     }
