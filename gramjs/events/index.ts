@@ -1,2 +1,2 @@
 export {Raw} from "./Raw";
-export {NewMessage} from "./NewMessage";
+export {NewMessage, NewMessageEvent} from "./NewMessage";
