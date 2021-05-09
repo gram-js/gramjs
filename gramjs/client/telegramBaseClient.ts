@@ -33,7 +33,7 @@ export interface TelegramClientParams {
     langCode?: 'en',
     systemLangCode?: 'en',
     baseLogger?: string | any,
-    useWSS?: false,
+    useWSS?: boolean,
 }
 
 export class TelegramBaseClient {
@@ -81,7 +81,7 @@ export class TelegramBaseClient {
         langCode = 'en',
         systemLangCode = 'en',
         baseLogger = 'gramjs',
-        useWSS = false,
+        useWSS = typeof window !== 'undefined' ? window.location.protocol == 'https:' : false,
     }: TelegramClientParams) {
         if (!apiId || !apiHash) {
             throw new Error("Your API ID or Hash cannot be empty or undefined");
