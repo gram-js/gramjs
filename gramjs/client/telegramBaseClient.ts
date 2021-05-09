@@ -33,7 +33,7 @@ export interface TelegramClientParams {
     langCode?: 'en',
     systemLangCode?: 'en',
     baseLogger?: string | any,
-    useWSS?: false,
+    useWSS?: boolean,
 }
 
 export class TelegramBaseClient {
