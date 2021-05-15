@@ -56,7 +56,7 @@ export class NewMessage extends EventBuilder {
             if (!(update.message instanceof Api.Message) && !(update.message instanceof Message)) {
                 return undefined;
             }
-            const event = new NewMessageEvent(update.message as Message);
+            const event = new NewMessageEvent(update.message as Message, update);
             this.addAttributes(event);
             return event;
         } else if (update instanceof Api.UpdateShortMessage) {
@@ -75,7 +75,7 @@ export class NewMessage extends EventBuilder {
                 replyTo: update.replyTo,
                 entities: update.entities,
                 // ttlPeriod:update.ttlPeriod
-            }))
+            }), update)
         } else if (update instanceof Api.UpdateShortChatMessage) {
             return new NewMessageEvent(new Message({
                 out: update.out,
@@ -92,7 +92,7 @@ export class NewMessage extends EventBuilder {
                 replyTo: update.replyTo,
                 entities: update.entities,
                 // ttlPeriod:update.ttlPeriod
-            }))
+            }), update)
         }
     }
 
@@ -130,13 +130,15 @@ export class NewMessage extends EventBuilder {
 
 export class NewMessageEvent extends EventCommon {
     message: Message;
+    originalUpdate: Api.TypeUpdate;
 
-    constructor(message: Message) {
+    constructor(message: Message, originalUpdate: Api.TypeUpdate) {
         super({
             msgId: message.id,
             chatPeer: message.peerId,
             broadcast: message.post,
         });
+        this.originalUpdate = originalUpdate;
         this.message = message;
     }
 

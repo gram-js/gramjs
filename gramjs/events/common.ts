@@ -109,14 +109,12 @@ export class EventCommon extends ChatGetter {
     _eventName = "Event";
     _entities: any;
     _messageId?: number;
-    originalUpdate: undefined;
 
     constructor({chatPeer = undefined, msgId = undefined, broadcast = undefined}: EventCommonInterface) {
         super({chatPeer, broadcast});
         this._entities = {};
         this._client = undefined;
         this._messageId = msgId;
-        this.originalUpdate = undefined;
     }
 
     _setClient(client: TelegramClient) {
