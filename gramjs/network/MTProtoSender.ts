@@ -202,8 +202,6 @@ export class MTProtoSender {
                 if (attempt === 0 && eventDispatch) {
                     eventDispatch({update: new UpdateConnectionState(-1)})
                 }
-                console.dir(e);
-
                 this._log.error('WebSocket connection failed attempt : ' + (attempt + 1));
                 await sleep(this._delay)
             }
@@ -434,7 +432,6 @@ export class MTProtoSender {
                 } else {
                     this._log.error('Unhandled error while receiving data');
                     this._log.error(e);
-                    console.log(e);
                     this._startReconnect();
                     return
                 }
@@ -443,7 +440,6 @@ export class MTProtoSender {
                 await this._processMessage(message)
             } catch (e) {
                 this._log.error('Unhandled error while receiving data');
-                console.log(e);
                 this._log.error(e)
             }
         }
@@ -555,7 +551,6 @@ export class MTProtoSender {
         } else {
             const reader = new BinaryReader(RPCResult.body);
             const read = state.request.readResult(reader);
-            //console.log("patcfh goes here ?", read);
             state.resolve(read)
         }
     }
@@ -835,7 +830,6 @@ export class MTProtoSender {
                 break
             } catch (e) {
                 this._log.error('WebSocket connection failed attempt : ' + (attempt + 1));
-                console.log(e);
                 await sleep(this._delay)
             }
         }

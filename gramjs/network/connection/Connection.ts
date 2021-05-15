@@ -119,7 +119,7 @@ class Connection {
             } catch (e) {
                 this._log.info('connection closed');
                 //await this._recvArray.push()
-                console.log(e);
+
                 this.disconnect();
                 return
             }

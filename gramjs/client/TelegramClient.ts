@@ -360,7 +360,7 @@ export class TelegramClient extends TelegramBaseClient {
                 sender.dcId = dcId;
                 return sender
             } catch (e) {
-                console.log(e);
+
                 await sender.disconnect()
             }
         }
