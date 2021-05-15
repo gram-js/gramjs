@@ -153,6 +153,9 @@ export class TelegramClient extends TelegramBaseClient {
         return messageMethods.sendMessage(this, entity, params)
     }
 
+    editMessage(entity: EntityLike, params: messageMethods.EditMessageParams) {
+        return messageMethods.editMessage(this, entity, params)
+    }
     //endregion
 
     //region chats

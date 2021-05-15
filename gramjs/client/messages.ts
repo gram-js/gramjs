@@ -365,6 +365,18 @@ export interface SendMessageParams {
     schedule?: DateLike;
 }
 
+export interface EditMessageParams {
+    message: Api.Message | number;
+    text: string;
+    parseMode?: any;
+    formattingEntities?: Api.TypeMessageEntity[];
+    linkPreview?: boolean;
+    file?: FileLike | FileLike[];
+    forceDocument?: false;
+    buttons?: MarkupLike;
+    schedule?: DateLike;
+}
+
 //  MessageMethods {
 
 export function iterMessages(client: TelegramClient, entity: EntityLike, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
@@ -495,6 +507,43 @@ export async function sendMessage(client: TelegramClient,
     }
     const result = await client.invoke(request);
     return result;
+    //return client._getResponseMessage(request, result, entity);
+}
+
+/**
+ * Used to edit a message by changing it's text or media
+ * message refers to the message to be edited not what to edit
+ * text refers to the new text
+ */
+export async function editMessage(client: TelegramClient,
+                                  entity: EntityLike,
+                                  {
+                                      message,
+                                      text,
+                                      parseMode,
+                                      formattingEntities,
+                                      linkPreview = true,
+                                      file,
+                                      forceDocument,
+                                      buttons,
+                                      schedule
+                                  }: EditMessageParams) {
+
+    entity = await client.getInputEntity(entity);
+    if (formattingEntities == undefined) {
+        [text, formattingEntities] = await client._parseMessageText(text, parseMode);
+    }
+    const msg = await client.invoke(new Api.messages.EditMessage({
+        peer:entity,
+        id:utils.getMessageId(message),
+        message:text,
+        noWebpage:!linkPreview,
+        entities:formattingEntities,
+        //media: no media for now,
+        replyMarkup:client.buildReplyMarkup(buttons),
+        scheduleDate:schedule,
+    }));
+    return msg;
     //return client._getResponseMessage(request, result, entity);
 }
 
