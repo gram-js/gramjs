@@ -17,6 +17,8 @@ The output will be in `browser` folder.
 In the browser gramjs will use localstorage to not regenerate api methods each run.
 check the `examples` folder for more info.
 
+## Generate Session String
+To Generate Session String , Simply Run ` npx tgsession ` and Provide Required Details 
 
 ## Using raw api
 Currently you can use any raw api function using `await client.invoke(new RequestClass(args))` .
