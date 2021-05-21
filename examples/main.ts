@@ -3,13 +3,14 @@ import {TelegramClient} from "telegram";
 import {StringSession} from "telegram/sessions";
 import {NewMessage} from "telegram/events";
 import {NewMessageEvent} from "telegram/events/NewMessage";
+import {Message} from 'telegram/tl/custom/message';
 
 const apiId = ;
 const apiHash = '';
 const stringSession = '';
 
 async function eventPrint(event: NewMessageEvent) {
-    const message = event.message;
+    const message = event.message as Message;
 
     // Checks if it's a private message (from user or bot)
     if (event.isPrivate){
