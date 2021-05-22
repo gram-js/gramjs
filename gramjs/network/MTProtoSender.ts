@@ -247,7 +247,7 @@ export class MTProtoSender {
      * @param request
      * @returns {RequestState}
      */
-    send(request: Api.AnyRequest) {
+    send(request: Api.AnyRequest): any {
         if (!this._userConnected) {
             throw new Error('Cannot send requests while disconnected')
         }

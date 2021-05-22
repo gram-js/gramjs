@@ -324,7 +324,7 @@ export class TelegramClient extends TelegramBaseClient {
         return this.connect()
     }
 
-    async _createExportedSender(dcId: number, retries: number) {
+    async _createExportedSender(dcId: number, retries: number):Promise<MTProtoSender> {
         const dc = await this.getDC(dcId);
         const sender = new MTProtoSender(this.session.getAuthKey(dcId),
             {
@@ -367,7 +367,7 @@ export class TelegramClient extends TelegramBaseClient {
                 await sender.disconnect()
             }
         }
-        return null
+        throw new Error("Could not create sender for DC "+dcId)
     }
 
     async getDC(dcId: number): Promise<{ id: number, ipAddress: string, port: number }> {

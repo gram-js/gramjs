@@ -2,6 +2,7 @@ import {Api} from '../tl';
 import type {TelegramClient} from './TelegramClient';
 import {getAppropriatedPartSize, strippedPhotoToJpg} from '../Utils';
 import {sleep} from '../Helpers';
+import {MTProtoSender} from "../network";
 
 
 export interface progressCallback {
@@ -60,10 +61,11 @@ export async function downloadFile(
         throw new Error(`The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`);
     }
 
-    let sender: any;
+    let sender: MTProtoSender;
     if (dcId) {
         try {
             sender = await client._borrowExportedSender(dcId);
+            client._log.debug(`Finished creating sender for ${dcId}`)
         } catch (e) {
             // This should never raise
             client._log.error(e);
