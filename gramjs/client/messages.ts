@@ -203,6 +203,7 @@ export class _MessagesIter extends RequestIter {
             } catch (e) {
 
             }
+            message._entities = entities;
             this.buffer?.push(message);
         }
         if (r.messages.length < this.request.limit) {
@@ -329,7 +330,15 @@ export class _IDsIter extends RequestIter {
             if (message instanceof Api.MessageEmpty || fromId && message.peerId != fromId) {
                 this.buffer?.push(undefined)
             } else {
-                this.buffer?.push(message);
+                const temp:Message = message as unknown as Message;
+                try{
+                    temp._finishInit(this.client,entities,this._entity);
+                }catch (e) {
+                    // we don't care about errors here
+                    this.client._log.warn("Failed to finish entities for message "+temp.id);
+                }
+                temp._entities = entities;
+                this.buffer?.push(temp);
             }
         }
     }
