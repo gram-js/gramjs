@@ -330,12 +330,12 @@ export class _IDsIter extends RequestIter {
             if (message instanceof Api.MessageEmpty || fromId && message.peerId != fromId) {
                 this.buffer?.push(undefined)
             } else {
-                const temp:Message = message as unknown as Message;
-                try{
-                    temp._finishInit(this.client,entities,this._entity);
-                }catch (e) {
+                const temp: Message = message as unknown as Message;
+                try {
+                    temp._finishInit(this.client, entities, this._entity);
+                } catch (e) {
                     // we don't care about errors here
-                    this.client._log.warn("Failed to finish entities for message "+temp.id);
+                    this.client._log.warn("Failed to finish entities for message " + temp.id);
                 }
                 temp._entities = entities;
                 this.buffer?.push(temp);
@@ -388,7 +388,7 @@ export interface EditMessageParams {
 
 //  MessageMethods {
 
-export function iterMessages(client: TelegramClient, entity: EntityLike, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
+export function iterMessages(client: TelegramClient, entity: EntityLike | undefined, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
     if (ids) {
         if (typeof ids == 'number') {
             ids = [ids]
@@ -418,7 +418,7 @@ export function iterMessages(client: TelegramClient, entity: EntityLike, {limit,
     })
 }
 
-export async function getMessages(client: TelegramClient, entity: EntityLike, params: IterMessagesParams): Promise<TotalList<Message>> {
+export async function getMessages(client: TelegramClient, entity: EntityLike | undefined, params: IterMessagesParams): Promise<TotalList<Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
             params.limit = undefined;
@@ -543,14 +543,14 @@ export async function editMessage(client: TelegramClient,
         [text, formattingEntities] = await client._parseMessageText(text, parseMode);
     }
     const msg = await client.invoke(new Api.messages.EditMessage({
-        peer:entity,
-        id:utils.getMessageId(message),
-        message:text,
-        noWebpage:!linkPreview,
-        entities:formattingEntities,
+        peer: entity,
+        id: utils.getMessageId(message),
+        message: text,
+        noWebpage: !linkPreview,
+        entities: formattingEntities,
         //media: no media for now,
-        replyMarkup:client.buildReplyMarkup(buttons),
-        scheduleDate:schedule,
+        replyMarkup: client.buildReplyMarkup(buttons),
+        scheduleDate: schedule,
     }));
     return msg;
     //return client._getResponseMessage(request, result, entity);

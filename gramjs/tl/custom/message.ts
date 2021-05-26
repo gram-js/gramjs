@@ -215,7 +215,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     get text() {
-        if (this._text===undefined && this._client) {
+        if (this._text === undefined && this._client) {
             if (!this._client.parseMode) {
                 this._text = this.message
             } else {
@@ -254,6 +254,43 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
 
     get forward() {
         return this._forward
+    }
+
+    async _refetchSender() {
+        await this._reloadMessage()
+    }
+
+    /**
+     * Re-fetches this message to reload the sender and chat entities,
+     * along with their input versions.
+     * @private
+     */
+    async _reloadMessage() {
+        if (!this._client) return;
+        let msg: Message | undefined = undefined;
+        try {
+            const chat = this.isChannel ? await this.getInputChat() : undefined;
+            let temp = await this._client.getMessages(chat, {ids: this.id});
+            if (temp) {
+                msg = temp[0];
+            }
+
+        } catch (e) {
+            this._client._log.error("Got error while trying to finish init message with id " + this.id);
+            if (this._client._log.canSend('error')) {
+                console.log(e);
+            }
+        }
+        if (msg == undefined) return;
+
+        this._sender = msg._sender;
+        this._inputSender = msg._inputSender;
+        this._chat = msg._chat;
+        this._inputChat = msg._inputChat;
+        this._viaBot = msg._viaBot;
+        this._viaInputBot = msg._viaInputBot;
+        this._forward = msg._forward;
+        this._actionEntities = msg._actionEntities
     }
 
     /*
@@ -600,27 +637,8 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 }
             }
 
-            async _reloadMessage() {
-                if (!this._client) return;
 
-                const chat = this.isChannel ? this.getInputChat() : undefined;
-                const msg = this._client.getMessages({chat, ids: this.id});
 
-                if (!msg) return;
-
-                this._sender = msg._sender;
-                this._inputSender = msg._inputender;
-                this._chat = msg._chat;
-                this._inputChat = msg._inputChat;
-                this._viaBot = msg._viaBot;
-                this._viaInputBot = msg._viaInputBot;
-                this._forward = msg._forward;
-                this._actionEntities = msg._actionEntities
-            }
-
-            async _refetchSender() {
-                await this._reloadMessage()
-            }
 
             _setButtons(chat, bot) {
                 // TODO: Implement MessageButton

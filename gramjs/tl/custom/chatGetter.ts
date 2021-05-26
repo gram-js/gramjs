@@ -49,7 +49,11 @@ export class ChatGetter {
 
     get inputChat() {
         if (!this._inputChat && this._chatPeer && this._client) {
-            this._inputChat = this._client._entityCache.get(this._chatPeer);
+            try{
+                this._inputChat = this._client._entityCache.get(this._chatPeer);
+            }catch (e) {
+
+            }
         }
         return this._inputChat;
     }

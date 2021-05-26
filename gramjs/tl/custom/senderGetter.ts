@@ -32,7 +32,7 @@ export class SenderGetter {
     }
 
     async getSender() {
-        if (this._client && (!this._sender || !(this._sender instanceof Api.Channel) || this._sender.min && await this.getInputSender())) {
+        if (this._client && (!this._sender || ((this._sender instanceof Api.Channel) && this._sender.min)) && (await this.getInputSender())) {
             try {
                 this._sender = await this._client.getEntity(this._inputSender);
             } catch (e) {
@@ -47,7 +47,12 @@ export class SenderGetter {
 
     get inputSender() {
         if (!this._inputSender && this._senderId && this._client) {
-            this._inputSender = this._client._entityCache.get(this._senderId);
+            try {
+                this._inputSender = this._client._entityCache.get(this._senderId);
+
+            }catch (e) {
+
+            }
 
         }
         return this._inputSender;

@@ -141,11 +141,11 @@ export class TelegramClient extends TelegramBaseClient {
 
     //endregion
     // region messages
-    iterMessages(entity: EntityLike, params: messageMethods.IterMessagesParams) {
+    iterMessages(entity: EntityLike | undefined, params: messageMethods.IterMessagesParams) {
         return messageMethods.iterMessages(this, entity, params)
     }
 
-    getMessages(entity: EntityLike, params: messageMethods.IterMessagesParams) {
+    getMessages(entity: EntityLike | undefined, params: messageMethods.IterMessagesParams) {
         return messageMethods.getMessages(this, entity, params);
     }
 
@@ -156,6 +156,7 @@ export class TelegramClient extends TelegramBaseClient {
     editMessage(entity: EntityLike, params: messageMethods.EditMessageParams) {
         return messageMethods.editMessage(this, entity, params)
     }
+
     //endregion
 
     //region chats
@@ -324,7 +325,7 @@ export class TelegramClient extends TelegramBaseClient {
         return this.connect()
     }
 
-    async _createExportedSender(dcId: number, retries: number):Promise<MTProtoSender> {
+    async _createExportedSender(dcId: number, retries: number): Promise<MTProtoSender> {
         const dc = await this.getDC(dcId);
         const sender = new MTProtoSender(this.session.getAuthKey(dcId),
             {
@@ -367,7 +368,7 @@ export class TelegramClient extends TelegramBaseClient {
                 await sender.disconnect()
             }
         }
-        throw new Error("Could not create sender for DC "+dcId)
+        throw new Error("Could not create sender for DC " + dcId)
     }
 
     async getDC(dcId: number): Promise<{ id: number, ipAddress: string, port: number }> {

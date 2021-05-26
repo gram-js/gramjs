@@ -59,6 +59,7 @@ export class NewMessage extends EventBuilder {
             this.addAttributes(event);
             return event;
         } else if (update instanceof Api.UpdateShortMessage) {
+
             return new NewMessageEvent(new Message({
                 out: update.out,
                 mentioned: update.mentioned,
