@@ -5,6 +5,7 @@ import type {TelegramClient} from "../";
 import bigInt from 'big-integer';
 import {UpdateConnectionState} from "../network";
 import type {Raw} from "../events";
+import {utils} from "../index";
 
 // export class UpdateMethods {
 export function on(client: TelegramClient, event: any) {
@@ -51,9 +52,9 @@ export function _handleUpdate(client: TelegramClient, update: Api.TypeUpdate | n
 
     if (update instanceof Api.Updates || update instanceof Api.UpdatesCombined) {
         // TODO deal with entities
-        const entities = []
+        const entities = new Map();
         for (const x of [...update.users, ...update.chats]) {
-            entities.push(x)
+            entities.set(utils.getPeerId(x),x);
         }
         for (const u of update.updates) {
             client._processUpdate(u, update.updates, entities)
@@ -66,11 +67,11 @@ export function _handleUpdate(client: TelegramClient, update: Api.TypeUpdate | n
 }
 
 export function _processUpdate(client: TelegramClient, update: any, others: any, entities?: any) {
-    update._entities = entities || {};
+    update._entities = entities || new Map();
     const args = {
         update: update,
         others: others,
-    }
+    };
 
     client._dispatchUpdate(args)
 }

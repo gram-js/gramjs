@@ -1,9 +1,8 @@
 import {_intoIdSet, EventBuilder, EventCommon} from "./common";
-import type {EntityLike} from "../define";
+import type {Entity, EntityLike} from "../define";
 import type {TelegramClient} from "../client/TelegramClient";
 import {Api} from "../tl";
 import {Message} from "../tl/patched";
-import {Mixin} from 'ts-mixer';
 
 interface NewMessageInterface {
     chats?: EntityLike[],
@@ -130,7 +129,7 @@ export class NewMessage extends EventBuilder {
 
 export class NewMessageEvent extends EventCommon {
     message: Message;
-    originalUpdate: Api.TypeUpdate;
+    originalUpdate: Api.TypeUpdate & { _entities?: Map<number, Entity> };
 
     constructor(message: Message, originalUpdate: Api.TypeUpdate) {
         super({
@@ -147,9 +146,12 @@ export class NewMessageEvent extends EventCommon {
         const m = this.message;
         try {
             // todo make sure this never fails
-            m._finishInit(client, this.message._entities, undefined);
+            m._finishInit(client, this.originalUpdate._entities || new Map(), undefined);
         } catch (e) {
-
+            client._log.error("Got error while trying to finish init message with id " + m.id);
+            if (client._log.canSend('error')){
+                console.log(e);
+            }
         }
     }
 }

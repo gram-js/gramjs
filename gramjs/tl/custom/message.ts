@@ -171,7 +171,6 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     _finishInit(client: TelegramClient, entities: Map<number, Entity>, inputChat?: EntityLike) {
         this._client = client;
         const cache = client._entityCache;
-
         if (this.senderId) {
             [this._sender, this._inputSender] = utils._getEntityPair(this.senderId, entities, cache);
         }

@@ -1,5 +1,5 @@
 import {Api} from "../tl";
-import type {EntityLike} from "../define";
+import type {Entity, EntityLike} from "../define";
 import {ChatGetter} from "../tl/custom";
 import type {TelegramClient} from "../client/TelegramClient";
 
@@ -107,12 +107,12 @@ interface EventCommonInterface {
 
 export class EventCommon extends ChatGetter {
     _eventName = "Event";
-    _entities: any;
+    _entities: Map<number, Entity>;
     _messageId?: number;
 
     constructor({chatPeer = undefined, msgId = undefined, broadcast = undefined}: EventCommonInterface) {
         super({chatPeer, broadcast});
-        this._entities = {};
+        this._entities = new Map();
         this._client = undefined;
         this._messageId = msgId;
     }
