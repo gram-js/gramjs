@@ -91,6 +91,7 @@ export class TelegramBaseClient {
         } else {
             this._log = baseLogger
         }
+        this._log.debug("Running gramJS version "+version);
         if (!(session instanceof StoreSession) && !(session instanceof StringSession)) {
             throw new Error("Only StringSession and StoreSessions are supported currently :( ");
         }
