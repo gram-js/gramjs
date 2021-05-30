@@ -72,6 +72,9 @@ export async function getMe(client: TelegramClient, inputPeer = false): Promise<
         }
         return inputPeer ? client._selfInputPeer : me;
     } catch (e) {
+        if (client._log.canSend('error')){
+            console.log(e);
+        }
         throw new Error("Could not get me");
     }
 }
