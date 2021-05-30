@@ -810,8 +810,7 @@ export function getInputMedia(media: any, {isPhoto = false, attributes = null, f
     }
     if (((media instanceof Api.MessageMediaEmpty) || (media instanceof Api.MessageMediaUnsupported)
         || (media instanceof Api.ChatPhotoEmpty) || (media instanceof Api.UserProfilePhotoEmpty) ||
-        (media instanceof Api.ChatPhoto) || (media instanceof Api.UserProfilePhoto) ||
-        (media instanceof Api.FileLocationToBeDeprecated))) {
+        (media instanceof Api.ChatPhoto) || (media instanceof Api.UserProfilePhoto))) {
         return new Api.InputMediaEmpty();
     }
     if ((media instanceof Api.Message)) {

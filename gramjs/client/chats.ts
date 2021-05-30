@@ -222,12 +222,16 @@ export class _ParticipantsIter extends RequestIter {
                 this.requests.splice(i, 1);
                 continue;
             }
+
             this.requests[i].offset += participants.participants.length;
             const users = new Map();
             for (const user of participants.users) {
                 users.set(user.id, user);
             }
             for (const participant of participants.participants) {
+                if (!("userId" in participant)){
+                    continue;
+                }
                 const user = users.get(participant.userId);
                 if (this.filterEntity && !this.filterEntity(user)) {
                     continue;
