@@ -145,15 +145,42 @@ export interface SendFileInterface {
     voiceNote?: boolean,
     videoNote?: boolean,
     supportStreaming?: boolean,
+    parseMode?: any,
+    formattingEntities?: Api.TypeMessageEntity[],
+    silent?: boolean;
+    background?: boolean;
+    clearDraft?: boolean;
+    replyMarkup?: Api.TypeReplyMarkup;
+    scheduleDate?: number;
+
 }
 
-export async function sendFile(client: TelegramClient, entity: EntityLike, {file, caption, forceDocument, fileSize, progressCallback, replyTo, attributes, thumb, voiceNote, videoNote, supportStreaming}: SendFileInterface) {
+export async function sendFile(client: TelegramClient, entity: EntityLike,
+                               {   file,
+                                   caption,
+                                   forceDocument,
+                                   fileSize,
+                                   progressCallback,
+                                   replyTo,
+                                   attributes,
+                                   thumb, voiceNote,
+                                   videoNote,
+                                   supportStreaming,
+                                   parseMode, formattingEntities,
+                                   scheduleDate,
+                                   replyMarkup,
+                                   clearDraft,
+                               }: SendFileInterface) {
     if (!file) {
         throw new Error("You need to specify a file");
     }
     if (!caption) {
         caption = ""
     }
+    if (formattingEntities == undefined) {
+        [caption, formattingEntities] = await client._parseMessageText(caption, parseMode);
+    }
+
     if (typeof file == "string") {
         file = new CustomFile(path.basename(file), fs.statSync(file).size, file);
     }
@@ -179,7 +206,7 @@ export async function sendFile(client: TelegramClient, entity: EntityLike, {file
         attributes.push(...result.attrs);
     }
     let toSend;
-    if (mimeType.startsWith("photo/")) {
+    if (mimeType.startsWith("photo/") || mimeType.startsWith("image/")) {
         toSend = new Api.InputMediaUploadedPhoto({
             file: media,
         })
@@ -196,6 +223,10 @@ export async function sendFile(client: TelegramClient, entity: EntityLike, {file
         media: toSend,
         replyToMsgId: replyTo,
         message: caption,
+        entities:formattingEntities,
+        scheduleDate,
+        replyMarkup,
+        clearDraft,
     }));
     // TODO get result
     return result;
