@@ -1,4 +1,4 @@
-import  {Session} from './Abstract';
+import {Session} from './Abstract';
 import type {AuthKey} from "../crypto/AuthKey";
 import {Api} from "../tl";
 import bigInt from "big-integer";
@@ -63,15 +63,24 @@ export class MemorySession extends Session {
         this._takeoutId = value
     }
 
-    /*
-        getUpdateState(entityId:number) {
-            return this._updateStates[entityId]
+    getAuthKey(dcId?: number) {
+        if (dcId && dcId !== this.dcId) {
+            // Not supported.
+            return undefined
         }
 
-        setUpdateState(entityId, state) {
-            return this._updateStates[entityId] = state
+        return this.authKey
+    }
+
+    setAuthKey(authKey?: AuthKey, dcId?: number) {
+        if (dcId && dcId !== this.dcId) {
+            // Not supported.
+            return undefined
         }
-    */
+
+        this.authKey = authKey
+    }
+
     close() {
     }
 
@@ -128,7 +137,7 @@ export class MemorySession extends Session {
             // This may be a list of users already for instance
             entities = tlo;
         } else {
-            if (typeof tlo==="object") {
+            if (typeof tlo === "object") {
                 if ('user' in tlo) {
                     entities.push(tlo.user)
                 }
@@ -201,25 +210,25 @@ export class MemorySession extends Session {
         }
     }
 
-    getInputEntity(key: EntityLike):Api.TypeInputPeer {
+    getInputEntity(key: EntityLike): Api.TypeInputPeer {
         let exact;
-            if (typeof key === 'object' && key.SUBCLASS_OF_ID) {
-                if ([0xc91c90b6, 0xe669bf46, 0x40f202fd].includes(key.SUBCLASS_OF_ID)) {
-                    // hex(crc32(b'InputPeer', b'InputUser' and b'InputChannel'))
-                    // We already have an Input version, so nothing else required
-                    return key
-                }
-                // Try to early return if this key can be casted as input peer
-                return utils.getInputPeer(key)
-            } else {
-                // Not a TLObject or can't be cast into InputPeer
-                if (typeof key === 'object' && key.classType === 'constructor') {
-                    key = utils.getPeerId(key);
-                    exact = true
-                } else {
-                    exact = !(typeof key == 'number') || key < 0
-                }
+        if (typeof key === 'object' && key.SUBCLASS_OF_ID) {
+            if ([0xc91c90b6, 0xe669bf46, 0x40f202fd].includes(key.SUBCLASS_OF_ID)) {
+                // hex(crc32(b'InputPeer', b'InputUser' and b'InputChannel'))
+                // We already have an Input version, so nothing else required
+                return key
             }
+            // Try to early return if this key can be casted as input peer
+            return utils.getInputPeer(key)
+        } else {
+            // Not a TLObject or can't be cast into InputPeer
+            if (typeof key === 'object' && key.classType === 'constructor') {
+                key = utils.getPeerId(key);
+                exact = true
+            } else {
+                exact = !(typeof key == 'number') || key < 0
+            }
+        }
 
 
         let result = undefined;

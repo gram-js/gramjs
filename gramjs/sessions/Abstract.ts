@@ -2,10 +2,7 @@ import type {AuthKey} from "../crypto/AuthKey";
 import type {EntityLike} from "../define";
 import {Api} from "../tl";
 
-export class Session {
-    constructor() {
-
-    }
+export abstract class Session {
 
     /**
      * Creates a clone of this session file
@@ -26,77 +23,60 @@ export class Session {
      * @param serverAddress {string}
      * @param port {number}
      */
-    setDC(dcId: number, serverAddress: string, port: number) {
-        throw new Error('Not implemented')
-    }
+    abstract setDC(dcId: number, serverAddress: string, port: number): void;
 
     /**
      * Returns the currently-used data center ID.
      */
-    get dcId(): number {
-        throw new Error('Not Implemented')
-    }
+    abstract get dcId(): number ;
 
     /**
      * Returns the server address where the library should connect to.
      */
-    get serverAddress(): string | undefined {
-        throw new Error('Not Implemented')
-    }
+    abstract get serverAddress(): string | undefined;
 
     /**
      * Returns the port to which the library should connect to.
      */
-    get port(): number | undefined {
-        throw new Error('Not Implemented')
-    }
+    abstract get port(): number | undefined ;
 
     /**
      * Returns an ``AuthKey`` instance associated with the saved
      * data center, or `None` if a new one should be generated.
      */
-    get authKey(): AuthKey | undefined {
-        throw new Error('Not Implemented')
-    }
+    abstract get authKey(): AuthKey | undefined ;
 
     /**
      * Sets the ``AuthKey`` to be used for the saved data center.
      * @param value
      */
-    set authKey(value: AuthKey | undefined) {
-        throw new Error('Not Implemented')
-    }
+    abstract set authKey(value: AuthKey | undefined) ;
 
     /**
      * Called before using the session
      */
-    async load() {
-        throw new Error('Not Implemented')
-
-    }
+    abstract load(): Promise<void>
 
     /**
      *  sets auth key for a dc
      */
-    setAuthKey(authKey?: AuthKey, dcId?: number) {
-        throw new Error('Not Implemented')
-    }
+    abstract setAuthKey(authKey?: AuthKey, dcId?: number): void;
 
     /**
      *  gets auth key for a dc
      */
 
-    getAuthKey(dcId?: number): AuthKey | undefined {
-        throw new Error('Not Implemented')
-    }
+    abstract getAuthKey(dcId?: number): AuthKey | undefined ;
+
 
     /**
-     *
-     * @param key
+     * Turns the given key into an ``InputPeer`` (e.g. ``InputPeerUser``).
+     * The library uses this method whenever an ``InputPeer`` is needed
+     * to suit several purposes (e.g. user only provided its ID or wishes
+     * to use a cached username to avoid extra RPC).
      */
-    getInputEntity(key: EntityLike) : Api.TypeInputPeer{
-        throw new Error('Not Implemented')
-    }
+    abstract getInputEntity(key: EntityLike): Api.TypeInputPeer;
+
     /**
      * Returns an ID of the takeout process initialized for this session,
      * or `None` if there's no were any unfinished takeout requests.
@@ -136,6 +116,7 @@ export class Session {
      * @param entityId
      * @param state
      */
+
     /*CONTEST
     setUpdateState(entityId, state) {
         throw new Error('Not Implemented')
@@ -148,61 +129,29 @@ export class Session {
      * free any used resources. Can be left empty if none.
      */
 
-    /*CONTEST
-    close() {
+    abstract close(): void;
 
-    }
-
-     */
 
     /**
      * called whenever important properties change. It should
      * make persist the relevant session information to disk.
      */
-    save() {
-        throw new Error('Not Implemented')
-    }
+    abstract save(): void;
 
     /**
      * Called upon client.log_out(). Should delete the stored
      * information from disk since it's not valid anymore.
      */
 
-    delete() {
-        throw new Error('Not Implemented')
-    }
+    abstract delete(): void;
 
-    /**
-     * Lists available sessions. Not used by the library itself.
-     */
-
-    /*CONTEST
-    listSessions() {
-        throw new Error('Not Implemented')
-    }
-
-     */
 
     /**
      * Processes the input ``TLObject`` or ``list`` and saves
      * whatever information is relevant (e.g., ID or access hash).
      * @param tlo
      */
-    processEntities(tlo: any) {
-        throw new Error('Not Implemented')
-    }
+    abstract processEntities(tlo: any): void;
 
 
-    /**
-     * Turns the given key into an ``InputPeer`` (e.g. ``InputPeerUser``).
-     * The library uses this method whenever an ``InputPeer`` is needed
-     * to suit several purposes (e.g. user only provided its ID or wishes
-     * to use a cached username to avoid extra RPC).
-     */
-    /*CONTEST
-    getInputEntity(key) {
-        throw new Error('Not Implemented')
-    }
-
-     */
 }
