@@ -3,6 +3,7 @@ import type {Entity, EntityLike} from "../define";
 import type {TelegramClient} from "../client/TelegramClient";
 import {Api} from "../tl";
 import {Message} from "../tl/patched";
+import type {Message as CustomMessage} from "../tl/custom/message";
 
 interface NewMessageInterface {
     chats?: EntityLike[],
@@ -129,10 +130,11 @@ export class NewMessage extends EventBuilder {
 }
 
 export class NewMessageEvent extends EventCommon {
-    message: Message;
+    message: CustomMessage;
     originalUpdate: Api.TypeUpdate & { _entities?: Map<number, Entity> };
 
-    constructor(message: Message, originalUpdate: Api.TypeUpdate) {
+    constructor(message: CustomMessage, originalUpdate: Api.TypeUpdate) {
+
         super({
             msgId: message.id,
             chatPeer: message.peerId,
