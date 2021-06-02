@@ -12,9 +12,9 @@ export class MemorySession extends Session {
     protected _serverAddress?: string;
     protected _dcId: number;
     protected _port?: number;
-    private _takeoutId: undefined;
-    private _entities: Set<any>;
-    private _updateStates: {};
+    protected _takeoutId: undefined;
+    protected _entities: Set<any>;
+    protected _updateStates: {};
     protected _authKey?: AuthKey;
 
     constructor() {
