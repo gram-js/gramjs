@@ -15,15 +15,18 @@ export class EntityCache {
 
         const temp = [];
         if (!isArrayLike(entities)) {
-
-            if ('chats' in entities) {
-                temp.push(...entities.chats)
-            }
-            if ('users' in entities) {
-                temp.push(...entities.users)
-            }
-            if ('user' in entities) {
-                temp.push(entities.user)
+            if (entities != undefined){
+                if (typeof entities == 'object'){
+                    if ('chats' in entities) {
+                        temp.push(...entities.chats)
+                    }
+                    if ('users' in entities) {
+                        temp.push(...entities.users)
+                    }
+                    if ('user' in entities) {
+                        temp.push(entities.user)
+                    }
+                }
             }
             if (temp.length) {
                 entities = temp;
