@@ -57,24 +57,6 @@ export class StoreSession extends MemorySession {
         return this._authKey;
     }
 
-    getAuthKey(dcId?: number) {
-        if (dcId && dcId !== this.dcId) {
-            // Not supported.
-            throw  new Error("not supported");
-        }
-
-        return this.authKey
-    }
-
-    setAuthKey(authKey?: AuthKey, dcId?: number) {
-        if (dcId && dcId !== this.dcId) {
-            // Not supported.
-            throw  new Error("not supported");
-        }
-
-        this.authKey = authKey
-    }
-
     processEntities(tlo: any) {
         const rows = this._entitiesToRows(tlo);
         if (!rows) {

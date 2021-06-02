@@ -103,22 +103,5 @@ export class StringSession extends MemorySession {
         ]))
     }
 
-    getAuthKey(dcId?: number) {
-        if (dcId && dcId !== this.dcId) {
-            // Not supported.
-            return undefined
-        }
-
-        return this.authKey
-    }
-
-    setAuthKey(authKey?: AuthKey, dcId?: number) {
-        if (dcId && dcId !== this.dcId) {
-            // Not supported.
-            return undefined
-        }
-
-        this.authKey = authKey
-    }
 }
 
