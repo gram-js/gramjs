@@ -10,7 +10,7 @@ export interface UserAuthParams {
     password: (hint?: string) => Promise<string>;
     firstAndLastNames?: () => Promise<[string, string?]>;
     qrCode?: (qrCode: { token: Buffer, expires: number }) => Promise<void>;
-    onError: (err: Error) => void;
+    onError: (err: Error) => Promise<boolean>;
     forceSMS?: boolean;
 }
 
@@ -96,7 +96,10 @@ export async function signInUser(
                 throw err;
             }
 
-            authParams.onError(err);
+            const shouldWeStop = await authParams.onError(err);
+            if (shouldWeStop){
+               throw new Error("AUTH_USER_CANCEL")
+            }
         }
     }
 
@@ -138,7 +141,10 @@ export async function signInUser(
             if (err.message === 'SESSION_PASSWORD_NEEDED') {
                 return client.signInWithPassword(apiCredentials, authParams);
             } else {
-                authParams.onError(err);
+                const shouldWeStop = await authParams.onError(err);
+                if (shouldWeStop){
+                    throw new Error("AUTH_USER_CANCEL")
+                }
             }
         }
     }
@@ -171,12 +177,15 @@ export async function signInUser(
 
                 return user;
             } catch (err) {
-                authParams.onError(err);
+                const shouldWeStop = await authParams.onError(err);
+                if (shouldWeStop){
+                    throw new Error("AUTH_USER_CANCEL")
+                }
             }
         }
     }
 
-    authParams.onError(new Error('Auth failed'));
+    await authParams.onError(new Error('Auth failed'));
     return client.signInUser(apiCredentials, authParams);
 }
 
@@ -250,7 +259,7 @@ export async function signInUserWithQrCode(
         }
     }
 
-    authParams.onError(new Error('QR auth failed'));
+    await authParams.onError(new Error('QR auth failed'));
     return client.signInUser(apiCredentials, authParams);
 }
 
@@ -311,7 +320,10 @@ export async function signInWithPassword(client: TelegramClient, apiCredentials:
 
             return user;
         } catch (err) {
-            authParams.onError(err);
+            const shouldWeStop = await authParams.onError(err);
+            if (shouldWeStop){
+                throw new Error("AUTH_USER_CANCEL")
+            }
         }
     }
 
