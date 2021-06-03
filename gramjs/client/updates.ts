@@ -1,4 +1,4 @@
-import type {EventBuilder,EventCommon} from "../events/common";
+import type {EventBuilder, EventCommon} from "../events/common";
 import {Api} from "../tl";
 import {helpers} from "../";
 import type {TelegramClient} from "../";
@@ -54,7 +54,7 @@ export function _handleUpdate(client: TelegramClient, update: Api.TypeUpdate | n
         // TODO deal with entities
         const entities = new Map();
         for (const x of [...update.users, ...update.chats]) {
-            entities.set(utils.getPeerId(x),x);
+            entities.set(utils.getPeerId(x), x);
         }
         for (const u of update.updates) {
             client._processUpdate(u, update.updates, entities)
@@ -78,7 +78,7 @@ export function _processUpdate(client: TelegramClient, update: any, others: any,
 
 export async function _dispatchUpdate(client: TelegramClient, args: { update: UpdateConnectionState | any }): Promise<void> {
     for (const [builder, callback] of client._eventBuilders) {
-        if (!builder.resolved){
+        if (!builder.resolved) {
             await builder.resolve(client);
         }
         let event = args.update;
@@ -100,7 +100,11 @@ export async function _dispatchUpdate(client: TelegramClient, args: { update: Up
                 if (!filter) {
                     continue
                 }
-                await callback(event);
+                try {
+                    await callback(event);
+                } catch (e) {
+                    console.error(e);
+                }
             }
         }
     }

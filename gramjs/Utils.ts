@@ -527,6 +527,15 @@ export function isAudio(file: any): boolean {
     }
 }
 
+/**
+ *  Returns `True` if the file has an image mime type.
+ */
+export function isImage(file: any): boolean {
+    const ext = _getExtension(file).toLowerCase();
+    return ext.endsWith(".png") || ext.endsWith(".jpg") || ext.endsWith(".jpeg");
+
+}
+
 export function getExtension(media: any): string {
     // Photos are always compressed as .jpg by Telegram
 
@@ -597,9 +606,8 @@ function isVideo(file: any): boolean {
  Get a list of attributes for the given file and
  the mime type as a tuple ([attribute], mime_type).
  */
-export function getAttributes(file: File | CustomFile | TypeInputFile, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
-
-    const name: string = file.name || "unnamed";
+export function getAttributes(file: File | CustomFile | TypeInputFile | string, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
+    const name: string = typeof file=="string" ? file : file.name || "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.lookup(name) || "application/octet-stream";
     }
@@ -707,6 +715,15 @@ export function getInputGeo(geo: any): Api.TypeInputGeoPoint {
     _raiseCastFail(geo, "InputGeoPoint");
 }
 
+interface GetInputMediaInterface {
+    isPhoto?: boolean;
+    attributes?: Api.TypeDocumentAttribute [];
+    forceDocument?: boolean;
+    voiceNote?: boolean;
+    videoNote?: boolean;
+    supportsStreaming?: boolean;
+}
+
 /**
  *
  Similar to :meth:`get_input_peer`, but for media.
@@ -717,12 +734,12 @@ export function getInputGeo(geo: any): Api.TypeInputGeoPoint {
  * @param media
  * @param isPhoto
  * @param attributes
- * @param force_document
+ * @param forceDocument
  * @param voiceNote
  * @param videoNote
  * @param supportsStreaming
  */
-export function getInputMedia(media: any, {isPhoto = false, attributes = null, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false} = {}): any {
+export function getInputMedia(media: any, {isPhoto = false, attributes = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false}: GetInputMediaInterface={}): any {
     if (media.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(media, "InputMedia")
     }
@@ -917,9 +934,8 @@ export function getPeer(peer: EntityLike) {
         } else if (peer instanceof Api.InputPeerChannel) {
             return new Api.PeerChannel({channelId: peer.channelId})
         }
-        // eslint-disable-next-line no-empty
     } catch (e) {
-        console.log(e)
+        console.error(e)
     }
     _raiseCastFail(peer, 'peer')
 }
@@ -929,7 +945,7 @@ export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface
     if (mode === "md" || mode === "markdown") {
         return MarkdownParser;
     }
-    if (mode=="html"){
+    if (mode == "html") {
         return HTMLParser;
     }
     if (typeof mode == "object") {

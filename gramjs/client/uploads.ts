@@ -1,11 +1,12 @@
 import {Api} from '../tl';
 
-import type {TelegramClient} from './TelegramClient';
+import {TelegramClient} from './TelegramClient';
 import {generateRandomBytes, readBigIntFromBuffer, sleep} from '../Helpers';
 import {getAppropriatedPartSize, getAttributes} from '../Utils';
-import type {EntityLike, FileLike, MessageIDLike} from "../define";
+import {EntityLike, FileLike, MarkupLike, MessageIDLike} from "../define";
 import path from "path";
-import fs from "fs";
+import {promises as fs} from "fs";
+import {utils} from "../index";
 
 interface OnProgress {
     // Float between 0 and 1.
@@ -24,11 +25,13 @@ export class CustomFile {
     name: string;
     size: number;
     path: string;
+    buffer?: Buffer;
 
-    constructor(name: string, size: number, path: string) {
+    constructor(name: string, size: number, path: string, buffer?: Buffer) {
         this.name = name;
         this.size = size;
         this.path = path;
+        this.buffer = buffer;
     }
 }
 
@@ -118,7 +121,6 @@ export async function uploadFile(
             throw err;
         }
     }
-
     return isLarge
         ? new Api.InputFileBig({
             id: fileId,
@@ -134,42 +136,220 @@ export async function uploadFile(
 }
 
 export interface SendFileInterface {
-    file: string | CustomFile | File,
+    file: FileLike,
     caption?: string,
     forceDocument?: boolean,
     fileSize?: number,
+    clearDraft?: boolean;
     progressCallback?: OnProgress,
     replyTo?: MessageIDLike,
     attributes?: Api.TypeDocumentAttribute[],
     thumb?: FileLike,
     voiceNote?: boolean,
     videoNote?: boolean,
-    supportStreaming?: boolean,
+    supportsStreaming?: boolean,
     parseMode?: any,
     formattingEntities?: Api.TypeMessageEntity[],
     silent?: boolean;
     background?: boolean;
-    clearDraft?: boolean;
     replyMarkup?: Api.TypeReplyMarkup;
     scheduleDate?: number;
+    buttons?: MarkupLike;
+    workers?: number;
+}
 
+interface FileToMediaInterface {
+    file: FileLike,
+    forceDocument?: boolean,
+    fileSize?: number,
+    progressCallback?: OnProgress,
+    attributes?: Api.TypeDocumentAttribute[],
+    thumb?: FileLike,
+    voiceNote?: boolean,
+    videoNote?: boolean,
+    supportsStreaming?: boolean,
+    mimeType?: string,
+    asImage?: boolean,
+    workers?:number,
+}
+
+async function _fileToMedia(client: TelegramClient, {
+    file,
+    forceDocument,
+    fileSize,
+    progressCallback,
+    attributes,
+    thumb,
+    voiceNote = false,
+    videoNote = false,
+    supportsStreaming = false,
+    mimeType,
+    asImage,
+    workers=1,
+}: FileToMediaInterface): Promise<{
+    fileHandle?: any,
+    media?: Api.TypeInputMedia,
+    image?: boolean
+}> {
+    if (!file) {
+        return {fileHandle: undefined, media: undefined, image: undefined}
+    }
+    const isImage = utils.isImage(file);
+    if (asImage == undefined) {
+        asImage = isImage && (!forceDocument);
+    }
+    if ((typeof file == "object") && !Buffer.isBuffer(file) && !(file instanceof Api.InputFile) && !(file instanceof Api.InputFileBig)
+        && "read" in file) {
+        try {
+            return {
+                fileHandle: undefined,
+                media: utils.getInputMedia(file,
+                    {
+                        isPhoto: asImage,
+                        attributes: attributes,
+                        forceDocument: forceDocument,
+                        voiceNote: voiceNote,
+                        videoNote: videoNote,
+                        supportsStreaming: supportsStreaming,
+                    }),
+                image: asImage
+            }
+        } catch (e) {
+            return {
+                fileHandle: undefined,
+                media: undefined,
+                image: isImage
+            }
+        }
+    }
+    let media;
+    let fileHandle;
+    let createdFile;
+
+    if (file instanceof Api.InputFile || file instanceof Api.InputFileBig) {
+        fileHandle = file;
+    } else if (!(typeof file == "string") || (await fs.lstat(file)).isFile()) {
+        if (typeof file == "string") {
+            createdFile = new CustomFile(path.basename(file), (await fs.stat(file)).size, file)
+        } else if (typeof File !== 'undefined' && file instanceof File) {
+            createdFile = file;
+        } else {
+            let name;
+            if ("name" in file) {
+                name = file.name;
+            } else {
+                name = "unnamed";
+            }
+            if (file instanceof Buffer) {
+                createdFile = new CustomFile(name, file.length, "", file)
+            }
+        }
+        if (!createdFile) {
+            throw new Error(`Could not create file from ${file}`)
+        }
+        fileHandle = await uploadFile(client, {
+            file: createdFile,
+            onProgress: progressCallback,
+            workers: workers,
+        })
+    } else if (file.startsWith("https://") || file.startsWith("http://")) {
+        if (asImage) {
+            media = new Api.InputMediaPhotoExternal({url: file})
+        } else {
+            media = new Api.InputMediaPhotoExternal({url: file})
+        }
+    } else {
+        throw new Error(`"Not a valid path nor a url ${file}`);
+    }
+    if (media != undefined) {
+
+    } else if (fileHandle == undefined) {
+        throw new Error(`Failed to convert ${file} to media. Not an existing file or an HTTP URL`)
+    } else if (asImage) {
+        media = new Api.InputMediaUploadedPhoto({
+            file: fileHandle,
+        });
+    } else  {
+
+        // @ts-ignore
+        let res = utils.getAttributes(file, {
+            mimeType: mimeType,
+            attributes: attributes,
+            forceDocument: forceDocument && !isImage,
+            voiceNote: voiceNote,
+            videoNote: videoNote,
+            supportsStreaming: supportsStreaming,
+            thumb: thumb
+        })
+        attributes = res.attrs;
+        mimeType = res.mimeType;
+
+        let uploadedThumb;
+        if (!thumb) {
+            uploadedThumb = undefined;
+        } else {
+            // todo refactor
+            if (typeof thumb == "string") {
+                uploadedThumb = new CustomFile(path.basename(thumb), (await fs.stat(thumb)).size, thumb)
+            } else if (typeof File !== 'undefined' && thumb instanceof File) {
+                uploadedThumb = thumb;
+            } else {
+                let name;
+                if ("name" in thumb) {
+                    name = thumb.name;
+                } else {
+                    name = "unnamed";
+                }
+                if (thumb instanceof Buffer) {
+                    uploadedThumb = new CustomFile(name, thumb.length, "", thumb)
+                }
+
+            }
+            if (!uploadedThumb) {
+                throw new Error(`Could not create file from ${file}`)
+            }
+            uploadedThumb = await uploadFile(client, {
+                file: uploadedThumb,
+                workers: 1,
+
+            });
+
+        }
+        media = new Api.InputMediaUploadedDocument({
+            file: fileHandle,
+            mimeType: mimeType,
+            attributes: attributes,
+            thumb: uploadedThumb,
+            forceFile: forceDocument && !isImage
+        })
+    }
+    return {
+        fileHandle: fileHandle,
+        media: media,
+        image: asImage
+    }
 }
 
 export async function sendFile(client: TelegramClient, entity: EntityLike,
-                               {   file,
+                               {
+                                   file,
                                    caption,
-                                   forceDocument,
+                                   forceDocument = false,
                                    fileSize,
+                                   clearDraft = false,
                                    progressCallback,
                                    replyTo,
                                    attributes,
-                                   thumb, voiceNote,
-                                   videoNote,
-                                   supportStreaming,
-                                   parseMode, formattingEntities,
+                                   thumb,
+                                   parseMode,
+                                   formattingEntities,
+                                   voiceNote = false,
+                                   videoNote = false,
+                                   buttons,
+                                   silent,
+                                   supportsStreaming = false,
                                    scheduleDate,
-                                   replyMarkup,
-                                   clearDraft,
+                                   workers = 1,
                                }: SendFileInterface) {
     if (!file) {
         throw new Error("You need to specify a file");
@@ -177,66 +357,60 @@ export async function sendFile(client: TelegramClient, entity: EntityLike,
     if (!caption) {
         caption = ""
     }
-    if (formattingEntities == undefined) {
+    entity = await client.getInputEntity(entity);
+    replyTo = utils.getMessageId(replyTo);
+    // TODO support albums in the future
+    let msgEntities;
+    if (formattingEntities != undefined) {
+        msgEntities = formattingEntities;
+    } else {
         [caption, formattingEntities] = await client._parseMessageText(caption, parseMode);
     }
 
-    if (typeof file == "string") {
-        file = new CustomFile(path.basename(file), fs.statSync(file).size, file);
-    }
-    const media = await client.uploadFile({
+    const {
+        fileHandle,
+        media,
+        image
+    } = await _fileToMedia(client, {
         file: file,
-        workers: 1,
-        onProgress: progressCallback,
+        forceDocument: forceDocument,
+        fileSize: fileSize,
+        progressCallback: progressCallback,
+        attributes: attributes,
+        thumb: thumb,
+        voiceNote: voiceNote,
+        videoNote: videoNote,
+        supportsStreaming: supportsStreaming,
+        workers:workers
     });
-    if (!attributes) {
-        attributes = [];
+    if (media==undefined){
+        throw new Error(`Cannot use ${file} as file.`)
     }
-    let mimeType = "application/octet-stream";
-    if (file instanceof CustomFile) {
-        const result = (getAttributes(file, {
-            attributes: attributes,
-            forceDocument: forceDocument,
-            voiceNote: voiceNote,
-            videoNote: videoNote,
-            supportsStreaming: supportStreaming,
-            thumb: thumb
-        }));
-        mimeType = result.mimeType;
-        attributes.push(...result.attrs);
-    }
-    let toSend;
-    if (mimeType.startsWith("photo/") || mimeType.startsWith("image/")) {
-        toSend = new Api.InputMediaUploadedPhoto({
-            file: media,
-        })
-    } else {
-        toSend = new Api.InputMediaUploadedDocument({
-            file: media,
-            mimeType: mimeType,
-            attributes: attributes,
-            forceFile: forceDocument,
-        })
-    }
-    const result = await client.invoke(new Api.messages.SendMedia({
-        peer: entity,
-        media: toSend,
-        replyToMsgId: replyTo,
-        message: caption,
-        entities:formattingEntities,
-        scheduleDate,
-        replyMarkup,
-        clearDraft,
-    }));
-    // TODO get result
-    return result;
+    const markup = client.buildReplyMarkup(buttons);
+    const request = new Api.messages.SendMedia({
+        peer:entity,
+        media:media,
+        replyToMsgId:replyTo,
+        message:caption,
+        entities:msgEntities,
+        replyMarkup:markup,
+        silent:silent,
+        scheduleDate:scheduleDate,
+        clearDraft:clearDraft,
+    });
+    // todo get message
+    return client.invoke(request);
 }
 
 function fileToBuffer(file: File | CustomFile) {
     if (typeof File !== 'undefined' && file instanceof File) {
         return new Response(file).arrayBuffer();
     } else if (file instanceof CustomFile) {
-        return fs.readFileSync(file.path);
+        if (file.buffer != undefined) {
+            return file.buffer;
+        } else {
+            return fs.readFile(file.path);
+        }
     } else {
         throw new Error("Could not create buffer from file " + file);
     }

@@ -153,7 +153,7 @@ export class NewMessageEvent extends EventCommon {
         } catch (e) {
             client._log.error("Got error while trying to finish init message with id " + m.id);
             if (client._log.canSend('error')){
-                console.log(e);
+                console.error(e);
             }
         }
     }

@@ -278,7 +278,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         } catch (e) {
             this._client._log.error("Got error while trying to finish init message with id " + this.id);
             if (this._client._log.canSend('error')) {
-                console.log(e);
+                console.error(e);
             }
         }
         if (msg == undefined) return;
