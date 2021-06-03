@@ -8,6 +8,7 @@ import type {ParseInterface} from "./client/messageParse";
 import {MarkdownParser} from "./extensions/markdown";
 import {CustomFile} from "./client/uploads";
 import TypeInputFile = Api.TypeInputFile;
+import {HTMLParser} from "./extensions/html";
 
 
 const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' + '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?', 'i');
@@ -927,6 +928,9 @@ export function getPeer(peer: EntityLike) {
 export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface {
     if (mode === "md" || mode === "markdown") {
         return MarkdownParser;
+    }
+    if (mode=="html"){
+        return HTMLParser;
     }
     if (typeof mode == "object") {
         if ("parse" in mode && "unparse" in mode) {

@@ -5,7 +5,7 @@ import {DEFAULT_DELIMITERS, messageEntities} from "../client/messageParse";
 export class MarkdownParser {
 
     // TODO maybe there is a better way :shrug:
-    static parse(message: string, delimiters = DEFAULT_DELIMITERS): [string, ValueOf<typeof DEFAULT_DELIMITERS>[]] {
+    static parse(message: string): [string, Api.TypeMessageEntity[]] {
         let i = 0;
         const keys: { [key: string]: boolean } = {};
         for (const k in DEFAULT_DELIMITERS) {
@@ -47,7 +47,8 @@ export class MarkdownParser {
         return [message, entities];
     }
 
-    static unparse(text: string, entities: Api.TypeMessageEntity[] | undefined, delimiters = DEFAULT_DELIMITERS) {
+    static unparse(text: string, entities: Api.TypeMessageEntity[] | undefined) {
+        const delimiters = DEFAULT_DELIMITERS;
         if (!text || !entities) {
             return text;
         }

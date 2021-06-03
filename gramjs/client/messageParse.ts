@@ -18,8 +18,8 @@ export const DEFAULT_DELIMITERS: {
 // export class MessageParseMethods {
 
 export interface ParseInterface {
-    parse: (message: string, delimiters?: typeof DEFAULT_DELIMITERS) => [string, ValueOf<typeof DEFAULT_DELIMITERS>[]],
-    unparse: (text: string, entities: Api.TypeMessageEntity[] | undefined, delimiters?: typeof DEFAULT_DELIMITERS) => string
+    parse: (message: string) => [string, Api.TypeMessageEntity[]],
+    unparse: (text: string, entities: Api.TypeMessageEntity[] | undefined) => string
 }
 
 export async function _replaceWithMention(client: TelegramClient, entities: Api.TypeMessageEntity[], i: number, user: EntityLike) {
@@ -38,13 +38,13 @@ export async function _replaceWithMention(client: TelegramClient, entities: Api.
 }
 
 export function _parseMessageText(client: TelegramClient, message: string, parseMode: any) {
-    if (!parseMode) {
+    if (parseMode==false) {
+        return [message, []]
+    }
+    if (parseMode==undefined) {
         parseMode = client.parseMode;
     } else if (typeof parseMode === "string") {
         parseMode = sanitizeParseMode(parseMode);
-    }
-    if (!parseMode) {
-        return [message, []]
     }
     return parseMode.parse(message);
 }

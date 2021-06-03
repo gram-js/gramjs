@@ -29,7 +29,7 @@ export class Draft {
         }
         if (!(draft instanceof Api.DraftMessageEmpty)) {
             this.linkPreview = !draft.noWebpage;
-            this._text = MarkdownParser.unparse(draft.message,draft.entities);
+            this._text = client.parseMode.unparse(draft.message,draft.entities);
             this._rawText = draft.message;
             this.date = draft.date;
             this.replyToMsgId = draft.replyToMsgId;

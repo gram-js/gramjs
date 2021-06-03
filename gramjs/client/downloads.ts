@@ -3,6 +3,7 @@ import type {TelegramClient} from './TelegramClient';
 import {getAppropriatedPartSize, strippedPhotoToJpg} from '../Utils';
 import {sleep} from '../Helpers';
 import {MTProtoSender} from "../network";
+import type {Message} from "../tl/custom/message";
 
 
 export interface progressCallback {
@@ -205,7 +206,7 @@ export interface DownloadMediaInterface {
 
 }
 
-export async function downloadMedia(client: TelegramClient, messageOrMedia: Api.Message | Api.TypeMessageMedia, args: DownloadMediaInterface): Promise<Buffer> {
+export async function downloadMedia(client: TelegramClient, messageOrMedia: Api.Message | Api.TypeMessageMedia | Message , args: DownloadMediaInterface): Promise<Buffer> {
     let date;
     let media;
     if (messageOrMedia instanceof Api.Message) {

@@ -20,6 +20,7 @@ import {MTProtoSender, UpdateConnectionState} from "../network";
 import {LAYER} from "../tl/AllTLObjects";
 import {IS_NODE} from "../Helpers";
 import {DownloadMediaInterface} from "./downloads";
+import type {Message} from "../tl/custom/message";
 
 export class TelegramClient extends TelegramBaseClient {
 
@@ -115,7 +116,7 @@ export class TelegramClient extends TelegramBaseClient {
         return downloadMethods._downloadWebDocument(this, webDocument, args);
     }
 
-    downloadMedia(messageOrMedia: Api.Message | Api.TypeMessageMedia, args: DownloadMediaInterface) {
+    downloadMedia(messageOrMedia: Api.Message | Api.TypeMessageMedia | Message, args: DownloadMediaInterface) {
         return downloadMethods.downloadMedia(this, messageOrMedia, args);
     }
 
