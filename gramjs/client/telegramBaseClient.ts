@@ -23,6 +23,7 @@ export interface TelegramClientParams {
     timeout?: number,
     requestRetries?: number,
     connectionRetries?: number,
+    downloadRetries?: number,
     retryDelay?: number,
     autoReconnect?: boolean,
     sequentialUpdates?: boolean,
@@ -47,6 +48,7 @@ export class TelegramBaseClient {
     public apiHash: string;
     public apiId: number;
     public _requestRetries: number;
+    public _downloadRetries: number;
     public _connectionRetries: number;
     public _retryDelay: number;
     public _timeout: number;
@@ -72,6 +74,7 @@ export class TelegramBaseClient {
         requestRetries = 5,
         connectionRetries = Infinity,
         retryDelay = 1000,
+        downloadRetries = 5,
         autoReconnect = true,
         sequentialUpdates = false,
         floodSleepThreshold = 60,
@@ -101,6 +104,7 @@ export class TelegramBaseClient {
         this.apiHash = apiHash;
         this._useIPV6 = useIPV6;
         this._requestRetries = requestRetries;
+        this._downloadRetries = downloadRetries;
         this._connectionRetries = connectionRetries;
         this._retryDelay = retryDelay || 0;
         this._timeout = timeout;

@@ -427,7 +427,7 @@ export class TelegramClient extends TelegramBaseClient {
         delete this._borrowedSenderPromises[dcId]
     }
 
-    async _borrowExportedSender(dcId: number, retries = 5) {
+    async _borrowExportedSender(dcId: number, retries = this._requestRetries) {
         let senderPromise = this._borrowedSenderPromises[dcId];
         if (!senderPromise) {
             senderPromise = this._createExportedSender(dcId, retries);
