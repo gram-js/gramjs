@@ -1,6 +1,8 @@
 import {isNode} from 'browser-or-node';
 import bigInt from "big-integer";
 import type {EntityLike} from "./define";
+import type {Api} from "./tl";
+
 
 export const IS_NODE = isNode;
 const crypto = require(isNode ? 'crypto' : './crypto/crypto');
@@ -38,7 +40,7 @@ export function escapeRegex(string: string) {
 /**
  * Helper to find if a given object is an array (or similar)
  */
-export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function' && typeof x!=='string');
+export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function' && typeof x !== 'string');
 
 /*
 export function addSurrogate(text: string) {
@@ -198,6 +200,45 @@ async function calcKey(sharedKey, msgKey, client) {
 }
 
  */
+export function stripText(text: string, entities: Api.TypeMessageEntity[]) {
+    if (!entities || !entities.length) {
+        return text.trim();
+    }
+    while (text && text[text.length - 1].trim() === "") {
+        const e = entities[entities.length - 1];
+        if ((e.offset + e.length) == text.length) {
+            if (e.length == 1) {
+                entities.pop();
+                if (!entities.length) {
+                    return text.trim();
+                }
+            } else {
+                e.length -= 1;
+            }
+        }
+        text = text.slice(0, -1);
+    }
+    while (text && text[0].trim() === "") {
+        for (let i = 0; i < entities.length; i++) {
+            const e = entities[i];
+            if (e.offset != 0) {
+                e.offset--;
+                continue;
+            }
+            if (e.length == 1) {
+                entities.shift();
+                if (!entities.length) {
+                    return text.trimLeft();
+                }
+            } else {
+                e.length -= 1;
+            }
+        }
+        text = text.slice(1);
+    }
+    return text;
+}
+
 
 /**
  * Generates the key data corresponding to the given nonces
@@ -299,12 +340,12 @@ export function getMinBigInt(arrayOfBigInts: bigInt.BigInteger[]) {
     if (arrayOfBigInts.length == 0) {
         return bigInt.zero;
     }
-    if (arrayOfBigInts.length==1){
+    if (arrayOfBigInts.length == 1) {
         return arrayOfBigInts[0];
     }
     let smallest = arrayOfBigInts[0];
-    for (let i=1;i<arrayOfBigInts.length;i++){
-        if (arrayOfBigInts[i]<smallest){
+    for (let i = 1; i < arrayOfBigInts.length; i++) {
+        if (arrayOfBigInts[i] < smallest) {
             smallest = arrayOfBigInts[i];
         }
     }

@@ -1,6 +1,7 @@
 import {Parser} from "htmlparser2";
 import {Handler} from "htmlparser2/lib/Parser";
 import {Api} from "../tl";
+import {helpers} from "../index";
 
 class HTMLToTelegramParser implements Handler {
     text: string;
@@ -151,7 +152,8 @@ export class HTMLParser {
         const parser = new Parser(handler);
         parser.write(html);
         parser.end();
-        return [handler.text, handler.entities];
+        const text = helpers.stripText(handler.text,handler.entities);
+        return [text, handler.entities];
 
     }
 
