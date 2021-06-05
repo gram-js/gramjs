@@ -1,14 +1,14 @@
-import {Connection, PacketCodec} from './Connection';
-import {crc32} from '../../Helpers';
-import {InvalidChecksumError} from '../../errors';
-import type {PromisedNetSockets, PromisedWebSockets} from "../../extensions";
+import { Connection, PacketCodec } from "./Connection";
+import { crc32 } from "../../Helpers";
+import { InvalidChecksumError } from "../../errors";
+import type { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 
 class FullPacketCodec extends PacketCodec {
     private _sendCounter: number;
 
     constructor(connection: any) {
         super(connection);
-        this._sendCounter = 0 // Telegram will ignore us otherwise
+        this._sendCounter = 0; // Telegram will ignore us otherwise
     }
 
     encodePacket(data: Buffer) {
@@ -22,7 +22,7 @@ class FullPacketCodec extends PacketCodec {
         const crc = Buffer.alloc(4);
         crc.writeUInt32LE(crc32(data), 0);
         this._sendCounter += 1;
-        return Buffer.concat([data, crc])
+        return Buffer.concat([data, crc]);
     }
 
     /**
@@ -30,7 +30,9 @@ class FullPacketCodec extends PacketCodec {
      * @param reader {PromisedWebSockets}
      * @returns {Promise<*>}
      */
-    async readPacket(reader: PromisedNetSockets | PromisedWebSockets): Promise<Buffer> {
+    async readPacket(
+        reader: PromisedNetSockets | PromisedWebSockets
+    ): Promise<Buffer> {
         const packetLenSeq = await reader.readExactly(8); // 4 and 4
         // process.exit(0);
         if (packetLenSeq === undefined) {
@@ -44,9 +46,9 @@ class FullPacketCodec extends PacketCodec {
 
         const validChecksum = crc32(Buffer.concat([packetLenSeq, body]));
         if (!(validChecksum === checksum)) {
-            throw new InvalidChecksumError(checksum, validChecksum)
+            throw new InvalidChecksumError(checksum, validChecksum);
         }
-        return body
+        return body;
     }
 }
 

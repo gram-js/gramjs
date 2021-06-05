@@ -1,11 +1,10 @@
-import {isNode} from 'browser-or-node';
+import { isNode } from "browser-or-node";
 import bigInt from "big-integer";
-import type {EntityLike} from "./define";
-import type {Api} from "./tl";
-
+import type { EntityLike } from "./define";
+import type { Api } from "./tl";
 
 export const IS_NODE = isNode;
-const crypto = require(isNode ? 'crypto' : './crypto/crypto');
+const crypto = require(isNode ? "crypto" : "./crypto/crypto");
 
 /**
  * converts a buffer to big int
@@ -14,17 +13,20 @@ const crypto = require(isNode ? 'crypto' : './crypto/crypto');
  * @param signed
  * @returns {bigInt.BigInteger}
  */
-export function readBigIntFromBuffer(buffer: Buffer, little = true, signed = false): bigInt.BigInteger {
+export function readBigIntFromBuffer(
+    buffer: Buffer,
+    little = true,
+    signed = false
+): bigInt.BigInteger {
     let randBuffer = Buffer.from(buffer);
     const bytesNumber = randBuffer.length;
     if (little) {
-        randBuffer = randBuffer.reverse()
+        randBuffer = randBuffer.reverse();
     }
-    let bigIntVar = bigInt(randBuffer.toString('hex'), 16) as bigInt.BigInteger;
+    let bigIntVar = bigInt(randBuffer.toString("hex"), 16) as bigInt.BigInteger;
 
     if (signed && Math.floor(bigIntVar.toString(2).length / 8) >= bytesNumber) {
-        bigIntVar = bigIntVar.subtract(bigInt(2)
-            .pow(bigInt(bytesNumber * 8)));
+        bigIntVar = bigIntVar.subtract(bigInt(2).pow(bigInt(bytesNumber * 8)));
     }
     return bigIntVar;
 }
@@ -34,13 +36,17 @@ export function generateRandomBigInt() {
 }
 
 export function escapeRegex(string: string) {
-    return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
 /**
  * Helper to find if a given object is an array (or similar)
  */
-export const isArrayLike = (<T>(x: any): x is ArrayLike<T> => x && typeof x.length === 'number' && typeof x !== 'function' && typeof x !== 'string');
+export const isArrayLike = <T>(x: any): x is ArrayLike<T> =>
+    x &&
+    typeof x.length === "number" &&
+    typeof x !== "function" &&
+    typeof x !== "string";
 
 /*
 export function addSurrogate(text: string) {
@@ -66,7 +72,10 @@ export function addSurrogate(text: string) {
  * @param number
  * @returns {Buffer}
  */
-export function toSignedLittleBuffer(big: bigInt.BigInteger, number = 8): Buffer {
+export function toSignedLittleBuffer(
+    big: bigInt.BigInteger,
+    number = 8
+): Buffer {
     const bigNumber = bigInt(big);
     const byteArray = [];
     for (let i = 0; i < number; i++) {
@@ -76,7 +85,6 @@ export function toSignedLittleBuffer(big: bigInt.BigInteger, number = 8): Buffer
     return Buffer.from(byteArray as unknown as number[]);
 }
 
-
 /**
  * converts a big int to a buffer
  * @param bigIntVar {BigInteger}
@@ -85,16 +93,21 @@ export function toSignedLittleBuffer(big: bigInt.BigInteger, number = 8): Buffer
  * @param signed
  * @returns {Buffer}
  */
-export function readBufferFromBigInt(bigIntVar: bigInt.BigInteger, bytesNumber: number, little = true, signed = false): Buffer {
+export function readBufferFromBigInt(
+    bigIntVar: bigInt.BigInteger,
+    bytesNumber: number,
+    little = true,
+    signed = false
+): Buffer {
     bigIntVar = bigInt(bigIntVar);
     const bitLength = bigIntVar.bitLength().toJSNumber();
 
     const bytes = Math.ceil(bitLength / 8);
     if (bytesNumber < bytes) {
-        throw new Error('OverflowError: int too big to convert')
+        throw new Error("OverflowError: int too big to convert");
     }
     if (!signed && bigIntVar.lesser(BigInt(0))) {
-        throw new Error('Cannot convert to unsigned')
+        throw new Error("Cannot convert to unsigned");
     }
     let below = false;
     if (bigIntVar.lesser(BigInt(0))) {
@@ -102,9 +115,8 @@ export function readBufferFromBigInt(bigIntVar: bigInt.BigInteger, bytesNumber: 
         bigIntVar = bigIntVar.abs();
     }
 
-    const hex = bigIntVar.toString(16)
-        .padStart(bytesNumber * 2, '0');
-    let littleBuffer = Buffer.from(hex, 'hex');
+    const hex = bigIntVar.toString(16).padStart(bytesNumber * 2, "0");
+    let littleBuffer = Buffer.from(hex, "hex");
     if (little) {
         littleBuffer = littleBuffer.reverse();
     }
@@ -124,10 +136,11 @@ export function readBufferFromBigInt(bigIntVar: bigInt.BigInteger, bytesNumber: 
                     littleBuffer[i] -= 1;
                     reminder = false;
                 }
-                littleBuffer[i] = 255 - littleBuffer[i]
+                littleBuffer[i] = 255 - littleBuffer[i];
             }
         } else {
-            littleBuffer[littleBuffer.length - 1] = 256 - littleBuffer[littleBuffer.length - 1];
+            littleBuffer[littleBuffer.length - 1] =
+                256 - littleBuffer[littleBuffer.length - 1];
             for (let i = 0; i < littleBuffer.length - 1; i++) {
                 littleBuffer[i] = 255 - littleBuffer[i];
             }
@@ -141,7 +154,7 @@ export function readBufferFromBigInt(bigIntVar: bigInt.BigInteger, bytesNumber: 
  * @returns {BigInteger}
  */
 export function generateRandomLong(signed = true) {
-    return readBigIntFromBuffer(generateRandomBytes(8), true, signed)
+    return readBigIntFromBuffer(generateRandomBytes(8), true, signed);
 }
 
 /**
@@ -151,7 +164,7 @@ export function generateRandomLong(signed = true) {
  * @returns {number}
  */
 export function mod(n: number, m: number) {
-    return ((n % m) + m) % m
+    return ((n % m) + m) % m;
 }
 
 /**
@@ -160,8 +173,11 @@ export function mod(n: number, m: number) {
  * @param m {BigInt}
  * @returns {BigInt}
  */
-export function bigIntMod(n: bigInt.BigInteger, m: bigInt.BigInteger): bigInt.BigInteger {
-    return ((n.remainder(m)).add(m)).remainder(m)
+export function bigIntMod(
+    n: bigInt.BigInteger,
+    m: bigInt.BigInteger
+): bigInt.BigInteger {
+    return n.remainder(m).add(m).remainder(m);
 }
 
 /**
@@ -170,7 +186,7 @@ export function bigIntMod(n: bigInt.BigInteger, m: bigInt.BigInteger): bigInt.Bi
  * @returns {Buffer}
  */
 export function generateRandomBytes(count: number) {
-    return Buffer.from(crypto.randomBytes(count))
+    return Buffer.from(crypto.randomBytes(count));
 }
 
 /**
@@ -206,7 +222,7 @@ export function stripText(text: string, entities: Api.TypeMessageEntity[]) {
     }
     while (text && text[text.length - 1].trim() === "") {
         const e = entities[entities.length - 1];
-        if ((e.offset + e.length) == text.length) {
+        if (e.offset + e.length == text.length) {
             if (e.length == 1) {
                 entities.pop();
                 if (!entities.length) {
@@ -239,15 +255,16 @@ export function stripText(text: string, entities: Api.TypeMessageEntity[]) {
     return text;
 }
 
-
 /**
  * Generates the key data corresponding to the given nonces
  * @param serverNonceBigInt
  * @param newNonceBigInt
  * @returns {{key: Buffer, iv: Buffer}}
  */
-export async function generateKeyDataFromNonce(serverNonceBigInt: bigInt.BigInteger, newNonceBigInt: bigInt.BigInteger) {
-
+export async function generateKeyDataFromNonce(
+    serverNonceBigInt: bigInt.BigInteger,
+    newNonceBigInt: bigInt.BigInteger
+) {
     const serverNonce = toSignedLittleBuffer(serverNonceBigInt, 16);
     const newNonce = toSignedLittleBuffer(newNonceBigInt, 32);
     const [hash1, hash2, hash3] = await Promise.all([
@@ -256,20 +273,24 @@ export async function generateKeyDataFromNonce(serverNonceBigInt: bigInt.BigInte
         sha1(Buffer.concat([newNonce, newNonce])),
     ]);
     const keyBuffer = Buffer.concat([hash1, hash2.slice(0, 12)]);
-    const ivBuffer = Buffer.concat([hash2.slice(12, 20), hash3, newNonce.slice(0, 4)]);
+    const ivBuffer = Buffer.concat([
+        hash2.slice(12, 20),
+        hash3,
+        newNonce.slice(0, 4),
+    ]);
     return {
         key: keyBuffer,
         iv: ivBuffer,
-    }
+    };
 }
 
 export function convertToLittle(buf: Buffer) {
     const correct = Buffer.alloc(buf.length * 4);
 
     for (let i = 0; i < buf.length; i++) {
-        correct.writeUInt32BE(buf[i], i * 4)
+        correct.writeUInt32BE(buf[i], i * 4);
     }
-    return correct
+    return correct;
 }
 
 /**
@@ -278,11 +299,10 @@ export function convertToLittle(buf: Buffer) {
  * @returns {Promise}
  */
 export function sha1(data: Buffer): Promise<Buffer> {
-    const shaSum = crypto.createHash('sha1');
+    const shaSum = crypto.createHash("sha1");
     shaSum.update(data);
-    return shaSum.digest()
+    return shaSum.digest();
 }
-
 
 /**
  * Calculates the SHA256 digest for the given data
@@ -290,9 +310,9 @@ export function sha1(data: Buffer): Promise<Buffer> {
  * @returns {Promise}
  */
 export function sha256(data: Buffer): Promise<Buffer> {
-    const shaSum = crypto.createHash('sha256');
+    const shaSum = crypto.createHash("sha256");
     shaSum.update(data);
-    return shaSum.digest()
+    return shaSum.digest();
 }
 
 /**
@@ -302,7 +322,11 @@ export function sha256(data: Buffer): Promise<Buffer> {
  * @param n
  * @returns {bigInt.BigInteger}
  */
-export function modExp(a: bigInt.BigInteger, b: bigInt.BigInteger, n: bigInt.BigInteger): bigInt.BigInteger {
+export function modExp(
+    a: bigInt.BigInteger,
+    b: bigInt.BigInteger,
+    n: bigInt.BigInteger
+): bigInt.BigInteger {
     a = a.remainder(n);
     let result = bigInt.one;
     let x = a;
@@ -311,14 +335,13 @@ export function modExp(a: bigInt.BigInteger, b: bigInt.BigInteger, n: bigInt.Big
         b = b.divide(BigInt(2));
         if (leastSignificantBit.eq(bigInt.one)) {
             result = result.multiply(x);
-            result = result.remainder(n)
+            result = result.remainder(n);
         }
         x = x.multiply(x);
-        x = x.remainder(n)
+        x = x.remainder(n);
     }
-    return result
+    return result;
 }
-
 
 /**
  * Gets the arbitrary-length byte array corresponding to the given integer
@@ -326,10 +349,18 @@ export function modExp(a: bigInt.BigInteger, b: bigInt.BigInteger, n: bigInt.Big
  * @param signed {boolean}
  * @returns {Buffer}
  */
-export function getByteArray(integer: bigInt.BigInteger | number, signed = false) {
+export function getByteArray(
+    integer: bigInt.BigInteger | number,
+    signed = false
+) {
     const bits = integer.toString(2).length;
     const byteLength = Math.floor((bits + 8 - 1) / 8);
-    return readBufferFromBigInt(typeof integer == "number" ? bigInt(integer) : integer, byteLength, false, signed);
+    return readBufferFromBigInt(
+        typeof integer == "number" ? bigInt(integer) : integer,
+        byteLength,
+        false,
+        signed
+    );
 }
 
 /**
@@ -369,7 +400,8 @@ export function getRandomInt(min: number, max: number) {
  * @param ms time in milliseconds
  * @returns {Promise}
  */
-export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Checks if the obj is an array
@@ -384,29 +416,29 @@ function makeCRCTable() {
     for (let n = 0; n < 256; n++) {
         c = n;
         for (let k = 0; k < 8; k++) {
-            c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1))
+            c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
         }
-        crcTable[n] = c
+        crcTable[n] = c;
     }
-    return crcTable
+    return crcTable;
 }
 
 let crcTable: number[] | undefined = undefined;
 
 export function crc32(buf: Buffer | string) {
     if (!crcTable) {
-        crcTable = makeCRCTable()
+        crcTable = makeCRCTable();
     }
     if (!Buffer.isBuffer(buf)) {
-        buf = Buffer.from(buf)
+        buf = Buffer.from(buf);
     }
     let crc = -1;
 
     for (let index = 0; index < buf.length; index++) {
         const byte = buf[index];
-        crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8)
+        crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
     }
-    return (crc ^ (-1)) >>> 0
+    return (crc ^ -1) >>> 0;
 }
 
 export class TotalList<T> extends Array<T> {
@@ -414,10 +446,9 @@ export class TotalList<T> extends Array<T> {
 
     constructor() {
         super();
-        this.total = 0
+        this.total = 0;
     }
 }
-
 
 export const _EntityType = {
     USER: 0,
@@ -427,34 +458,35 @@ export const _EntityType = {
 Object.freeze(_EntityType);
 
 export function _entityType(entity: EntityLike) {
-
-    if (typeof entity !== 'object' || !('SUBCLASS_OF_ID' in entity)) {
-        throw new Error(`${entity} is not a TLObject, cannot determine entity type`)
+    if (typeof entity !== "object" || !("SUBCLASS_OF_ID" in entity)) {
+        throw new Error(
+            `${entity} is not a TLObject, cannot determine entity type`
+        );
     }
-    if (![
-        0x2d45687,  // crc32('Peer')
-        0xc91c90b6,  // crc32('InputPeer')
-        0xe669bf46,  // crc32('InputUser')
-        0x40f202fd,  // crc32('InputChannel')
-        0x2da17977,  // crc32('User')
-        0xc5af5d94,  // crc32('Chat')
-        0x1f4661b9,  // crc32('UserFull')
-        0xd49a2697,  // crc32('ChatFull')
-    ].includes(entity.SUBCLASS_OF_ID)) {
-        throw new Error(`${entity} does not have any entity type`)
+    if (
+        ![
+            0x2d45687, // crc32('Peer')
+            0xc91c90b6, // crc32('InputPeer')
+            0xe669bf46, // crc32('InputUser')
+            0x40f202fd, // crc32('InputChannel')
+            0x2da17977, // crc32('User')
+            0xc5af5d94, // crc32('Chat')
+            0x1f4661b9, // crc32('UserFull')
+            0xd49a2697, // crc32('ChatFull')
+        ].includes(entity.SUBCLASS_OF_ID)
+    ) {
+        throw new Error(`${entity} does not have any entity type`);
     }
     const name = entity.className;
-    if (name.includes('User')) {
-        return _EntityType.USER
-    } else if (name.includes('Chat')) {
-        return _EntityType.CHAT
-    } else if (name.includes('Channel')) {
-        return _EntityType.CHANNEL
-    } else if (name.includes('Self')) {
-        return _EntityType.USER
+    if (name.includes("User")) {
+        return _EntityType.USER;
+    } else if (name.includes("Chat")) {
+        return _EntityType.CHAT;
+    } else if (name.includes("Channel")) {
+        return _EntityType.CHANNEL;
+    } else if (name.includes("Self")) {
+        return _EntityType.USER;
     }
     // 'Empty' in name or not found, we don't care, not a valid entity.
-    throw new Error(`${entity} does not have any entity type`)
-
+    throw new Error(`${entity} does not have any entity type`);
 }
-

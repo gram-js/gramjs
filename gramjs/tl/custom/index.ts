@@ -1,1 +1,1 @@
-export {ChatGetter} from "./chatGetter";
+export { ChatGetter } from "./chatGetter";

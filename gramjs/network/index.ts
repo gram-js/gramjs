@@ -1,11 +1,11 @@
-export {MTProtoPlainSender} from './MTProtoPlainSender'
-export {doAuthentication} from './Authenticator'
-export {MTProtoSender} from './MTProtoSender'
+export { MTProtoPlainSender } from "./MTProtoPlainSender";
+export { doAuthentication } from "./Authenticator";
+export { MTProtoSender } from "./MTProtoSender";
 
 interface states {
-    disconnected: -1,
-    connected: 1,
-    broken: 0,
+    disconnected: -1;
+    connected: 1;
+    broken: 0;
 }
 
 export class UpdateConnectionState {
@@ -17,8 +17,7 @@ export class UpdateConnectionState {
     private state: number;
 
     constructor(state: number) {
-        this.state = state
-
+        this.state = state;
     }
 }
 
@@ -27,4 +26,4 @@ export {
     ConnectionTCPFull,
     ConnectionTCPAbridged,
     ConnectionTCPObfuscated,
-} from './connection'
+} from "./connection";

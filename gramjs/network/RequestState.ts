@@ -22,9 +22,7 @@ export class RequestState {
         this.result = undefined;
         this.promise = new Promise((resolve, reject) => {
             this.resolve = resolve;
-            this.reject = reject
-        })
+            this.reject = reject;
+        });
     }
 }
-
-

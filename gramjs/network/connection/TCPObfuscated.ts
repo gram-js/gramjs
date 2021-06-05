@@ -1,8 +1,8 @@
-import {generateRandomBytes} from '../../Helpers'
-import {ObfuscatedConnection} from './Connection'
-import {AbridgedPacketCodec} from './TCPAbridged'
-import {CTR} from '../../crypto/CTR';
-import {PromisedNetSockets, PromisedWebSockets} from "../../extensions";
+import { generateRandomBytes } from "../../Helpers";
+import { ObfuscatedConnection } from "./Connection";
+import { AbridgedPacketCodec } from "./TCPAbridged";
+import { CTR } from "../../crypto/CTR";
+import { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 
 class ObfuscatedIO {
     header?: Buffer = undefined;
@@ -16,28 +16,35 @@ class ObfuscatedIO {
         this.header = res.random;
 
         this._encrypt = res.encryptor;
-        this._decrypt = res.decryptor
+        this._decrypt = res.decryptor;
     }
 
     initHeader(packetCodec: any) {
         // Obfuscated messages secrets cannot start with any of these
-        const keywords = [Buffer.from('50567247', 'hex'), Buffer.from('474554', 'hex'),
-            Buffer.from('504f5354', 'hex'), Buffer.from('eeeeeeee', 'hex')];
+        const keywords = [
+            Buffer.from("50567247", "hex"),
+            Buffer.from("474554", "hex"),
+            Buffer.from("504f5354", "hex"),
+            Buffer.from("eeeeeeee", "hex"),
+        ];
         let random;
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
             random = generateRandomBytes(64);
-            if (random[0] !== 0xef && !(random.slice(4, 8).equals(Buffer.alloc(4)))) {
+            if (
+                random[0] !== 0xef &&
+                !random.slice(4, 8).equals(Buffer.alloc(4))
+            ) {
                 let ok = true;
                 for (const key of keywords) {
                     if (key.equals(random.slice(0, 4))) {
                         ok = false;
-                        break
+                        break;
                     }
                 }
                 if (ok) {
-                    break
+                    break;
                 }
             }
         }
@@ -53,25 +60,29 @@ class ObfuscatedIO {
         const decryptor = new CTR(decryptKey, decryptIv);
 
         random = Buffer.concat([
-            Buffer.from(random.slice(0, 56)), packetCodec.obfuscateTag, Buffer.from(random.slice(60)),
+            Buffer.from(random.slice(0, 56)),
+            packetCodec.obfuscateTag,
+            Buffer.from(random.slice(60)),
         ]);
         random = Buffer.concat([
-            Buffer.from(random.slice(0, 56)), Buffer.from(encryptor.encrypt(random).slice(56, 64)), Buffer.from(random.slice(64)),
+            Buffer.from(random.slice(0, 56)),
+            Buffer.from(encryptor.encrypt(random).slice(56, 64)),
+            Buffer.from(random.slice(64)),
         ]);
-        return {random, encryptor, decryptor}
+        return { random, encryptor, decryptor };
     }
 
     async read(n: number) {
         const data = await this.connection.readExactly(n);
-        return this._decrypt.encrypt(data)
+        return this._decrypt.encrypt(data);
     }
 
     write(data: Buffer) {
-        this.connection.write(this._encrypt.encrypt(data))
+        this.connection.write(this._encrypt.encrypt(data));
     }
 }
 
 export class ConnectionTCPObfuscated extends ObfuscatedConnection {
     ObfuscatedIO = ObfuscatedIO;
-    PacketCodecClass = AbridgedPacketCodec
+    PacketCodecClass = AbridgedPacketCodec;
 }

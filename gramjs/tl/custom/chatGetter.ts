@@ -1,7 +1,7 @@
-import type {Entity, EntityLike} from "../../define";
-import type {TelegramClient} from "../../client/TelegramClient";
-import {utils} from "../../";
-import {Api} from "../api";
+import type { Entity, EntityLike } from "../../define";
+import type { TelegramClient } from "../../client/TelegramClient";
+import { utils } from "../../";
+import { Api } from "../api";
 
 export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
@@ -11,31 +11,41 @@ export interface ChatGetterConstructorParams {
 }
 
 export class ChatGetter {
-     _chatPeer?: EntityLike;
-     _inputChat?: EntityLike;
-     _chat?: Entity;
-     _broadcast?: boolean;
+    _chatPeer?: EntityLike;
+    _inputChat?: EntityLike;
+    _chat?: Entity;
+    _broadcast?: boolean;
     public _client?: TelegramClient;
 
-    constructor({chatPeer, inputChat, chat, broadcast}: ChatGetterConstructorParams) {
-        ChatGetter.initClass(this, {chatPeer, inputChat, chat, broadcast});
+    constructor({
+        chatPeer,
+        inputChat,
+        chat,
+        broadcast,
+    }: ChatGetterConstructorParams) {
+        ChatGetter.initClass(this, { chatPeer, inputChat, chat, broadcast });
     }
 
-    static initClass(c: any, {chatPeer, inputChat, chat, broadcast}: ChatGetterConstructorParams) {
+    static initClass(
+        c: any,
+        { chatPeer, inputChat, chat, broadcast }: ChatGetterConstructorParams
+    ) {
         c._chatPeer = chatPeer;
         c._inputChat = inputChat;
         c._chat = chat;
         c._broadcast = broadcast;
-        c._client = undefined
+        c._client = undefined;
     }
-
 
     get chat() {
         return this._chat;
     }
 
     async getChat() {
-        if (!this._chat || 'min' in this._chat && await this.getInputChat()) {
+        if (
+            !this._chat ||
+            ("min" in this._chat && (await this.getInputChat()))
+        ) {
             try {
                 if (this._inputChat) {
                     this._chat = await this._client?.getEntity(this._inputChat);
@@ -49,16 +59,15 @@ export class ChatGetter {
 
     get inputChat() {
         if (!this._inputChat && this._chatPeer && this._client) {
-            try{
+            try {
                 this._inputChat = this._client._entityCache.get(this._chatPeer);
-            }catch (e) {
-
-            }
+            } catch (e) {}
         }
         return this._inputChat;
     }
 
-    async getInputChat() {/*
+    async getInputChat() {
+        /*
         if (!this._inputChat && this.chatId && this._client) {
             try {
                 const target = this.chatId;
@@ -82,11 +91,13 @@ export class ChatGetter {
     }
 
     get isPrivate() {
-        return this._chatPeer ? this._chatPeer instanceof Api.PeerUser : undefined;
+        return this._chatPeer
+            ? this._chatPeer instanceof Api.PeerUser
+            : undefined;
     }
 
     get isGroup() {
-        if (!this._broadcast && this.chat && 'broadcast' in this.chat) {
+        if (!this._broadcast && this.chat && "broadcast" in this.chat) {
             this._broadcast = Boolean(this.chat.broadcast);
         }
         if (this._chatPeer instanceof Api.PeerChannel) {
@@ -103,6 +114,5 @@ export class ChatGetter {
         return this._chatPeer instanceof Api.PeerChannel;
     }
 
-    async _refetchChat() {
-    }
+    async _refetchChat() {}
 }

@@ -1,9 +1,9 @@
-import {TLMessage} from './TLMessage';
-import type {BinaryReader} from "../../extensions";
+import { TLMessage } from "./TLMessage";
+import type { BinaryReader } from "../../extensions";
 
 export class MessageContainer {
     static CONSTRUCTOR_ID = 0x73f1f8dc;
-    static classType = 'constructor';
+    static classType = "constructor";
     // Maximum size in bytes for the inner payload of the container.
     // Telegram will close the connection if the payload is bigger.
     // The overhead of the container itself is subtracted.
@@ -23,10 +23,9 @@ export class MessageContainer {
     private classType: string;
 
     constructor(messages: any[]) {
-
         this.CONSTRUCTOR_ID = 0x73f1f8dc;
         this.messages = messages;
-        this.classType = 'constructor'
+        this.classType = "constructor";
     }
 
     static async fromReader(reader: BinaryReader) {
@@ -40,9 +39,8 @@ export class MessageContainer {
             const obj = reader.tgReadObject();
             reader.setPosition(before + length);
             const tlMessage = new TLMessage(msgId, seqNo, obj);
-            messages.push(tlMessage)
+            messages.push(tlMessage);
         }
-        return new MessageContainer(messages)
+        return new MessageContainer(messages);
     }
 }
-

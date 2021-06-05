@@ -1,17 +1,17 @@
-import {EventBuilder, EventCommon} from "./common";
-import type {TelegramClient} from "../client/TelegramClient";
-import {Api} from "../tl";
+import { EventBuilder, EventCommon } from "./common";
+import type { TelegramClient } from "../client/TelegramClient";
+import { Api } from "../tl";
 
 interface RawInterface {
-    types?: Function[],
-    func?: CallableFunction
+    types?: Function[];
+    func?: CallableFunction;
 }
 
 export class Raw extends EventBuilder {
     private types?: Function[];
 
-    constructor({types = undefined, func = undefined}: RawInterface) {
-        super({func: func});
+    constructor({ types = undefined, func = undefined }: RawInterface) {
+        super({ func: func });
         this.types = types;
     }
 
@@ -20,17 +20,16 @@ export class Raw extends EventBuilder {
     }
 
     build(update: Api.TypeUpdate, others: any = null): Api.TypeUpdate {
-        return update
+        return update;
     }
 
     filter(event: EventCommon) {
-
         if (this.types) {
             let correct = false;
             for (const type of this.types) {
                 if (event instanceof type) {
                     correct = true;
-                    break
+                    break;
                 }
             }
             if (!correct) {

@@ -1,19 +1,22 @@
-import {Api} from "../tl";
-import type {Entity, EntityLike} from "../define";
-import {ChatGetter} from "../tl/custom";
-import type {TelegramClient} from "../client/TelegramClient";
+import { Api } from "../tl";
+import type { Entity, EntityLike } from "../define";
+import { ChatGetter } from "../tl/custom";
+import type { TelegramClient } from "../client/TelegramClient";
 
 import bigInt from "big-integer";
-import {isArrayLike} from "../Helpers";
-import {utils} from "../";
-import {Message} from "../tl/patched";
+import { isArrayLike } from "../Helpers";
+import { utils } from "../";
+import { Message } from "../tl/patched";
 
-export async function _intoIdSet(client: TelegramClient, chats: EntityLike[] | EntityLike | undefined): Promise<number[] | undefined> {
+export async function _intoIdSet(
+    client: TelegramClient,
+    chats: EntityLike[] | EntityLike | undefined
+): Promise<number[] | undefined> {
     if (chats == undefined) {
         return undefined;
     }
     if (!isArrayLike(chats)) {
-        chats = [chats]
+        chats = [chats];
     }
     const result: Set<number> = new Set<number>();
     for (let chat of chats) {
@@ -21,18 +24,32 @@ export async function _intoIdSet(client: TelegramClient, chats: EntityLike[] | E
             if (chat < 0) {
                 result.add(chat);
             } else {
-                result.add(utils.getPeerId(new Api.PeerUser({
-                    userId: chat,
-                })));
-                result.add(utils.getPeerId(new Api.PeerChat({
-                    chatId: chat,
-                })));
-                result.add(utils.getPeerId(new Api.PeerChannel({
-                    channelId: chat,
-                })));
-
+                result.add(
+                    utils.getPeerId(
+                        new Api.PeerUser({
+                            userId: chat,
+                        })
+                    )
+                );
+                result.add(
+                    utils.getPeerId(
+                        new Api.PeerChat({
+                            chatId: chat,
+                        })
+                    )
+                );
+                result.add(
+                    utils.getPeerId(
+                        new Api.PeerChannel({
+                            channelId: chat,
+                        })
+                    )
+                );
             }
-        } else if (typeof chat == "object" && chat.SUBCLASS_OF_ID == 0x2d45687) {
+        } else if (
+            typeof chat == "object" &&
+            chat.SUBCLASS_OF_ID == 0x2d45687
+        ) {
             result.add(utils.getPeerId(chat));
         } else {
             chat = await client.getInputEntity(chat);
@@ -46,10 +63,9 @@ export async function _intoIdSet(client: TelegramClient, chats: EntityLike[] | E
 }
 
 interface DefaultEventInterface {
-    chats?: EntityLike[],
-    blacklistChats?: boolean,
-    func?: CallableFunction,
-
+    chats?: EntityLike[];
+    blacklistChats?: boolean;
+    func?: CallableFunction;
 }
 
 export class EventBuilder {
@@ -58,21 +74,20 @@ export class EventBuilder {
     resolved: boolean;
     func?: CallableFunction;
 
-    constructor({chats, blacklistChats = true, func}: DefaultEventInterface) {
+    constructor({ chats, blacklistChats = true, func }: DefaultEventInterface) {
         this.chats = chats;
         this.blacklistChats = blacklistChats;
         this.resolved = false;
-        this.func = func
+        this.func = func;
     }
 
     build(update: Api.TypeUpdate, others = null): any {
-        if (update)
-            return update;
+        if (update) return update;
     }
 
     async resolve(client: TelegramClient) {
         if (this.resolved) {
-            return
+            return;
         }
         await this._resolve(client);
         this.resolved = true;
@@ -84,7 +99,7 @@ export class EventBuilder {
 
     filter(event: any): undefined | EventBuilder {
         if (!this.resolved) {
-            return
+            return;
         }
         if (this.chats != undefined && event.chatId != undefined) {
             const inside = this.chats.includes(event.chatId);
@@ -92,7 +107,6 @@ export class EventBuilder {
                 // If this chat matches but it's a blacklist ignore.
                 // If it doesn't match but it's a whitelist ignore.
                 return;
-
             }
         }
         return event;
@@ -100,9 +114,9 @@ export class EventBuilder {
 }
 
 interface EventCommonInterface {
-    chatPeer?: EntityLike,
-    msgId?: number,
-    broadcast?: boolean,
+    chatPeer?: EntityLike;
+    msgId?: number;
+    broadcast?: boolean;
 }
 
 export class EventCommon extends ChatGetter {
@@ -110,8 +124,12 @@ export class EventCommon extends ChatGetter {
     _entities: Map<number, Entity>;
     _messageId?: number;
 
-    constructor({chatPeer = undefined, msgId = undefined, broadcast = undefined}: EventCommonInterface) {
-        super({chatPeer, broadcast});
+    constructor({
+        chatPeer = undefined,
+        msgId = undefined,
+        broadcast = undefined,
+    }: EventCommonInterface) {
+        super({ chatPeer, broadcast });
         this._entities = new Map();
         this._client = undefined;
         this._messageId = msgId;
@@ -124,6 +142,4 @@ export class EventCommon extends ChatGetter {
     get client() {
         return this._client;
     }
-
 }
-

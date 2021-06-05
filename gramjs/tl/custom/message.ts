@@ -1,12 +1,12 @@
-import {SenderGetter} from "./senderGetter";
-import type {Entity, EntityLike} from "../../define";
-import {Api} from "../api";
-import type {TelegramClient} from "../../client/TelegramClient";
-import {ChatGetter} from "./chatGetter";
+import { SenderGetter } from "./senderGetter";
+import type { Entity, EntityLike } from "../../define";
+import { Api } from "../api";
+import type { TelegramClient } from "../../client/TelegramClient";
+import { ChatGetter } from "./chatGetter";
 import * as utils from "../../Utils";
-import {Forward} from "./forward";
-import type {File} from "./file";
-import {Mixin} from "ts-mixer";
+import { Forward } from "./forward";
+import type { File } from "./file";
+import { Mixin } from "ts-mixer";
 
 interface MessageBaseInterface {
     id: any;
@@ -39,7 +39,6 @@ interface MessageBaseInterface {
     action?: any;
     _entities?: Map<number, Entity>;
 }
-
 
 export class Message extends Mixin(SenderGetter, ChatGetter) {
     out?: boolean;
@@ -83,32 +82,46 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     _inputSender: any;
     _forward?: Forward;
     _sender: any;
-    _entities: Map<number, Entity>
+    _entities: Map<number, Entity>;
     patternMatch?: RegExpMatchArray;
 
-    constructor(
-        {
-            id,
-            peerId = undefined, date = undefined,
+    constructor({
+        id,
+        peerId = undefined,
+        date = undefined,
 
-            out = undefined, mentioned = undefined, mediaUnread = undefined, silent = undefined,
-            post = undefined, fromId = undefined, replyTo = undefined,
+        out = undefined,
+        mentioned = undefined,
+        mediaUnread = undefined,
+        silent = undefined,
+        post = undefined,
+        fromId = undefined,
+        replyTo = undefined,
 
-            message = undefined,
+        message = undefined,
 
+        fwdFrom = undefined,
+        viaBotId = undefined,
+        media = undefined,
+        replyMarkup = undefined,
+        entities = undefined,
+        views = undefined,
+        editDate = undefined,
+        postAuthor = undefined,
+        groupedId = undefined,
+        fromScheduled = undefined,
+        legacy = undefined,
+        editHide = undefined,
+        pinned = undefined,
+        restrictionReason = undefined,
+        forwards = undefined,
+        replies = undefined,
 
-            fwdFrom = undefined, viaBotId = undefined, media = undefined, replyMarkup = undefined,
-            entities = undefined, views = undefined, editDate = undefined, postAuthor = undefined,
-            groupedId = undefined, fromScheduled = undefined, legacy = undefined,
-            editHide = undefined, pinned = undefined, restrictionReason = undefined, forwards = undefined, replies = undefined,
+        action = undefined,
 
-
-            action = undefined,
-
-
-            _entities = new Map<number, Entity>(),
-        }: MessageBaseInterface) {
-        if (!id) throw new Error('id is a required attribute for Message');
+        _entities = new Map<number, Entity>(),
+    }: MessageBaseInterface) {
+        if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
         if (fromId) {
             senderId = utils.getPeerId(fromId);
@@ -161,68 +174,104 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         this._actionEntities = undefined;
 
         // Note: these calls would reset the client
-        ChatGetter.initClass(this, {chatPeer: peerId, broadcast: post});
-        SenderGetter.initClass(this, {senderId: senderId});
+        ChatGetter.initClass(this, { chatPeer: peerId, broadcast: post });
+        SenderGetter.initClass(this, { senderId: senderId });
 
-        this._forward = undefined
+        this._forward = undefined;
     }
 
-
-    _finishInit(client: TelegramClient, entities: Map<number, Entity>, inputChat?: EntityLike) {
+    _finishInit(
+        client: TelegramClient,
+        entities: Map<number, Entity>,
+        inputChat?: EntityLike
+    ) {
         this._client = client;
         const cache = client._entityCache;
         if (this.senderId) {
-            [this._sender, this._inputSender] = utils._getEntityPair(this.senderId, entities, cache);
+            [this._sender, this._inputSender] = utils._getEntityPair(
+                this.senderId,
+                entities,
+                cache
+            );
         }
         if (this.chatId) {
-            [this._chat, this._inputChat] = utils._getEntityPair(this.chatId, entities, cache);
-
+            [this._chat, this._inputChat] = utils._getEntityPair(
+                this.chatId,
+                entities,
+                cache
+            );
         }
 
-        if (inputChat) { // This has priority
+        if (inputChat) {
+            // This has priority
             this._inputChat = inputChat;
         }
 
         if (this.viaBotId) {
-            [this._viaBot, this._viaInputBot] = utils._getEntityPair(this.viaBotId, entities, cache)
+            [this._viaBot, this._viaInputBot] = utils._getEntityPair(
+                this.viaBotId,
+                entities,
+                cache
+            );
         }
 
         if (this.fwdFrom) {
-            this._forward = new Forward(this._client, this.fwdFrom, this.entities)
+            // todo fix this
+            //  this._forward = new Forward(this._client, this.fwdFrom, this.entities)
         }
 
         if (this.action) {
-            if ((this.action instanceof Api.MessageActionChatAddUser) ||
-                (this.action instanceof Api.MessageActionChatCreate)) {
-                this._actionEntities = this.action.users.map((i) => entities.get(i))
+            if (
+                this.action instanceof Api.MessageActionChatAddUser ||
+                this.action instanceof Api.MessageActionChatCreate
+            ) {
+                this._actionEntities = this.action.users.map((i) =>
+                    entities.get(i)
+                );
             } else if (this.action instanceof Api.MessageActionChatDeleteUser) {
-                this._actionEntities = [entities.get(this.action.userId)]
-            } else if (this.action instanceof Api.MessageActionChatJoinedByLink) {
-                this._actionEntities = [entities.get(utils.getPeerId(
-                    new Api.PeerChannel({channelId: this.action.inviterId}),
-                ))]
-            } else if (this.action instanceof Api.MessageActionChannelMigrateFrom) {
-                this._actionEntities = [entities.get(utils.getPeerId(
-                    new Api.PeerChat({chatId: this.action.chatId})),
-                )]
+                this._actionEntities = [entities.get(this.action.userId)];
+            } else if (
+                this.action instanceof Api.MessageActionChatJoinedByLink
+            ) {
+                this._actionEntities = [
+                    entities.get(
+                        utils.getPeerId(
+                            new Api.PeerChannel({
+                                channelId: this.action.inviterId,
+                            })
+                        )
+                    ),
+                ];
+            } else if (
+                this.action instanceof Api.MessageActionChannelMigrateFrom
+            ) {
+                this._actionEntities = [
+                    entities.get(
+                        utils.getPeerId(
+                            new Api.PeerChat({ chatId: this.action.chatId })
+                        )
+                    ),
+                ];
             }
         }
-
     }
 
     get client() {
-        return this._client
+        return this._client;
     }
 
     get text() {
         if (this._text === undefined && this._client) {
             if (!this._client.parseMode) {
-                this._text = this.message
+                this._text = this.message;
             } else {
-                this._text = this._client.parseMode.unparse(this.message, this.entities)
+                this._text = this._client.parseMode.unparse(
+                    this.message,
+                    this.entities
+                );
             }
         }
-        return this._text || '';
+        return this._text || "";
     }
 
     set text(value: string) {
@@ -231,12 +280,12 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             [this.message, this.entities] = this._client.parseMode.parse(value);
         } else {
             this.message = value;
-            this.entities = []
+            this.entities = [];
         }
     }
 
     get rawText() {
-        return this.message
+        return this.message;
     }
 
     /**
@@ -245,7 +294,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     set rawText(value: string) {
         this.message = value;
         this.entities = [];
-        this._text = ''
+        this._text = "";
     }
 
     get isReply(): boolean {
@@ -253,11 +302,11 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     get forward() {
-        return this._forward
+        return this._forward;
     }
 
     async _refetchSender() {
-        await this._reloadMessage()
+        await this._reloadMessage();
     }
 
     /**
@@ -270,14 +319,16 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         let msg: Message | undefined = undefined;
         try {
             const chat = this.isChannel ? await this.getInputChat() : undefined;
-            let temp = await this._client.getMessages(chat, {ids: this.id});
+            let temp = await this._client.getMessages(chat, { ids: this.id });
             if (temp) {
                 msg = temp[0];
             }
-
         } catch (e) {
-            this._client._log.error("Got error while trying to finish init message with id " + this.id);
-            if (this._client._log.canSend('error')) {
+            this._client._log.error(
+                "Got error while trying to finish init message with id " +
+                    this.id
+            );
+            if (this._client._log.canSend("error")) {
                 console.error(e);
             }
         }
@@ -290,7 +341,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         this._viaBot = msg._viaBot;
         this._viaInputBot = msg._viaInputBot;
         this._forward = msg._forward;
-        this._actionEntities = msg._actionEntities
+        this._actionEntities = msg._actionEntities;
     }
 
     /*
@@ -689,5 +740,4 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             }*/
 }
 
-export interface Message extends ChatGetter, SenderGetter {
-}
+export interface Message extends ChatGetter, SenderGetter {}

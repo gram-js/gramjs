@@ -1,7 +1,7 @@
-import {Parser} from "htmlparser2";
-import {Handler} from "htmlparser2/lib/Parser";
-import {Api} from "../tl";
-import {helpers} from "../index";
+import { Parser } from "htmlparser2";
+import { Handler } from "htmlparser2/lib/Parser";
+import { Api } from "../tl";
+import { helpers } from "../index";
 
 class HTMLToTelegramParser implements Handler {
     text: string;
@@ -11,16 +11,19 @@ class HTMLToTelegramParser implements Handler {
     private _openTagsMeta: (string | undefined)[];
 
     constructor() {
-        this.text = '';
+        this.text = "";
         this.entities = [];
         this._buildingEntities = new Map<string, Api.TypeMessageEntity>();
         this._openTags = [];
         this._openTagsMeta = [];
     }
 
-    onopentag(name: string, attributes: {
-        [s: string]: string;
-    }) {
+    onopentag(
+        name: string,
+        attributes: {
+            [s: string]: string;
+        }
+    ) {
         /*
          * This fires when a new tag is opened.
          *
@@ -42,10 +45,13 @@ class HTMLToTelegramParser implements Handler {
         } else if (name == "blockquote") {
             EntityType = Api.MessageEntityBlockquote;
         } else if (name == "code") {
-            const pre = this._buildingEntities.get('pre');
+            const pre = this._buildingEntities.get("pre");
             if (pre && pre instanceof Api.MessageEntityPre) {
                 try {
-                    pre.language = attributes.class.slice('language-'.length, attributes.class.length);
+                    pre.language = attributes.class.slice(
+                        "language-".length,
+                        attributes.class.length
+                    );
                 } catch (e) {
                     // no language block
                 }
@@ -64,7 +70,6 @@ class HTMLToTelegramParser implements Handler {
                 url = url.slice("mailto:".length, url.length);
                 EntityType = Api.MessageEntityEmail;
             } else {
-
                 EntityType = Api.MessageEntityTextUrl;
                 args["url"] = url;
                 url = undefined;
@@ -74,27 +79,29 @@ class HTMLToTelegramParser implements Handler {
         }
 
         if (EntityType && !this._buildingEntities.has(name)) {
-            this._buildingEntities.set(name, new EntityType({
-                offset: this.text.length,
-                length: 0,
-                ...args
-            }));
+            this._buildingEntities.set(
+                name,
+                new EntityType({
+                    offset: this.text.length,
+                    length: 0,
+                    ...args,
+                })
+            );
         }
-
     }
 
     ontext(text: string) {
         const previousTag = this._openTags.length > 0 ? this._openTags[0] : "";
         if (previousTag == "a") {
-            const url = this._openTagsMeta[0]
+            const url = this._openTagsMeta[0];
             if (url) {
-                text = url
+                text = url;
             }
         }
         for (let [tag, entity] of this._buildingEntities) {
             entity.length += text.length;
         }
-        this.text += text
+        this.text += text;
     }
 
     onclosetag(tagname: string) {
@@ -104,60 +111,55 @@ class HTMLToTelegramParser implements Handler {
         if (entity) {
             this._buildingEntities.delete(tagname);
             this.entities.push(entity);
-
         }
     }
 
-    onattribute(name: string, value: string, quote?: string | undefined | null): void {
-    }
+    onattribute(
+        name: string,
+        value: string,
+        quote?: string | undefined | null
+    ): void {}
 
-    oncdataend(): void {
-    }
+    oncdataend(): void {}
 
-    oncdatastart(): void {
-    }
+    oncdatastart(): void {}
 
-    oncomment(data: string): void {
-    }
+    oncomment(data: string): void {}
 
-    oncommentend(): void {
-    }
+    oncommentend(): void {}
 
-    onend(): void {
-    }
+    onend(): void {}
 
-    onerror(error: Error): void {
-    }
+    onerror(error: Error): void {}
 
-    onopentagname(name: string): void {
-    }
+    onopentagname(name: string): void {}
 
-    onparserinit(parser: Parser): void {
-    }
+    onparserinit(parser: Parser): void {}
 
-    onprocessinginstruction(name: string, data: string): void {
-    }
+    onprocessinginstruction(name: string, data: string): void {}
 
-    onreset(): void {
-    }
-
+    onreset(): void {}
 }
 
 export class HTMLParser {
     static parse(html: string): [string, Api.TypeMessageEntity[]] {
         if (!html) {
-            return [html, []]
+            return [html, []];
         }
         const handler = new HTMLToTelegramParser();
         const parser = new Parser(handler);
         parser.write(html);
         parser.end();
-        const text = helpers.stripText(handler.text,handler.entities);
+        const text = helpers.stripText(handler.text, handler.entities);
         return [text, handler.entities];
-
     }
 
-    static unparse(text: string, entities: Api.TypeMessageEntity[] | undefined, _offset: number = 0, _length?: number): string {
+    static unparse(
+        text: string,
+        entities: Api.TypeMessageEntity[] | undefined,
+        _offset: number = 0,
+        _length?: number
+    ): string {
         if (!text || !entities || !entities.length) {
             return text;
         }
@@ -175,46 +177,50 @@ export class HTMLParser {
             if (relativeOffset > lastOffset) {
                 html.push(text.slice(lastOffset, relativeOffset));
             } else if (relativeOffset < lastOffset) {
-                continue
+                continue;
             }
             let skipEntity = false;
             let length = entity.length;
-            let entityText = this.unparse(text.slice(relativeOffset, relativeOffset + length),
+            let entityText = this.unparse(
+                text.slice(relativeOffset, relativeOffset + length),
                 entities.slice(i + 1, entities.length),
-                entity.offset, length)
+                entity.offset,
+                length
+            );
             if (entity instanceof Api.MessageEntityBold) {
-                html.push(`<strong>${entityText}</strong>`)
+                html.push(`<strong>${entityText}</strong>`);
             } else if (entity instanceof Api.MessageEntityItalic) {
-                html.push(`<em>${entityText}</em>`)
+                html.push(`<em>${entityText}</em>`);
             } else if (entity instanceof Api.MessageEntityBold) {
-                html.push(`<strong>${entityText}</strong>`)
+                html.push(`<strong>${entityText}</strong>`);
             } else if (entity instanceof Api.MessageEntityCode) {
-                html.push(`<code>${entityText}</code>`)
+                html.push(`<code>${entityText}</code>`);
             } else if (entity instanceof Api.MessageEntityUnderline) {
-                html.push(`<u>${entityText}</u>`)
+                html.push(`<u>${entityText}</u>`);
             } else if (entity instanceof Api.MessageEntityStrike) {
-                html.push(`<del>${entityText}</del>`)
+                html.push(`<del>${entityText}</del>`);
             } else if (entity instanceof Api.MessageEntityBlockquote) {
-                html.push(`<blockquote>${entityText}</blockquote>`)
+                html.push(`<blockquote>${entityText}</blockquote>`);
             } else if (entity instanceof Api.MessageEntityPre) {
                 if (entity.language) {
                     html.push(`<pre>
 <code class="language-${entity.language}">
     ${entityText}
 </code>
-</pre>`)
+</pre>`);
                 } else {
-                    html.push(`<pre></pre><code>${entityText}</code><pre>`)
-
+                    html.push(`<pre></pre><code>${entityText}</code><pre>`);
                 }
             } else if (entity instanceof Api.MessageEntityEmail) {
-                html.push(`<a href="mailto:${entityText}">${entityText}</a>`)
+                html.push(`<a href="mailto:${entityText}">${entityText}</a>`);
             } else if (entity instanceof Api.MessageEntityUrl) {
-                html.push(`<a href="${entityText}">${entityText}</a>`)
+                html.push(`<a href="${entityText}">${entityText}</a>`);
             } else if (entity instanceof Api.MessageEntityTextUrl) {
-                html.push(`<a href="${entity.url}">${entityText}</a>`)
+                html.push(`<a href="${entity.url}">${entityText}</a>`);
             } else if (entity instanceof Api.MessageEntityMentionName) {
-                html.push(`<a href="tg://user?id=${entity.userId}">${entityText}</a>`)
+                html.push(
+                    `<a href="tg://user?id=${entity.userId}">${entityText}</a>`
+                );
             } else {
                 skipEntity = true;
             }
@@ -224,4 +230,3 @@ export class HTMLParser {
         return html.join("");
     }
 }
-

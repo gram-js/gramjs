@@ -1,9 +1,9 @@
-import {Socket} from 'net';
-import {Mutex} from 'async-mutex';
+import { Socket } from "net";
+import { Mutex } from "async-mutex";
 
 const mutex = new Mutex();
 
-const closeError = new Error('NetSocket was closed');
+const closeError = new Error("NetSocket was closed");
 
 export class PromisedNetSockets {
     private client?: Socket;
@@ -14,7 +14,7 @@ export class PromisedNetSockets {
 
     constructor() {
         this.client = undefined;
-        this.closed = true
+        this.closed = true;
         this.stream = Buffer.alloc(0);
     }
 
@@ -25,40 +25,40 @@ export class PromisedNetSockets {
             readData = Buffer.concat([readData, thisTime]);
             number = number - thisTime.length;
             if (!number) {
-                return readData
+                return readData;
             }
         }
     }
 
     async read(number: number) {
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
         await this.canRead;
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
         const toReturn = this.stream.slice(0, number);
         this.stream = this.stream.slice(number);
         if (this.stream.length === 0) {
-            this.canRead = new Promise(resolve => {
-                this.resolveRead = resolve
-            })
+            this.canRead = new Promise((resolve) => {
+                this.resolveRead = resolve;
+            });
         }
 
-        return toReturn
+        return toReturn;
     }
 
     async readAll() {
-        if (this.closed || !await this.canRead) {
-            throw closeError
+        if (this.closed || !(await this.canRead)) {
+            throw closeError;
         }
         const toReturn = this.stream;
         this.stream = Buffer.alloc(0);
-        this.canRead = new Promise(resolve => {
-            this.resolveRead = resolve
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve;
         });
-        return toReturn
+        return toReturn;
     }
 
     /**
@@ -71,39 +71,37 @@ export class PromisedNetSockets {
         this.stream = Buffer.alloc(0);
 
         this.client = new Socket();
-        this.canRead = new Promise(resolve => {
-            this.resolveRead = resolve
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve;
         });
         this.closed = false;
         return new Promise((resolve, reject) => {
             if (this.client) {
                 this.client.connect(port, ip, () => {
                     this.receive();
-                    resolve(this)
+                    resolve(this);
                 });
-                this.client.on('error', reject);
-                this.client.on('close', () => {
+                this.client.on("error", reject);
+                this.client.on("close", () => {
                     if (this.client && this.client.destroyed) {
                         if (this.resolveRead) {
                             this.resolveRead(false);
                         }
-                        this.closed = true
+                        this.closed = true;
                     }
-                })
+                });
             }
-
-        })
+        });
     }
 
     write(data: Buffer) {
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
         if (this.client) {
-            this.client.write(data)
+            this.client.write(data);
         }
     }
-
 
     async close() {
         if (this.client) {
@@ -115,20 +113,19 @@ export class PromisedNetSockets {
 
     async receive() {
         if (this.client) {
-            this.client.on('data', async message => {
+            this.client.on("data", async (message) => {
                 const release = await mutex.acquire();
                 try {
                     let data;
                     //CONTEST BROWSER
                     this.stream = Buffer.concat([this.stream, message]);
                     if (this.resolveRead) {
-                        this.resolveRead(true)
+                        this.resolveRead(true);
                     }
                 } finally {
-                    release()
+                    release();
                 }
             });
         }
-
     }
 }

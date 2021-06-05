@@ -1,16 +1,14 @@
-import {crc32} from '../Helpers';
-import type {DateLike} from "../define";
+import { crc32 } from "../Helpers";
+import type { DateLike } from "../define";
 
 const snakeToCamelCase = (name: string) => {
     const result = name.replace(/(?:^|_)([a-z])/g, (_, g) => g.toUpperCase());
-    return result.replace(/_/g, '')
+    return result.replace(/_/g, "");
 };
-const variableSnakeToCamelCase = (str: string) => str.replace(
-    /([-_][a-z])/g,
-    group => group.toUpperCase()
-        .replace('-', '')
-        .replace('_', ''),
-);
+const variableSnakeToCamelCase = (str: string) =>
+    str.replace(/([-_][a-z])/g, (group) =>
+        group.toUpperCase().replace("-", "").replace("_", "")
+    );
 
 const CORE_TYPES = new Set([
     0xbc799737, // boolFalse#bc799737 = Bool;
@@ -33,12 +31,13 @@ const AUTH_KEY_TYPES = new Set([
     0x3072cfa1, // gzip_packed
 ]);
 
-
 const fromLine = (line: string, isFunction: boolean) => {
-    const match = line.match(/([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/);
+    const match = line.match(
+        /([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/
+    );
     if (!match) {
         // Probably "vector#1cb5c415 {t:Type} # [ t ] = Vector t;"
-        throw new Error(`Cannot parse TLObject ${line}`)
+        throw new Error(`Cannot parse TLObject ${line}`);
     }
 
     const argsMatch = findAll(/({)?(\w+):([\w\d<>#.?!]+)}?/, line);
@@ -52,38 +51,44 @@ const fromLine = (line: string, isFunction: boolean) => {
         namespace: undefined,
     };
     if (!currentConfig.constructorId) {
-
-        const hexId = '';
+        const hexId = "";
         let args;
 
         if (Object.values(currentConfig.argsConfig).length) {
-            args = ` ${Object.keys(currentConfig.argsConfig).map(arg => arg.toString()).join(' ')}`
+            args = ` ${Object.keys(currentConfig.argsConfig)
+                .map((arg) => arg.toString())
+                .join(" ")}`;
         } else {
-            args = ''
+            args = "";
         }
 
-        const representation = `${currentConfig.name}${hexId}${args} = ${currentConfig.result}`
-            .replace(/(:|\?)bytes /g, '$1string ')
-            .replace(/</g, ' ')
-            .replace(/>|{|}/g, '')
-            .replace(/ \w+:flags\.\d+\?true/g, '');
+        const representation =
+            `${currentConfig.name}${hexId}${args} = ${currentConfig.result}`
+                .replace(/(:|\?)bytes /g, "$1string ")
+                .replace(/</g, " ")
+                .replace(/>|{|}/g, "")
+                .replace(/ \w+:flags\.\d+\?true/g, "");
 
-        if (currentConfig.name === 'inputMediaInvoice') {
+        if (currentConfig.name === "inputMediaInvoice") {
             // eslint-disable-next-line no-empty
-            if (currentConfig.name === 'inputMediaInvoice') {
+            if (currentConfig.name === "inputMediaInvoice") {
             }
         }
 
-        currentConfig.constructorId = crc32(Buffer.from(representation, 'utf8'))
+        currentConfig.constructorId = crc32(
+            Buffer.from(representation, "utf8")
+        );
     }
     for (const [brace, name, argType] of argsMatch) {
         if (brace === undefined) {
             // @ts-ignore
-            currentConfig.argsConfig[variableSnakeToCamelCase(name)] = buildArgConfig(name, argType)
+            currentConfig.argsConfig[variableSnakeToCamelCase(name)] =
+                buildArgConfig(name, argType);
         }
     }
-    if (currentConfig.name.includes('.')) {
-        [currentConfig.namespace, currentConfig.name] = currentConfig.name.split(/\.(.+)/)
+    if (currentConfig.name.includes(".")) {
+        [currentConfig.namespace, currentConfig.name] =
+            currentConfig.name.split(/\.(.+)/);
     }
     currentConfig.name = snakeToCamelCase(currentConfig.name);
     /*
@@ -94,11 +99,11 @@ const fromLine = (line: string, isFunction: boolean) => {
         }
       }
     }*/
-    return currentConfig
+    return currentConfig;
 };
 
 function buildArgConfig(name: string, argType: string) {
-    name = name === 'self' ? 'is_self' : name;
+    name = name === "self" ? "is_self" : name;
     // Default values
     const currentConfig: any = {
         isVector: false,
@@ -114,13 +119,13 @@ function buildArgConfig(name: string, argType: string) {
     // less annoying to type. Currently the only type that can
     // be inferred is if the name is 'random_id', to which a
     // random ID will be assigned if left as None (the default)
-    const canBeInferred = name === 'random_id';
+    const canBeInferred = name === "random_id";
 
     // The type can be an indicator that other arguments will be flags
-    if (argType !== '#') {
+    if (argType !== "#") {
         currentConfig.flagIndicator = false;
         // Strip the exclamation mark always to have only the name
-        currentConfig.type = argType.replace(/^!+/, '');
+        currentConfig.type = argType.replace(/^!+/, "");
 
         // The type may be a flag (flags.IDX?REAL_TYPE)
         // Note that 'flags' is NOT the flags name; this
@@ -133,7 +138,7 @@ function buildArgConfig(name: string, argType: string) {
             currentConfig.isFlag = true;
             currentConfig.flagIndex = Number(flagMatch[1]);
             // Update the type to match the exact type, not the "flagged" one
-            [, , currentConfig.type] = flagMatch
+            [, , currentConfig.type] = flagMatch;
         }
 
         // Then check if the type is a Vector<REAL_TYPE>
@@ -146,21 +151,17 @@ function buildArgConfig(name: string, argType: string) {
             // If the type's first letter is not uppercase, then
             // it is a constructor and we use (read/write) its ID.
             // @ts-ignore
-            currentConfig.useVectorId = currentConfig.type.charAt(0) === 'V';
+            currentConfig.useVectorId = currentConfig.type.charAt(0) === "V";
 
             // Update the type to match the one inside the vector
-            [, currentConfig.type] = vectorMatch
+            [, currentConfig.type] = vectorMatch;
         }
 
         // See use_vector_id. An example of such case is ipPort in
         // help.configSpecial
         // @ts-ignore
-        if (/^[a-z]$/.test(currentConfig.type.split('.')
-            .pop()
-            .charAt(0),
-        )
-        ) {
-            currentConfig.skipConstructorId = true
+        if (/^[a-z]$/.test(currentConfig.type.split(".").pop().charAt(0))) {
+            currentConfig.skipConstructorId = true;
         }
 
         // The name may contain "date" in it, if this is the case and
@@ -175,12 +176,19 @@ function buildArgConfig(name: string, argType: string) {
         //     this.type = 'date';
         // }
     }
-    return currentConfig
+    return currentConfig;
 }
 
-
-const parseTl = function* (content: string, layer: string, methods: any[] = [], ignoreIds = CORE_TYPES) {
-    const methodInfo = (methods || []).reduce((o, m) => ({...o, [m.name]: m}), {});
+const parseTl = function* (
+    content: string,
+    layer: string,
+    methods: any[] = [],
+    ignoreIds = CORE_TYPES
+) {
+    const methodInfo = (methods || []).reduce(
+        (o, m) => ({ ...o, [m.name]: m }),
+        {}
+    );
     const objAll = [];
     const objByName: any = {};
     const objByType: any = {};
@@ -189,47 +197,47 @@ const parseTl = function* (content: string, layer: string, methods: any[] = [], 
 
     let isFunction = false;
 
-    for (let line of file.split('\n')) {
-        const commentIndex = line.indexOf('//');
+    for (let line of file.split("\n")) {
+        const commentIndex = line.indexOf("//");
 
         if (commentIndex !== -1) {
-            line = line.slice(0, commentIndex)
+            line = line.slice(0, commentIndex);
         }
 
         line = line.trim();
 
         if (!line) {
-            continue
+            continue;
         }
 
         const match = line.match(/---(\w+)---/);
 
         if (match) {
             const [, followingTypes] = match;
-            isFunction = followingTypes === 'functions';
-            continue
+            isFunction = followingTypes === "functions";
+            continue;
         }
 
         try {
             const result = fromLine(line, isFunction);
 
             if (ignoreIds.has(result.constructorId)) {
-                continue
+                continue;
             }
 
             objAll.push(result);
 
             if (!result.isFunction) {
                 if (!objByType[result.result]) {
-                    objByType[result.result] = []
+                    objByType[result.result] = [];
                 }
 
                 objByName[result.name] = result;
-                objByType[result.result].push(result)
+                objByType[result.result].push(result);
             }
         } catch (e) {
-            if (!e.toString().includes('vector#1cb5c415')) {
-                throw e
+            if (!e.toString().includes("vector#1cb5c415")) {
+                throw e;
             }
         }
     }
@@ -240,40 +248,39 @@ const parseTl = function* (content: string, layer: string, methods: any[] = [], 
         //console.log(obj)
         if (AUTH_KEY_TYPES.has(obj.constructorId)) {
             for (const arg in obj.argsConfig) {
-                if (obj.argsConfig[arg].type === 'string') {
-                    obj.argsConfig[arg].type = 'bytes'
+                if (obj.argsConfig[arg].type === "string") {
+                    obj.argsConfig[arg].type = "bytes";
                 }
             }
         }
     }
 
     for (const obj of objAll) {
-        yield obj
+        yield obj;
     }
-
 };
 
 const findAll = (regex: RegExp, str: string, matches: any = []) => {
-    if (!regex.flags.includes('g')) {
-        regex = new RegExp(regex.source, 'g')
+    if (!regex.flags.includes("g")) {
+        regex = new RegExp(regex.source, "g");
     }
 
     const res = regex.exec(str);
 
     if (res) {
         matches.push(res.slice(1));
-        findAll(regex, str, matches)
+        findAll(regex, str, matches);
     }
 
-    return matches
+    return matches;
 };
 
 export function serializeBytes(data: Buffer | string | any) {
     if (!(data instanceof Buffer)) {
-        if (typeof data == 'string') {
-            data = Buffer.from(data)
+        if (typeof data == "string") {
+            data = Buffer.from(data);
         } else {
-            throw Error(`Bytes or str expected, not ${data.constructor.name}`)
+            throw Error(`Bytes or str expected, not ${data.constructor.name}`);
         }
     }
     const r = [];
@@ -281,39 +288,43 @@ export function serializeBytes(data: Buffer | string | any) {
     if (data.length < 254) {
         padding = (data.length + 1) % 4;
         if (padding !== 0) {
-            padding = 4 - padding
+            padding = 4 - padding;
         }
         r.push(Buffer.from([data.length]));
-        r.push(data)
+        r.push(data);
     } else {
         padding = data.length % 4;
         if (padding !== 0) {
-            padding = 4 - padding
+            padding = 4 - padding;
         }
-        r.push(Buffer.from([254, data.length % 256, (data.length >> 8) % 256, (data.length >> 16) % 256]));
-        r.push(data)
+        r.push(
+            Buffer.from([
+                254,
+                data.length % 256,
+                (data.length >> 8) % 256,
+                (data.length >> 16) % 256,
+            ])
+        );
+        r.push(data);
     }
-    r.push(Buffer.alloc(padding)
-        .fill(0));
+    r.push(Buffer.alloc(padding).fill(0));
 
-    return Buffer.concat(r)
-
+    return Buffer.concat(r);
 }
 
 export function serializeDate(dt: DateLike | Date) {
     if (!dt) {
-        return Buffer.alloc(4)
-            .fill(0)
+        return Buffer.alloc(4).fill(0);
     }
     if (dt instanceof Date) {
-        dt = Math.floor((Date.now() - dt.getTime()) / 1000)
+        dt = Math.floor((Date.now() - dt.getTime()) / 1000);
     }
-    if (typeof dt == 'number') {
+    if (typeof dt == "number") {
         const t = Buffer.alloc(4);
         t.writeInt32LE(dt, 0);
-        return t
+        return t;
     }
-    throw Error(`Cannot interpret "${dt}" as a date`)
+    throw Error(`Cannot interpret "${dt}" as a date`);
 }
 
 export {

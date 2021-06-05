@@ -1,9 +1,8 @@
-import {Api} from "../tl";
-import type {ValueOf} from "../define";
-import {DEFAULT_DELIMITERS, messageEntities} from "../client/messageParse";
+import { Api } from "../tl";
+import type { ValueOf } from "../define";
+import { DEFAULT_DELIMITERS, messageEntities } from "../client/messageParse";
 
 export class MarkdownParser {
-
     // TODO maybe there is a better way :shrug:
     static parse(message: string): [string, Api.TypeMessageEntity[]] {
         let i = 0;
@@ -22,7 +21,6 @@ export class MarkdownParser {
                     foundIndex = index;
                     foundDelim = key;
                 }
-
             }
 
             if (foundIndex === -1 || foundDelim == undefined) {
@@ -32,22 +30,25 @@ export class MarkdownParser {
                 tempEntities[foundDelim] = new DEFAULT_DELIMITERS[foundDelim]({
                     offset: foundIndex,
                     length: -1,
-                    language: ""
+                    language: "",
                 });
                 keys[foundDelim] = true;
             } else {
                 keys[foundDelim] = false;
-                tempEntities[foundDelim].length = foundIndex - tempEntities[foundDelim].offset;
-                entities.push(tempEntities[foundDelim])
+                tempEntities[foundDelim].length =
+                    foundIndex - tempEntities[foundDelim].offset;
+                entities.push(tempEntities[foundDelim]);
             }
             message = message.replace(foundDelim, "");
             i = foundIndex;
-
         }
         return [message, entities];
     }
 
-    static unparse(text: string, entities: Api.TypeMessageEntity[] | undefined) {
+    static unparse(
+        text: string,
+        entities: Api.TypeMessageEntity[] | undefined
+    ) {
         const delimiters = DEFAULT_DELIMITERS;
         if (!text || !entities) {
             return text;
@@ -55,11 +56,10 @@ export class MarkdownParser {
         let insertAt: [number, string][] = [];
 
         const tempDelimiters: Map<string, string> = new Map();
-        Object.keys(delimiters).forEach(key => {
+        Object.keys(delimiters).forEach((key) => {
             tempDelimiters.set(delimiters[key].className, key);
         });
         for (const entity of entities) {
-
             const s = entity.offset;
             const e = entity.offset + entity.length;
             const delimiter = tempDelimiters.get(entity.className);
@@ -77,5 +77,4 @@ export class MarkdownParser {
         }
         return text;
     }
-
 }

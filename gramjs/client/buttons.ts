@@ -1,11 +1,19 @@
-import {Api} from "../tl";
-import type {ButtonLike, MarkupLike} from "../define";
-import {Button} from "../tl/custom/button";
-import {MessageButton} from "../tl/custom/messageButton";
-import {isArrayLike} from "../Helpers";
+import { Api } from "../tl";
+import type { ButtonLike, MarkupLike } from "../define";
+import { Button } from "../tl/custom/button";
+import { MessageButton } from "../tl/custom/messageButton";
+import { isArrayLike } from "../Helpers";
 
 // ButtonMethods
-export function buildReplyMarkup(buttons: Api.TypeReplyMarkup | undefined | ButtonLike | ButtonLike[] | ButtonLike[][], inlineOnly: boolean = false): Api.TypeReplyMarkup | undefined {
+export function buildReplyMarkup(
+    buttons:
+        | Api.TypeReplyMarkup
+        | undefined
+        | ButtonLike
+        | ButtonLike[]
+        | ButtonLike[][],
+    inlineOnly: boolean = false
+): Api.TypeReplyMarkup | undefined {
     if (buttons == undefined) {
         return undefined;
     }
@@ -59,25 +67,26 @@ export function buildReplyMarkup(buttons: Api.TypeReplyMarkup | undefined | Butt
             }
         }
         if (current) {
-            rows.push(new Api.KeyboardButtonRow({
-                buttons: current,
-            }))
+            rows.push(
+                new Api.KeyboardButtonRow({
+                    buttons: current,
+                })
+            );
         }
     }
     if (inlineOnly && isNormal) {
-        throw new Error('You cannot use non-inline buttons here');
+        throw new Error("You cannot use non-inline buttons here");
     } else if (isInline === isNormal && isNormal) {
-        throw new Error('You cannot mix inline with normal buttons');
+        throw new Error("You cannot mix inline with normal buttons");
     } else if (isInline) {
         return new Api.ReplyInlineMarkup({
-            rows: rows
-        })
+            rows: rows,
+        });
     }
-    return new Api.ReplyKeyboardMarkup(({
+    return new Api.ReplyKeyboardMarkup({
         rows: rows,
         resize: resize,
         singleUse: singleUse,
-        selective: selective
-    }))
+        selective: selective,
+    });
 }
-

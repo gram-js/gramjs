@@ -1,14 +1,20 @@
-import {Api} from "../tl";
-import type {Message} from '../tl/custom/message';
-import type {DateLike, EntityLike, FileLike, MarkupLike, MessageIDLike, MessageLike} from "../define";
-import {RequestIter} from "../requestIter";
-import {_EntityType, _entityType, TotalList, isArrayLike} from "../Helpers";
-import {getMessageId, getPeerId} from "../Utils";
-import type {TelegramClient} from "../";
-import {utils} from "../";
+import { Api } from "../tl";
+import type { Message } from "../tl/custom/message";
+import type {
+    DateLike,
+    EntityLike,
+    FileLike,
+    MarkupLike,
+    MessageIDLike,
+    MessageLike,
+} from "../define";
+import { RequestIter } from "../requestIter";
+import { _EntityType, _entityType, TotalList, isArrayLike } from "../Helpers";
+import { getMessageId, getPeerId } from "../Utils";
+import type { TelegramClient } from "../";
+import { utils } from "../";
 
 const _MAX_CHUNK_SIZE = 100;
-
 
 interface MessageIterParams {
     entity: EntityLike;
@@ -24,11 +30,30 @@ interface MessageIterParams {
 }
 
 export class _MessagesIter extends RequestIter {
-    private entity?: Api.TypeInputPeer;
-    private request?: Api.messages.SearchGlobal | Api.messages.GetReplies | Api.messages.GetHistory | Api.messages.Search;
+    entity?: Api.TypeInputPeer;
+    request?:
+        | Api.messages.SearchGlobal
+        | Api.messages.GetReplies
+        | Api.messages.GetHistory
+        | Api.messages.Search;
+    fromId?: number;
+    addOffset?: number;
+    maxId?: number;
+    minId?: number;
+    lastId?: number;
 
-    async _init({entity, offsetId, minId, maxId, fromUser, offsetDate, addOffset, filter, search, replyTo}: MessageIterParams) {
-
+    async _init({
+        entity,
+        offsetId,
+        minId,
+        maxId,
+        fromUser,
+        offsetDate,
+        addOffset,
+        filter,
+        search,
+        replyTo,
+    }: MessageIterParams) {
         if (entity) {
             this.entity = await this.client.getInputEntity(entity);
         } else {
@@ -66,7 +91,7 @@ export class _MessagesIter extends RequestIter {
             fromUser = await this.client.getInputEntity(fromUser);
             this.fromId = await this.client.getPeerId(fromUser);
         } else {
-            this.fromId = null;
+            this.fromId = undefined;
         }
 
         if (!this.entity && fromUser) {
@@ -77,7 +102,7 @@ export class _MessagesIter extends RequestIter {
         }
         if (!this.entity) {
             this.request = new Api.messages.SearchGlobal({
-                q: search || '',
+                q: search || "",
                 filter: filter,
                 minDate: undefined,
                 // TODO fix this smh
@@ -86,7 +111,7 @@ export class _MessagesIter extends RequestIter {
                 offsetPeer: new Api.InputPeerEmpty(),
                 offsetId: offsetId,
                 limit: 1,
-            })
+            });
         } else if (replyTo !== undefined) {
             this.request = new Api.messages.GetReplies({
                 peer: this.entity,
@@ -97,9 +122,13 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: 0
+                hash: 0,
             });
-        } else if (search !== undefined || filter !== undefined || fromUser !== undefined) {
+        } else if (
+            search !== undefined ||
+            filter !== undefined ||
+            fromUser !== undefined
+        ) {
             const ty = _entityType(this.entity);
             if (ty == _EntityType.USER) {
                 fromUser = undefined;
@@ -108,8 +137,8 @@ export class _MessagesIter extends RequestIter {
             }
             this.request = new Api.messages.Search({
                 peer: this.entity,
-                q: search || '',
-                filter: typeof filter === 'function' ? new filter() : filter,
+                q: search || "",
+                filter: typeof filter === "function" ? new filter() : filter,
                 minDate: undefined,
                 maxDate: offsetDate,
                 offsetId: offsetId,
@@ -118,10 +147,18 @@ export class _MessagesIter extends RequestIter {
                 maxId: 0,
                 minId: 0,
                 hash: 0,
-                fromId: fromUser
+                fromId: fromUser,
             });
-            if (filter instanceof Api.InputMessagesFilterEmpty && offsetDate && !search && !offsetId) {
-                for await (const m of this.client.iterMessages(this.entity, {limit: 1, offsetDate: offsetDate})) {
+            if (
+                filter instanceof Api.InputMessagesFilterEmpty &&
+                offsetDate &&
+                !search &&
+                !offsetId
+            ) {
+                for await (const m of this.client.iterMessages(this.entity, {
+                    limit: 1,
+                    offsetDate: offsetDate,
+                })) {
                     this.request.offsetId = m.id + 1;
                 }
             }
@@ -134,8 +171,8 @@ export class _MessagesIter extends RequestIter {
                 minId: 0,
                 maxId: 0,
                 addOffset: addOffset,
-                hash: 0
-            })
+                hash: 0,
+            });
         }
         if (this.limit <= 0) {
             const result = await this.client.invoke(this.request);
@@ -143,9 +180,9 @@ export class _MessagesIter extends RequestIter {
                 this.total = result.count;
             } else {
                 if ("count" in result) {
-                    this.total = result.count
+                    this.total = result.count;
                 } else {
-                    this.total = result.messages.length
+                    this.total = result.messages.length;
                 }
             }
             return false;
@@ -153,14 +190,16 @@ export class _MessagesIter extends RequestIter {
         if (!this.waitTime) {
             this.waitTime = this.limit > 3000 ? 1 : 0;
         }
-        if (this.reverse && !(this.request instanceof Api.messages.SearchGlobal)) {
+        if (
+            this.reverse &&
+            !(this.request instanceof Api.messages.SearchGlobal)
+        ) {
             this.request.addOffset -= _MAX_CHUNK_SIZE;
         }
         this.addOffset = addOffset;
         this.maxId = maxId;
         this.minId = minId;
         this.lastId = this.reverse ? 0 : Number.MAX_SAFE_INTEGER;
-
     }
 
     async _loadNextChunk() {
@@ -170,7 +209,7 @@ export class _MessagesIter extends RequestIter {
         this.request.limit = Math.min(this.left, _MAX_CHUNK_SIZE);
         if (this.reverse && this.request.limit != _MAX_CHUNK_SIZE) {
             if (!(this.request instanceof Api.messages.SearchGlobal)) {
-                this.request.addOffset = this.addOffset - this.request.limit;
+                this.request.addOffset = this.addOffset! - this.request.limit;
             }
         }
         const r = await this.client.invoke(this.request);
@@ -178,9 +217,9 @@ export class _MessagesIter extends RequestIter {
             return true;
         }
         if ("count" in r) {
-            this.total = r.count
+            this.total = r.count;
         } else {
-            this.total = r.messages.length
+            this.total = r.messages.length;
         }
 
         const entities = new Map();
@@ -188,9 +227,11 @@ export class _MessagesIter extends RequestIter {
         for (const x of [...r.users, ...r.chats]) {
             entities.set(getPeerId(x), x);
         }
-        const messages: Message[] = this.reverse ? r.messages.reverse() as unknown as Message[] : r.messages as unknown as Message[];
+        const messages: Message[] = this.reverse
+            ? (r.messages.reverse() as unknown as Message[])
+            : (r.messages as unknown as Message[]);
         for (const message of messages) {
-            if ((this.fromId && message.senderId != this.fromId)) {
+            if (this.fromId && message.senderId != this.fromId) {
                 continue;
             }
             if (!this._messageInRange(message)) {
@@ -200,9 +241,7 @@ export class _MessagesIter extends RequestIter {
             try {
                 // if this fails it shouldn't be a big problem
                 message._finishInit(this.client, entities, this.entity);
-            } catch (e) {
-
-            }
+            } catch (e) {}
             message._entities = entities;
             this.buffer?.push(message);
         }
@@ -211,7 +250,7 @@ export class _MessagesIter extends RequestIter {
         }
 
         if (this.buffer) {
-            this._updateOffset(this.buffer[this.buffer.length - 1], r)
+            this._updateOffset(this.buffer[this.buffer.length - 1], r);
         } else {
             return true;
         }
@@ -220,11 +259,11 @@ export class _MessagesIter extends RequestIter {
     _messageInRange(message: Message) {
         if (this.entity) {
             if (this.reverse) {
-                if (message.id <= this.lastId || message.id >= this.maxId) {
+                if (message.id <= this.lastId! || message.id >= this.maxId!) {
                     return false;
                 }
             } else {
-                if (message.id >= this.lastId || message.id <= this.minId) {
+                if (message.id >= this.lastId! || message.id <= this.minId!) {
                     return false;
                 }
             }
@@ -263,21 +302,26 @@ export class _MessagesIter extends RequestIter {
 }
 
 interface IDsIterInterface {
-    entity: EntityLike,
-    ids: MessageLike[]
+    entity: EntityLike;
+    ids: Api.TypeInputMessage[];
 }
 
 export class _IDsIter extends RequestIter {
-    async _init({entity, ids}: IDsIterInterface) {
+    _ids?: Api.TypeInputMessage[];
+    _offset?: number;
+    _ty: number | undefined;
+    private _entity: Api.TypeInputPeer | undefined;
+    async _init({ entity, ids }: IDsIterInterface) {
         this.total = ids.length;
         this._ids = this.reverse ? ids.reverse() : ids;
         this._offset = 0;
-        this._entity = entity ? (await this.client.getInputEntity(entity)) : undefined;
+        this._entity = entity
+            ? await this.client.getInputEntity(entity)
+            : undefined;
         this._ty = this._entity ? _entityType(this._entity) : undefined;
 
-
         if (!this.waitTime) {
-            this.waitTile = this.limit > 300 ? 10 : 0;
+            this.waitTime = this.limit > 300 ? 10 : 0;
         }
     }
 
@@ -286,40 +330,47 @@ export class _IDsIter extends RequestIter {
     }
 
     async _loadNextChunk() {
-        const ids = this._ids.slice(this._offset, this._offset + _MAX_CHUNK_SIZE);
+        const ids = this._ids!.slice(
+            this._offset,
+            this._offset! + _MAX_CHUNK_SIZE
+        );
         if (!ids.length) {
             return false;
         }
-        this._offset += _MAX_CHUNK_SIZE;
+        this._offset! += _MAX_CHUNK_SIZE;
         let fromId;
         let r;
 
         if (this._ty == _EntityType.CHANNEL) {
             try {
-                r = await this.client.invoke(new Api.channels.GetMessages({
-                    channel: this._entity,
-                    id: ids
-                }));
+                r = await this.client.invoke(
+                    new Api.channels.GetMessages({
+                        channel: this._entity,
+                        id: ids,
+                    })
+                );
             } catch (e) {
                 if (e.message == "MESSAGE_IDS_EMPTY") {
                     r = new Api.messages.MessagesNotModified({
-                        count: ids.length
+                        count: ids.length,
                     });
                 } else {
                     throw e;
                 }
             }
         } else {
-            r = await this.client.invoke(new Api.messages.GetMessages({
-                id: ids
-            }));
+            r = await this.client.invoke(
+                new Api.messages.GetMessages({
+                    id: ids,
+                })
+            );
             if (this._entity) {
-                fromId = await this.client._getPeer(this.entity);
+                fromId = await this.client._getPeer(this._entity);
             }
         }
         if (r instanceof Api.messages.MessagesNotModified) {
             this.buffer?.push(...Array(ids.length));
-            return
+            return;
         }
         const entities = new Map();
         for (const entity of [...r.users, ...r.chats]) {
@@ -327,15 +378,20 @@ export class _IDsIter extends RequestIter {
         }
         let message: Api.TypeMessage;
         for (message of r.messages) {
-            if (message instanceof Api.MessageEmpty || fromId && message.peerId != fromId) {
-                this.buffer?.push(undefined)
+            if (
+                message instanceof Api.MessageEmpty ||
+                (fromId && message.peerId != fromId)
+            ) {
+                this.buffer?.push(undefined);
             } else {
                 const temp: Message = message as unknown as Message;
                 try {
                     temp._finishInit(this.client, entities, this._entity);
                 } catch (e) {
                     // we don't care about errors here
-                    this.client._log.warn("Failed to finish entities for message " + temp.id);
+                    this.client._log.warn(
+                        "Failed to finish entities for message " + temp.id
+                    );
                 }
                 temp._entities = entities;
                 this.buffer?.push(temp);
@@ -388,37 +444,69 @@ export interface EditMessageParams {
 
 //  MessageMethods {
 
-export function iterMessages(client: TelegramClient, entity: EntityLike | undefined, {limit, offsetDate, offsetId, maxId, minId, addOffset, search, filter, fromUser, waitTime, ids, reverse = false, replyTo}: IterMessagesParams) {
+export function iterMessages(
+    client: TelegramClient,
+    entity: EntityLike | undefined,
+    {
+        limit,
+        offsetDate,
+        offsetId,
+        maxId,
+        minId,
+        addOffset,
+        search,
+        filter,
+        fromUser,
+        waitTime,
+        ids,
+        reverse = false,
+        replyTo,
+    }: IterMessagesParams
+) {
     if (ids) {
-        if (typeof ids == 'number') {
-            ids = [ids]
+        if (typeof ids == "number") {
+            ids = [ids];
         }
-        return new _IDsIter(client, ids.length, {
-            reverse: reverse,
-            waitTime: waitTime
-        }, {
-            entity: entity,
-            ids: ids
-        });
+        return new _IDsIter(
+            client,
+            ids.length,
+            {
+                reverse: reverse,
+                waitTime: waitTime,
+            },
+            {
+                entity: entity,
+                ids: ids,
+            }
+        );
     }
-    return new _MessagesIter(client, limit || 1, {
-        waitTime: waitTime,
-        reverse: reverse
-    }, {
-        entity: entity,
-        offsetId: offsetId,
-        minId: minId,
-        maxId: maxId,
-        fromUser: fromUser,
-        offsetDate: offsetDate,
-        addOffset: addOffset,
-        filter: filter,
-        search: search,
-        replyTo: replyTo
-    })
+    return new _MessagesIter(
+        client,
+        limit || 1,
+        {
+            waitTime: waitTime,
+            reverse: reverse,
+        },
+        {
+            entity: entity,
+            offsetId: offsetId,
+            minId: minId,
+            maxId: maxId,
+            fromUser: fromUser,
+            offsetDate: offsetDate,
+            addOffset: addOffset,
+            filter: filter,
+            search: search,
+            replyTo: replyTo,
+        }
+    );
 }
 
-export async function getMessages(client: TelegramClient, entity: EntityLike | undefined, params: IterMessagesParams): Promise<TotalList<Message>> {
+export async function getMessages(
+    client: TelegramClient,
+    entity: EntityLike | undefined,
+    params: IterMessagesParams
+): Promise<TotalList<Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
             params.limit = undefined;
@@ -434,26 +522,29 @@ export async function getMessages(client: TelegramClient, entity: EntityLike | u
             return [message];
         }
         return [];
-
     }
-    return await it.collect() as TotalList<Message>;
+    return (await it.collect()) as TotalList<Message>;
 }
 
 // region Message
 
-export async function sendMessage(client: TelegramClient,
-                                  entity: EntityLike,
-                                  {
-                                      message,
-                                      replyTo,
-                                      parseMode, formattingEntities,
-                                      linkPreview = true,
-                                      file, forceDocument,
-                                      clearDraft,
-                                      buttons,
-                                      silent,
-                                      schedule
-                                  }: SendMessageParams) {
+export async function sendMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    {
+        message,
+        replyTo,
+        parseMode,
+        formattingEntities,
+        linkPreview = true,
+        file,
+        forceDocument,
+        clearDraft,
+        buttons,
+        silent,
+        schedule,
+    }: SendMessageParams
+) {
     if (file) {
         throw new Error("Not Supported Yet");
         //return this.sendFile();
@@ -469,7 +560,10 @@ export async function sendMessage(client: TelegramClient,
         if (silent == undefined) {
             silent = message.silent;
         }
-        if (message.media && !(message.media instanceof Api.MessageMediaWebPage)) {
+        if (
+            message.media &&
+            !(message.media instanceof Api.MessageMediaWebPage)
+        ) {
             throw new Error("Not Supported Yet");
             /*
                             return this.sendFile(entity, message.media, {
@@ -485,22 +579,27 @@ export async function sendMessage(client: TelegramClient,
         }
         request = new Api.messages.SendMessage({
             peer: entity,
-            message: message.message || '',
+            message: message.message || "",
             silent: silent,
             replyToMsgId: getMessageId(replyTo),
             replyMarkup: markup,
             entities: message.entities,
             clearDraft: clearDraft,
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
-            scheduleDate: schedule
-        })
+            scheduleDate: schedule,
+        });
         message = message.message;
     } else {
         if (formattingEntities == undefined) {
-            [message, formattingEntities] = await client._parseMessageText(message, parseMode);
+            [message, formattingEntities] = await client._parseMessageText(
+                message,
+                parseMode
+            );
         }
         if (!message) {
-            throw new Error("The message cannot be empty unless a file is provided");
+            throw new Error(
+                "The message cannot be empty unless a file is provided"
+            );
         }
         request = new Api.messages.SendMessage({
             peer: entity,
@@ -511,8 +610,8 @@ export async function sendMessage(client: TelegramClient,
             clearDraft: clearDraft,
             silent: silent,
             replyMarkup: client.buildReplyMarkup(buttons),
-            scheduleDate: schedule
-        })
+            scheduleDate: schedule,
+        });
     }
     const result = await client.invoke(request);
     return result;
@@ -524,34 +623,40 @@ export async function sendMessage(client: TelegramClient,
  * message refers to the message to be edited not what to edit
  * text refers to the new text
  */
-export async function editMessage(client: TelegramClient,
-                                  entity: EntityLike,
-                                  {
-                                      message,
-                                      text,
-                                      parseMode,
-                                      formattingEntities,
-                                      linkPreview = true,
-                                      file,
-                                      forceDocument,
-                                      buttons,
-                                      schedule
-                                  }: EditMessageParams) {
-
+export async function editMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    {
+        message,
+        text,
+        parseMode,
+        formattingEntities,
+        linkPreview = true,
+        file,
+        forceDocument,
+        buttons,
+        schedule,
+    }: EditMessageParams
+) {
     entity = await client.getInputEntity(entity);
     if (formattingEntities == undefined) {
-        [text, formattingEntities] = await client._parseMessageText(text, parseMode);
+        [text, formattingEntities] = await client._parseMessageText(
+            text,
+            parseMode
+        );
     }
-    const msg = await client.invoke(new Api.messages.EditMessage({
-        peer: entity,
-        id: utils.getMessageId(message),
-        message: text,
-        noWebpage: !linkPreview,
-        entities: formattingEntities,
-        //media: no media for now,
-        replyMarkup: client.buildReplyMarkup(buttons),
-        scheduleDate: schedule,
-    }));
+    const msg = await client.invoke(
+        new Api.messages.EditMessage({
+            peer: entity,
+            id: utils.getMessageId(message),
+            message: text,
+            noWebpage: !linkPreview,
+            entities: formattingEntities,
+            //media: no media for now,
+            replyMarkup: client.buildReplyMarkup(buttons),
+            scheduleDate: schedule,
+        })
+    );
     return msg;
     //return client._getResponseMessage(request, result, entity);
 }

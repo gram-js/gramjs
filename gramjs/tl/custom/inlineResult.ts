@@ -1,26 +1,31 @@
-import type {TelegramClient} from "../../client/TelegramClient";
-import type {EntityLike, MessageIDLike} from "../../define";
-import {Api} from "../api";
-import {utils} from "../../";
+import type { TelegramClient } from "../../client/TelegramClient";
+import type { EntityLike, MessageIDLike } from "../../define";
+import { Api } from "../api";
+import { utils } from "../../";
 
 export class InlineResult {
-    ARTICLE = 'article';
-    PHOTO = 'photo';
-    GIF = 'gif';
-    VIDEO = 'video';
-    VIDEO_GIF = 'mpeg4_gif';
-    AUDIO = 'audio';
-    DOCUMENT = 'document';
-    LOCATION = 'location';
-    VENUE = 'venue';
-    CONTACT = 'contact';
-    GAME = 'game';
+    ARTICLE = "article";
+    PHOTO = "photo";
+    GIF = "gif";
+    VIDEO = "video";
+    VIDEO_GIF = "mpeg4_gif";
+    AUDIO = "audio";
+    DOCUMENT = "document";
+    LOCATION = "location";
+    VENUE = "venue";
+    CONTACT = "contact";
+    GAME = "game";
     private _entity: EntityLike | undefined;
     private _queryId: Api.long | undefined;
     private result: Api.TypeBotInlineResult;
     private _client: TelegramClient;
 
-    constructor(client: TelegramClient, original: Api.TypeBotInlineResult, queryId?: Api.long, entity?: EntityLike) {
+    constructor(
+        client: TelegramClient,
+        original: Api.TypeBotInlineResult,
+        queryId?: Api.long,
+        entity?: EntityLike
+    ) {
         this._client = client;
         this.result = original;
         this._queryId = queryId;
@@ -61,13 +66,21 @@ export class InlineResult {
         }
     }
 
-    async click(entity?: EntityLike, replyTo?: MessageIDLike, silent: boolean = false, clearDraft: boolean = false, hideVia: boolean = false) {
+    async click(
+        entity?: EntityLike,
+        replyTo?: MessageIDLike,
+        silent: boolean = false,
+        clearDraft: boolean = false,
+        hideVia: boolean = false
+    ) {
         if (entity) {
             entity = await this._client.getInputEntity(entity);
         } else if (this._entity) {
             entity = this._entity;
         } else {
-            throw new Error("You must provide the entity where the result should be sent to");
+            throw new Error(
+                "You must provide the entity where the result should be sent to"
+            );
         }
         const replyId = replyTo ? utils.getMessageId(replyTo) : undefined;
         const request = new Api.messages.SendInlineBotResult({

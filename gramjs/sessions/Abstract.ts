@@ -1,9 +1,8 @@
-import type {AuthKey} from "../crypto/AuthKey";
-import type {EntityLike} from "../define";
-import {Api} from "../tl";
+import type { AuthKey } from "../crypto/AuthKey";
+import type { EntityLike } from "../define";
+import { Api } from "../tl";
 
 export abstract class Session {
-
     /**
      * Creates a clone of this session file
      * @param toInstance {Session|null}
@@ -28,7 +27,7 @@ export abstract class Session {
     /**
      * Returns the currently-used data center ID.
      */
-    abstract get dcId(): number ;
+    abstract get dcId(): number;
 
     /**
      * Returns the server address where the library should connect to.
@@ -38,24 +37,24 @@ export abstract class Session {
     /**
      * Returns the port to which the library should connect to.
      */
-    abstract get port(): number | undefined ;
+    abstract get port(): number | undefined;
 
     /**
      * Returns an ``AuthKey`` instance associated with the saved
      * data center, or `None` if a new one should be generated.
      */
-    abstract get authKey(): AuthKey | undefined ;
+    abstract get authKey(): AuthKey | undefined;
 
     /**
      * Sets the ``AuthKey`` to be used for the saved data center.
      * @param value
      */
-    abstract set authKey(value: AuthKey | undefined) ;
+    abstract set authKey(value: AuthKey | undefined);
 
     /**
      * Called before using the session
      */
-    abstract load(): Promise<void>
+    abstract load(): Promise<void>;
 
     /**
      *  sets auth key for a dc
@@ -66,8 +65,7 @@ export abstract class Session {
      *  gets auth key for a dc
      */
 
-    abstract getAuthKey(dcId?: number): AuthKey | undefined ;
-
+    abstract getAuthKey(dcId?: number): AuthKey | undefined;
 
     /**
      * Turns the given key into an ``InputPeer`` (e.g. ``InputPeerUser``).
@@ -131,7 +129,6 @@ export abstract class Session {
 
     abstract close(): void;
 
-
     /**
      * called whenever important properties change. It should
      * make persist the relevant session information to disk.
@@ -145,13 +142,10 @@ export abstract class Session {
 
     abstract delete(): void;
 
-
     /**
      * Processes the input ``TLObject`` or ``list`` and saves
      * whatever information is relevant (e.g., ID or access hash).
      * @param tlo
      */
     abstract processEntities(tlo: any): void;
-
-
 }

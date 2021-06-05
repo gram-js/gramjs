@@ -1,9 +1,9 @@
-import {w3cwebsocket} from 'websocket';
-import {Mutex} from 'async-mutex';
+import { w3cwebsocket } from "websocket";
+import { Mutex } from "async-mutex";
 
 const mutex = new Mutex();
 
-const closeError = new Error('WebSocket was closed');
+const closeError = new Error("WebSocket was closed");
 
 export class PromisedWebSockets {
     private closed: boolean;
@@ -17,7 +17,7 @@ export class PromisedWebSockets {
         this.client = undefined;
         this.stream = Buffer.alloc(0);
 
-        this.closed = true
+        this.closed = true;
     }
 
     async readExactly(number: number) {
@@ -27,123 +27,120 @@ export class PromisedWebSockets {
             readData = Buffer.concat([readData, thisTime]);
             number = number - thisTime.length;
             if (!number) {
-                return readData
+                return readData;
             }
         }
     }
 
     async read(number: number) {
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
         await this.canRead;
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
         const toReturn = this.stream.slice(0, number);
         this.stream = this.stream.slice(number);
         if (this.stream.length === 0) {
-            this.canRead = new Promise(resolve => {
-                this.resolveRead = resolve
-            })
+            this.canRead = new Promise((resolve) => {
+                this.resolveRead = resolve;
+            });
         }
 
-        return toReturn
+        return toReturn;
     }
 
     async readAll() {
-        if (this.closed || !await this.canRead) {
-            throw closeError
+        if (this.closed || !(await this.canRead)) {
+            throw closeError;
         }
         const toReturn = this.stream;
         this.stream = Buffer.alloc(0);
-        this.canRead = new Promise(resolve => {
-            this.resolveRead = resolve
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve;
         });
-        return toReturn
+        return toReturn;
     }
 
     getWebSocketLink(ip: string, port: number) {
         if (port === 443) {
-            return `wss://${ip}:${port}/apiws`
+            return `wss://${ip}:${port}/apiws`;
         } else {
-            return `ws://${ip}:${port}/apiws`
+            return `ws://${ip}:${port}/apiws`;
         }
     }
 
     async connect(port: number, ip: string) {
         this.stream = Buffer.alloc(0);
-        this.canRead = new Promise(resolve => {
-            this.resolveRead = resolve
+        this.canRead = new Promise((resolve) => {
+            this.resolveRead = resolve;
         });
         this.closed = false;
         this.website = this.getWebSocketLink(ip, port);
-        this.client = new w3cwebsocket(this.website, 'binary');
+        this.client = new w3cwebsocket(this.website, "binary");
         return new Promise((resolve, reject) => {
             if (this.client) {
-
-
                 this.client.onopen = () => {
                     this.receive();
-                    resolve(this)
+                    resolve(this);
                 };
                 this.client.onerror = (error: any) => {
-                    reject(error)
+                    reject(error);
                 };
                 this.client.onclose = () => {
                     if (this.resolveRead) {
                         this.resolveRead(false);
                     }
-                    this.closed = true
+                    this.closed = true;
                 };
                 //CONTEST
-                if (typeof window !== 'undefined') {
-                    window.addEventListener('offline', async () => {
+                if (typeof window !== "undefined") {
+                    window.addEventListener("offline", async () => {
                         await this.close();
                         if (this.resolveRead) {
-                            this.resolveRead(false)
+                            this.resolveRead(false);
                         }
-                    })
+                    });
                 }
             }
-        })
+        });
     }
 
     write(data: Buffer) {
         if (this.closed) {
-            throw closeError
+            throw closeError;
         }
-        if(this.client){
-            this.client.send(data)
+        if (this.client) {
+            this.client.send(data);
         }
     }
 
     async close() {
-        if(this.client) {
-
+        if (this.client) {
             await this.client.close();
         }
-        this.closed = true
+        this.closed = true;
     }
 
     async receive() {
         if (this.client) {
-
             this.client.onmessage = async (message: any) => {
                 const release = await mutex.acquire();
                 try {
                     let data;
                     //CONTEST BROWSER
-                    data = Buffer.from(await new Response(message.data).arrayBuffer());
+                    data = Buffer.from(
+                        await new Response(message.data).arrayBuffer()
+                    );
                     this.stream = Buffer.concat([this.stream, data]);
                     if (this.resolveRead) {
-                        this.resolveRead(true)
+                        this.resolveRead(true);
                     }
                 } finally {
-                    release()
+                    release();
                 }
-            }
+            };
         }
     }
 }
-

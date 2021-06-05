@@ -1,16 +1,15 @@
-import {Api} from './'
+import { Api } from "./";
 
 export const LAYER = 128;
 const tlobjects: any = {};
 
-
 for (const tl of Object.values(Api)) {
-    if ('CONSTRUCTOR_ID' in tl) {
-        tlobjects[tl.CONSTRUCTOR_ID] = tl
+    if ("CONSTRUCTOR_ID" in tl) {
+        tlobjects[tl.CONSTRUCTOR_ID] = tl;
     } else {
         for (const sub of Object.values(tl)) {
-            tlobjects[sub.CONSTRUCTOR_ID] = sub
+            tlobjects[sub.CONSTRUCTOR_ID] = sub;
         }
     }
 }
-export {tlobjects};
+export { tlobjects };

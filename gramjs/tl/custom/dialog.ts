@@ -1,56 +1,66 @@
-import type {TelegramClient} from "../../client/TelegramClient";
-import {Api} from "../api";
-import type {Entity} from "../../define";
-import {getDisplayName, getInputPeer, getPeerId} from "../../Utils";
-import {Draft} from "./draft";
+import type { TelegramClient } from "../../client/TelegramClient";
+import { Api } from "../api";
+import type { Entity } from "../../define";
+import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
+import { Draft } from "./draft";
+import { Message } from "./message";
 
 export class Dialog {
-    private _client: TelegramClient;
-    private dialog: Api.Dialog;
-    private pinned: boolean;
-    private folderId: Api.int | undefined;
-    private archived: boolean;
-    private message: Api.Message;
-    private date: Api.int;
-    private entity: Entity | undefined;
-    private inputEntity: Api.TypeInputPeer;
-    private id?: number;
-    private name?: string;
-    private title?: string;
-    private unreadCount: Api.int;
-    private unreadMentionsCount: Api.int;
-    private draft: Draft;
-    private isUser: boolean;
-    private isGroup: boolean;
-    private isChannel: boolean;
+    _client: TelegramClient;
+    dialog: Api.Dialog;
+    pinned: boolean;
+    folderId?: number;
+    archived: boolean;
+    message?: Api.Message | Message;
+    date: number;
+    entity?: Entity;
+    inputEntity: Api.TypeInputPeer;
+    id?: number;
+    name?: string;
+    title?: string;
+    unreadCount: number;
+    unreadMentionsCount: number;
+    draft: Draft;
+    isUser: boolean;
+    isGroup: boolean;
+    isChannel: boolean;
 
-    constructor(client: TelegramClient, dialog: Api.Dialog, entities: Map<number, Entity>, message: Api.Message) {
+    constructor(
+        client: TelegramClient,
+        dialog: Api.Dialog,
+        entities: Map<number, Entity>,
+        message?: Api.Message | Message
+    ) {
         this._client = client;
         this.dialog = dialog;
-        this.pinned = !!(dialog.pinned);
+        this.pinned = !!dialog.pinned;
         this.folderId = dialog.folderId;
         this.archived = dialog.folderId != undefined;
         this.message = message;
-        this.date = this.message.date;
+        this.date = this.message?.date;
 
         this.entity = entities.get(getPeerId(dialog.peer));
         this.inputEntity = getInputPeer(this.entity);
         if (this.entity) {
-            this.id = getPeerId(this.entity);  // ^ May be InputPeerSelf();
+            this.id = getPeerId(this.entity); // ^ May be InputPeerSelf();
             this.name = this.title = getDisplayName(this.entity);
-
         }
 
         this.unreadCount = dialog.unreadCount;
         this.unreadMentionsCount = dialog.unreadMentionsCount;
-        if (!this.entity){
+        if (!this.entity) {
             throw new Error("Entity not found for dialog");
         }
         this.draft = new Draft(client, this.entity, this.dialog.draft);
 
         this.isUser = this.entity instanceof Api.User;
-        this.isGroup = !!((this.entity instanceof Api.Chat && this.entity instanceof Api.ChatForbidden) || (this.entity instanceof Api.Channel && this.entity.megagroup));
+        this.isGroup = !!(
+            (this.entity instanceof Api.Chat &&
+                this.entity instanceof Api.ChatForbidden) ||
+            (this.entity instanceof Api.Channel && this.entity.megagroup)
+        );
         this.isChannel = this.entity instanceof Api.Channel;
     }
+
     // TODO implement rest
 }

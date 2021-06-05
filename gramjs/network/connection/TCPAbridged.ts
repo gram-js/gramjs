@@ -1,12 +1,12 @@
-import {readBufferFromBigInt} from '../../Helpers';
-import {Connection, PacketCodec} from './Connection';
-import type {PromisedNetSockets, PromisedWebSockets} from "../../extensions";
+import { readBufferFromBigInt } from "../../Helpers";
+import { Connection, PacketCodec } from "./Connection";
+import type { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 
 import bigInt from "big-integer";
 
 export class AbridgedPacketCodec extends PacketCodec {
-    static tag = Buffer.from('ef', 'hex');
-    static obfuscateTag = Buffer.from('efefefef', 'hex');
+    static tag = Buffer.from("ef", "hex");
+    static obfuscateTag = Buffer.from("efefefef", "hex");
     private tag: Buffer;
     private obfuscateTag: Buffer;
 
@@ -22,19 +22,26 @@ export class AbridgedPacketCodec extends PacketCodec {
         if (length < 127) {
             const b = Buffer.alloc(1);
             b.writeUInt8(length, 0);
-            temp = b
+            temp = b;
         } else {
-            temp = Buffer.concat([Buffer.from('7f', 'hex'), readBufferFromBigInt(bigInt(length), 3)])
+            temp = Buffer.concat([
+                Buffer.from("7f", "hex"),
+                readBufferFromBigInt(bigInt(length), 3),
+            ]);
         }
-        return Buffer.concat([temp, data])
+        return Buffer.concat([temp, data]);
     }
 
-    async readPacket(reader: PromisedNetSockets | PromisedWebSockets): Promise<Buffer> {
+    async readPacket(
+        reader: PromisedNetSockets | PromisedWebSockets
+    ): Promise<Buffer> {
         const readData = await reader.read(1);
         let length = readData[0];
         if (length >= 127) {
-            length = Buffer.concat([await reader.read(3), Buffer.alloc(1)])
-                .readInt32LE(0)
+            length = Buffer.concat([
+                await reader.read(3),
+                Buffer.alloc(1),
+            ]).readInt32LE(0);
         }
 
         return reader.read(length << 2);
@@ -47,5 +54,5 @@ export class AbridgedPacketCodec extends PacketCodec {
  * 508 bytes (127 << 2, which is very common).
  */
 export class ConnectionTCPAbridged extends Connection {
-    PacketCodecClass = AbridgedPacketCodec
+    PacketCodecClass = AbridgedPacketCodec;
 }

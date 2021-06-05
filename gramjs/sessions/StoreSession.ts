@@ -1,7 +1,7 @@
-import {MemorySession} from "./Memory";
+import { MemorySession } from "./Memory";
 import store from "store2";
-import {AuthKey} from "../crypto/AuthKey";
-import {LocalStorage} from 'node-localstorage';
+import { AuthKey } from "../crypto/AuthKey";
+import { LocalStorage } from "node-localstorage";
 
 export class StoreSession extends MemorySession {
     private readonly sessionName: string;
@@ -9,10 +9,8 @@ export class StoreSession extends MemorySession {
 
     constructor(sessionName: string) {
         super();
-        this.store = store.area('fs', new LocalStorage("./" + sessionName));
+        this.store = store.area("fs", new LocalStorage("./" + sessionName));
         this.sessionName = sessionName + ":";
-
-
     }
 
     async load() {
@@ -28,14 +26,15 @@ export class StoreSession extends MemorySession {
         const dcId = this.store.get(this.sessionName + "dcId");
         if (dcId) {
             this._dcId = dcId;
-
         }
 
         const port = this.store.get(this.sessionName + "port");
         if (port) {
             this._port = port;
         }
-        const serverAddress = this.store.get(this.sessionName + "serverAddress");
+        const serverAddress = this.store.get(
+            this.sessionName + "serverAddress"
+        );
         if (serverAddress) {
             this._serverAddress = serverAddress;
         }

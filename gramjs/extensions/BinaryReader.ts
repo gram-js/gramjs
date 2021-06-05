@@ -1,9 +1,8 @@
-import {TypeNotFoundError} from '../errors';
-import {coreObjects} from '../tl/core';
+import { TypeNotFoundError } from "../errors";
+import { coreObjects } from "../tl/core";
 
-import {tlobjects} from '../tl/AllTLObjects';
-import {readBigIntFromBuffer} from "../Helpers";
-
+import { tlobjects } from "../tl/AllTLObjects";
+import { readBigIntFromBuffer } from "../Helpers";
 
 export class BinaryReader {
     private stream: Buffer;
@@ -17,7 +16,7 @@ export class BinaryReader {
     constructor(data: Buffer) {
         this.stream = data;
         this._last = undefined;
-        this.offset = 0
+        this.offset = 0;
     }
 
     // region Reading
@@ -28,7 +27,7 @@ export class BinaryReader {
      * Reads a single byte value.
      */
     readByte() {
-        return this.read(1)[0]
+        return this.read(1)[0];
     }
 
     /**
@@ -38,12 +37,12 @@ export class BinaryReader {
     readInt(signed = true) {
         let res;
         if (signed) {
-            res = this.stream.readInt32LE(this.offset)
+            res = this.stream.readInt32LE(this.offset);
         } else {
-            res = this.stream.readUInt32LE(this.offset)
+            res = this.stream.readUInt32LE(this.offset);
         }
         this.offset += 4;
-        return res
+        return res;
     }
 
     /**
@@ -52,7 +51,7 @@ export class BinaryReader {
      * @returns {BigInteger}
      */
     readLong(signed = true) {
-        return this.readLargeInt(64, signed)
+        return this.readLargeInt(64, signed);
     }
 
     /**
@@ -60,7 +59,7 @@ export class BinaryReader {
      * @returns {number}
      */
     readFloat() {
-        return this.read(4).readFloatLE(0)
+        return this.read(4).readFloatLE(0);
     }
 
     /**
@@ -69,7 +68,7 @@ export class BinaryReader {
      */
     readDouble() {
         // was this a bug ? it should have been <d
-        return this.read(8).readDoubleLE(0)
+        return this.read(8).readDoubleLE(0);
     }
 
     /**
@@ -79,7 +78,7 @@ export class BinaryReader {
      */
     readLargeInt(bits: number, signed = true) {
         const buffer = this.read(Math.floor(bits / 8));
-        return readBigIntFromBuffer(buffer, true, signed)
+        return readBigIntFromBuffer(buffer, true, signed);
     }
 
     /**
@@ -88,17 +87,17 @@ export class BinaryReader {
      */
     read(length = -1) {
         if (length === -1) {
-            length = this.stream.length - this.offset
+            length = this.stream.length - this.offset;
         }
         const result = this.stream.slice(this.offset, this.offset + length);
         this.offset += length;
         if (result.length !== length) {
             throw Error(
-                `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`,
-            )
+                `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`
+            );
         }
         this._last = result;
-        return result
+        return result;
     }
 
     /**
@@ -106,7 +105,7 @@ export class BinaryReader {
      * @returns {Buffer}
      */
     getBuffer() {
-        return this.stream
+        return this.stream;
     }
 
     // endregion
@@ -122,20 +121,23 @@ export class BinaryReader {
         let padding;
         let length;
         if (firstByte === 254) {
-            length = this.readByte() | (this.readByte() << 8) | (this.readByte() << 16);
-            padding = length % 4
+            length =
+                this.readByte() |
+                (this.readByte() << 8) |
+                (this.readByte() << 16);
+            padding = length % 4;
         } else {
             length = firstByte;
-            padding = (length + 1) % 4
+            padding = (length + 1) % 4;
         }
         const data = this.read(length);
 
         if (padding > 0) {
             padding = 4 - padding;
-            this.read(padding)
+            this.read(padding);
         }
 
-        return data
+        return data;
     }
 
     /**
@@ -143,7 +145,7 @@ export class BinaryReader {
      * @returns {string}
      */
     tgReadString() {
-        return this.tgReadBytes().toString('utf-8')
+        return this.tgReadBytes().toString("utf-8");
     }
 
     /**
@@ -154,12 +156,12 @@ export class BinaryReader {
         const value = this.readInt(false);
         if (value === 0x997275b5) {
             // boolTrue
-            return true
+            return true;
         } else if (value === 0xbc799737) {
             // boolFalse
-            return false
+            return false;
         } else {
-            throw new Error(`Invalid boolean code ${value.toString(16)}`)
+            throw new Error(`Invalid boolean code ${value.toString(16)}`);
         }
     }
 
@@ -170,7 +172,7 @@ export class BinaryReader {
      */
     tgReadDate() {
         const value = this.readInt();
-        return new Date(value * 1000)
+        return new Date(value * 1000);
     }
 
     /**
@@ -188,18 +190,18 @@ export class BinaryReader {
             const value = constructorId;
             if (value === 0x997275b5) {
                 // boolTrue
-                return true
+                return true;
             } else if (value === 0xbc799737) {
                 // boolFalse
-                return false
+                return false;
             } else if (value === 0x1cb5c415) {
                 // Vector
                 const temp = [];
                 const length = this.readInt();
                 for (let i = 0; i < length; i++) {
-                    temp.push(this.tgReadObject())
+                    temp.push(this.tgReadObject());
                 }
-                return temp
+                return temp;
             }
 
             clazz = coreObjects.get(constructorId);
@@ -210,10 +212,10 @@ export class BinaryReader {
                 const pos = this.tellPosition();
                 const error = new TypeNotFoundError(constructorId, this.read());
                 this.setPosition(pos);
-                throw error
+                throw error;
             }
         }
-        return clazz.fromReader(this)
+        return clazz.fromReader(this);
     }
 
     /**
@@ -222,18 +224,17 @@ export class BinaryReader {
      */
     tgReadVector() {
         if (this.readInt(false) !== 0x1cb5c415) {
-            throw new Error('Invalid constructor code, vector was expected')
+            throw new Error("Invalid constructor code, vector was expected");
         }
         const count = this.readInt();
         const temp = [];
         for (let i = 0; i < count; i++) {
-            temp.push(this.tgReadObject())
+            temp.push(this.tgReadObject());
         }
-        return temp
+        return temp;
     }
 
     // endregion
-
 
     // region Position related
 
@@ -242,7 +243,7 @@ export class BinaryReader {
      * @returns {number}
      */
     tellPosition() {
-        return this.offset
+        return this.offset;
     }
 
     /**
@@ -250,7 +251,7 @@ export class BinaryReader {
      * @param position
      */
     setPosition(position: number) {
-        this.offset = position
+        this.offset = position;
     }
 
     /**
@@ -259,7 +260,7 @@ export class BinaryReader {
      * @param offset
      */
     seek(offset: number) {
-        this.offset += offset
+        this.offset += offset;
     }
 
     // endregion

@@ -22,32 +22,34 @@ export class MTProtoRequest {
 
         this.constructorId = 0;
         this.confirmed = false;
-        this.responded = false
+        this.responded = false;
     }
 
     // these should not be overrode
     onSendSuccess() {
         this.sendTime = new Date().getTime();
-        this.sent = true
+        this.sent = true;
     }
 
     onConfirm() {
-        this.confirmReceived = true
+        this.confirmReceived = true;
     }
 
     needResend() {
-        return this.dirty || (this.confirmed && !this.confirmReceived && new Date().getTime() - this.sendTime > 3000)
+        return (
+            this.dirty ||
+            (this.confirmed &&
+                !this.confirmReceived &&
+                new Date().getTime() - this.sendTime > 3000)
+        );
     }
 
     // These should be overrode
     onSend() {
-        throw Error('Not overload ' + this.constructor.name)
+        throw Error("Not overload " + this.constructor.name);
     }
 
-    onResponse(buffer: Buffer) {
-    }
+    onResponse(buffer: Buffer) {}
 
-    onException(exception: Error) {
-    }
+    onException(exception: Error) {}
 }
-

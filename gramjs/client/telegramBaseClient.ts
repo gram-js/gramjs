@@ -1,47 +1,47 @@
-import {version} from "../";
-import {IS_NODE} from "../Helpers";
-import {ConnectionTCPFull, ConnectionTCPObfuscated} from "../network/connection";
-import type {Session} from "../sessions/Abstract";
-import {Logger} from "../extensions";
-import {StoreSession, StringSession} from "../sessions";
-import {Api} from "../tl";
+import { version } from "../";
+import { IS_NODE } from "../Helpers";
+import {
+    ConnectionTCPFull,
+    ConnectionTCPObfuscated,
+} from "../network/connection";
+import type { Session } from "../sessions/Abstract";
+import { Logger } from "../extensions";
+import { StoreSession, StringSession } from "../sessions";
+import { Api } from "../tl";
 
-
-import os from 'os';
-import type {AuthKey} from "../crypto/AuthKey";
-import {EntityCache} from "../entityCache";
-import type {ParseInterface} from "./messageParse";
-import type {EventBuilder} from "../events/common";
+import os from "os";
+import type { AuthKey } from "../crypto/AuthKey";
+import { EntityCache } from "../entityCache";
+import type { ParseInterface } from "./messageParse";
+import type { EventBuilder } from "../events/common";
 
 const DEFAULT_DC_ID = 1;
-const DEFAULT_IPV4_IP = IS_NODE ? '149.154.167.51' : 'pluto.web.telegram.org';
-const DEFAULT_IPV6_IP = '2001:67c:4e8:f002::a';
+const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.51" : "pluto.web.telegram.org";
+const DEFAULT_IPV6_IP = "2001:67c:4e8:f002::a";
 
 export interface TelegramClientParams {
-    connection?: any,
-    useIPV6?: boolean,
-    timeout?: number,
-    requestRetries?: number,
-    connectionRetries?: number,
-    downloadRetries?: number,
-    retryDelay?: number,
-    autoReconnect?: boolean,
-    sequentialUpdates?: boolean,
-    floodSleepThreshold?: number,
-    deviceModel?: string,
-    systemVersion?: string,
-    appVersion?: string,
-    langCode?: 'en',
-    systemLangCode?: 'en',
-    baseLogger?: string | any,
-    useWSS?: boolean,
+    connection?: any;
+    useIPV6?: boolean;
+    timeout?: number;
+    requestRetries?: number;
+    connectionRetries?: number;
+    downloadRetries?: number;
+    retryDelay?: number;
+    autoReconnect?: boolean;
+    sequentialUpdates?: boolean;
+    floodSleepThreshold?: number;
+    deviceModel?: string;
+    systemVersion?: string;
+    appVersion?: string;
+    langCode?: "en";
+    systemLangCode?: "en";
+    baseLogger?: string | any;
+    useWSS?: boolean;
 }
 
 export class TelegramBaseClient {
-
-
     __version__ = version;
-    _config ?: Api.Config;
+    _config?: Api.Config;
     public _log: Logger;
     public _floodSleepThreshold: number;
     public session: Session;
@@ -67,36 +67,48 @@ export class TelegramBaseClient {
     public _lastRequest?: number;
     public _parseMode?: ParseInterface;
 
-    constructor(session: string | Session, apiId: number, apiHash: string, {
-        connection = IS_NODE ? ConnectionTCPFull : ConnectionTCPObfuscated,
-        useIPV6 = false,
-        timeout = 10,
-        requestRetries = 5,
-        connectionRetries = Infinity,
-        retryDelay = 1000,
-        downloadRetries = 5,
-        autoReconnect = true,
-        sequentialUpdates = false,
-        floodSleepThreshold = 60,
-        deviceModel = '',
-        systemVersion = '',
-        appVersion = '',
-        langCode = 'en',
-        systemLangCode = 'en',
-        baseLogger = 'gramjs',
-        useWSS = typeof window !== 'undefined' ? window.location.protocol == 'https:' : false,
-    }: TelegramClientParams) {
+    constructor(
+        session: string | Session,
+        apiId: number,
+        apiHash: string,
+        {
+            connection = IS_NODE ? ConnectionTCPFull : ConnectionTCPObfuscated,
+            useIPV6 = false,
+            timeout = 10,
+            requestRetries = 5,
+            connectionRetries = Infinity,
+            retryDelay = 1000,
+            downloadRetries = 5,
+            autoReconnect = true,
+            sequentialUpdates = false,
+            floodSleepThreshold = 60,
+            deviceModel = "",
+            systemVersion = "",
+            appVersion = "",
+            langCode = "en",
+            systemLangCode = "en",
+            baseLogger = "gramjs",
+            useWSS = typeof window !== "undefined"
+                ? window.location.protocol == "https:"
+                : false,
+        }: TelegramClientParams
+    ) {
         if (!apiId || !apiHash) {
             throw new Error("Your API ID or Hash cannot be empty or undefined");
         }
-        if (typeof baseLogger == 'string') {
-            this._log = new Logger()
+        if (typeof baseLogger == "string") {
+            this._log = new Logger();
         } else {
-            this._log = baseLogger
+            this._log = baseLogger;
         }
-        this._log.debug("Running gramJS version "+version);
-        if (!(session instanceof StoreSession) && !(session instanceof StringSession)) {
-            throw new Error("Only StringSession and StoreSessions are supported currently :( ");
+        this._log.debug("Running gramJS version " + version);
+        if (
+            !(session instanceof StoreSession) &&
+            !(session instanceof StringSession)
+        ) {
+            throw new Error(
+                "Only StringSession and StoreSessions are supported currently :( "
+            );
         }
         this._floodSleepThreshold = floodSleepThreshold;
         this.session = session;
@@ -115,13 +127,11 @@ export class TelegramBaseClient {
         this._connection = connection;
         this._initRequest = new Api.InitConnection({
             apiId: this.apiId,
-            deviceModel: deviceModel || os.type()
-                .toString() || 'Unknown',
-            systemVersion: systemVersion || os.release()
-                .toString() || '1.0',
-            appVersion: appVersion || '1.0',
+            deviceModel: deviceModel || os.type().toString() || "Unknown",
+            systemVersion: systemVersion || os.release().toString() || "1.0",
+            appVersion: appVersion || "1.0",
             langCode: langCode,
-            langPack: '', // this should be left empty.
+            langPack: "", // this should be left empty.
             systemLangCode: systemLangCode,
             proxy: undefined, // no proxies yet.
         });
@@ -132,10 +142,8 @@ export class TelegramBaseClient {
         this._bot = undefined;
         this._selfInputPeer = undefined;
         this.useWSS = useWSS;
-        this._entityCache = new EntityCache()
-
+        this._entityCache = new EntityCache();
     }
-
 
     get floodSleepThreshold() {
         return this._floodSleepThreshold;
@@ -149,11 +157,17 @@ export class TelegramBaseClient {
     async _initSession() {
         await this.session.load();
 
-        if (!this.session.serverAddress || this.session.serverAddress.includes(":") !== this._useIPV6) {
-            this.session.setDC(DEFAULT_DC_ID, this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP, this.useWSS ? 443 : 80)
+        if (
+            !this.session.serverAddress ||
+            this.session.serverAddress.includes(":") !== this._useIPV6
+        ) {
+            this.session.setDC(
+                DEFAULT_DC_ID,
+                this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP,
+                this.useWSS ? 443 : 80
+            );
         }
     }
-
 
     get connected() {
         return this._sender && this._sender.isConnected();
@@ -161,7 +175,7 @@ export class TelegramBaseClient {
 
     async disconnect() {
         if (this._sender) {
-            await this._sender.disconnect()
+            await this._sender.disconnect();
         }
     }
 
@@ -173,15 +187,15 @@ export class TelegramBaseClient {
         await Promise.all([
             this.disconnect(),
             this.session.delete(),
-            ...Object.values(this._borrowedSenderPromises).map((promise: any) => {
-                return promise
-                    .then((sender: any) => sender.disconnect())
-            }),
+            ...Object.values(this._borrowedSenderPromises).map(
+                (promise: any) => {
+                    return promise.then((sender: any) => sender.disconnect());
+                }
+            ),
         ]);
 
-        this._eventBuilders = []
+        this._eventBuilders = [];
     }
-
 
     async _authKeyCallback(authKey: AuthKey, dcId: number) {
         this.session.setAuthKey(authKey, dcId);
@@ -189,6 +203,4 @@ export class TelegramBaseClient {
     }
 
     // endregion
-
-
 }

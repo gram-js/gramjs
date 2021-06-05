@@ -1,15 +1,26 @@
-import type {Button} from "./tl/custom/button";
-import {Api} from "./tl";
-import type {CustomFile} from "./client/uploads";
+import type { Button } from "./tl/custom/button";
+import { Api } from "./tl";
+import type { CustomFile } from "./client/uploads";
 
 type ValueOf<T> = T[keyof T];
 type Phone = string;
 type Username = string;
 type PeerID = number;
 type Entity = Api.User | Api.Chat | Api.Channel;
-type FullEntity = Api.UserFull | Api.messages.ChatFull | Api.ChatFull | Api.ChannelFull;
-type PeerLike = Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity
-type EntityLike = Phone | Username | PeerID | Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity ;
+type FullEntity =
+    | Api.UserFull
+    | Api.messages.ChatFull
+    | Api.ChatFull
+    | Api.ChannelFull;
+type PeerLike = Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity;
+type EntityLike =
+    | Phone
+    | Username
+    | PeerID
+    | Api.TypePeer
+    | Api.TypeInputPeer
+    | Entity
+    | FullEntity;
 
 type EntitiesLike = EntityLike[];
 type MessageIDLike = number | Api.Message | Api.TypeInputMessage;
@@ -20,21 +31,22 @@ type ExternalUrl = string;
 type BotFileID = string;
 
 type FileLike =
-    LocalPath |
-    ExternalUrl |
-    BotFileID |
-    Buffer |
-    Api.TypeMessageMedia |
-    Api.TypeInputFile |
-    Api.TypeInputFileLocation |
-    File |
-    CustomFile
+    | LocalPath
+    | ExternalUrl
+    | BotFileID
+    | Buffer
+    | Api.TypeMessageMedia
+    | Api.TypeInputFile
+    | Api.TypeInputFileLocation
+    | File
+    | CustomFile;
 
 type ProgressCallback = (total: number, downloaded: number) => void;
 type ButtonLike = Api.TypeKeyboardButton | Button;
 
-type MarkupLike = Api.TypeReplyMarkup |
-    ButtonLike |
-    ButtonLike[] |
-    ButtonLike[][];
+type MarkupLike =
+    | Api.TypeReplyMarkup
+    | ButtonLike
+    | ButtonLike[]
+    | ButtonLike[][];
 type DateLike = number;

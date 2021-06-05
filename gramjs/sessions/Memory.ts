@@ -1,12 +1,12 @@
-import {Session} from './Abstract';
-import type {AuthKey} from "../crypto/AuthKey";
-import {Api} from "../tl";
+import { Session } from "./Abstract";
+import type { AuthKey } from "../crypto/AuthKey";
+import { Api } from "../tl";
 import bigInt from "big-integer";
 
-import {getDisplayName, getInputPeer, getPeerId} from "../Utils";
-import {isArrayLike} from "../Helpers";
-import {utils} from "../";
-import type {EntityLike} from "../define";
+import { getDisplayName, getInputPeer, getPeerId } from "../Utils";
+import { isArrayLike } from "../Helpers";
+import { utils } from "../";
+import type { EntityLike } from "../define";
 
 export class MemorySession extends Session {
     protected _serverAddress?: string;
@@ -26,13 +26,13 @@ export class MemorySession extends Session {
         this._takeoutId = undefined;
 
         this._entities = new Set();
-        this._updateStates = {}
+        this._updateStates = {};
     }
 
     setDC(dcId: number, serverAddress: string, port: number) {
         this._dcId = dcId | 0;
         this._serverAddress = serverAddress;
-        this._port = port
+        this._port = port;
     }
 
     get dcId() {
@@ -40,11 +40,11 @@ export class MemorySession extends Session {
     }
 
     get serverAddress() {
-        return this._serverAddress
+        return this._serverAddress;
     }
 
     get port() {
-        return this._port
+        return this._port;
     }
 
     get authKey() {
@@ -56,79 +56,83 @@ export class MemorySession extends Session {
     }
 
     get takeoutId() {
-        return this._takeoutId
+        return this._takeoutId;
     }
 
     set takeoutId(value) {
-        this._takeoutId = value
+        this._takeoutId = value;
     }
 
     getAuthKey(dcId?: number) {
         if (dcId && dcId !== this.dcId) {
             // Not supported.
-            return undefined
+            return undefined;
         }
 
-        return this.authKey
+        return this.authKey;
     }
 
     setAuthKey(authKey?: AuthKey, dcId?: number) {
         if (dcId && dcId !== this.dcId) {
             // Not supported.
-            return undefined
+            return undefined;
         }
 
-        this.authKey = authKey
+        this.authKey = authKey;
     }
 
-    close() {
-    }
+    close() {}
 
-    save() {
-    }
+    save() {}
 
-    async load() {
+    async load() {}
 
-    }
+    delete() {}
 
-    delete() {
-    }
-
-    _entityValuesToRow(id: number, hash: bigInt.BigInteger, username: string, phone: string, name: string) {
+    _entityValuesToRow(
+        id: number,
+        hash: bigInt.BigInteger,
+        username: string,
+        phone: string,
+        name: string
+    ) {
         // While this is a simple implementation it might be overrode by,
         // other classes so they don't need to implement the plural form
         // of the method. Don't remove.
-        return [id, hash, username, phone, name]
+        return [id, hash, username, phone, name];
     }
 
     _entityToRow(e: any) {
         if (!(e.classType === "constructor")) {
-            return
+            return;
         }
         let p;
         let markedId;
         try {
             p = getInputPeer(e, false);
-            markedId = getPeerId(p)
+            markedId = getPeerId(p);
         } catch (e) {
-            return
+            return;
         }
         let pHash;
-        if (p instanceof Api.InputPeerUser || p instanceof Api.InputPeerChannel) {
-            pHash = p.accessHash
+        if (
+            p instanceof Api.InputPeerUser ||
+            p instanceof Api.InputPeerChannel
+        ) {
+            pHash = p.accessHash;
         } else if (p instanceof Api.InputPeerChat) {
             pHash = bigInt.zero;
         } else {
-            return
+            return;
         }
 
         let username = e.username;
         if (username) {
-            username = username.toLowerCase()
+            username = username.toLowerCase();
         }
         const phone = e.phone;
         const name = getDisplayName(e);
-        return this._entityValuesToRow(markedId, pHash, username, phone, name)
+        return this._entityValuesToRow(markedId, pHash, username, phone, name);
     }
 
     _entitiesToRows(tlo: any) {
@@ -138,14 +142,14 @@ export class MemorySession extends Session {
             entities = tlo;
         } else {
             if (typeof tlo === "object") {
-                if ('user' in tlo) {
-                    entities.push(tlo.user)
+                if ("user" in tlo) {
+                    entities.push(tlo.user);
                 }
-                if ('chats' in tlo && isArrayLike(tlo.chats)) {
-                    entities = entities.concat(tlo.chats)
+                if ("chats" in tlo && isArrayLike(tlo.chats)) {
+                    entities = entities.concat(tlo.chats);
                 }
-                if ('users' in tlo && isArrayLike(tlo.users)) {
-                    entities = entities.concat(tlo.users)
+                if ("users" in tlo && isArrayLike(tlo.users)) {
+                    entities = entities.concat(tlo.users);
                 }
             }
         }
@@ -153,58 +157,64 @@ export class MemorySession extends Session {
         for (const e of entities) {
             const row = this._entityToRow(e);
             if (row) {
-                rows.push(row)
+                rows.push(row);
             }
         }
-        return rows
+        return rows;
     }
 
     processEntities(tlo: any) {
         const entitiesSet = this._entitiesToRows(tlo);
         for (const e of entitiesSet) {
-            this._entities.add(e)
+            this._entities.add(e);
         }
     }
 
     getEntityRowsByPhone(phone: string) {
-        for (const e of this._entities) { // id, hash, username, phone, name
+        for (const e of this._entities) {
+            // id, hash, username, phone, name
             if (e[3] === phone) {
-                return [e[0], e[1]]
+                return [e[0], e[1]];
             }
         }
     }
 
     getEntityRowsByUsername(username: string) {
-        for (const e of this._entities) { // id, hash, username, phone, name
+        for (const e of this._entities) {
+            // id, hash, username, phone, name
             if (e[2] === username) {
-                return [e[0], e[1]]
+                return [e[0], e[1]];
             }
         }
     }
 
     getEntityRowsByName(name: string) {
-        for (const e of this._entities) { // id, hash, username, phone, name
+        for (const e of this._entities) {
+            // id, hash, username, phone, name
             if (e[4] === name) {
-                return [e[0], e[1]]
+                return [e[0], e[1]];
             }
         }
     }
 
     getEntityRowsById(id: number, exact = true) {
         if (exact) {
-            for (const e of this._entities) { // id, hash, username, phone, name
+            for (const e of this._entities) {
+                // id, hash, username, phone, name
                 if (e[0] === id) {
-                    return [e[0], e[1]]
+                    return [e[0], e[1]];
                 }
             }
         } else {
-            const ids = [utils.getPeerId(new Api.PeerUser({userId: id})),
-                utils.getPeerId(new Api.PeerChat({chatId: id})),
-                utils.getPeerId(new Api.PeerChannel({channelId: id})),
+            const ids = [
+                utils.getPeerId(new Api.PeerUser({ userId: id })),
+                utils.getPeerId(new Api.PeerChat({ chatId: id })),
+                utils.getPeerId(new Api.PeerChannel({ channelId: id })),
             ];
-            for (const e of this._entities) { // id, hash, username, phone, name
+            for (const e of this._entities) {
+                // id, hash, username, phone, name
                 if (ids.includes(e[0])) {
-                    return [e[0], e[1]]
+                    return [e[0], e[1]];
                 }
             }
         }
@@ -212,46 +222,49 @@ export class MemorySession extends Session {
 
     getInputEntity(key: EntityLike): Api.TypeInputPeer {
         let exact;
-        if (typeof key === 'object' && key.SUBCLASS_OF_ID) {
-            if ([0xc91c90b6, 0xe669bf46, 0x40f202fd].includes(key.SUBCLASS_OF_ID)) {
+        if (typeof key === "object" && key.SUBCLASS_OF_ID) {
+            if (
+                [0xc91c90b6, 0xe669bf46, 0x40f202fd].includes(
+                    key.SUBCLASS_OF_ID
+                )
+            ) {
                 // hex(crc32(b'InputPeer', b'InputUser' and b'InputChannel'))
                 // We already have an Input version, so nothing else required
-                return key
+                return key;
             }
             // Try to early return if this key can be casted as input peer
-            return utils.getInputPeer(key)
+            return utils.getInputPeer(key);
         } else {
             // Not a TLObject or can't be cast into InputPeer
-            if (typeof key === 'object' && key.classType === 'constructor') {
+            if (typeof key === "object" && key.classType === "constructor") {
                 key = utils.getPeerId(key);
-                exact = true
+                exact = true;
             } else {
-                exact = !(typeof key == 'number') || key < 0
+                exact = !(typeof key == "number") || key < 0;
             }
         }
 
-
         let result = undefined;
-        if (typeof key === 'string') {
+        if (typeof key === "string") {
             const phone = utils.parsePhone(key);
             if (phone) {
-                result = this.getEntityRowsByPhone(phone)
+                result = this.getEntityRowsByPhone(phone);
             } else {
-                const {username, isInvite} = utils.parseUsername(key);
+                const { username, isInvite } = utils.parseUsername(key);
                 if (username && !isInvite) {
-                    result = this.getEntityRowsByUsername(username)
+                    result = this.getEntityRowsByUsername(username);
                 } else {
                     const tup = utils.resolveInviteLink(key)[1];
                     if (tup) {
-                        result = this.getEntityRowsById(tup, false)
+                        result = this.getEntityRowsById(tup, false);
                     }
                 }
             }
-        } else if (typeof key === 'number') {
-            result = this.getEntityRowsById(key, exact)
+        } else if (typeof key === "number") {
+            result = this.getEntityRowsById(key, exact);
         }
-        if (!result && typeof key === 'string') {
-            result = this.getEntityRowsByName(key)
+        if (!result && typeof key === "string") {
+            result = this.getEntityRowsByName(key);
         }
 
         if (result) {
@@ -262,18 +275,21 @@ export class MemorySession extends Session {
             const kind = resolved[1];
             // removes the mark and returns type of entity
             if (kind === Api.PeerUser) {
-                return new Api.InputPeerUser({userId: entityId, accessHash: entityHash})
+                return new Api.InputPeerUser({
+                    userId: entityId,
+                    accessHash: entityHash,
+                });
             } else if (kind === Api.PeerChat) {
-                return new Api.InputPeerChat({chatId: entityId})
+                return new Api.InputPeerChat({ chatId: entityId });
             } else if (kind === Api.PeerChannel) {
-                return new Api.InputPeerChannel({channelId: entityId, accessHash: entityHash})
+                return new Api.InputPeerChannel({
+                    channelId: entityId,
+                    accessHash: entityHash,
+                });
             }
         } else {
-            throw new Error('Could not find input entity with key ' + key)
+            throw new Error("Could not find input entity with key " + key);
         }
-        throw new Error('Could not find input entity with key ' + key)
-
+        throw new Error("Could not find input entity with key " + key);
     }
-
 }
-

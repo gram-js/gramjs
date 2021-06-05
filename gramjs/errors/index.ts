@@ -4,23 +4,26 @@
  * @param request the request that caused this error
  * @constructor the RPCError as a Python exception that represents this error
  */
-import {Api} from "../tl";
+import { Api } from "../tl";
 
-import {RPCError} from './RPCBaseErrors';
-import {rpcErrorRe} from './RPCErrorList';
+import { RPCError } from "./RPCBaseErrors";
+import { rpcErrorRe } from "./RPCErrorList";
 
-export function RPCMessageToError(rpcError: Api.RpcError, request: Api.AnyRequest) {
+export function RPCMessageToError(
+    rpcError: Api.RpcError,
+    request: Api.AnyRequest
+) {
     for (const [msgRegex, Cls] of rpcErrorRe) {
         const m = rpcError.errorMessage.match(msgRegex);
         if (m) {
             const capture = m.length === 2 ? parseInt(m[1]) : null;
-            return new Cls({request: request, capture: capture})
+            return new Cls({ request: request, capture: capture });
         }
     }
 
-    return new RPCError(rpcError.errorMessage, request)
+    return new RPCError(rpcError.errorMessage, request);
 }
 
-export * from './Common';
-export * from './RPCBaseErrors';
-export * from './RPCErrorList';
+export * from "./Common";
+export * from "./RPCBaseErrors";
+export * from "./RPCErrorList";

@@ -1,7 +1,7 @@
-import type{BinaryReader} from '../../extensions'
-import {PromisedNetSockets,PromisedWebSockets} from '../../extensions'
-import {AsyncQueue} from '../../extensions'
-import {IS_NODE} from '../../Helpers'
+import type { BinaryReader } from "../../extensions";
+import { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
+import { AsyncQueue } from "../../extensions";
+import { IS_NODE } from "../../Helpers";
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -16,7 +16,7 @@ import {IS_NODE} from '../../Helpers'
  */
 class Connection {
     // @ts-ignore
-    PacketCodecClass : any; //"typeof AbridgedPacketCodec|typeof FullPacketCodec|typeof ObfuscatedConnection as "
+    PacketCodecClass: any; //"typeof AbridgedPacketCodec|typeof FullPacketCodec|typeof ObfuscatedConnection as "
     private _ip: string;
     private _port: number;
     private _dcId: number;
@@ -42,33 +42,34 @@ class Connection {
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
-        this.socket = IS_NODE ? new PromisedNetSockets() : new PromisedWebSockets()
+        this.socket = IS_NODE
+            ? new PromisedNetSockets()
+            : new PromisedWebSockets();
 
         //this.socket = new PromisedWebSockets()
     }
 
     async _connect() {
-        this._log.debug('Connecting');
+        this._log.debug("Connecting");
         this._codec = new this.PacketCodecClass(this);
         await this.socket.connect(this._port, this._ip);
-        this._log.debug('Finished connecting');
+        this._log.debug("Finished connecting");
         // await this.socket.connect({host: this._ip, port: this._port});
-        await this._initConn()
+        await this._initConn();
     }
 
     async connect() {
         await this._connect();
         this._connected = true;
 
-        this._sendTask = this._sendLoop()
-        this._recvTask = this._recvLoop()
-
+        this._sendTask = this._sendLoop();
+        this._recvTask = this._recvLoop();
     }
 
     async disconnect() {
         this._connected = false;
         await this._recvArray.push(undefined);
-        await this.socket.close()
+        await this.socket.close();
     }
 
     async send(data: Buffer) {
@@ -76,9 +77,9 @@ class Connection {
             // this will stop the current loop
             // @ts-ignore
             await this._sendArray(undefined);
-            throw new Error('Not connected')
+            throw new Error("Not connected");
         }
-        await this._sendArray.push(data)
+        await this._sendArray.push(data);
     }
 
     async recv() {
@@ -86,10 +87,10 @@ class Connection {
             const result = await this._recvArray.pop();
             // undefined = sentinel value = keep trying
             if (result && result.length) {
-                return result
+                return result;
             }
         }
-        throw new Error('Not connected')
+        throw new Error("Not connected");
     }
 
     async _sendLoop() {
@@ -99,12 +100,12 @@ class Connection {
                 const data = await this._sendArray.pop();
                 if (!data) {
                     this._sendTask = undefined;
-                    return
+                    return;
                 }
-                await this._send(data)
+                await this._send(data);
             }
         } catch (e) {
-            this._log.info('The server closed the connection while sending')
+            this._log.info("The server closed the connection while sending");
         }
     }
 
@@ -114,36 +115,39 @@ class Connection {
             try {
                 data = await this._recv();
                 if (!data) {
-                    throw new Error('no data received')
+                    throw new Error("no data received");
                 }
             } catch (e) {
-                this._log.info('connection closed');
+                this._log.info("connection closed");
                 //await this._recvArray.push()
 
                 this.disconnect();
-                return
+                return;
             }
-            await this._recvArray.push(data)
+            await this._recvArray.push(data);
         }
     }
 
     async _initConn() {
         if (this._codec.tag) {
-            await this.socket.write(this._codec.tag)
+            await this.socket.write(this._codec.tag);
         }
     }
 
     async _send(data: Buffer) {
         const encodedPacket = this._codec.encodePacket(data);
-        this.socket.write(encodedPacket)
+        this.socket.write(encodedPacket);
     }
 
     async _recv() {
-        return await this._codec.readPacket(this.socket)
+        return await this._codec.readPacket(this.socket);
     }
 
     toString() {
-        return `${this._ip}:${this._port}/${this.constructor.name.replace('Connection', '')}`
+        return `${this._ip}:${this._port}/${this.constructor.name.replace(
+            "Connection",
+            ""
+        )}`;
     }
 }
 
@@ -152,16 +156,15 @@ class ObfuscatedConnection extends Connection {
 
     async _initConn() {
         this._obfuscation = new this.ObfuscatedIO(this);
-        this.socket.write(this._obfuscation.header)
+        this.socket.write(this._obfuscation.header);
     }
 
     async _send(data: Buffer) {
-        this._obfuscation.write(this._codec.encodePacket(data))
+        this._obfuscation.write(this._codec.encodePacket(data));
     }
 
-
     async _recv() {
-        return await this._codec.readPacket(this._obfuscation)
+        return await this._codec.readPacket(this._obfuscation);
     }
 }
 
@@ -169,23 +172,21 @@ class PacketCodec {
     private _conn: Buffer;
 
     constructor(connection: Buffer) {
-        this._conn = connection
+        this._conn = connection;
     }
 
     encodePacket(data: Buffer) {
-        throw new Error('Not Implemented')
+        throw new Error("Not Implemented");
 
         // Override
     }
 
-    async readPacket(reader: PromisedNetSockets | PromisedWebSockets) :Promise<Buffer>{
+    async readPacket(
+        reader: PromisedNetSockets | PromisedWebSockets
+    ): Promise<Buffer> {
         // override
-        throw new Error('Not Implemented')
+        throw new Error("Not Implemented");
     }
 }
 
-export {
-    Connection,
-    PacketCodec,
-    ObfuscatedConnection,
-};
+export { Connection, PacketCodec, ObfuscatedConnection };

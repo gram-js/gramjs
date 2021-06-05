@@ -1,9 +1,8 @@
-import {MemorySession} from "./Memory";
-import {BinaryReader} from "../extensions";
-import {AuthKey} from "../crypto/AuthKey";
+import { MemorySession } from "./Memory";
+import { BinaryReader } from "../extensions";
+import { AuthKey } from "../crypto/AuthKey";
 
-const CURRENT_VERSION = '1';
-
+const CURRENT_VERSION = "1";
 
 export class StringSession extends MemorySession {
     private _key?: Buffer;
@@ -27,31 +26,32 @@ export class StringSession extends MemorySession {
         super();
         if (session) {
             if (session[0] !== CURRENT_VERSION) {
-                throw new Error('Not a valid string')
+                throw new Error("Not a valid string");
             }
             session = session.slice(1);
             const r = StringSession.decode(session);
 
             const reader = new BinaryReader(r);
-            this._dcId = reader.read(1)
-                .readUInt8(0);
+            this._dcId = reader.read(1).readUInt8(0);
             if (session.length == 352) {
                 // Telethon session
                 const ip_v4 = reader.read(4);
                 // TODO looks ugly smh
-                this._serverAddress = ip_v4[0].toString() + '.' + ip_v4[1].toString() + '.' + ip_v4[2].toString() + '.' + ip_v4[3].toString();
-
+                this._serverAddress =
+                    ip_v4[0].toString() +
+                    "." +
+                    ip_v4[1].toString() +
+                    "." +
+                    ip_v4[2].toString() +
+                    "." +
+                    ip_v4[3].toString();
             } else {
-                const serverAddressLen = reader.read(2)
-                    .readInt16BE(0);
+                const serverAddressLen = reader.read(2).readInt16BE(0);
                 this._serverAddress = reader.read(serverAddressLen).toString();
-
             }
 
-
-            this._port = reader.read(2)
-                .readInt16BE(0);
-            this._key = reader.read(-1)
+            this._port = reader.read(2).readInt16BE(0);
+            this._key = reader.read(-1);
         }
     }
 
@@ -60,7 +60,7 @@ export class StringSession extends MemorySession {
      * @returns {string}
      */
     static encode(x: Buffer) {
-        return x.toString('base64')
+        return x.toString("base64");
     }
 
     /**
@@ -68,7 +68,7 @@ export class StringSession extends MemorySession {
      * @returns {Buffer}
      */
     static decode(x: string) {
-        return Buffer.from(x, 'base64')
+        return Buffer.from(x, "base64");
     }
 
     async load() {
@@ -80,12 +80,12 @@ export class StringSession extends MemorySession {
 
     save() {
         if (!this.authKey || !this.serverAddress || !this.port) {
-            return ''
+            return "";
         }
         // TS is weird
         const key = this.authKey.getKey();
         if (!key) {
-            return '';
+            return "";
         }
         const dcBuffer = Buffer.from([this.dcId]);
         const addressBuffer = Buffer.from(this.serverAddress);
@@ -94,14 +94,17 @@ export class StringSession extends MemorySession {
         const portBuffer = Buffer.alloc(2);
         portBuffer.writeInt16BE(this.port, 0);
 
-        return CURRENT_VERSION + StringSession.encode(Buffer.concat([
-            dcBuffer,
-            addressLengthBuffer,
-            addressBuffer,
-            portBuffer,
-            key,
-        ]))
+        return (
+            CURRENT_VERSION +
+            StringSession.encode(
+                Buffer.concat([
+                    dcBuffer,
+                    addressLengthBuffer,
+                    addressBuffer,
+                    portBuffer,
+                    key,
+                ])
+            )
+        );
     }
-
 }
-

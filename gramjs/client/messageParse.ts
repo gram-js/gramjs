@@ -1,47 +1,61 @@
-import {sanitizeParseMode} from "../Utils";
-import {Api} from "../tl";
-import type {EntityLike, ValueOf} from "../define";
-import type {TelegramClient} from "./TelegramClient";
+import { sanitizeParseMode } from "../Utils";
+import { Api } from "../tl";
+import type { EntityLike, ValueOf } from "../define";
+import type { TelegramClient } from "./TelegramClient";
 
-export type messageEntities = typeof Api.MessageEntityBold | typeof Api.MessageEntityItalic |
-    typeof Api.MessageEntityStrike | typeof Api.MessageEntityCode | typeof Api.MessageEntityPre;
+export type messageEntities =
+    | typeof Api.MessageEntityBold
+    | typeof Api.MessageEntityItalic
+    | typeof Api.MessageEntityStrike
+    | typeof Api.MessageEntityCode
+    | typeof Api.MessageEntityPre;
 export const DEFAULT_DELIMITERS: {
-    [key: string]: messageEntities
+    [key: string]: messageEntities;
 } = {
-    '**': Api.MessageEntityBold,
-    '__': Api.MessageEntityItalic,
-    '~~': Api.MessageEntityStrike,
-    '`': Api.MessageEntityCode,
-    '```': Api.MessageEntityPre
+    "**": Api.MessageEntityBold,
+    __: Api.MessageEntityItalic,
+    "~~": Api.MessageEntityStrike,
+    "`": Api.MessageEntityCode,
+    "```": Api.MessageEntityPre,
 };
 
 // export class MessageParseMethods {
 
 export interface ParseInterface {
-    parse: (message: string) => [string, Api.TypeMessageEntity[]],
-    unparse: (text: string, entities: Api.TypeMessageEntity[] | undefined) => string
+    parse: (message: string) => [string, Api.TypeMessageEntity[]];
+    unparse: (
+        text: string,
+        entities: Api.TypeMessageEntity[] | undefined
+    ) => string;
 }
 
-export async function _replaceWithMention(client: TelegramClient, entities: Api.TypeMessageEntity[], i: number, user: EntityLike) {
+export async function _replaceWithMention(
+    client: TelegramClient,
+    entities: Api.TypeMessageEntity[],
+    i: number,
+    user: EntityLike
+) {
     try {
-        entities[i] = new Api.InputMessageEntityMentionName(
-            {
-                offset: entities[i].offset,
-                length: entities[i].length,
-                userId: await client.getInputEntity(user)
-            }
-        )
+        entities[i] = new Api.InputMessageEntityMentionName({
+            offset: entities[i].offset,
+            length: entities[i].length,
+            userId: await client.getInputEntity(user),
+        });
         return true;
     } catch (e) {
         return false;
     }
 }
 
-export function _parseMessageText(client: TelegramClient, message: string, parseMode: any) {
-    if (parseMode==false) {
-        return [message, []]
+export function _parseMessageText(
+    client: TelegramClient,
+    message: string,
+    parseMode: any
+) {
+    if (parseMode == false) {
+        return [message, []];
     }
-    if (parseMode==undefined) {
+    if (parseMode == undefined) {
         parseMode = client.parseMode;
     } else if (typeof parseMode === "string") {
         parseMode = sanitizeParseMode(parseMode);

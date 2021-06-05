@@ -1,8 +1,8 @@
 // Which updates have the following fields?
 
-import {getInputPeer, getPeerId, } from "./Utils";
-import {isArrayLike} from './Helpers'
-import {Api} from "./tl";
+import { getInputPeer, getPeerId } from "./Utils";
+import { isArrayLike } from "./Helpers";
+import { Api } from "./tl";
 
 export class EntityCache {
     private cacheMap: Map<number, any>;
@@ -12,19 +12,18 @@ export class EntityCache {
     }
 
     add(entities: any) {
-
         const temp = [];
         if (!isArrayLike(entities)) {
-            if (entities != undefined){
-                if (typeof entities == 'object'){
-                    if ('chats' in entities) {
-                        temp.push(...entities.chats)
+            if (entities != undefined) {
+                if (typeof entities == "object") {
+                    if ("chats" in entities) {
+                        temp.push(...entities.chats);
                     }
-                    if ('users' in entities) {
-                        temp.push(...entities.users)
+                    if ("users" in entities) {
+                        temp.push(...entities.users);
                     }
-                    if ('user' in entities) {
-                        temp.push(entities.user)
+                    if ("user" in entities) {
+                        temp.push(entities.user);
                     }
                 }
             }
@@ -40,14 +39,12 @@ export class EntityCache {
                 if (!this.cacheMap.has(pid)) {
                     this.cacheMap.set(pid, getInputPeer(entity));
                 }
-            } catch (e) {
-
-            }
+            } catch (e) {}
         }
     }
 
     get(item: any) {
-        if (!(typeof item === 'number') || item < 0) {
+        if (!(typeof item === "number") || item < 0) {
             let res;
             try {
                 res = this.cacheMap.get(getPeerId(item));
@@ -55,22 +52,24 @@ export class EntityCache {
                     return res;
                 }
             } catch (e) {
-                throw new Error('Invalid key will not have entity')
+                throw new Error("Invalid key will not have entity");
             }
         }
         for (const cls of [Api.PeerUser, Api.PeerChat, Api.PeerChannel]) {
             // TODO remove these "as"
-            const result = this.cacheMap.get(getPeerId(new cls({
-                userId: item as number,
-                chatId: item as number,
-                channelId: item as number
-            })));
+            const result = this.cacheMap.get(
+                getPeerId(
+                    new cls({
+                        userId: item as number,
+                        chatId: item as number,
+                        channelId: item as number,
+                    })
+                )
+            );
             if (result) {
                 return result;
             }
         }
-        throw new Error('No cached entity for the given key');
+        throw new Error("No cached entity for the given key");
     }
-
-
 }

@@ -3,11 +3,7 @@
     // We don't care about this since Parcel runs Babel after TypeScript
     "module": "commonjs",
     "target": "es6",
-    "lib": [
-      "dom",
-      "es6",
-      "es7"
-    ],
+    "lib": ["dom", "es6", "es7"],
     "inlineSourceMap": true,
     "downlevelIteration": true,
     "allowJs": true,
@@ -21,11 +17,6 @@
     "declaration": true,
     "outDir": "./dist"
   },
-  "exclude": [
-    "gramjs/tl/types-generator",
-    "node_modules"
-  ],
-  "include": [
-    "gramjs"
-  ]
+  "exclude": ["gramjs/tl/types-generator", "node_modules"],
+  "include": ["gramjs"]
 }

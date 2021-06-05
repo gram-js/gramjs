@@ -1,31 +1,41 @@
-import type {Entity, EntityLike, FileLike} from "./define";
-import {Api} from "./tl";
+import type { Entity, EntityLike, FileLike } from "./define";
+import { Api } from "./tl";
 import bigInt from "big-integer";
-import * as markdown from "./extensions/markdown"
-import {EntityCache} from "./entityCache";
-import mime from 'mime-types';
-import type {ParseInterface} from "./client/messageParse";
-import {MarkdownParser} from "./extensions/markdown";
-import {CustomFile} from "./client/uploads";
+import * as markdown from "./extensions/markdown";
+import { EntityCache } from "./entityCache";
+import mime from "mime-types";
+import type { ParseInterface } from "./client/messageParse";
+import { MarkdownParser } from "./extensions/markdown";
+import { CustomFile } from "./client/uploads";
 import TypeInputFile = Api.TypeInputFile;
-import {HTMLParser} from "./extensions/html";
+import { HTMLParser } from "./extensions/html";
 
+const USERNAME_RE = new RegExp(
+    "@|(?:https?:\\/\\/)?(?:www\\.)?" +
+        "(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?",
+    "i"
+);
 
-const USERNAME_RE = new RegExp('@|(?:https?:\\/\\/)?(?:www\\.)?' + '(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?', 'i');
+const JPEG_HEADER = Buffer.from(
+    "ffd8ffe000104a46494600010100000100010000ffdb004300281c1e231e19282321232d2b28303c64413c37373c7b585d4964918099968f808c8aa0b4e6c3a0aadaad8a8cc8ffcbdaeef5ffffff9bc1fffffffaffe6fdfff8ffdb0043012b2d2d3c353c76414176f8a58ca5f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8ffc00011080000000003012200021101031101ffc4001f0000010501010101010100000000000000000102030405060708090a0bffc400b5100002010303020403050504040000017d01020300041105122131410613516107227114328191a1082342b1c11552d1f02433627282090a161718191a25262728292a3435363738393a434445464748494a535455565758595a636465666768696a737475767778797a838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffc4001f0100030101010101010101010000000000000102030405060708090a0bffc400b51100020102040403040705040400010277000102031104052131061241510761711322328108144291a1b1c109233352f0156272d10a162434e125f11718191a262728292a35363738393a434445464748494a535455565758595a636465666768696a737475767778797a82838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae2e3e4e5e6e7e8e9eaf2f3f4f5f6f7f8f9faffda000c03010002110311003f00",
+    "hex"
+);
+const JPEG_FOOTER = Buffer.from("ffd9", "hex");
 
-const JPEG_HEADER = Buffer.from('ffd8ffe000104a46494600010100000100010000ffdb004300281c1e231e19282321232d2b28303c64413c37373c7b585d4964918099968f808c8aa0b4e6c3a0aadaad8a8cc8ffcbdaeef5ffffff9bc1fffffffaffe6fdfff8ffdb0043012b2d2d3c353c76414176f8a58ca5f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8ffc00011080000000003012200021101031101ffc4001f0000010501010101010100000000000000000102030405060708090a0bffc400b5100002010303020403050504040000017d01020300041105122131410613516107227114328191a1082342b1c11552d1f02433627282090a161718191a25262728292a3435363738393a434445464748494a535455565758595a636465666768696a737475767778797a838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffc4001f0100030101010101010101010000000000000102030405060708090a0bffc400b51100020102040403040705040400010277000102031104052131061241510761711322328108144291a1b1c109233352f0156272d10a162434e125f11718191a262728292a35363738393a434445464748494a535455565758595a636465666768696a737475767778797a82838485868788898a92939495969798999aa2a3a4a5a6a7a8a9aab2b3b4b5b6b7b8b9bac2c3c4c5c6c7c8c9cad2d3d4d5d6d7d8d9dae2e3e4e5e6e7e8e9eaf2f3f4f5f6f7f8f9faffda000c03010002110311003f00', 'hex')
-const JPEG_FOOTER = Buffer.from('ffd9', 'hex');
+const TG_JOIN_RE = new RegExp("tg:\\/\\/(join)\\?invite=", "i");
 
-const TG_JOIN_RE = new RegExp('tg:\\/\\/(join)\\?invite=', 'i');
-
-const VALID_USERNAME_RE = new RegExp('^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|' + 'pic|bing|wiki|imdb|bold|vote|like|coub)$', 'i');
+const VALID_USERNAME_RE = new RegExp(
+    "^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|" +
+        "pic|bing|wiki|imdb|bold|vote|like|coub)$",
+    "i"
+);
 
 function _raiseCastFail(entity: EntityLike, target: any): never {
     let toWrite = entity;
-    if (typeof entity === 'object') {
+    if (typeof entity === "object") {
         toWrite = entity.className;
     }
-    throw new Error(`Cannot cast ${toWrite} to any kind of ${target}`)
+    throw new Error(`Cannot cast ${toWrite} to any kind of ${target}`);
 }
 
 /**
@@ -45,19 +55,24 @@ function _raiseCastFail(entity: EntityLike, target: any): never {
  * @param allowSelf
  * @param checkHash
  */
-export function getInputPeer(entity: any, allowSelf = true, checkHash = true): Api.TypeInputPeer {
+export function getInputPeer(
+    entity: any,
+    allowSelf = true,
+    checkHash = true
+): Api.TypeInputPeer {
     if (entity.SUBCLASS_OF_ID === undefined) {
         // e.g. custom.Dialog (can't cyclic import).
-        if (allowSelf && 'inputEntity' in entity) {
+        if (allowSelf && "inputEntity" in entity) {
             return entity.inputEntity;
-        } else if ('entity' in entity) {
-            return getInputPeer(entity.entity)
+        } else if ("entity" in entity) {
+            return getInputPeer(entity.entity);
         } else {
-            _raiseCastFail(entity, 'InputPeer')
+            _raiseCastFail(entity, "InputPeer");
         }
     }
-    if (entity.SUBCLASS_OF_ID === 0xc91c90b6) { // crc32(b'InputPeer')
-        return entity
+    if (entity.SUBCLASS_OF_ID === 0xc91c90b6) {
+        // crc32(b'InputPeer')
+        return entity;
     }
 
     if (entity instanceof Api.User) {
@@ -67,23 +82,28 @@ export function getInputPeer(entity: any, allowSelf = true, checkHash = true): A
             return new Api.InputPeerUser({
                 userId: entity.id,
                 accessHash: entity.accessHash || bigInt(0),
-            })
+            });
         } else {
-            throw new Error('User without accessHash cannot be input')
+            throw new Error("User without accessHash cannot be input");
         }
     }
-    if (entity instanceof Api.Chat || entity instanceof Api.ChatEmpty ||
-        entity instanceof Api.ChatForbidden) {
-        return new Api.InputPeerChat({chatId: entity.id})
+    if (
+        entity instanceof Api.Chat ||
+        entity instanceof Api.ChatEmpty ||
+        entity instanceof Api.ChatForbidden
+    ) {
+        return new Api.InputPeerChat({ chatId: entity.id });
     }
     if (entity instanceof Api.Channel) {
         if (entity.accessHash !== undefined || !checkHash) {
             return new Api.InputPeerChannel({
                 channelId: entity.id,
                 accessHash: entity.accessHash || bigInt(0),
-            })
+            });
         } else {
-            throw new TypeError('Channel without accessHash or min info cannot be input')
+            throw new TypeError(
+                "Channel without accessHash or min info cannot be input"
+            );
         }
     }
     if (entity instanceof Api.ChannelForbidden) {
@@ -92,83 +112,80 @@ export function getInputPeer(entity: any, allowSelf = true, checkHash = true): A
         return new Api.InputPeerChannel({
             channelId: entity.id,
             accessHash: entity.accessHash,
-        })
+        });
     }
 
     if (entity instanceof Api.InputUser) {
         return new Api.InputPeerUser({
             userId: entity.userId,
             accessHash: entity.accessHash,
-        })
+        });
     }
     if (entity instanceof Api.InputChannel) {
         return new Api.InputPeerChannel({
             channelId: entity.channelId,
             accessHash: entity.accessHash,
-        })
+        });
     }
     if (entity instanceof Api.UserEmpty) {
-        return new Api.InputPeerEmpty()
+        return new Api.InputPeerEmpty();
     }
     if (entity instanceof Api.UserFull) {
-        return getInputPeer(entity.user)
+        return getInputPeer(entity.user);
     }
 
     if (entity instanceof Api.ChatFull) {
-        return new Api.InputPeerChat({chatId: entity.id})
+        return new Api.InputPeerChat({ chatId: entity.id });
     }
 
     if (entity instanceof Api.PeerChat) {
         return new Api.InputPeerChat({
-            chatId: entity.chatId
-        })
+            chatId: entity.chatId,
+        });
     }
 
-    _raiseCastFail(entity, 'InputPeer')
-
+    _raiseCastFail(entity, "InputPeer");
 }
 
 export function _photoSizeByteCount(size: FileLike) {
     if (size instanceof Api.PhotoSize) {
-        return size.size
+        return size.size;
     } else if (size instanceof Api.PhotoStrippedSize) {
         if (size.bytes.length < 3 || size.bytes[0] != 1) {
             return size.bytes.length;
         }
-        return size.bytes.length + 622
+        return size.bytes.length + 622;
     } else if (size instanceof Api.PhotoCachedSize) {
         return size.bytes.length;
     } else if (size instanceof Api.PhotoSizeEmpty) {
-        return 0
+        return 0;
     } else {
         return undefined;
-
     }
 }
 
-export function _getEntityPair(entityId: number, entities: Map<number, Entity>,
-                               cache: EntityCache,
-                               getInputPeerFunction: any = getInputPeer): [Entity?, Api.TypeInputPeer?] {
-
+export function _getEntityPair(
+    entityId: number,
+    entities: Map<number, Entity>,
+    cache: EntityCache,
+    getInputPeerFunction: any = getInputPeer
+): [Entity?, Api.TypeInputPeer?] {
     const entity = entities.get(entityId);
     let inputEntity;
     try {
         inputEntity = cache.get(entityId);
-
     } catch (e) {
         try {
             inputEntity = getInputPeerFunction(inputEntity);
-
-        } catch (e) {
-
-        }
+        } catch (e) {}
     }
-    return [entity, inputEntity]
-
+    return [entity, inputEntity];
 }
 
-export function getInnerText(text: string, entities: Map<number, Api.TypeMessageEntity>) {
-
+export function getInnerText(
+    text: string,
+    entities: Map<number, Api.TypeMessageEntity>
+) {
     const result: string[] = [];
     entities.forEach(function (value, key) {
         const start = value.offset;
@@ -192,30 +209,33 @@ export function getInnerText(text: string, entities: Map<number, Api.TypeMessage
  */
 export function getInputChannel(entity: EntityLike) {
     if (typeof entity === "string" || typeof entity == "number") {
-        _raiseCastFail(entity, 'InputChannel')
+        _raiseCastFail(entity, "InputChannel");
     }
     if (entity.SUBCLASS_OF_ID === undefined) {
-        _raiseCastFail(entity, 'InputChannel')
+        _raiseCastFail(entity, "InputChannel");
     }
 
-
-    if (entity.SUBCLASS_OF_ID === 0x40f202fd) { // crc32(b'InputChannel')
-        return entity
+    if (entity.SUBCLASS_OF_ID === 0x40f202fd) {
+        // crc32(b'InputChannel')
+        return entity;
     }
-    if (entity instanceof Api.Channel || entity instanceof Api.ChannelForbidden) {
+    if (
+        entity instanceof Api.Channel ||
+        entity instanceof Api.ChannelForbidden
+    ) {
         return new Api.InputChannel({
             channelId: entity.id,
-            accessHash: entity.accessHash || bigInt.zero
-        })
+            accessHash: entity.accessHash || bigInt.zero,
+        });
     }
 
     if (entity instanceof Api.InputPeerChannel) {
         return new Api.InputChannel({
             channelId: entity.channelId,
-            accessHash: entity.accessHash
-        })
+            accessHash: entity.accessHash,
+        });
     }
-    _raiseCastFail(entity, 'InputChannel')
+    _raiseCastFail(entity, "InputChannel");
 }
 
 /**
@@ -231,45 +251,49 @@ export function getInputChannel(entity: EntityLike) {
  */
 export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
     if (typeof entity === "string" || typeof entity == "number") {
-        _raiseCastFail(entity, 'InputUser')
+        _raiseCastFail(entity, "InputUser");
     }
 
     if (entity.SUBCLASS_OF_ID === undefined) {
-        _raiseCastFail(entity, 'InputUser')
+        _raiseCastFail(entity, "InputUser");
     }
-    if (entity.SUBCLASS_OF_ID === 0xe669bf46) { // crc32(b'InputUser')
-        return entity
+    if (entity.SUBCLASS_OF_ID === 0xe669bf46) {
+        // crc32(b'InputUser')
+        return entity;
     }
 
     if (entity instanceof Api.User) {
         if (entity.self) {
-            return new Api.InputPeerSelf()
+            return new Api.InputPeerSelf();
         } else {
             return new Api.InputUser({
                 userId: entity.id,
                 accessHash: entity.accessHash || bigInt.zero,
-            })
+            });
         }
     }
     if (entity instanceof Api.InputPeerSelf) {
-        return new Api.InputPeerSelf()
+        return new Api.InputPeerSelf();
     }
-    if (entity instanceof Api.UserEmpty || entity instanceof Api.InputPeerEmpty) {
-        return new Api.InputUserEmpty()
+    if (
+        entity instanceof Api.UserEmpty ||
+        entity instanceof Api.InputPeerEmpty
+    ) {
+        return new Api.InputUserEmpty();
     }
 
     if (entity instanceof Api.UserFull) {
-        return getInputUser(entity.user)
+        return getInputUser(entity.user);
     }
 
     if (entity instanceof Api.InputPeerUser) {
         return new Api.InputUser({
             userId: entity.userId,
-            accessHash: entity.accessHash
-        })
+            accessHash: entity.accessHash,
+        });
     }
 
-    _raiseCastFail(entity, 'InputUser')
+    _raiseCastFail(entity, "InputUser");
 }
 
 /**
@@ -305,18 +329,19 @@ function getInputDialog(dialog) {
 
 export function getInputMessage(message: any): Api.InputMessageID {
     if (typeof message === "number") {
-        return new Api.InputMessageID({id: message});
+        return new Api.InputMessageID({ id: message });
     }
     if (message === undefined || message.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(message, "InputMessage");
     }
-    if (message.SUBCLASS_OF_ID === 0x54b6bcc5) { // crc32(b'InputMessage')
+    if (message.SUBCLASS_OF_ID === 0x54b6bcc5) {
+        // crc32(b'InputMessage')
         return message;
-    } else if (message.SUBCLASS_OF_ID === 0x790009e3) { // crc32(b'Message'):
-        return new Api.InputMessageID({id: message.id});
+    } else if (message.SUBCLASS_OF_ID === 0x790009e3) {
+        // crc32(b'Message'):
+        return new Api.InputMessageID({ id: message.id });
     }
     _raiseCastFail(message, "InputMessage");
-
 }
 
 /**
@@ -327,23 +352,24 @@ export function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
     if (photo === undefined || photo.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(photo, "InputChatPhoto");
     }
-    if ((photo.SUBCLASS_OF_ID === 0xd4eb2d74)) { //crc32(b'InputChatPhoto')
+    if (photo.SUBCLASS_OF_ID === 0xd4eb2d74) {
+        //crc32(b'InputChatPhoto')
         return photo;
-    } else if (photo.SUBCLASS_OF_ID === 0xe7655f1f) { // crc32(b'InputFile'):
+    } else if (photo.SUBCLASS_OF_ID === 0xe7655f1f) {
+        // crc32(b'InputFile'):
         return new Api.InputChatUploadedPhoto({
-            file: photo
+            file: photo,
         });
     }
     photo = getInputPhoto(photo);
-    if ((photo instanceof Api.InputPhoto)) {
+    if (photo instanceof Api.InputPhoto) {
         return new Api.InputChatPhoto({
-            id: photo
+            id: photo,
         });
     } else if (photo instanceof Api.InputPhotoEmpty) {
         return new Api.InputChatPhotoEmpty();
     }
     _raiseCastFail(photo, "InputChatPhoto");
-
 }
 
 /**
@@ -356,12 +382,12 @@ export function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
 export function strippedPhotoToJpg(stripped: Buffer) {
     // Note: Changes here should update _stripped_real_length
     if (stripped.length < 3 || stripped[0] !== 1) {
-        return stripped
+        return stripped;
     }
-    const header = Buffer.from(JPEG_HEADER)
-    header[164] = stripped[1]
-    header[166] = stripped[2]
-    return Buffer.concat([header, stripped.slice(3), JPEG_FOOTER])
+    const header = Buffer.from(JPEG_HEADER);
+    header[164] = stripped[1];
+    header[166] = stripped[2];
+    return Buffer.concat([header, stripped.slice(3), JPEG_FOOTER]);
 }
 
 /*CONTEST
@@ -425,41 +451,53 @@ export function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
         _raiseCastFail(photo, "InputPhoto");
     }
 
-    if ((photo.SUBCLASS_OF_ID === 2221106144)) {
+    if (photo.SUBCLASS_OF_ID === 2221106144) {
         return photo;
     }
 
-    if ((photo instanceof Api.Message)) {
+    if (photo instanceof Api.Message) {
         photo = photo.media;
     }
-    if (((photo instanceof Api.photos.Photo) || (photo instanceof Api.MessageMediaPhoto))) {
+    if (
+        photo instanceof Api.photos.Photo ||
+        photo instanceof Api.MessageMediaPhoto
+    ) {
         photo = photo.photo;
     }
-    if ((photo instanceof Api.Photo)) {
+    if (photo instanceof Api.Photo) {
         return new Api.InputPhoto({
             id: photo.id,
             accessHash: photo.accessHash,
-            fileReference: photo.fileReference
+            fileReference: photo.fileReference,
         });
     }
-    if ((photo instanceof Api.PhotoEmpty)) {
+    if (photo instanceof Api.PhotoEmpty) {
         return new Api.InputPhotoEmpty();
     }
-    if ((photo instanceof Api.messages.ChatFull)) {
+    if (photo instanceof Api.messages.ChatFull) {
         photo = photo.fullChat;
     }
-    if ((photo instanceof Api.ChannelFull)) {
+    if (photo instanceof Api.ChannelFull) {
         return getInputPhoto(photo.chatPhoto);
     } else {
-        if ((photo instanceof Api.UserFull)) {
+        if (photo instanceof Api.UserFull) {
             return getInputPhoto(photo.profilePhoto);
         } else {
-            if (((photo instanceof Api.Channel) || (photo instanceof Api.Chat) || (photo instanceof Api.User))) {
+            if (
+                photo instanceof Api.Channel ||
+                photo instanceof Api.Chat ||
+                photo instanceof Api.User
+            ) {
                 return getInputPhoto(photo.photo);
             }
         }
     }
-    if (((photo instanceof Api.UserEmpty) || (photo instanceof Api.ChatEmpty) || (photo instanceof Api.ChatForbidden) || (photo instanceof Api.ChannelForbidden))) {
+    if (
+        photo instanceof Api.UserEmpty ||
+        photo instanceof Api.ChatEmpty ||
+        photo instanceof Api.ChatForbidden ||
+        photo instanceof Api.ChannelForbidden
+    ) {
         return new Api.InputPhotoEmpty();
     }
     _raiseCastFail(photo, "InputPhoto");
@@ -469,34 +507,34 @@ export function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
  *  Similar to :meth:`get_input_peer`, but for documents
  */
 
-export function getInputDocument(document: any): Api.InputDocument | Api.InputDocumentEmpty {
+export function getInputDocument(
+    document: any
+): Api.InputDocument | Api.InputDocumentEmpty {
     if (document.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(document, "InputDocument");
     }
 
-    if ((document.SUBCLASS_OF_ID === 0xf33fdb68)) {
+    if (document.SUBCLASS_OF_ID === 0xf33fdb68) {
         return document;
     }
 
-    if ((document instanceof Api.Document)) {
+    if (document instanceof Api.Document) {
         return new Api.InputDocument({
             id: document.id,
             accessHash: document.accessHash,
-            fileReference: document.fileReference
+            fileReference: document.fileReference,
         });
     }
-    if ((document instanceof Api.DocumentEmpty)) {
+    if (document instanceof Api.DocumentEmpty) {
         return new Api.InputDocumentEmpty();
     }
-    if ((document instanceof Api.MessageMediaDocument)) {
+    if (document instanceof Api.MessageMediaDocument) {
         return getInputDocument(document.document);
     }
-    if ((document instanceof Api.Message)) {
+    if (document instanceof Api.Message) {
         return getInputDocument(document.media);
     }
     _raiseCastFail(document, "InputDocument");
-
-
 }
 
 interface GetAttributesParams {
@@ -517,12 +555,12 @@ export function isAudio(file: any): boolean {
     if (!ext) {
         const metadata = _getMetadata(file);
         if (metadata) {
-            return (metadata.get("mimeType") || '').startsWith("audio/");
+            return (metadata.get("mimeType") || "").startsWith("audio/");
         } else {
             return false;
         }
     } else {
-        file = ("a" + ext);
+        file = "a" + ext;
         return (mime.lookup(file) || "").startsWith("audio/");
     }
 }
@@ -532,8 +570,9 @@ export function isAudio(file: any): boolean {
  */
 export function isImage(file: any): boolean {
     const ext = _getExtension(file).toLowerCase();
-    return ext.endsWith(".png") || ext.endsWith(".jpg") || ext.endsWith(".jpeg");
-
+    return (
+        ext.endsWith(".png") || ext.endsWith(".jpg") || ext.endsWith(".jpeg")
+    );
 }
 
 export function getExtension(media: any): string {
@@ -542,22 +581,27 @@ export function getExtension(media: any): string {
     try {
         getInputPhoto(media);
         return ".jpg";
-    } catch (e) {
-
-    }
-    if (media instanceof Api.UserProfilePhoto || media instanceof Api.ChatPhoto) {
+    } catch (e) {}
+    if (
+        media instanceof Api.UserProfilePhoto ||
+        media instanceof Api.ChatPhoto
+    ) {
         return ".jpg";
     }
 
-    if ((media instanceof Api.MessageMediaDocument)) {
+    if (media instanceof Api.MessageMediaDocument) {
         media = media.document;
     }
-    if (((media instanceof Api.Document) || (media instanceof Api.WebDocument) || (media instanceof Api.WebDocumentNoProxy))) {
-        if ((media.mimeType === "application/octet-stream")) {
+    if (
+        media instanceof Api.Document ||
+        media instanceof Api.WebDocument ||
+        media instanceof Api.WebDocumentNoProxy
+    ) {
+        if (media.mimeType === "application/octet-stream") {
             // Octet stream are just bytes, which have no default extension
             return "";
         } else {
-            return (mime.extension(media.mimeType) || "");
+            return mime.extension(media.mimeType) || "";
         }
     }
     return "";
@@ -568,18 +612,16 @@ export function getExtension(media: any): string {
  * str or an ``open()``'ed file (which has a ``.name`` attribute).
  */
 function _getExtension(file: any): string {
-
     var kind;
     if (typeof file === "string") {
         // thanks Stackoverflow
-        return file.slice((file.lastIndexOf(".") - 2 >>> 0) + 2);
+        return file.slice(((file.lastIndexOf(".") - 2) >>> 0) + 2);
     } else if ("name" in file) {
         return _getExtension(file.name);
     } else {
         return getExtension(file);
     }
 }
-
 
 function _getMetadata(file: any): Map<string, string> | undefined {
     //TODO Return nothing for now until we find a better way
@@ -590,64 +632,81 @@ function isVideo(file: any): boolean {
     const ext = _getExtension(file);
     if (!ext) {
         const metadata = _getMetadata(file);
-        if ((metadata && metadata.has("mimeType"))) {
+        if (metadata && metadata.has("mimeType")) {
             return metadata.get("mimeType")?.startsWith("video/") || false;
         } else {
             return false;
         }
     } else {
-        file = ("a" + ext);
+        file = "a" + ext;
         return (mime.lookup(file) || "").startsWith("video/");
     }
 }
-
 
 /**
  Get a list of attributes for the given file and
  the mime type as a tuple ([attribute], mime_type).
  */
-export function getAttributes(file: File | CustomFile | TypeInputFile | string, {attributes = null, mimeType = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false, thumb = null}: GetAttributesParams) {
-    const name: string = typeof file=="string" ? file : file.name || "unnamed";
+export function getAttributes(
+    file: File | CustomFile | TypeInputFile | string,
+    {
+        attributes = null,
+        mimeType = undefined,
+        forceDocument = false,
+        voiceNote = false,
+        videoNote = false,
+        supportsStreaming = false,
+        thumb = null,
+    }: GetAttributesParams
+) {
+    const name: string =
+        typeof file == "string" ? file : file.name || "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.lookup(name) || "application/octet-stream";
     }
     const attrObj = new Map();
-    attrObj.set(Api.DocumentAttributeFilename, new Api.DocumentAttributeFilename({
-        fileName: name.split(/[\\/]/).pop() || ''
-    }));
+    attrObj.set(
+        Api.DocumentAttributeFilename,
+        new Api.DocumentAttributeFilename({
+            fileName: name.split(/[\\/]/).pop() || "",
+        })
+    );
     if (isAudio(file)) {
         const m = _getMetadata(file);
         if (m) {
-            attrObj.set(Api.DocumentAttributeAudio, new Api.DocumentAttributeAudio({
-                voice: voiceNote,
-                title: (m.has("title") ? m.get("title") : undefined),
-                performer: (m.has("author") ? m.get("author") : undefined),
-                duration: Number.parseInt(m.get("duration") ?? '0')
-            }));
+            attrObj.set(
+                Api.DocumentAttributeAudio,
+                new Api.DocumentAttributeAudio({
+                    voice: voiceNote,
+                    title: m.has("title") ? m.get("title") : undefined,
+                    performer: m.has("author") ? m.get("author") : undefined,
+                    duration: Number.parseInt(m.get("duration") ?? "0"),
+                })
+            );
         }
     }
-    if (((!forceDocument) && isVideo(file))) {
+    if (!forceDocument && isVideo(file)) {
         let doc;
         const m = _getMetadata(file);
         if (m) {
             doc = new Api.DocumentAttributeVideo({
                 roundMessage: videoNote,
-                w: Number.parseInt(m.get("width") ?? '0'),
-                h: Number.parseInt(m.get("height") ?? '0'),
-                duration: Number.parseInt(m.get("duration") ?? '0'),
-                supportsStreaming: supportsStreaming
+                w: Number.parseInt(m.get("width") ?? "0"),
+                h: Number.parseInt(m.get("height") ?? "0"),
+                duration: Number.parseInt(m.get("duration") ?? "0"),
+                supportsStreaming: supportsStreaming,
             });
         } else {
             if (thumb) {
                 const t_m = _getMetadata(thumb);
-                const width = Number.parseInt(t_m?.get("width") || '1');
-                const height = Number.parseInt(t_m?.get("height") || '1');
+                const width = Number.parseInt(t_m?.get("width") || "1");
+                const height = Number.parseInt(t_m?.get("height") || "1");
                 doc = new Api.DocumentAttributeVideo({
                     duration: 0,
                     h: height,
                     w: width,
                     roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming
+                    supportsStreaming: supportsStreaming,
                 });
             } else {
                 doc = new Api.DocumentAttributeVideo({
@@ -655,7 +714,7 @@ export function getAttributes(file: File | CustomFile | TypeInputFile | string, 
                     h: 1,
                     w: 1,
                     roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming
+                    supportsStreaming: supportsStreaming,
                 });
             }
         }
@@ -665,12 +724,13 @@ export function getAttributes(file: File | CustomFile | TypeInputFile | string, 
         if (attrObj.has(Api.DocumentAttributeAudio)) {
             attrObj.get(Api.DocumentAttributeAudio).voice = true;
         } else {
-            attrObj.set(Api.DocumentAttributeAudio, new Api.DocumentAttributeAudio(
-                {
+            attrObj.set(
+                Api.DocumentAttributeAudio,
+                new Api.DocumentAttributeAudio({
                     duration: 0,
-                    voice: true
-                }
-            ));
+                    voice: true,
+                })
+            );
         }
     }
     /* Now override the attributes if any. As we have a dict of
@@ -696,20 +756,21 @@ export function getInputGeo(geo: any): Api.TypeInputGeoPoint {
     if (geo === undefined || geo.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(geo, "InputGeoPoint");
     }
-    if (geo.SUBCLASS_OF_ID === 0x430d225) { // crc32(b'InputGeoPoint'):
+    if (geo.SUBCLASS_OF_ID === 0x430d225) {
+        // crc32(b'InputGeoPoint'):
         return geo;
     }
 
-    if ((geo instanceof Api.GeoPoint)) {
-        return new Api.InputGeoPoint({lat: geo.lat, long: geo.long});
+    if (geo instanceof Api.GeoPoint) {
+        return new Api.InputGeoPoint({ lat: geo.lat, long: geo.long });
     }
     if (geo instanceof Api.GeoPointEmpty) {
         return new Api.InputGeoPointEmpty();
     }
-    if ((geo instanceof Api.MessageMediaGeo)) {
+    if (geo instanceof Api.MessageMediaGeo) {
         return getInputGeo(geo.geo);
     }
-    if ((geo instanceof Api.Message)) {
+    if (geo instanceof Api.Message) {
         return getInputGeo(geo.media);
     }
     _raiseCastFail(geo, "InputGeoPoint");
@@ -717,7 +778,7 @@ export function getInputGeo(geo: any): Api.TypeInputGeoPoint {
 
 interface GetInputMediaInterface {
     isPhoto?: boolean;
-    attributes?: Api.TypeDocumentAttribute [];
+    attributes?: Api.TypeDocumentAttribute[];
     forceDocument?: boolean;
     voiceNote?: boolean;
     videoNote?: boolean;
@@ -739,106 +800,131 @@ interface GetInputMediaInterface {
  * @param videoNote
  * @param supportsStreaming
  */
-export function getInputMedia(media: any, {isPhoto = false, attributes = undefined, forceDocument = false, voiceNote = false, videoNote = false, supportsStreaming = false}: GetInputMediaInterface={}): any {
+export function getInputMedia(
+    media: any,
+    {
+        isPhoto = false,
+        attributes = undefined,
+        forceDocument = false,
+        voiceNote = false,
+        videoNote = false,
+        supportsStreaming = false,
+    }: GetInputMediaInterface = {}
+): any {
     if (media.SUBCLASS_OF_ID === undefined) {
-        _raiseCastFail(media, "InputMedia")
+        _raiseCastFail(media, "InputMedia");
     }
 
-
-    if ((media.SUBCLASS_OF_ID === 0xfaf846f4)) { // crc32(b'InputMedia')
+    if (media.SUBCLASS_OF_ID === 0xfaf846f4) {
+        // crc32(b'InputMedia')
         return media;
     } else {
-        if ((media.SUBCLASS_OF_ID === 2221106144)) { // crc32(b'InputPhoto')
-            return new Api.InputMediaPhoto({id: media});
+        if (media.SUBCLASS_OF_ID === 2221106144) {
+            // crc32(b'InputPhoto')
+            return new Api.InputMediaPhoto({ id: media });
         } else {
-            if ((media.SUBCLASS_OF_ID === 4081048424)) { // crc32(b'InputDocument')
-                return new Api.InputMediaDocument({id: media});
+            if (media.SUBCLASS_OF_ID === 4081048424) {
+                // crc32(b'InputDocument')
+                return new Api.InputMediaDocument({ id: media });
             }
         }
     }
 
-    if ((media instanceof Api.MessageMediaPhoto)) {
-        return new Api.InputMediaPhoto({id: getInputPhoto(media.photo), ttlSeconds: media.ttlSeconds});
-    }
-    if (((media instanceof Api.Photo) || (media instanceof Api.photos.Photo) || (media instanceof Api.PhotoEmpty))) {
-        return new Api.InputMediaPhoto({"id": getInputPhoto(media)});
-    }
-    if ((media instanceof Api.MessageMediaDocument)) {
-        return new Api.InputMediaDocument({
-            id: getInputDocument(media.document),
-            ttlSeconds: media.ttlSeconds
+    if (media instanceof Api.MessageMediaPhoto) {
+        return new Api.InputMediaPhoto({
+            id: getInputPhoto(media.photo),
+            ttlSeconds: media.ttlSeconds,
         });
     }
-    if (((media instanceof Api.Document) || (media instanceof Api.DocumentEmpty))) {
-        return new Api.InputMediaDocument({id: getInputDocument(media)});
+    if (
+        media instanceof Api.Photo ||
+        media instanceof Api.photos.Photo ||
+        media instanceof Api.PhotoEmpty
+    ) {
+        return new Api.InputMediaPhoto({ id: getInputPhoto(media) });
     }
-    if (((media instanceof Api.InputFile) || (media instanceof Api.InputFileBig))) {
+    if (media instanceof Api.MessageMediaDocument) {
+        return new Api.InputMediaDocument({
+            id: getInputDocument(media.document),
+            ttlSeconds: media.ttlSeconds,
+        });
+    }
+    if (media instanceof Api.Document || media instanceof Api.DocumentEmpty) {
+        return new Api.InputMediaDocument({ id: getInputDocument(media) });
+    }
+    if (media instanceof Api.InputFile || media instanceof Api.InputFileBig) {
         if (isPhoto) {
-            return new Api.InputMediaUploadedPhoto({"file": media});
+            return new Api.InputMediaUploadedPhoto({ file: media });
         } else {
-            const {attrs, mimeType} = getAttributes(
-                media, {
-                    attributes: attributes,
-                    forceDocument: forceDocument,
-                    voiceNote: voiceNote,
-                    videoNote: videoNote,
-                    supportsStreaming: supportsStreaming
-                });
+            const { attrs, mimeType } = getAttributes(media, {
+                attributes: attributes,
+                forceDocument: forceDocument,
+                voiceNote: voiceNote,
+                videoNote: videoNote,
+                supportsStreaming: supportsStreaming,
+            });
             return new Api.InputMediaUploadedDocument({
                 file: media,
                 mimeType: mimeType,
                 attributes: attrs,
-                forceFile: forceDocument
+                forceFile: forceDocument,
             });
         }
     }
-    if ((media instanceof Api.MessageMediaGame)) {
+    if (media instanceof Api.MessageMediaGame) {
         return new Api.InputMediaGame({
             id: new Api.InputGameID({
                 id: media.game.id,
-                accessHash: media.game.accessHash
-            })
+                accessHash: media.game.accessHash,
+            }),
         });
     }
-    if ((media instanceof Api.MessageMediaContact)) {
+    if (media instanceof Api.MessageMediaContact) {
         return new Api.InputMediaContact({
             phoneNumber: media.phoneNumber,
             firstName: media.firstName,
             lastName: media.lastName,
-            vcard: ""
+            vcard: "",
         });
     }
-    if ((media instanceof Api.MessageMediaGeo)) {
-        return new Api.InputMediaGeoPoint({geoPoint: getInputGeo(media.geo)});
+    if (media instanceof Api.MessageMediaGeo) {
+        return new Api.InputMediaGeoPoint({ geoPoint: getInputGeo(media.geo) });
     }
-    if ((media instanceof Api.MessageMediaVenue)) {
+    if (media instanceof Api.MessageMediaVenue) {
         return new Api.InputMediaVenue({
             geoPoint: getInputGeo(media.geo),
             title: media.title,
             address: media.address,
             provider: media.provider,
             venueId: media.venueId,
-            venueType: ""
+            venueType: "",
         });
     }
-    if ((media instanceof Api.MessageMediaDice)) {
+    if (media instanceof Api.MessageMediaDice) {
         return new Api.InputMediaDice({
-            emoticon: media.emoticon
+            emoticon: media.emoticon,
         });
     }
-    if (((media instanceof Api.MessageMediaEmpty) || (media instanceof Api.MessageMediaUnsupported)
-        || (media instanceof Api.ChatPhotoEmpty) || (media instanceof Api.UserProfilePhotoEmpty) ||
-        (media instanceof Api.ChatPhoto) || (media instanceof Api.UserProfilePhoto))) {
+    if (
+        media instanceof Api.MessageMediaEmpty ||
+        media instanceof Api.MessageMediaUnsupported ||
+        media instanceof Api.ChatPhotoEmpty ||
+        media instanceof Api.UserProfilePhotoEmpty ||
+        media instanceof Api.ChatPhoto ||
+        media instanceof Api.UserProfilePhoto
+    ) {
         return new Api.InputMediaEmpty();
     }
-    if ((media instanceof Api.Message)) {
-        return getInputMedia(media.media, {isPhoto: isPhoto});
+    if (media instanceof Api.Message) {
+        return getInputMedia(media.media, { isPhoto: isPhoto });
     }
-    if ((media instanceof Api.MessageMediaPoll)) {
+    if (media instanceof Api.MessageMediaPoll) {
         let correctAnswers;
         if (media.poll.quiz) {
-            if ((!media.results.results)) {
-                throw new Error("Cannot cast unanswered quiz to any kind of InputMedia.");
+            if (!media.results.results) {
+                throw new Error(
+                    "Cannot cast unanswered quiz to any kind of InputMedia."
+                );
             }
 
             correctAnswers = [];
@@ -847,7 +933,6 @@ export function getInputMedia(media: any, {isPhoto = false, attributes = undefin
                     correctAnswers.push(r.option);
                 }
             }
-
         } else {
             correctAnswers = undefined;
         }
@@ -855,12 +940,12 @@ export function getInputMedia(media: any, {isPhoto = false, attributes = undefin
             poll: media.poll,
             correctAnswers: correctAnswers,
             solution: media.results.solution,
-            solutionEntities: media.results.solutionEntities
+            solutionEntities: media.results.solutionEntities,
         });
     }
-    if ((media instanceof Api.Poll)) {
+    if (media instanceof Api.Poll) {
         return new Api.InputMediaPoll({
-            poll: media
+            poll: media,
         });
     }
     _raiseCastFail(media, "InputMedia");
@@ -875,73 +960,84 @@ export function getInputMedia(media: any, {isPhoto = false, attributes = undefin
  * @returns {Number}
  */
 export function getAppropriatedPartSize(fileSize: number) {
-    if (fileSize <= 104857600) { // 100MB
-        return 128
+    if (fileSize <= 104857600) {
+        // 100MB
+        return 128;
     }
-    if (fileSize <= 786432000) { // 750MB
-        return 256
+    if (fileSize <= 786432000) {
+        // 750MB
+        return 256;
     }
-    if (fileSize <= 1572864000) { // 1500MB
-        return 512
+    if (fileSize <= 1572864000) {
+        // 1500MB
+        return 512;
     }
 
-    throw new Error('File size too large')
+    throw new Error("File size too large");
 }
 
 export function getPeer(peer: EntityLike) {
     if (!peer) {
-        _raiseCastFail(peer, 'undefined')
-
+        _raiseCastFail(peer, "undefined");
     }
-    if (typeof peer === 'string') {
-        _raiseCastFail(peer, 'peer')
+    if (typeof peer === "string") {
+        _raiseCastFail(peer, "peer");
     }
     try {
-        if (typeof peer === 'number') {
-            const res = resolveId(peer)
+        if (typeof peer === "number") {
+            const res = resolveId(peer);
             if (res[1] === Api.PeerChannel) {
-                return new Api.PeerChannel({channelId: res[0]})
+                return new Api.PeerChannel({ channelId: res[0] });
             } else if (res[1] === Api.PeerChat) {
-                return new Api.PeerChat({chatId: res[0]})
+                return new Api.PeerChat({ chatId: res[0] });
             } else {
-                return new Api.PeerUser({userId: res[0]})
+                return new Api.PeerUser({ userId: res[0] });
             }
         }
         if (peer.SUBCLASS_OF_ID === undefined) {
-            throw new Error()
+            throw new Error();
         }
-        if (peer.SUBCLASS_OF_ID === 0x2d45687) { // crc32('Peer')
-            return peer
-        } else if (peer instanceof Api.contacts.ResolvedPeer ||
-            peer instanceof Api.InputNotifyPeer || peer instanceof Api.TopPeer ||
-            peer instanceof Api.Dialog || peer instanceof Api.DialogPeer) {
-            return peer.peer
+        if (peer.SUBCLASS_OF_ID === 0x2d45687) {
+            // crc32('Peer')
+            return peer;
+        } else if (
+            peer instanceof Api.contacts.ResolvedPeer ||
+            peer instanceof Api.InputNotifyPeer ||
+            peer instanceof Api.TopPeer ||
+            peer instanceof Api.Dialog ||
+            peer instanceof Api.DialogPeer
+        ) {
+            return peer.peer;
         } else if (peer instanceof Api.ChannelFull) {
-            return new Api.PeerChannel({channelId: peer.id})
+            return new Api.PeerChannel({ channelId: peer.id });
         }
-        if (peer.SUBCLASS_OF_ID === 0x7d7c6f86 || peer.SUBCLASS_OF_ID === 0xd9c7fc18) {
+        if (
+            peer.SUBCLASS_OF_ID === 0x7d7c6f86 ||
+            peer.SUBCLASS_OF_ID === 0xd9c7fc18
+        ) {
             // ChatParticipant, ChannelParticipant
             if ("userId" in peer) {
-                return new Api.PeerUser({userId: peer.userId})
+                return new Api.PeerUser({ userId: peer.userId });
             }
         }
-        peer = getInputPeer(peer, false, false)
+        peer = getInputPeer(peer, false, false);
 
         if (peer instanceof Api.InputPeerUser) {
-            return new Api.PeerUser({userId: peer.userId})
+            return new Api.PeerUser({ userId: peer.userId });
         } else if (peer instanceof Api.InputPeerChat) {
-            return new Api.PeerChat({chatId: peer.chatId})
+            return new Api.PeerChat({ chatId: peer.chatId });
         } else if (peer instanceof Api.InputPeerChannel) {
-            return new Api.PeerChannel({channelId: peer.channelId})
+            return new Api.PeerChannel({ channelId: peer.channelId });
         }
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
-    _raiseCastFail(peer, 'peer')
+    _raiseCastFail(peer, "peer");
 }
 
-
-export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface {
+export function sanitizeParseMode(
+    mode: string | ParseInterface
+): ParseInterface {
     if (mode === "md" || mode === "markdown") {
         return MarkdownParser;
     }
@@ -974,63 +1070,67 @@ export function sanitizeParseMode(mode: string | ParseInterface): ParseInterface
  */
 export function getPeerId(peer: EntityLike, addMark = true): number {
     // First we assert it's a Peer TLObject, or early return for integers
-    if (typeof peer == 'number') {
-        return addMark ? peer : resolveId(peer)[0]
+    if (typeof peer == "number") {
+        return addMark ? peer : resolveId(peer)[0];
     }
     // Tell the user to use their client to resolve InputPeerSelf if we got one
     if (peer instanceof Api.InputPeerSelf) {
-        _raiseCastFail(peer, 'int (you might want to use client.get_peer_id)')
+        _raiseCastFail(peer, "int (you might want to use client.get_peer_id)");
     }
 
     try {
-        peer = getPeer(peer)
+        peer = getPeer(peer);
     } catch (e) {
-        _raiseCastFail(peer, 'int')
+        _raiseCastFail(peer, "int");
     }
     if (peer instanceof Api.PeerUser) {
-        return peer.userId
+        return peer.userId;
     } else if (peer instanceof Api.PeerChat) {
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.chatId && peer.chatId <= 0x7fffffff)) {
-            peer.chatId = resolveId(peer.chatId)[0]
+            peer.chatId = resolveId(peer.chatId)[0];
         }
 
-        return addMark ? -(peer.chatId) : peer.chatId
-    } else if (typeof peer == "object" && "channelId" in peer) { // if (peer instanceof Api.PeerChannel)
+        return addMark ? -peer.chatId : peer.chatId;
+    } else if (typeof peer == "object" && "channelId" in peer) {
+        // if (peer instanceof Api.PeerChannel)
         // Check in case the user mixed things up to avoid blowing up
         if (!(0 < peer.channelId && peer.channelId <= 0x7fffffff)) {
-            peer.channelId = resolveId(peer.channelId)[0]
+            peer.channelId = resolveId(peer.channelId)[0];
         }
         if (!addMark) {
-            return peer.channelId
+            return peer.channelId;
         }
         // Concat -100 through math tricks, .to_supergroup() on
         // Madeline IDs will be strictly positive -> log works.
         return -(1000000000000 + peer.channelId);
     }
-    _raiseCastFail(peer, 'int')
-
+    _raiseCastFail(peer, "int");
 }
 
 /**
  * Given a marked ID, returns the original ID and its :tl:`Peer` type.
  * @param markedId
  */
-export function resolveId(markedId: number): [number, typeof Api.PeerUser | typeof Api.PeerChannel | typeof Api.PeerChat] {
+export function resolveId(
+    markedId: number
+): [
+    number,
+    typeof Api.PeerUser | typeof Api.PeerChannel | typeof Api.PeerChat
+] {
     if (markedId >= 0) {
-        return [markedId, Api.PeerUser]
+        return [markedId, Api.PeerUser];
     }
 
     // There have been report of chat IDs being 10000xyz, which means their
     // marked version is -10000xyz, which in turn looks like a channel but
     // it becomes 00xyz (= xyz). Hence, we must assert that there are only
     // two zeroes.
-    const m = markedId.toString()
-        .match(/-100([^0]\d*)/)
+    const m = markedId.toString().match(/-100([^0]\d*)/);
     if (m) {
-        return [parseInt(m[1]), Api.PeerChannel]
+        return [parseInt(m[1]), Api.PeerChannel];
     }
-    return [-markedId, Api.PeerChat]
+    return [-markedId, Api.PeerChat];
 }
 
 /**
@@ -1066,23 +1166,23 @@ export function getMessageId(message: any): number | undefined {
     if (message === null || message === undefined) {
         return undefined;
     }
-    if (typeof message == 'number') {
-        return message
+    if (typeof message == "number") {
+        return message;
     }
 
-    if (message.SUBCLASS_OF_ID === 0x790009e3) { // crc32(b'Message')
-        return message.id
+    if (message.SUBCLASS_OF_ID === 0x790009e3) {
+        // crc32(b'Message')
+        return message.id;
     }
-    throw new Error(`Invalid message type: ${message.constructor.name}`)
+    throw new Error(`Invalid message type: ${message.constructor.name}`);
 }
-
 
 /**
  * Parses the given phone, or returns `None` if it's invalid.
  * @param phone
  */
 export function parsePhone(phone: string | number) {
-    phone = phone.toString().replace(/[+()\s-]/gm, '');
+    phone = phone.toString().replace(/[+()\s-]/gm, "");
 
     return !isNaN(parseInt(phone)) ? phone : undefined;
 }
@@ -1102,41 +1202,42 @@ export function resolveInviteLink(link: string): [number, number, number] {
  * @param username {string}
  */
 
-
-export function parseUsername(username: string): { username?: string, isInvite: boolean } {
-    username = username.trim()
-    const m = username.match(USERNAME_RE) || username.match(TG_JOIN_RE)
+export function parseUsername(username: string): {
+    username?: string;
+    isInvite: boolean;
+} {
+    username = username.trim();
+    const m = username.match(USERNAME_RE) || username.match(TG_JOIN_RE);
     if (m) {
-        username = username.replace(m[0], '')
+        username = username.replace(m[0], "");
         if (m[1]) {
             return {
                 username: username,
-                isInvite: true
-            }
+                isInvite: true,
+            };
         } else {
-            username = rtrim(username, '/')
+            username = rtrim(username, "/");
         }
     }
     if (username.match(VALID_USERNAME_RE)) {
         return {
             username: username.toLowerCase(),
-            isInvite: false
-        }
+            isInvite: false,
+        };
     } else {
         return {
             username: undefined,
-            isInvite: false
-        }
+            isInvite: false,
+        };
     }
 }
 
 export function rtrim(s: string, mask: string) {
     while (~mask.indexOf(s[s.length - 1])) {
-        s = s.slice(0, -1)
+        s = s.slice(0, -1);
     }
-    return s
+    return s;
 }
-
 
 /**
  * Gets the display name for the given :tl:`User`,
@@ -1146,18 +1247,18 @@ export function rtrim(s: string, mask: string) {
 export function getDisplayName(entity: EntityLike) {
     if (entity instanceof Api.User) {
         if (entity.lastName && entity.firstName) {
-            return `${entity.firstName} ${entity.lastName}`
+            return `${entity.firstName} ${entity.lastName}`;
         } else if (entity.firstName) {
-            return entity.firstName
+            return entity.firstName;
         } else if (entity.lastName) {
-            return entity.lastName
+            return entity.lastName;
         } else {
-            return ''
+            return "";
         }
     } else if (entity instanceof Api.Chat || entity instanceof Api.Channel) {
-        return entity.title
+        return entity.title;
     }
-    return ''
+    return "";
 }
 
 /**
@@ -1182,4 +1283,3 @@ export function  isListLike(item) {
     )
 }
 */
-

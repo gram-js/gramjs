@@ -1,136 +1,164 @@
 // Not sure what they are for.
-const WEIRD_TYPES = new Set(['Bool', 'X', 'Type'])
+const WEIRD_TYPES = new Set(["Bool", "X", "Type"]);
 
 module.exports = ({ types, constructors, functions }) => {
     function groupByKey(collection, key) {
         return collection.reduce((byKey, member) => {
-            const keyValue = member[key] || '_'
+            const keyValue = member[key] || "_";
 
             if (!byKey[keyValue]) {
-                byKey[keyValue] = [member]
+                byKey[keyValue] = [member];
             } else {
-                byKey[keyValue].push(member)
+                byKey[keyValue].push(member);
             }
 
-            return byKey
-        }, {})
+            return byKey;
+        }, {});
     }
 
     function renderTypes(types, indent) {
-        return types.map(({ name, constructors }) => `
-      ${!constructors.length ? '// ' : ''}export type Type${upperFirst(name)} = ${constructors.map(name => name)
-            .join(' | ')};
-    `.trim())
-            .join(`\n${indent}`)
+        return types
+            .map(({ name, constructors }) =>
+                `
+      ${!constructors.length ? "// " : ""}export type Type${upperFirst(
+                    name
+                )} = ${constructors.map((name) => name).join(" | ")};
+    `.trim()
+            )
+            .join(`\n${indent}`);
     }
 
     function renderConstructors(constructors, indent) {
-        return constructors.map(({ name, argsConfig }) => {
-            const argKeys = Object.keys(argsConfig)
+        return constructors
+            .map(({ name, argsConfig }) => {
+                const argKeys = Object.keys(argsConfig);
 
-            if (!argKeys.length) {
-                return `export class ${upperFirst(name)} extends VirtualClass<void> {};`
-            }
+                if (!argKeys.length) {
+                    return `export class ${upperFirst(
+                        name
+                    )} extends VirtualClass<void> {};`;
+                }
 
-            const hasRequiredArgs = argKeys.some(argName => argName !== 'flags' && !argsConfig[argName].isFlag)
+                const hasRequiredArgs = argKeys.some(
+                    (argName) =>
+                        argName !== "flags" && !argsConfig[argName].isFlag
+                );
 
-            return `
+                return `
       export class ${upperFirst(name)} extends VirtualClass<{
 ${indent}  ${Object.keys(argsConfig)
-                .map(argName => `
+                    .map((argName) =>
+                        `
         ${renderArg(argName, argsConfig[argName])};
-      `.trim())
-                .join(`\n${indent}  `)}
-${indent}}${!hasRequiredArgs ? ' | void' : ''}> {
+      `.trim()
+                    )
+                    .join(`\n${indent}  `)}
+${indent}}${!hasRequiredArgs ? " | void" : ""}> {
 ${indent}  ${Object.keys(argsConfig)
-                .map(argName => `
+                    .map((argName) =>
+                        `
         ${renderArg(argName, argsConfig[argName])};
-      `.trim())
-                .join(`\n${indent}  `)}
-${indent}};`.trim()
-        })
-            .join(`\n${indent}`)
+      `.trim()
+                    )
+                    .join(`\n${indent}  `)}
+${indent}};`.trim();
+            })
+            .join(`\n${indent}`);
     }
 
     function renderRequests(requests, indent) {
-        return requests.map(({ name, argsConfig, result }) => {
-            const argKeys = Object.keys(argsConfig)
+        return requests
+            .map(({ name, argsConfig, result }) => {
+                const argKeys = Object.keys(argsConfig);
 
-            if (!argKeys.length) {
-                return `export class ${upperFirst(name)} extends Request<void, ${renderResult(result)}> {};`
-            }
+                if (!argKeys.length) {
+                    return `export class ${upperFirst(
+                        name
+                    )} extends Request<void, ${renderResult(result)}> {};`;
+                }
 
-            const hasRequiredArgs = argKeys.some(argName => argName !== 'flags' && !argsConfig[argName].isFlag)
+                const hasRequiredArgs = argKeys.some(
+                    (argName) =>
+                        argName !== "flags" && !argsConfig[argName].isFlag
+                );
 
-            return `
+                return `
       export class ${upperFirst(name)} extends Request<Partial<{
-${indent}  ${argKeys.map(argName => `
+${indent}  ${argKeys
+                    .map((argName) =>
+                        `
         ${renderArg(argName, argsConfig[argName])};
-      `.trim())
-                .join(`\n${indent}  `)}
-${indent}}${!hasRequiredArgs ? ' | void' : ''}>, ${renderResult(result)}> {
-${indent}  ${argKeys.map(argName => `
+      `.trim()
+                    )
+                    .join(`\n${indent}  `)}
+${indent}}${!hasRequiredArgs ? " | void" : ""}>, ${renderResult(result)}> {
+${indent}  ${argKeys
+                    .map((argName) =>
+                        `
         ${renderArg(argName, argsConfig[argName])};
-      `.trim())
-                .join(`\n${indent}  `)}
-${indent}};`.trim()
-        })
-            .join(`\n${indent}`)
+      `.trim()
+                    )
+                    .join(`\n${indent}  `)}
+${indent}};`.trim();
+            })
+            .join(`\n${indent}`);
     }
 
     function renderResult(result) {
-        const vectorMatch = result.match(/[Vv]ector<([\w\d.]+)>/)
-        const isVector = Boolean(vectorMatch)
-        const scalarValue = isVector ? vectorMatch[1] : result
-        const isTlType = Boolean(scalarValue.match(/^[A-Z]/)) || scalarValue.includes('.')
+        const vectorMatch = result.match(/[Vv]ector<([\w\d.]+)>/);
+        const isVector = Boolean(vectorMatch);
+        const scalarValue = isVector ? vectorMatch[1] : result;
+        const isTlType =
+            Boolean(scalarValue.match(/^[A-Z]/)) || scalarValue.includes(".");
 
-        return renderValueType(scalarValue, isVector, isTlType)
+        return renderValueType(scalarValue, isVector, isTlType);
     }
 
     function renderArg(argName, argConfig) {
+        const { isVector, isFlag, skipConstructorId, type } = argConfig;
 
-        const {
-            isVector, isFlag, skipConstructorId, type,
-        } = argConfig
+        const valueType = renderValueType(type, isVector, !skipConstructorId);
 
-        const valueType = renderValueType(type, isVector, !skipConstructorId)
-
-        return `${argName === 'flags' ? '// ' : ''}${argName}${isFlag ? '?' : ''}: ${valueType}`
+        return `${argName === "flags" ? "// " : ""}${argName}${
+            isFlag ? "?" : ""
+        }: ${valueType}`;
     }
 
     function renderValueType(type, isVector, isTlType) {
         if (WEIRD_TYPES.has(type)) {
-            return type
+            return type;
         }
 
-        let resType
+        let resType;
 
-        if (typeof type === 'string' && isTlType) {
-            resType = renderTypeName(type)
+        if (typeof type === "string" && isTlType) {
+            resType = renderTypeName(type);
         } else {
-            resType = type
+            resType = type;
         }
-        if (resType==='true'){
-            resType='boolean';
+        if (resType === "true") {
+            resType = "boolean";
         }
         if (isVector) {
-            resType = `${resType}[]`
+            resType = `${resType}[]`;
         }
 
-        return resType
+        return resType;
     }
 
     function renderTypeName(typeName) {
-        return typeName.includes('.') ? typeName.replace('.', '.Type') : `Api.Type${typeName}`
+        return typeName.includes(".")
+            ? typeName.replace(".", ".Type")
+            : `Api.Type${typeName}`;
     }
 
     function upperFirst(str) {
-        return `${str[0].toUpperCase()}${str.slice(1)}`
+        return `${str[0].toUpperCase()}${str.slice(1)}`;
     }
 
-    const typesByNs = groupByKey(types, 'namespace')
-    const constructorsByNs = groupByKey(constructors, 'namespace')
-    const requestsByNs = groupByKey(functions, 'namespace')
+    const typesByNs = groupByKey(types, "namespace");
+    const constructorsByNs = groupByKey(constructors, "namespace");
+    const requestsByNs = groupByKey(functions, "namespace");
 
     // language=TypeScript
     return `
@@ -188,43 +216,59 @@ export namespace Api {
   }
 
 
-  ${renderConstructors(constructorsByNs._, '  ')}
-  ${renderRequests(requestsByNs._, '  ')}
+  ${renderConstructors(constructorsByNs._, "  ")}
+  ${renderRequests(requestsByNs._, "  ")}
 
 
 // namespaces
 
   ${Object.keys(constructorsByNs)
-        .map(namespace => namespace !== '_' ? `
+      .map((namespace) =>
+          namespace !== "_"
+              ? `
   export namespace ${namespace} {
-    ${renderConstructors(constructorsByNs[namespace], '    ')}
-  }` : '')
-        .join('\n')}
+    ${renderConstructors(constructorsByNs[namespace], "    ")}
+  }`
+              : ""
+      )
+      .join("\n")}
   ${Object.keys(typesByNs)
-        .map(namespace => namespace !== '_' ? `
+      .map((namespace) =>
+          namespace !== "_"
+              ? `
   export namespace ${namespace} {
-    ${renderTypes(typesByNs[namespace], '    ')}
-  }` : '')
-        .join('\n')}
+    ${renderTypes(typesByNs[namespace], "    ")}
+  }`
+              : ""
+      )
+      .join("\n")}
   ${Object.keys(requestsByNs)
-        .map(namespace => namespace !== '_' ? `
+      .map((namespace) =>
+          namespace !== "_"
+              ? `
   export namespace ${namespace} {
-    ${renderRequests(requestsByNs[namespace], '    ')}
-  }` : '')
-        .join('\n')}
+    ${renderRequests(requestsByNs[namespace], "    ")}
+  }`
+              : ""
+      )
+      .join("\n")}
 
 // Types
   export type TypeEntityLike = EntityLike;
-  ${renderTypes(typesByNs._, '  ')}
+  ${renderTypes(typesByNs._, "  ")}
 // All requests
-  export type AnyRequest = ${requestsByNs._.map(({ name }) => upperFirst(name))
-        .join(' | ')}
+  export type AnyRequest = ${requestsByNs._.map(({ name }) =>
+      upperFirst(name)
+  ).join(" | ")}
     | ${Object.keys(requestsByNs)
-        .filter(ns => ns !== '_')
-        .map(ns => requestsByNs[ns].map(({ name }) => `${ns}.${upperFirst(name)}`)
-            .join(' | '))
-        .join('\n    | ')};
+        .filter((ns) => ns !== "_")
+        .map((ns) =>
+            requestsByNs[ns]
+                .map(({ name }) => `${ns}.${upperFirst(name)}`)
+                .join(" | ")
+        )
+        .join("\n    | ")};
 
 }
-`
-}
+`;
+};

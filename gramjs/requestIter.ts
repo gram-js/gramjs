@@ -1,14 +1,13 @@
-import type {TelegramClient} from "./client/TelegramClient";
-import {sleep} from './Helpers';
-import {helpers} from "./";
+import type { TelegramClient } from "./client/TelegramClient";
+import { sleep } from "./Helpers";
+import { helpers } from "./";
 
 interface BaseRequestIterInterface {
-    reverse?: boolean,
-    waitTime?: number,
+    reverse?: boolean;
+    waitTime?: number;
 }
 
 export class RequestIter implements AsyncIterable<any> {
-
     public client: TelegramClient;
     public reverse: boolean | undefined;
     public waitTime: number | undefined;
@@ -20,9 +19,12 @@ export class RequestIter implements AsyncIterable<any> {
     private lastLoad: number;
     kwargs: {};
 
-    [key: string]: any;
-
-    constructor(client: TelegramClient, limit: number, params: BaseRequestIterInterface = {}, args = {}) {
+    constructor(
+        client: TelegramClient,
+        limit?: number,
+        params: BaseRequestIterInterface = {},
+        args = {}
+    ) {
         this.client = client;
         this.reverse = params.reverse;
         this.waitTime = params.waitTime;
@@ -32,9 +34,8 @@ export class RequestIter implements AsyncIterable<any> {
         this.kwargs = args;
         this.index = 0;
         this.total = undefined;
-        this.lastLoad = 0
+        this.lastLoad = 0;
     }
-
 
     async _init(kwargs: any): Promise<boolean | void> {
         // for overload
@@ -47,7 +48,6 @@ export class RequestIter implements AsyncIterable<any> {
         this.left = this.limit;
         return {
             next: async () => {
-
                 if (this.buffer == undefined) {
                     this.buffer = [];
                     if (await this._init(this.kwargs)) {
@@ -62,7 +62,10 @@ export class RequestIter implements AsyncIterable<any> {
                 }
                 if (this.index == this.buffer.length) {
                     if (this.waitTime) {
-                        await sleep(this.waitTime - ((new Date().getTime() / 1000) - this.lastLoad));
+                        await sleep(
+                            this.waitTime -
+                                (new Date().getTime() / 1000 - this.lastLoad)
+                        );
                     }
                     this.lastLoad = new Date().getTime() / 1000;
                     this.index = 0;
@@ -93,8 +96,8 @@ export class RequestIter implements AsyncIterable<any> {
                     value: result,
                     done: false,
                 };
-            }
-        }
+            },
+        };
     }
 
     async collect() {
@@ -109,6 +112,4 @@ export class RequestIter implements AsyncIterable<any> {
     async _loadNextChunk(): Promise<boolean | undefined> {
         throw new Error("Not Implemented");
     }
-
 }
-
