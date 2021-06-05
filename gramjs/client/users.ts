@@ -295,7 +295,9 @@ export async function getInputEntity(
 
             return utils.getInputPeer(channels.chats[0]);
         } catch (e) {
-            console.error(e);
+            if (client._log.canSend("error")) {
+                console.error(e);
+            }
         }
     }
     throw new Error(

@@ -1021,7 +1021,6 @@ export function getPeer(peer: EntityLike) {
             }
         }
         peer = getInputPeer(peer, false, false);
-
         if (peer instanceof Api.InputPeerUser) {
             return new Api.PeerUser({ userId: peer.userId });
         } else if (peer instanceof Api.InputPeerChat) {
@@ -1029,9 +1028,7 @@ export function getPeer(peer: EntityLike) {
         } else if (peer instanceof Api.InputPeerChannel) {
             return new Api.PeerChannel({ channelId: peer.channelId });
         }
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) {}
     _raiseCastFail(peer, "peer");
 }
 
