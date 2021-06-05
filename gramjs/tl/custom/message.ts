@@ -216,8 +216,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         }
 
         if (this.fwdFrom) {
-            // todo fix this
-            //  this._forward = new Forward(this._client, this.fwdFrom, this.entities)
+            this._forward = new Forward(this._client, this.fwdFrom, entities);
         }
 
         if (this.action) {

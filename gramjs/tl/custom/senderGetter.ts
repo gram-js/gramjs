@@ -49,9 +49,7 @@ export class SenderGetter {
                 await this._refetchSender();
             }
         }
-        if (!this._sender) {
-            throw new Error("Could not find sender");
-        }
+
         return this._sender;
     }
 
