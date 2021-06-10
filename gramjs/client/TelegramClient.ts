@@ -131,6 +131,20 @@ export class TelegramClient extends TelegramBaseClient {
         return downloadMethods.downloadFile(this, inputLocation, fileParams);
     }
 
+    //region download
+    downloadProfilePhoto(
+        entity: EntityLike,
+        downloadProfilePhotoParams: downloadMethods.DownloadProfilePhotoParams = {
+            isBig: false,
+        }
+    ) {
+        return downloadMethods.downloadProfilePhoto(
+            this,
+            entity,
+            downloadProfilePhotoParams
+        );
+    }
+
     _downloadPhoto(
         photo: Api.MessageMediaPhoto | Api.Photo,
         args: DownloadMediaInterface

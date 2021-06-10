@@ -2,7 +2,7 @@ import { version } from "../";
 import { IS_NODE } from "../Helpers";
 import {
     ConnectionTCPFull,
-    ConnectionTCPObfuscated
+    ConnectionTCPObfuscated,
 } from "../network/connection";
 import { Session } from "../sessions";
 import { Logger } from "../extensions";
@@ -89,7 +89,7 @@ export class TelegramBaseClient {
             baseLogger = "gramjs",
             useWSS = typeof window !== "undefined"
                 ? window.location.protocol == "https:"
-                : false
+                : false,
         }: TelegramClientParams
     ) {
         if (!apiId || !apiHash) {
@@ -129,7 +129,7 @@ export class TelegramBaseClient {
             langCode: langCode,
             langPack: "", // this should be left empty.
             systemLangCode: systemLangCode,
-            proxy: undefined // no proxies yet.
+            proxy: undefined, // no proxies yet.
         });
         this._eventBuilders = [];
 
@@ -187,7 +187,7 @@ export class TelegramBaseClient {
                 (promise: any) => {
                     return promise.then((sender: any) => sender.disconnect());
                 }
-            )
+            ),
         ]);
 
         this._eventBuilders = [];

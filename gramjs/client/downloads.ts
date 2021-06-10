@@ -4,6 +4,8 @@ import { getAppropriatedPartSize, strippedPhotoToJpg } from "../Utils";
 import { sleep } from "../Helpers";
 import { MTProtoSender } from "../network";
 import type { Message } from "../tl/custom/message";
+import { EntityLike } from "../define";
+import { utils } from "../";
 
 export interface progressCallback {
     (
@@ -23,6 +25,10 @@ export interface DownloadFileParams {
     start?: number;
     end?: number;
     progressCallback?: progressCallback;
+}
+
+export interface DownloadProfilePhotoParams {
+    isBig?: boolean;
 }
 
 interface Deferred {
@@ -55,10 +61,8 @@ export async function downloadFile(
             : DEFAULT_CHUNK_SIZE;
     }
 
-    // @ts-ignore
     const partSize = partSizeKb * 1024;
     const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
-
     if (partSize % MIN_CHUNK_SIZE !== 0) {
         throw new Error(
             `The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`
@@ -397,4 +401,41 @@ export async function _downloadPhoto(
             progressCallback: args.progressCallback,
         }
     );
+}
+
+export async function downloadProfilePhoto(
+    client: TelegramClient,
+    entity: EntityLike,
+    fileParams: DownloadProfilePhotoParams
+) {
+    entity = await client.getEntity(entity);
+
+    let photo;
+    if ("photo" in entity) {
+        photo = entity.photo;
+    } else {
+        throw new Error(
+            `Could not get photo from ${entity ? entity.className : undefined}`
+        );
+    }
+    let dcId;
+    let loc;
+    if (
+        photo instanceof Api.UserProfilePhoto ||
+        photo instanceof Api.ChatPhoto
+    ) {
+        dcId = photo.dcId;
+        loc = new Api.InputPeerPhotoFileLocation({
+            peer: utils.getInputPeer(entity),
+            photoId: photo.photoId,
+            big: fileParams.isBig,
+        });
+    } else {
+        return Buffer.alloc(0);
+    }
+    return client.downloadFile(loc, {
+        dcId,
+        fileSize: 2 * 1024 * 1024,
+        workers: 1,
+    });
 }
