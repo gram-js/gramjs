@@ -2,11 +2,10 @@ import { version } from "../";
 import { IS_NODE } from "../Helpers";
 import {
     ConnectionTCPFull,
-    ConnectionTCPObfuscated,
+    ConnectionTCPObfuscated
 } from "../network/connection";
-import type { Session } from "../sessions/Abstract";
+import { Session } from "../sessions";
 import { Logger } from "../extensions";
-import { StoreSession, StringSession } from "../sessions";
 import { Api } from "../tl";
 
 import os from "os";
@@ -90,7 +89,7 @@ export class TelegramBaseClient {
             baseLogger = "gramjs",
             useWSS = typeof window !== "undefined"
                 ? window.location.protocol == "https:"
-                : false,
+                : false
         }: TelegramClientParams
     ) {
         if (!apiId || !apiHash) {
@@ -102,10 +101,7 @@ export class TelegramBaseClient {
             this._log = baseLogger;
         }
         this._log.debug("Running gramJS version " + version);
-        if (
-            !(session instanceof StoreSession) &&
-            !(session instanceof StringSession)
-        ) {
+        if (!(session instanceof Session)) {
             throw new Error(
                 "Only StringSession and StoreSessions are supported currently :( "
             );
@@ -133,7 +129,7 @@ export class TelegramBaseClient {
             langCode: langCode,
             langPack: "", // this should be left empty.
             systemLangCode: systemLangCode,
-            proxy: undefined, // no proxies yet.
+            proxy: undefined // no proxies yet.
         });
         this._eventBuilders = [];
 
@@ -191,7 +187,7 @@ export class TelegramBaseClient {
                 (promise: any) => {
                     return promise.then((sender: any) => sender.disconnect());
                 }
-            ),
+            )
         ]);
 
         this._eventBuilders = [];

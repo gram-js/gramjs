@@ -10,7 +10,7 @@ export interface UserAuthParams {
     password: (hint?: string) => Promise<string>;
     firstAndLastNames?: () => Promise<[string, string?]>;
     qrCode?: (qrCode: { token: Buffer; expires: number }) => Promise<void>;
-    onError: (err: Error) => Promise<boolean>;
+    onError: (err: Error) => Promise<boolean> | void;
     forceSMS?: boolean;
 }
 
