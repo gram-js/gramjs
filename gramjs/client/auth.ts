@@ -308,7 +308,7 @@ export async function sendCode(
                 phoneNumber,
                 apiId,
                 apiHash,
-                settings: new Api.CodeSettings(),
+                settings: new Api.CodeSettings({}),
             })
         );
 

@@ -36,7 +36,9 @@ module.exports = ({ types, constructors, functions }) => {
                 if (!argKeys.length) {
                     return `export class ${upperFirst(
                         name
-                    )} extends VirtualClass<void> {};`;
+                    )} extends VirtualClass<void> {
+    static fromReader(reader: Reader): ${upperFirst(name)};
+}`;
                 }
 
                 const hasRequiredArgs = argKeys.some(
@@ -45,7 +47,7 @@ module.exports = ({ types, constructors, functions }) => {
                 );
 
                 return `
-      export class ${upperFirst(name)} extends VirtualClass<{
+      export declare class ${upperFirst(name)} extends VirtualClass<{
 ${indent}  ${Object.keys(argsConfig)
                     .map((argName) =>
                         `
@@ -53,7 +55,8 @@ ${indent}  ${Object.keys(argsConfig)
       `.trim()
                     )
                     .join(`\n${indent}  `)}
-${indent}}${!hasRequiredArgs ? " | void" : ""}> {
+${indent}}${!hasRequiredArgs ? "" : ""}> {
+${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 ${indent}  ${Object.keys(argsConfig)
                     .map((argName) =>
                         `
@@ -61,7 +64,7 @@ ${indent}  ${Object.keys(argsConfig)
       `.trim()
                     )
                     .join(`\n${indent}  `)}
-${indent}};`.trim();
+${indent}}`.trim();
             })
             .join(`\n${indent}`);
     }
@@ -72,9 +75,11 @@ ${indent}};`.trim();
                 const argKeys = Object.keys(argsConfig);
 
                 if (!argKeys.length) {
-                    return `export class ${upperFirst(
+                    return `export declare class ${upperFirst(
                         name
-                    )} extends Request<void, ${renderResult(result)}> {};`;
+                    )} extends Request<void, ${renderResult(result)}> {
+    static fromReader(reader: Reader): ${upperFirst(name)};
+}`;
                 }
 
                 const hasRequiredArgs = argKeys.some(
@@ -83,7 +88,7 @@ ${indent}};`.trim();
                 );
 
                 return `
-      export class ${upperFirst(name)} extends Request<Partial<{
+      export declare class ${upperFirst(name)} extends Request<Partial<{
 ${indent}  ${argKeys
                     .map((argName) =>
                         `
@@ -91,15 +96,17 @@ ${indent}  ${argKeys
       `.trim()
                     )
                     .join(`\n${indent}  `)}
-${indent}}${!hasRequiredArgs ? " | void" : ""}>, ${renderResult(result)}> {
+${indent}}${!hasRequiredArgs ? "" : ""}>, ${renderResult(result)}> {
+${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 ${indent}  ${argKeys
                     .map((argName) =>
                         `
+
         ${renderArg(argName, argsConfig[argName])};
       `.trim()
                     )
                     .join(`\n${indent}  `)}
-${indent}};`.trim();
+${indent}}`.trim();
             })
             .join(`\n${indent}`);
     }
@@ -170,10 +177,7 @@ import {EntityLike,MessageIDLike} from "../define";
 
 export namespace Api {
 
-  type AnyClass = new (...args: any[]) => any;
-  type I<T extends AnyClass> = InstanceType<T>;
-  type ValuesOf<T> = T[keyof T];
-  type AnyLiteral = Record<string, any>;
+  type AnyLiteral = Record<string, any> | void;
 
   type Reader = any; // To be defined.
   type Client = any; // To be defined.
@@ -183,12 +187,14 @@ export namespace Api {
   type Type = unknown;
   type Bool = boolean;
   type int = number;
+  type double = number;
+  type float = number;
   type int128 = BigInteger;
   type int256 = BigInteger;
   type long = BigInteger;
   type bytes = Buffer;
 
-  class VirtualClass<Args extends AnyLiteral> {
+  declare class VirtualClass<Args extends AnyLiteral> {
     static CONSTRUCTOR_ID: number;
     static SUBCLASS_OF_ID: number;
     static className: string;
@@ -196,7 +202,6 @@ export namespace Api {
 
     static serializeBytes(data: Buffer | string): Buffer;
     static serializeDate(date: Date | number): Buffer;
-    static fromReader(reader: Reader): VirtualClass<Args>;
 
     getBytes():Buffer;
 
@@ -208,7 +213,7 @@ export namespace Api {
     constructor(args: Args);
   }
 
-  class Request<Args, Response> extends VirtualClass<Partial<Args>> {
+  declare class Request<Args, Response> extends VirtualClass<Partial<Args>> {
     static readResult(reader: Reader): Buffer;
     resolve(client: Client, utils: Utils): Promise<void>;
 

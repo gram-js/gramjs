@@ -30,7 +30,7 @@ export class RPCResult {
             return new RPCResult(
                 msgId,
                 undefined,
-                Api.RpcError.fromReader(reader) as Api.RpcError
+                Api.RpcError.fromReader(reader)
             );
         }
         if (innerCode === GZIPPacked.CONSTRUCTOR_ID) {

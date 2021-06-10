@@ -130,10 +130,10 @@ export class Button {
     }
 
     static clear() {
-        return new Api.ReplyKeyboardHide();
+        return new Api.ReplyKeyboardHide({});
     }
 
     static forceReply() {
-        return new Api.ReplyKeyboardForceReply();
+        return new Api.ReplyKeyboardForceReply({});
     }
 }

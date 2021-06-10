@@ -50,7 +50,8 @@ class CastError extends Error {
             ". expected " +
             expected +
             " but received " +
-            actual;
+            actual +
+            ".If you think this is a mistake please report it.";
         super(message, ...params);
 
         // Maintains proper stack trace for where our error was thrown (only available on V8)
@@ -232,7 +233,8 @@ function compareType(value, type) {
             correct = bigInt.isInstance(value);
             break;
         case "true":
-            correct = value;
+            // true value is always correct
+            break;
         case "buffer":
             correct = Buffer.isBuffer(value);
             break;
@@ -244,7 +246,7 @@ function compareType(value, type) {
                 typeof value === "number";
             break;
         default:
-            throw new Error("Unknown type." + type);
+            console.error(new Error("Unknown type." + type));
     }
     return correct;
 }
@@ -317,6 +319,10 @@ function createClasses(classesType, params) {
             validate() {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
+                        if (arg === "flags" || argsConfig[arg].isFlag) {
+                            // we don't care about flags
+                            continue;
+                        }
                         const currentValue = this[arg];
                         this.assertType(arg, argsConfig[arg], currentValue);
                     }
@@ -327,7 +333,12 @@ function createClasses(classesType, params) {
                 let expected;
                 if (object["isVector"]) {
                     if (!isArrayLike(value)) {
-                        throw new CastError(objectName, "array", value);
+                        console.error(
+                            new CastError(objectName, "array", value)
+                        );
+                    }
+                    if (value == undefined) {
+                        value = [];
                     }
                     for (const o of value) {
                         this.assertType(
@@ -370,15 +381,20 @@ function createClasses(classesType, params) {
                     } else {
                         const isCorrectType = compareType(value, expected);
                         if (isCorrectType !== true) {
-                            throw new CastError(objectName, expected, value);
+                            console.error(
+                                new CastError(objectName, expected, value)
+                            );
                         }
                     }
                 }
             }
 
             getBytes() {
-                // this.validate()
-
+                try {
+                    this.validate();
+                } catch (e) {
+                    // feature still in alpha so errors are expected.
+                }
                 const idForBytes = this.CONSTRUCTOR_ID;
                 const c = Buffer.alloc(4);
                 c.writeUInt32LE(idForBytes, 0);
