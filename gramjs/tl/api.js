@@ -3,17 +3,17 @@ const bigInt = require("big-integer");
 const {
     generateRandomBytes,
     readBigIntFromBuffer,
-    isArrayLike
+    isArrayLike,
 } = require("../Helpers");
 
 function generateRandomBigInt() {
-    return readBigIntFromBuffer(generateRandomBytes(8), false);
+    return readBigIntFromBuffer(generateRandomBytes(8), false, true);
 }
 
 const {
     parseTl,
     serializeBytes,
-    serializeDate
+    serializeDate,
 } = require("./generationHelpers");
 const { IS_NODE, toSignedLittleBuffer } = require("../Helpers");
 let tlContent, schemeContent;
@@ -38,7 +38,7 @@ const AUTO_CASTS = new Set([
     "InputPhoto",
     "InputMessage",
     "InputDocument",
-    "InputChatPhoto"
+    "InputChatPhoto",
 ]);
 
 class CastError extends Error {
@@ -114,63 +114,63 @@ function extractParams(fileContent) {
 
 function argToBytes(x, type) {
     switch (type) {
-    case "int":
-        const i = Buffer.alloc(4);
-        i.writeInt32LE(x, 0);
-        return i;
-    case "long":
-        return toSignedLittleBuffer(x, 8);
-    case "int128":
-        return toSignedLittleBuffer(x, 16);
-    case "int256":
-        return toSignedLittleBuffer(x, 32);
-    case "double":
-        const d = Buffer.alloc(8);
-        d.writeDoubleLE(x, 0);
-        return d;
-    case "string":
-        return serializeBytes(x);
-    case "Bool":
-        return x
-            ? Buffer.from("b5757299", "hex")
-            : Buffer.from("379779bc", "hex");
-    case "true":
-        return Buffer.alloc(0);
-    case "bytes":
-        return serializeBytes(x);
-    case "date":
-        return serializeDate(x);
-    default:
-        return x.getBytes();
+        case "int":
+            const i = Buffer.alloc(4);
+            i.writeInt32LE(x, 0);
+            return i;
+        case "long":
+            return toSignedLittleBuffer(x, 8);
+        case "int128":
+            return toSignedLittleBuffer(x, 16);
+        case "int256":
+            return toSignedLittleBuffer(x, 32);
+        case "double":
+            const d = Buffer.alloc(8);
+            d.writeDoubleLE(x, 0);
+            return d;
+        case "string":
+            return serializeBytes(x);
+        case "Bool":
+            return x
+                ? Buffer.from("b5757299", "hex")
+                : Buffer.from("379779bc", "hex");
+        case "true":
+            return Buffer.alloc(0);
+        case "bytes":
+            return serializeBytes(x);
+        case "date":
+            return serializeDate(x);
+        default:
+            return x.getBytes();
     }
 }
 
 async function getInputFromResolve(utils, client, peer, peerType) {
     switch (peerType) {
-    case "InputPeer":
-        return utils.getInputPeer(await client.getInputEntity(peer));
-    case "InputChannel":
-        return utils.getInputChannel(await client.getInputEntity(peer));
-    case "InputUser":
-        return utils.getInputUser(await client.getInputEntity(peer));
-    case "InputDialogPeer":
-        return await client._getInputDialog(peer);
-    case "InputNotifyPeer":
-        return await client._getInputNotify(peer);
-    case "InputMedia":
-        return utils.getInputMedia(peer);
-    case "InputPhoto":
-        return utils.getInputPhoto(peer);
-    case "InputMessage":
-        return utils.getInputMessage(peer);
-    case "InputDocument":
-        return utils.getInputDocument(peer);
-    case "InputChatPhoto":
-        return utils.getInputChatPhoto(peer);
-    case "chatId,int":
-        return await client.getPeerId(peer, false);
-    default:
-        throw new Error("unsupported peer type : " + peerType);
+        case "InputPeer":
+            return utils.getInputPeer(await client.getInputEntity(peer));
+        case "InputChannel":
+            return utils.getInputChannel(await client.getInputEntity(peer));
+        case "InputUser":
+            return utils.getInputUser(await client.getInputEntity(peer));
+        case "InputDialogPeer":
+            return await client._getInputDialog(peer);
+        case "InputNotifyPeer":
+            return await client._getInputNotify(peer);
+        case "InputMedia":
+            return utils.getInputMedia(peer);
+        case "InputPhoto":
+            return utils.getInputPhoto(peer);
+        case "InputMessage":
+            return utils.getInputMessage(peer);
+        case "InputDocument":
+            return utils.getInputDocument(peer);
+        case "InputChatPhoto":
+            return utils.getInputChatPhoto(peer);
+        case "chatId,int":
+            return await client.getPeerId(peer, false);
+        default:
+            throw new Error("unsupported peer type : " + peerType);
     }
 }
 
@@ -191,32 +191,32 @@ function getArgFromReader(reader, arg) {
         return reader.readInt();
     } else {
         switch (arg.type) {
-        case "int":
-            return reader.readInt();
-        case "long":
-            return reader.readLong();
-        case "int128":
-            return reader.readLargeInt(128);
-        case "int256":
-            return reader.readLargeInt(256);
-        case "double":
-            return reader.readDouble();
-        case "string":
-            return reader.tgReadString();
-        case "Bool":
-            return reader.tgReadBool();
-        case "true":
-            return true;
-        case "bytes":
-            return reader.tgReadBytes();
-        case "date":
-            return reader.tgReadDate();
-        default:
-            if (!arg.skipConstructorId) {
-                return reader.tgReadObject();
-            } else {
-                return api.constructors[arg.type].fromReader(reader);
-            }
+            case "int":
+                return reader.readInt();
+            case "long":
+                return reader.readLong();
+            case "int128":
+                return reader.readLargeInt(128);
+            case "int256":
+                return reader.readLargeInt(256);
+            case "double":
+                return reader.readDouble();
+            case "string":
+                return reader.tgReadString();
+            case "Bool":
+                return reader.tgReadBool();
+            case "true":
+                return true;
+            case "bytes":
+                return reader.tgReadBytes();
+            case "date":
+                return reader.tgReadDate();
+            default:
+                if (!arg.skipConstructorId) {
+                    return reader.tgReadObject();
+                } else {
+                    return api.constructors[arg.type].fromReader(reader);
+                }
         }
     }
 }
@@ -224,31 +224,31 @@ function getArgFromReader(reader, arg) {
 function compareType(value, type) {
     let correct = true;
     switch (type) {
-    case "number":
-        correct = typeof value === "number" || value === undefined;
-        break;
-    case "string":
-    case "boolean":
-        correct = typeof value === type;
-        break;
-    case "bigInt":
-        correct = bigInt.isInstance(value) || value === undefined;
-        break;
-    case "true":
-        // true value is always correct
-        break;
-    case "buffer":
-        correct = Buffer.isBuffer(value);
-        break;
-    case "date":
-        correct =
-            (value &&
-                Object.prototype.toString.call(value) === "[object Date]" &&
-                !isNaN(value)) ||
-            typeof value === "number";
-        break;
-    default:
-        console.error(new Error("Unknown type." + type));
+        case "number":
+            correct = typeof value === "number" || value === undefined;
+            break;
+        case "string":
+        case "boolean":
+            correct = typeof value === type;
+            break;
+        case "bigInt":
+            correct = bigInt.isInstance(value) || value === undefined;
+            break;
+        case "true":
+            // true value is always correct
+            break;
+        case "buffer":
+            correct = Buffer.isBuffer(value);
+            break;
+        case "date":
+            correct =
+                (value &&
+                    Object.prototype.toString.call(value) === "[object Date]" &&
+                    !isNaN(value)) ||
+                typeof value === "number";
+            break;
+        default:
+            console.error(new Error("Unknown type." + type));
     }
     return correct;
 }
@@ -263,7 +263,7 @@ function createClasses(classesType, params) {
             argsConfig,
             namespace,
             isFunction,
-            result
+            result,
         } = classParams;
         const fullName = [namespace, name].join(".").replace(/^\./, "");
 
@@ -359,32 +359,32 @@ function createClasses(classesType, params) {
                     }
                 } else {
                     switch (object["type"]) {
-                    case "int":
-                        expected = "number";
-                        break;
-                    case "long":
-                    case "int128":
-                    case "int256":
-                    case "double":
-                        expected = "bigInt";
-                        break;
-                    case "string":
-                        expected = "string";
-                        break;
-                    case "Bool":
-                        expected = "boolean";
-                        break;
-                    case "true":
-                        expected = "true";
-                        break;
-                    case "bytes":
-                        expected = "buffer";
-                        break;
-                    case "date":
-                        expected = "date";
-                        break;
-                    default:
-                        expected = "object";
+                        case "int":
+                            expected = "number";
+                            break;
+                        case "long":
+                        case "int128":
+                        case "int256":
+                        case "double":
+                            expected = "bigInt";
+                            break;
+                        case "string":
+                            expected = "string";
+                            break;
+                        case "Bool":
+                            expected = "boolean";
+                            break;
+                        case "true":
+                            expected = "true";
+                            break;
+                        case "bytes":
+                            expected = "buffer";
+                            break;
+                        case "date":
+                            expected = "date";
+                            break;
+                        default:
+                            expected = "object";
                     }
                     if (expected === "object") {
                         // will be validated in get byte();

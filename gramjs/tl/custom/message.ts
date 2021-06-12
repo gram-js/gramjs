@@ -35,6 +35,7 @@ interface MessageBaseInterface {
     pinned?: any;
     restrictionReason?: any;
     forwards?: any;
+    ttlPeriod?: number;
     replies?: any;
     action?: any;
     _entities?: Map<number, Entity>;
@@ -60,15 +61,16 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     media: any;
     replyMarkup: any | undefined;
     entities: any | undefined;
-    views: any | undefined;
+    views?: number;
     forwards: any | undefined;
     replies: any | undefined;
     editDate: any;
     pinned: any | undefined;
     postAuthor: any;
-    groupedId: any;
+    groupedId?: number;
     restrictionReason: any;
     action: any | undefined;
+    ttlPeriod?: number;
     _actionEntities: any;
     public _client?: TelegramClient;
     _text?: string;
@@ -118,7 +120,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         replies = undefined,
 
         action = undefined,
-
+        ttlPeriod = undefined,
         _entities = new Map<number, Entity>(),
     }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
@@ -138,9 +140,11 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         this.mediaUnread = mediaUnread;
         this.silent = silent;
         this.post = post;
+        this.post = post;
         this.fromScheduled = fromScheduled;
         this.legacy = legacy;
         this.editHide = editHide;
+        this.ttlPeriod = ttlPeriod;
         this.id = id;
         this.fromId = fromId;
         this.peerId = peerId;

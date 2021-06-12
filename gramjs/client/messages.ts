@@ -1,20 +1,24 @@
 import { Api } from "../tl";
-import type { Message } from "../tl/custom/message";
+import { Message } from "../tl/custom/message";
 import type {
     DateLike,
     EntityLike,
     FileLike,
     MarkupLike,
     MessageIDLike,
-    MessageLike
+    MessageLike,
 } from "../define";
 import { RequestIter } from "../requestIter";
-import { _EntityType, _entityType, TotalList, isArrayLike, groupBy } from "../Helpers";
+import {
+    _EntityType,
+    _entityType,
+    TotalList,
+    isArrayLike,
+    groupBy,
+} from "../Helpers";
 import { getMessageId, getPeerId } from "../Utils";
 import type { TelegramClient } from "../";
 import { utils } from "../";
-import { cli } from "webpack";
-
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -45,17 +49,17 @@ export class _MessagesIter extends RequestIter {
     lastId?: number;
 
     async _init({
-                    entity,
-                    offsetId,
-                    minId,
-                    maxId,
-                    fromUser,
-                    offsetDate,
-                    addOffset,
-                    filter,
-                    search,
-                    replyTo
-                }: MessageIterParams) {
+        entity,
+        offsetId,
+        minId,
+        maxId,
+        fromUser,
+        offsetDate,
+        addOffset,
+        filter,
+        search,
+        replyTo,
+    }: MessageIterParams) {
         if (entity) {
             this.entity = await this.client.getInputEntity(entity);
         } else {
@@ -112,7 +116,7 @@ export class _MessagesIter extends RequestIter {
                 offsetRate: undefined,
                 offsetPeer: new Api.InputPeerEmpty(),
                 offsetId: offsetId,
-                limit: 1
+                limit: 1,
             });
         } else if (replyTo !== undefined) {
             this.request = new Api.messages.GetReplies({
@@ -124,7 +128,7 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: 0
+                hash: 0,
             });
         } else if (
             search !== undefined ||
@@ -149,7 +153,7 @@ export class _MessagesIter extends RequestIter {
                 maxId: 0,
                 minId: 0,
                 hash: 0,
-                fromId: fromUser
+                fromId: fromUser,
             });
             if (
                 filter instanceof Api.InputMessagesFilterEmpty &&
@@ -159,7 +163,7 @@ export class _MessagesIter extends RequestIter {
             ) {
                 for await (const m of this.client.iterMessages(this.entity, {
                     limit: 1,
-                    offsetDate: offsetDate
+                    offsetDate: offsetDate,
                 })) {
                     this.request.offsetId = m.id + 1;
                 }
@@ -173,7 +177,7 @@ export class _MessagesIter extends RequestIter {
                 minId: 0,
                 maxId: 0,
                 addOffset: addOffset,
-                hash: 0
+                hash: 0,
             });
         }
         if (this.limit <= 0) {
@@ -243,8 +247,7 @@ export class _MessagesIter extends RequestIter {
             try {
                 // if this fails it shouldn't be a big problem
                 message._finishInit(this.client, entities, this.entity);
-            } catch (e) {
-            }
+            } catch (e) {}
             message._entities = entities;
             this.buffer?.push(message);
         }
@@ -350,13 +353,13 @@ export class _IDsIter extends RequestIter {
                 r = await this.client.invoke(
                     new Api.channels.GetMessages({
                         channel: this._entity,
-                        id: ids
+                        id: ids,
                     })
                 );
             } catch (e) {
                 if (e.message == "MESSAGE_IDS_EMPTY") {
                     r = new Api.messages.MessagesNotModified({
-                        count: ids.length
+                        count: ids.length,
                     });
                 } else {
                     throw e;
@@ -365,7 +368,7 @@ export class _IDsIter extends RequestIter {
         } else {
             r = await this.client.invoke(
                 new Api.messages.GetMessages({
-                    id: ids
+                    id: ids,
                 })
             );
             if (this._entity) {
@@ -471,7 +474,7 @@ export function iterMessages(
         waitTime,
         ids,
         reverse = false,
-        replyTo
+        replyTo,
     }: IterMessagesParams
 ) {
     if (ids) {
@@ -483,11 +486,11 @@ export function iterMessages(
             ids.length,
             {
                 reverse: reverse,
-                waitTime: waitTime
+                waitTime: waitTime,
             },
             {
                 entity: entity,
-                ids: ids
+                ids: ids,
             }
         );
     }
@@ -496,7 +499,7 @@ export function iterMessages(
         limit || 1,
         {
             waitTime: waitTime,
-            reverse: reverse
+            reverse: reverse,
         },
         {
             entity: entity,
@@ -508,7 +511,7 @@ export function iterMessages(
             addOffset: addOffset,
             filter: filter,
             search: search,
-            replyTo: replyTo
+            replyTo: replyTo,
         }
     );
 }
@@ -553,7 +556,7 @@ export async function sendMessage(
         clearDraft,
         buttons,
         silent,
-        schedule
+        schedule,
     }: SendMessageParams
 ) {
     if (file) {
@@ -597,7 +600,7 @@ export async function sendMessage(
             entities: message.entities,
             clearDraft: clearDraft,
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
         message = message.message;
     } else {
@@ -621,22 +624,33 @@ export async function sendMessage(
             clearDraft: clearDraft,
             silent: silent,
             replyMarkup: client.buildReplyMarkup(buttons),
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
     }
     const result = await client.invoke(request);
-    return result;
-    //return client._getResponseMessage(request, result, entity);
+    if (result instanceof Api.UpdateShortSentMessage) {
+        const msg = new Message({
+            id: result.id,
+            peerId: await client._getPeer(entity),
+            message: message,
+            date: result.date,
+            out: result.out,
+            media: result.media,
+            entities: result.entities,
+            replyMarkup: request.replyMarkup,
+            ttlPeriod: result.ttlPeriod,
+        });
+        msg._finishInit(client, new Map(), entity);
+        return msg;
+    }
+    return client._getResponseMessage(request, result, entity) as Message;
 }
 
-export async function forwardMessages(client: TelegramClient,
-                                      entity: EntityLike,
-                                      {
-                                          messages,
-                                          fromPeer,
-                                          silent,
-                                          schedule
-                                      }: ForwardMessagesParams) {
+export async function forwardMessages(
+    client: TelegramClient,
+    entity: EntityLike,
+    { messages, fromPeer, silent, schedule }: ForwardMessagesParams
+) {
     entity = await client.getInputEntity(entity);
     let fromPeerId: number | undefined;
     if (fromPeer) {
@@ -655,8 +669,11 @@ export async function forwardMessages(client: TelegramClient,
             throw new Error(`Cannot forward ${m}`);
         }
     };
-    const sent = [];
-    for (let [chatId, chunk] of groupBy(messages, getKey) as Map<number, Message[] | number[]>) {
+    const sent: Message[] = [];
+    for (let [chatId, chunk] of groupBy(messages, getKey) as Map<
+        number,
+        Message[] | number[]
+    >) {
         let chat;
         let numbers: number[] = [];
         if (typeof chunk[0] == "number") {
@@ -672,15 +689,15 @@ export async function forwardMessages(client: TelegramClient,
             id: numbers,
             toPeer: entity,
             silent: silent,
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
         const result = await client.invoke(request);
-        //sent.push(client._getResponseMessage(req, result, entity))
-        sent.push(result);
+        sent.push(
+            client._getResponseMessage(request, result, entity) as Message
+        );
     }
     return sent;
 }
-
 
 /**
  * Used to edit a message by changing it's text or media
@@ -699,7 +716,7 @@ export async function editMessage(
         file,
         forceDocument,
         buttons,
-        schedule
+        schedule,
     }: EditMessageParams
 ) {
     entity = await client.getInputEntity(entity);
@@ -709,20 +726,18 @@ export async function editMessage(
             parseMode
         );
     }
-    const msg = await client.invoke(
-        new Api.messages.EditMessage({
-            peer: entity,
-            id: utils.getMessageId(message),
-            message: text,
-            noWebpage: !linkPreview,
-            entities: formattingEntities,
-            //media: no media for now,
-            replyMarkup: client.buildReplyMarkup(buttons),
-            scheduleDate: schedule
-        })
-    );
-    return msg;
-    //return client._getResponseMessage(request, result, entity);
+    const request = new Api.messages.EditMessage({
+        peer: entity,
+        id: utils.getMessageId(message),
+        message: text,
+        noWebpage: !linkPreview,
+        entities: formattingEntities,
+        //media: no media for now,
+        replyMarkup: client.buildReplyMarkup(buttons),
+        scheduleDate: schedule,
+    });
+    const result = await client.invoke(request);
+    return client._getResponseMessage(request, result, entity) as Message;
 }
 
 // TODO do the rest

@@ -1,12 +1,10 @@
 import { Api } from "../tl";
 import type { Entity, EntityLike } from "../define";
 import { ChatGetter } from "../tl/custom";
-import type { TelegramClient } from "../client/TelegramClient";
+import type { TelegramClient } from "..";
 
-import bigInt from "big-integer";
 import { isArrayLike } from "../Helpers";
 import { utils } from "../";
-import { Message } from "../tl/patched";
 
 export async function _intoIdSet(
     client: TelegramClient,
@@ -118,7 +116,6 @@ interface EventCommonInterface {
     msgId?: number;
     broadcast?: boolean;
 }
-
 export class EventCommon extends ChatGetter {
     _eventName = "Event";
     _entities: Map<number, Entity>;

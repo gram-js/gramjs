@@ -1,7 +1,11 @@
-import { sanitizeParseMode } from "../Utils";
+import { getPeerId, sanitizeParseMode } from "../Utils";
 import { Api } from "../tl";
 import type { EntityLike, ValueOf } from "../define";
 import type { TelegramClient } from "./TelegramClient";
+import { utils } from "../index";
+import { _EntityType, _entityType, isArrayLike } from "../Helpers";
+import { Message } from "../tl/custom/message";
+import bigInt from "big-integer";
 
 export type messageEntities =
     | typeof Api.MessageEntityBold
@@ -63,113 +67,155 @@ export function _parseMessageText(
     return parseMode.parse(message);
 }
 
-/* TODO make your own smh
-export function _getResponseMessage(request: Api.AnyRequest, result: Api.TypeUpdates, inputChat: Api.TypeInputPeer) {
+export function _getResponseMessage(
+    client: TelegramClient,
+    request: any,
+    result: any,
+    inputChat: any
+) {
+    console.log("requestsd first is", request);
+    console.log("resulted first is", result);
     let updates = [];
+
     let entities = new Map();
     if (result instanceof Api.UpdateShort) {
-        updates = [result.update]
-    } else if (result instanceof Api.Updates || result instanceof Api.UpdatesCombined) {
+        updates = [result.update];
+    } else if (
+        result instanceof Api.Updates ||
+        result instanceof Api.UpdatesCombined
+    ) {
         updates = result.updates;
         for (const x of [...result.users, ...result.chats]) {
-            entities.set(getPeerId(x), x);
+            entities.set(utils.getPeerId(x), x);
         }
     } else {
         return;
     }
-    const randomToId = new Map();
-    const idToMessage = new Map();
-    const schedToMessage = new Map();
+    const randomToId = new Map<string, number>();
+    const idToMessage = new Map<number, Message>();
+    const schedToMessage = new Map<number, Message>();
     for (const update of updates) {
         if (update instanceof Api.UpdateMessageID) {
-            randomToId.set(update.randomId, update.id);
-        } else if (update instanceof Api.UpdateNewChannelMessage || update instanceof Api.UpdateNewMessage) {
-            // @ts-ignore
-            // TODO update.message._finishInit(this, entities, inputChat);
-            if ('randomId' in request || isArrayLike(request)) {
-                idToMessage.set(update.message.id, update.message);
+            randomToId.set(update.randomId.toString(), update.id);
+        } else if (
+            update instanceof Api.UpdateNewChannelMessage ||
+            update instanceof Api.UpdateNewMessage
+        ) {
+            (update.message as unknown as Message)._finishInit(
+                client,
+                entities,
+                inputChat
+            );
+            if ("randomId" in request || isArrayLike(request)) {
+                idToMessage.set(
+                    update.message.id,
+                    update.message as unknown as Message
+                );
             } else {
+                return update.message as unknown as Message;
+            }
+        } else if (
+            update instanceof Api.UpdateEditMessage &&
+            "peer" in request &&
+            _entityType(request.peer) != _EntityType.CHANNEL
+        ) {
+            (update.message as unknown as Message)._finishInit(
+                client,
+                entities,
+                inputChat
+            );
+            if ("randomId" in request) {
+                idToMessage.set(
+                    update.message.id,
+                    update.message as unknown as Message
+                );
+            } else if ("id" in request && request.id === update.message.id) {
                 return update.message;
             }
-        } else if (update instanceof Api.UpdateEditMessage && 'peer' in request && _entityType(request.peer) != _EntityType.CHANNEL) {
-            // @ts-ignore
-            // TODO update.message._finishInit(this, entities, inputChat);
-            if ('randomId' in request) {
-                idToMessage.set(update.message.id, update.message);
-            } else if ('id' in request && request.id === update.message.id) {
+        } else if (
+            update instanceof Api.UpdateEditChannelMessage &&
+            "peer" in request &&
+            getPeerId(request.peer) ==
+                getPeerId((update.message as unknown as Message).peerId)
+        ) {
+            if (request.id == update.message.id) {
+                (update.message as unknown as Message)._finishInit(
+                    client,
+                    entities,
+                    inputChat
+                );
                 return update.message;
             }
-        } else if (update instanceof Api.UpdateEditChannelMessage &&
-            update.message instanceof Api.Message && 'peer' in request && getPeerId(request.peer) == getPeerId(update.message.peerId)) {
-            schedToMessage.set(update.message.id, update.message);
+        } else if (update instanceof Api.UpdateNewScheduledMessage) {
+            (update.message as unknown as Message)._finishInit(
+                client,
+                entities,
+                inputChat
+            );
+            schedToMessage.set(
+                update.message.id,
+                update.message as unknown as Message
+            );
         } else if (update instanceof Api.UpdateMessagePoll) {
-            if ('media' in request && request.media && "poll" in request.media && request?.media.poll.id == update.pollId) {
-                if ('peer' in request) {
-                    const peerId = getPeer(request.peer) as Api.TypePeer;
-                    const poll = update.poll;
-                    if (poll && 'id' in request) {
-                        const m = new Api.Message({
-                            id: request.id,
-                            peerId: peerId,
-                            media: new Api.MessageMediaPoll({
-                                poll: poll,
-                                results: update.results
-                            }),
-                            message: '',
-                            date: 0,
-                        });
-                        // @ts-ignore
-                        m._finishInit(this, entities, inputChat);
-                        return m;
-                    }
-                }
+            if (request.media.poll.id == update.pollId) {
+                const m = new Message({
+                    id: request.id,
+                    peerId: utils.getPeerId(request.peer),
+                    media: new Api.MessageMediaPoll({
+                        poll: update.poll!,
+                        results: update.results,
+                    }),
+                    message: "",
+                    date: 0,
+                });
+                m._finishInit(client, entities, inputChat);
+                return m;
             }
         }
-
     }
-    if (!request) {
+    if (request == undefined) {
         return idToMessage;
     }
-    let mapping;
-    let opposite = new Map();
-
-    if (!("scheduleDate" in request)) {
-        mapping = idToMessage;
-    } else {
-        mapping = schedToMessage;
-        opposite = idToMessage;
+    console.log("request is", request);
+    console.log("random id is", request.randomId);
+    if (!(result instanceof Api.UpdateShort)) {
+        console.log("result is", result.updates);
     }
-    let randomId: any = (typeof request == 'number' || isArrayLike(request)) ? request : 'randomId' in request ? request.randomId : undefined;
-
-    if (randomId === undefined) {
-        // TODO add logging
-        return null;
+    let randomId =
+        isArrayLike(request) ||
+        typeof request == "number" ||
+        bigInt.isInstance(request)
+            ? request
+            : request.randomId.toString();
+    if (!randomId) {
+        client._log.warn(
+            `No randomId in ${request} to map to. returning undefined for ${result}`
+        );
+        return undefined;
     }
-    if (!isArrayLike(request)) {
-        let msg = mapping.get(randomToId.get(randomId));
+
+    if (!isArrayLike(randomId)) {
+        const msg = idToMessage.get(randomToId.get(randomId)!);
         if (!msg) {
-            msg = opposite.get(randomToId.get(randomId));
-        }
-        if (!msg) {
-            throw new Error(`Request ${request.className} had missing message mapping`)
-            // TODO add logging
+            client._log.warn(
+                `Request ${request} had missing message mapping ${result}`
+            );
         }
         return msg;
-    }
-    if (isArrayLike((randomId))) {
-
-        const maps = [];
-        // @ts-ignore
-        for (const rnd of randomId) {
-            const d = mapping.get(randomToId.get(rnd));
-            const o = opposite.get(randomToId.get(rnd));
-
-            maps.push(d ?? o)
-
+    } else {
+        const mapping = [];
+        for (let i = 0; i < randomId.length; i++) {
+            const rnd = randomId[i] + "";
+            const msg = idToMessage.get(randomToId.get(rnd)!);
+            if (!msg) {
+                client._log.warn(
+                    `Request ${request} had missing message mapping ${result}`
+                );
+                break;
+            } else {
+                mapping.push(msg);
+            }
         }
-        return maps;
+        return mapping;
     }
 }
-
-
-*/

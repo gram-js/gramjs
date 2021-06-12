@@ -230,7 +230,10 @@ export class TelegramClient extends TelegramBaseClient {
         return messageMethods.sendMessage(this, entity, params);
     }
 
-    forwardMessages(entity: EntityLike, params: messageMethods.ForwardMessagesParams) {
+    forwardMessages(
+        entity: EntityLike,
+        params: messageMethods.ForwardMessagesParams
+    ) {
         return messageMethods.forwardMessages(this, entity, params);
     }
 
@@ -463,7 +466,7 @@ export class TelegramClient extends TelegramBaseClient {
                 return sender;
             } catch (e) {
                 // we can't create sender for our own main DC
-                if (e.message=="DC_ID_INVALID"){
+                if (e.message == "DC_ID_INVALID") {
                     return this._sender;
                 }
                 await sender.disconnect();
@@ -534,7 +537,7 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     async _borrowExportedSender(dcId: number, retries = this._requestRetries) {
-        this._log.debug(`Borrowing client for DC ${dcId}`)
+        this._log.debug(`Borrowing client for DC ${dcId}`);
         let senderPromise = this._borrowedSenderPromises[dcId];
         if (!senderPromise) {
             senderPromise = this._createExportedSender(dcId, retries);
@@ -547,6 +550,10 @@ export class TelegramClient extends TelegramBaseClient {
             });
         }
         return senderPromise;
+    }
+
+    _getResponseMessage(req: any, result: any, inputChat: any) {
+        return parseMethods._getResponseMessage(this, req, result, inputChat);
     }
 
     // endregion

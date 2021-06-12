@@ -421,7 +421,8 @@ export async function sendFile(
         clearDraft: clearDraft,
     });
     // todo get message
-    return client.invoke(request);
+    const result = client.invoke(request);
+    return client._getResponseMessage(request, result, entity);
 }
 
 function fileToBuffer(file: File | CustomFile) {
