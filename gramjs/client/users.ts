@@ -5,6 +5,7 @@ import { _entityType, _EntityType, sleep, isArrayLike } from "../Helpers";
 import { errors, utils } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
+
 // UserMethods {
 // region Invoking Telegram request
 
@@ -447,4 +448,8 @@ export async function _getInputNotify(client: TelegramClient, notify: any) {
     return new Api.InputNotifyPeer({
         peer: await client.getInputEntity(notify),
     });
+}
+
+export function _selfId(client: TelegramClient) {
+    return client._selfInputPeer ? client._selfInputPeer.userId : undefined;
 }

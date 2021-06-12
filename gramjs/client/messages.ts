@@ -347,7 +347,6 @@ export class _IDsIter extends RequestIter {
         this._offset! += _MAX_CHUNK_SIZE;
         let fromId;
         let r;
-
         if (this._ty == _EntityType.CHANNEL) {
             try {
                 r = await this.client.invoke(
@@ -387,19 +386,13 @@ export class _IDsIter extends RequestIter {
         for (message of r.messages) {
             if (
                 message instanceof Api.MessageEmpty ||
-                (fromId && message.peerId != fromId)
+                (fromId &&
+                    utils.getPeerId(message.peerId) != utils.getPeerId(fromId))
             ) {
                 this.buffer?.push(undefined);
             } else {
                 const temp: Message = message as unknown as Message;
-                try {
-                    temp._finishInit(this.client, entities, this._entity);
-                } catch (e) {
-                    // we don't care about errors here
-                    this.client._log.warn(
-                        "Failed to finish entities for message " + temp.id
-                    );
-                }
+                temp._finishInit(this.client, entities, this._entity);
                 temp._entities = entities;
                 this.buffer?.push(temp);
             }
@@ -418,7 +411,7 @@ export interface IterMessagesParams {
     filter?: Api.TypeMessagesFilter | Api.TypeMessagesFilter[];
     fromUser?: EntityLike;
     waitTime?: number;
-    ids?: number | number[];
+    ids?: number | number[] | Api.TypeInputMessage | Api.TypeInputMessage[];
     reverse?: boolean;
     replyTo?: number;
 }
@@ -478,19 +471,23 @@ export function iterMessages(
     }: IterMessagesParams
 ) {
     if (ids) {
-        if (typeof ids == "number") {
-            ids = [ids];
+        let idsArray;
+        if (!isArrayLike(ids)) {
+            idsArray = [ids];
+        } else {
+            idsArray = ids;
         }
+        console.log("ids array is", idsArray);
         return new _IDsIter(
             client,
-            ids.length,
+            idsArray.length,
             {
                 reverse: reverse,
                 waitTime: waitTime,
             },
             {
                 entity: entity,
-                ids: ids,
+                ids: idsArray,
             }
         );
     }

@@ -1,12 +1,14 @@
 import { SenderGetter } from "./senderGetter";
 import type { Entity, EntityLike } from "../../define";
 import { Api } from "../api";
-import type { TelegramClient } from "../../client/TelegramClient";
+import type { TelegramClient } from "../..";
 import { ChatGetter } from "./chatGetter";
 import * as utils from "../../Utils";
 import { Forward } from "./forward";
 import type { File } from "./file";
 import { Mixin } from "ts-mixer";
+import { EditMessageParams, SendMessageParams } from "../../client/messages";
+import { DownloadFileParams } from "../../client/downloads";
 
 interface MessageBaseInterface {
     id: any;
@@ -75,7 +77,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     public _client?: TelegramClient;
     _text?: string;
     _file?: File;
-    _replyMessage: undefined;
+    _replyMessage?: Message;
     _buttons: undefined;
     _buttonsFlat: undefined;
     _buttonsCount: number;
@@ -348,399 +350,430 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     /*
+            get buttons() {
+                if (!this._buttons && this.replyMarkup) {
+                    if (!this.inputChat) {
+                        return undefined
+                    }
 
-        get buttons() {
-            if (!this._buttons && this.replyMarkup) {
-                if (!this.inputChat) {
-                    return undefined
-                }
-
-                const bot = this._neededMarkupBot();
-                if (!bot) {
-                    this._setButtons(this._inputChat, bot)
-                }
-            }
-            return this._buttons
-        }
-        async getButtons() {
-            if (!this.buttons && this.replyMarkup) {
-                const chat = await this.getInputChat();
-                if (!chat) return;
-                let bot = this._neededMarkupBot();
-                if (!bot) {
-                    await this._reloadMessage();
-                    bot = this._neededMarkupBot()
-                }
-                this._setButtons(chat, bot)
-            }
-            return this._buttons
-        }
-    /
-        get buttonCount() {
-            if (!this._buttonsCount) {
-                if ((this.replyMarkup instanceof Api.ReplyInlineMarkup) ||
-                    (this.replyMarkup instanceof Api.ReplyKeyboardMarkup)) {
-                    this._buttonsCount = (this.replyMarkup.rows.map((r) => r.buttons.length)).reduce(function (a, b) {
-                        return a + b;
-                    }, 0);
-                } else {
-                    this._buttonsCount = 0
-                }
-            }
-            return this._buttonsCount
-        }
-
-        get file() {
-            if (!this._file) {
-                const media = this.photo || this.document;
-                if (media) {
-                    this._file = new File(media);
-                }
-            }
-            return this._file
-        }
-
-        get photo() {
-            if (this.media instanceof Api.MessageMediaPhoto) {
-                if (this.media.photo instanceof Api.Photo)
-                    return this.media.photo
-            } else if (this.action instanceof Api.MessageActionChatEditPhoto) {
-                return this.action.photo
-            } else {
-                return this.webPreview && this.webPreview instanceof Api.Photo
-                    ? this.webPreview.photo
-                    : undefined
-            }
-            return undefined
-        }
-
-        get document() {
-            if (this.media instanceof Api.MessageMediaDocument) {
-                if (this.media.document instanceof Api.Document)
-                    return this.media.document
-            } else {
-                const web = this.webPreview;
-
-                return web && web.document instanceof Api.Document
-                    ? web.document
-                    : undefined
-            }
-            return undefined
-        }
-
-        get webPreview() {
-            if (this.media instanceof Api.MessageMediaWebPage) {
-                if (this.media.webpage instanceof Api.WebPage)
-                    return this.media.webpage
-            }
-        }
-        /* REFACTOR
-
-            get audio() {
-                return this._documentByAttribute(Api.DocumentAttributeAudio, (attr: Api.DocumentAttributeAudio) => !attr.voice)
-            }
-
-            get voice() {
-                return this._documentByAttribute(Api.DocumentAttributeAudio, (attr: Api.DocumentAttributeAudio) => !!attr.voice)
-            }
-
-            get video() {
-                return this._documentByAttribute(Api.DocumentAttributeVideo)
-            }
-
-            get videoNote() {
-                return this._documentByAttribute(Api.DocumentAttributeVideo, (attr: Api.DocumentAttributeVideo) => !!attr.roundMessage)
-            }
-
-            get gif() {
-                return this._documentByAttribute(Api.DocumentAttributeAnimated)
-            }
-
-            get sticker() {
-                return this._documentByAttribute(Api.DocumentAttributeSticker)
-            }
-
-            get contact() {
-                if (this.media instanceof Api.MessageMediaContact) {
-                    return this.media;
-                }
-            }
-
-            get game() {
-                if (this.media instanceof Api.MessageMediaGame) {
-                    return this.media.game;
-
-                }
-            }
-
-            get geo() {
-                if ((this.media instanceof Api.MessageMediaGeo) ||
-                    (this.media instanceof Api.MessageMediaGeoLive) ||
-                    (this.media instanceof Api.MessageMediaVenue)) {
-                    return this.media.geo
-                }
-            }
-
-            get invoice() {
-                if (this.media instanceof Api.MessageMediaInvoice) {
-                    return this.media;
-                }
-            }
-
-            get poll() {
-                if (this.media instanceof Api.MessageMediaPoll) {
-                    return this.media;
-                }
-            }
-
-            get venue() {
-                if (this.media instanceof Api.MessageMediaVenue) {
-                    return this.media;
-                }
-            }
-
-            get dice() {
-                if (this.media instanceof Api.MessageMediaDice) {
-                    return this.media;
-                }
-            }
-
-            get actionEntities() {
-                return this._actionEntities
-            }
-
-            get viaBot() {
-                return this._viaBot
-            }
-
-            get viaInputBot() {
-                return this._viaInputBot
-            }
-
-            get replyToMsgId() {
-                return this.replyTo?.replyToMsgId;
-            }
-
-            get toId() {
-                if (this._client && !this.out && this.is) {
-                    return new Api.PeerUser({
-                        userId: this._client._selfId,
-                    });
-                }
-                return this.peerId;
-            }
-
-            getEntitiesText(cls: any = undefined) {
-                let ent = this.entities;
-                if (!ent || ent.length == 0) return;
-
-                if (cls)
-                    ent = ent.filter((v: any) => v instanceof cls);
-
-                const texts = getInnerText(this.message, ent);
-                const zip = (rows: any[]) => rows[0].map((_: any, c: string | number) => rows.map(row => row[c]));
-
-                return zip([ent, texts]);
-            }
-
-            async getReplyMessage() {
-                if (!this._replyMessage && this._client) {
-                    if (!this.replyTo) return undefined;
-
-                    // Bots cannot access other bots' messages by their ID.
-                    // However they can access them through replies...
-                    this._replyMessage = await this._client.getMessages(
-                        this.isChannel ? await this.getInputChat() : undefined, {
-                            ids: Api.InputMessageReplyTo({id: this.id})
-                        });
-
-                    if (!this._replyMessage) {
-                        // ...unless the current message got deleted.
-                        //
-                        // If that's the case, give it a second chance accessing
-                        // directly by its ID.
-                        this._replyMessage = await this._client.getMessages(
-                            this.isChannel ? this._inputChat : undefined, {
-                                ids: this.replyToMsgId
-                            })
+                    const bot = this._neededMarkupBot();
+                    if (!bot) {
+                        this._setButtons(this._inputChat, bot)
                     }
                 }
-                return this._replyMessage
+                return this._buttons
             }
-
-            async respond(args) {
-                if (this._client) {
-                    args.entity = await this.getInputChat();
-                    return this._client.sendMessage(args)
-                }
-            }
-
-            async reply(args) {
-                if (this._client) {
-                    args.replyTo = this.id;
-                    args.entity = await this.getInputChat();
-                    return this._client.sendMessage(args)
-                }
-            }
-
-            async forwardTo(args) {
-                if (this._client) {
-                    args.messages = this.id;
-                    args.fromPeer = await this.getInputChat();
-                    return this._client.forwardMessages(args)
-                }
-            }
-
-            async edit(args) {
-                if (this.fwdFrom || !this.out || !this._client) return undefined;
-                args.entity = await this.getInputChat();
-                args.message = this.id;
-
-                if (!('linkPreview' in args))
-                    args.linkPreview = !!this.webPreview;
-
-                if (!('buttons' in args))
-                    args.buttons = this.replyMarkup;
-
-                return this._client.editMessage(args)
-            }
-
-            async delete(args) {
-                if (this._client) {
-                    args.entity = await this.getInputChat();
-                    args.messages = [this.id];
-                    return this._client.deleteMessages(args)
-                }
-            }
-
-            async downloadMedia(args) {
-                if (this._client)
-                    return this._client.downloadMedia(args)
-            }
-            async click({i = undefined, j = undefined, text = undefined, filter = undefined, data = undefined}) {
-                if (!this._client) return;
-
-                if (data) {
-                    if (!(await this._getInputChat()))
-                        return undefined;
-
-                    try {
-                        return await this._client.invoke(functions.messages.GetBotCallbackAnswerRequest({
-                            peer: this._inputChat,
-                            msgId: this.id,
-                            data: data,
-                        }))
-                    } catch (e) {
-                        if (e instanceof errors.BotTimeout)
-                            return undefined
+            async getButtons() {
+                if (!this.buttons && this.replyMarkup) {
+                    const chat = await this.getInputChat();
+                    if (!chat) return;
+                    let bot = this._neededMarkupBot();
+                    if (!bot) {
+                        await this._reloadMessage();
+                        bot = this._neededMarkupBot()
                     }
+                    this._setButtons(chat, bot)
                 }
-
-                if ([i, text, filter].filter((x) => !!x) > 1)
-                    throw new Error('You can only set either of i, text or filter');
-
-                if (!(await this.getButtons()))
-                    return;
-
-                if (text) {
-                    if (callable(text)) {
-                        for (const button of this._buttonsFlat) {
-                            if (text(button.text)) {
-                                return button.click()
-                            }
-                        }
+                return this._buttons
+            }
+        /
+            get buttonCount() {
+                if (!this._buttonsCount) {
+                    if ((this.replyMarkup instanceof Api.ReplyInlineMarkup) ||
+                        (this.replyMarkup instanceof Api.ReplyKeyboardMarkup)) {
+                        this._buttonsCount = (this.replyMarkup.rows.map((r) => r.buttons.length)).reduce(function (a, b) {
+                            return a + b;
+                        }, 0);
                     } else {
-                        for (const button of this._buttonsFlat) {
-                            if (button.text === text) {
-                                return button.click()
-                            }
+                        this._buttonsCount = 0
+                    }
+                }
+                return this._buttonsCount
+            }
+
+            get file() {
+                if (!this._file) {
+                    const media = this.photo || this.document;
+                    if (media) {
+                        this._file = new File(media);
+                    }
+                }
+                return this._file
+            }
+    */
+    get photo() {
+        if (this.media instanceof Api.MessageMediaPhoto) {
+            if (this.media.photo instanceof Api.Photo) return this.media.photo;
+        } else if (this.action instanceof Api.MessageActionChatEditPhoto) {
+            return this.action.photo;
+        } else {
+            return this.webPreview && this.webPreview.photo instanceof Api.Photo
+                ? this.webPreview.photo
+                : undefined;
+        }
+        return undefined;
+    }
+
+    get document() {
+        if (this.media instanceof Api.MessageMediaDocument) {
+            if (this.media.document instanceof Api.Document)
+                return this.media.document;
+        } else {
+            const web = this.webPreview;
+
+            return web && web.document instanceof Api.Document
+                ? web.document
+                : undefined;
+        }
+        return undefined;
+    }
+
+    get webPreview() {
+        if (this.media instanceof Api.MessageMediaWebPage) {
+            if (this.media.webpage instanceof Api.WebPage)
+                return this.media.webpage;
+        }
+    }
+
+    get audio() {
+        return this._documentByAttribute(
+            Api.DocumentAttributeAudio,
+            (attr: Api.DocumentAttributeAudio) => !attr.voice
+        );
+    }
+
+    get voice() {
+        return this._documentByAttribute(
+            Api.DocumentAttributeAudio,
+            (attr: Api.DocumentAttributeAudio) => !!attr.voice
+        );
+    }
+
+    get video() {
+        return this._documentByAttribute(Api.DocumentAttributeVideo);
+    }
+
+    get videoNote() {
+        return this._documentByAttribute(
+            Api.DocumentAttributeVideo,
+            (attr: Api.DocumentAttributeVideo) => !!attr.roundMessage
+        );
+    }
+
+    get gif() {
+        return this._documentByAttribute(Api.DocumentAttributeAnimated);
+    }
+
+    get sticker() {
+        return this._documentByAttribute(Api.DocumentAttributeSticker);
+    }
+
+    get contact() {
+        if (this.media instanceof Api.MessageMediaContact) {
+            return this.media;
+        }
+    }
+
+    get game() {
+        if (this.media instanceof Api.MessageMediaGame) {
+            return this.media.game;
+        }
+    }
+
+    get geo() {
+        if (
+            this.media instanceof Api.MessageMediaGeo ||
+            this.media instanceof Api.MessageMediaGeoLive ||
+            this.media instanceof Api.MessageMediaVenue
+        ) {
+            return this.media.geo;
+        }
+    }
+
+    get invoice() {
+        if (this.media instanceof Api.MessageMediaInvoice) {
+            return this.media;
+        }
+    }
+
+    get poll() {
+        if (this.media instanceof Api.MessageMediaPoll) {
+            return this.media;
+        }
+    }
+
+    get venue() {
+        if (this.media instanceof Api.MessageMediaVenue) {
+            return this.media;
+        }
+    }
+
+    get dice() {
+        if (this.media instanceof Api.MessageMediaDice) {
+            return this.media;
+        }
+    }
+
+    get actionEntities() {
+        return this._actionEntities;
+    }
+
+    get viaBot() {
+        return this._viaBot;
+    }
+
+    get viaInputBot() {
+        return this._viaInputBot;
+    }
+
+    get replyToMsgId() {
+        return this.replyTo?.replyToMsgId;
+    }
+
+    get toId() {
+        if (this._client && !this.out && this.isPrivate) {
+            return new Api.PeerUser({
+                userId: this._client._selfId!,
+            });
+        }
+        return this.peerId;
+    }
+
+    getEntitiesText(cls?: Function) {
+        let ent = this.entities;
+        if (!ent || ent.length == 0) return;
+
+        if (cls) ent = ent.filter((v: any) => v instanceof cls);
+
+        const texts = utils.getInnerText(this.message, ent);
+        const zip = (rows: any[]) =>
+            rows[0].map((_: any, c: string | number) =>
+                rows.map((row) => row[c])
+            );
+
+        return zip([ent, texts]);
+    }
+
+    async getReplyMessage() {
+        if (!this._replyMessage && this._client) {
+            if (!this.replyTo) return undefined;
+
+            // Bots cannot access other bots' messages by their ID.
+            // However they can access them through replies...
+            this._replyMessage = (
+                await this._client.getMessages(
+                    this.isChannel ? await this.getInputChat() : undefined,
+                    {
+                        ids: new Api.InputMessageReplyTo({ id: this.id }),
+                    }
+                )
+            )[0];
+
+            if (!this._replyMessage) {
+                // ...unless the current message got deleted.
+                //
+                // If that's the case, give it a second chance accessing
+                // directly by its ID.
+                this._replyMessage = (
+                    await this._client.getMessages(
+                        this.isChannel ? this._inputChat : undefined,
+                        {
+                            ids: this.replyToMsgId,
+                        }
+                    )
+                )[0];
+            }
+        }
+        return this._replyMessage;
+    }
+
+    async respond(params: SendMessageParams) {
+        if (this._client) {
+            return this._client.sendMessage(
+                (await this.getInputChat())!,
+                params
+            );
+        }
+    }
+
+    async reply(params: SendMessageParams) {
+        if (this._client) {
+            params.replyTo = this.id;
+            return this._client.sendMessage(
+                (await this.getInputChat())!,
+                params
+            );
+        }
+    }
+
+    async forwardTo(entity: EntityLike) {
+        if (this._client) {
+            entity = await this._client.getInputEntity(entity);
+            const params = {
+                messages: [this.id],
+                fromPeer: (await this.getInputChat())!,
+            };
+
+            return this._client.forwardMessages(entity, params);
+        }
+    }
+
+    async edit(params: Omit<EditMessageParams, "message">) {
+        const param = params as EditMessageParams;
+        if (this.fwdFrom || !this.out || !this._client) return undefined;
+        if (param.linkPreview == undefined) {
+            param.linkPreview = !!this.webPreview;
+        }
+        if (param.buttons == undefined) {
+            param.buttons = this.replyMarkup;
+        }
+        param.message = this.id;
+        return this._client.editMessage((await this.getInputChat())!, param);
+    }
+
+    // TODO add delete messages
+    /*
+    async delete(args) {
+        if (this._client) {
+            args.entity = await this.getInputChat();
+            args.messages = [this.id];
+            return this._client.deleteMessages(args);
+        }
+    }*/
+
+    async downloadMedia(params: DownloadFileParams) {
+        if (this._client) return this._client.downloadMedia(this, params);
+    }
+
+    /* TODO doesn't look good enough.
+    async click({ i = undefined, j = undefined, text = undefined, filter = undefined, data = undefined }) {
+        if (!this._client) return;
+
+        if (data) {
+            if (!(await this._getInputChat()))
+                return undefined;
+
+            try {
+                return await this._client.invoke(functions.messages.GetBotCallbackAnswerRequest({
+                    peer: this._inputChat,
+                    msgId: this.id,
+                    data: data
+                }));
+            } catch (e) {
+                if (e instanceof errors.BotTimeout)
+                    return undefined;
+            }
+        }
+
+        if ([i, text, filter].filter((x) => !!x) > 1)
+            throw new Error("You can only set either of i, text or filter");
+
+        if (!(await this.getButtons()))
+            return;
+
+        if (text) {
+            if (callable(text)) {
+                for (const button of this._buttonsFlat) {
+                    if (text(button.text)) {
+                        return button.click();
+                    }
+                }
+            } else {
+                for (const button of this._buttonsFlat) {
+                    if (button.text === text) {
+                        return button.click();
+                    }
+                }
+            }
+        }
+
+        if (filter && callable(filter)) {
+            for (const button of this._buttonsFlat) {
+                if (filter(button)) {
+                    return button.click();
+                }
+            }
+            return undefined;
+        }
+
+        i = !i ? 0 : i;
+        if (!j) return this._buttonsFlat[i].click();
+        else return this._buttons[i][j].click();
+    }
+*/
+    /* TODO add missing friendly functions
+    async markRead() {
+        if (this._client) {
+            await this._client.sendReadAcknowledge({
+                entity: await this.getInputChat(),
+                maxId: this.id
+            });
+        }
+    }
+
+    async pin(notify = false) {
+        if (this._client) {
+            await this._client.pinMessage({
+                entity: await this.getInputChat(),
+                message: this.id,
+                notify: notify
+            });
+        }
+    }
+*/
+    /*
+        _setButtons(chat, bot) {
+            // TODO: Implement MessageButton
+            // if (this._client && (this.replyMarkup instanceof types.ReplyInlineMarkup ||
+            //         this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
+            //     this._buttons = this.replyMarkup.rows.map((row) =>
+            //         row.buttons.map((button) => new Messagebutton(this._client, button, chat, bot, this.id)))
+            // }
+            // this._buttonsFlat = this._buttons.flat()
+        }
+
+        _neededMarkupBot() {
+            if (this._client && !(this.replyMarkup instanceof types.ReplyInlineMarkup ||
+                this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
+                return undefined;
+            }
+
+            for (const row of this.replyMarkup.rows) {
+                for (const button of row.buttons) {
+                    if (button instanceof types.KeyboardButtonSwitchInline) {
+                        if (button.samePeer) {
+                            const bot = this._inputSender;
+                            if (!bot) throw new Error("No input sender");
+                            return bot;
+                        } else {
+                            const ent = this._client._entityCache[this.viaBotId];
+                            if (!ent) throw new Error("No input sender");
+                            return ent;
                         }
                     }
                 }
+            }
+        }
+    */
 
-                if (filter && callable(filter)) {
-                    for (const button of this._buttonsFlat) {
-                        if (filter(button)) {
-                            return button.click()
-                        }
+    // TODO fix this
+
+    _documentByAttribute(kind: Function, condition?: Function) {
+        const doc = this.document;
+        if (doc) {
+            for (const attr of doc.attributes) {
+                if (attr instanceof kind) {
+                    if (
+                        condition == undefined ||
+                        (typeof condition == "function" && condition(attr))
+                    ) {
+                        return doc;
                     }
-                    return undefined
-                }
-
-                i = !i ? 0 : i;
-                if (!j) return this._buttonsFlat[i].click();
-                else return this._buttons[i][j].click()
-            }
-
-            async markRead() {
-                if (this._client) {
-                    await this._client.sendReadAcknowledge({
-                        entity: await this.getInputChat(),
-                        maxId: this.id,
-                    })
+                    return undefined;
                 }
             }
-
-            async pin(notify = false) {
-                if (this._client) {
-                    await this._client.pinMessage({
-                        entity: await this.getInputChat(),
-                        message: this.id,
-                        notify: notify,
-                    })
-                }
-            }
-
-
-
-
-            _setButtons(chat, bot) {
-                // TODO: Implement MessageButton
-                // if (this._client && (this.replyMarkup instanceof types.ReplyInlineMarkup ||
-                //         this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-                //     this._buttons = this.replyMarkup.rows.map((row) =>
-                //         row.buttons.map((button) => new Messagebutton(this._client, button, chat, bot, this.id)))
-                // }
-                // this._buttonsFlat = this._buttons.flat()
-            }
-
-            _neededMarkupBot() {
-                if (this._client && !(this.replyMarkup instanceof types.ReplyInlineMarkup ||
-                    this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-                    return undefined
-                }
-
-                for (const row of this.replyMarkup.rows) {
-                    for (const button of row.buttons) {
-                        if (button instanceof types.KeyboardButtonSwitchInline) {
-                            if (button.samePeer) {
-                                const bot = this._inputSender;
-                                if (!bot) throw new Error('No input sender');
-                                return bot
-                            } else {
-                                const ent = this._client._entityCache[this.viaBotId];
-                                if (!ent) throw new Error('No input sender');
-                                return ent
-                            }
-                        }
-                    }
-                }
-            }
-            // TODO fix this
-
-            _documentByAttribute(kind, condition = undefined) {
-                const doc = this.document;
-                if (doc) {
-                    for (const attr of doc.attributes) {
-                        if (attr instanceof kind) {
-                            if (!condition || (callable(condition) && condition(attr))) {
-                                return doc
-                            }
-                            return undefined
-                        }
-                    }
-                }
-            }*/
+        }
+    }
 }
 
 export interface Message extends ChatGetter, SenderGetter {}

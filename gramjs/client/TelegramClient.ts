@@ -362,6 +362,10 @@ export class TelegramClient extends TelegramBaseClient {
         return userMethods._getInputNotify(this, notify);
     }
 
+    get _selfId() {
+        return userMethods._selfId(this);
+    }
+
     //endregion
 
     //region base methods
