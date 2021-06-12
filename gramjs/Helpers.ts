@@ -2,6 +2,7 @@ import { isNode } from "browser-or-node";
 import bigInt from "big-integer";
 import type { EntityLike } from "./define";
 import type { Api } from "./tl";
+import exp from "constants";
 
 export const IS_NODE = isNode;
 const crypto = require(isNode ? "crypto" : "./crypto/crypto");
@@ -37,6 +38,19 @@ export function generateRandomBigInt() {
 
 export function escapeRegex(string: string) {
     return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+}
+export function groupBy(list: any[], keyGetter: Function) {
+    const map = new Map();
+    list.forEach((item) => {
+        const key = keyGetter(item);
+        const collection = map.get(key);
+        if (!collection) {
+            map.set(key, [item]);
+        } else {
+            collection.push(item);
+        }
+    });
+    return map;
 }
 
 /**
