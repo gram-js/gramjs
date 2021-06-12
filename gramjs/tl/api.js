@@ -225,12 +225,14 @@ function compareType(value, type) {
     let correct = true;
     switch (type) {
         case "number":
+            correct = typeof value === "number" || value===undefined;
+            break;
         case "string":
         case "boolean":
             correct = typeof value === type;
             break;
         case "bigInt":
-            correct = bigInt.isInstance(value);
+            correct = bigInt.isInstance(value) ||  value===undefined;
             break;
         case "true":
             // true value is always correct

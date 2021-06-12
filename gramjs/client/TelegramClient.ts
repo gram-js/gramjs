@@ -460,7 +460,7 @@ export class TelegramClient extends TelegramBaseClient {
             } catch (e) {
                 // we can't create sender for our own main DC
                 if (e.message=="DC_ID_INVALID"){
-                    throw e;
+                    return this._sender;
                 }
                 await sender.disconnect();
             }
