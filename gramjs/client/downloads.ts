@@ -70,17 +70,18 @@ export async function downloadFile(
     }
 
     let sender: MTProtoSender;
+
     if (dcId) {
         try {
             sender = await client._borrowExportedSender(dcId);
             client._log.debug(`Finished creating sender for ${dcId}`);
         } catch (e) {
             // This should never raise
-            client._log.error(e);
             if (e.message === "DC_ID_INVALID") {
                 // Can't export a sender for the ID we are currently in
                 sender = client._sender;
             } else {
+                client._log.error(e);
                 throw e;
             }
         }

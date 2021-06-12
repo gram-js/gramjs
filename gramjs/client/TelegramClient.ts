@@ -458,6 +458,10 @@ export class TelegramClient extends TelegramBaseClient {
                 sender.dcId = dcId;
                 return sender;
             } catch (e) {
+                // we can't create sender for our own main DC
+                if (e.message=="DC_ID_INVALID"){
+                    throw e;
+                }
                 await sender.disconnect();
             }
         }
@@ -467,6 +471,7 @@ export class TelegramClient extends TelegramBaseClient {
     async getDC(
         dcId: number
     ): Promise<{ id: number; ipAddress: string; port: number }> {
+        this._log.debug(`Getting DC ${dcId}`);
         if (!IS_NODE) {
             switch (dcId) {
                 case 1:
@@ -525,6 +530,7 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     async _borrowExportedSender(dcId: number, retries = this._requestRetries) {
+        this._log.debug(`Borrowing client for DC ${dcId}`)
         let senderPromise = this._borrowedSenderPromises[dcId];
         if (!senderPromise) {
             senderPromise = this._createExportedSender(dcId, retries);
