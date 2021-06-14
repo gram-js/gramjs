@@ -477,7 +477,6 @@ export function iterMessages(
         } else {
             idsArray = ids;
         }
-        console.log("ids array is", idsArray);
         return new _IDsIter(
             client,
             idsArray.length,

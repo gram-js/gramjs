@@ -73,8 +73,6 @@ export function _getResponseMessage(
     result: any,
     inputChat: any
 ) {
-    console.log("requestsd first is", request);
-    console.log("resulted first is", result);
     let updates = [];
 
     let entities = new Map();
@@ -175,11 +173,6 @@ export function _getResponseMessage(
     }
     if (request == undefined) {
         return idToMessage;
-    }
-    console.log("request is", request);
-    console.log("random id is", request.randomId);
-    if (!(result instanceof Api.UpdateShort)) {
-        console.log("result is", result.updates);
     }
     let randomId =
         isArrayLike(request) ||
