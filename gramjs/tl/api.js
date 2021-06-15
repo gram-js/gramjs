@@ -232,7 +232,7 @@ function compareType(value, type) {
             correct = typeof value === type;
             break;
         case "bigInt":
-            correct = bigInt.isInstance(value) || value === undefined;
+            correct = bigInt.isInstance(value) || typeof value==="bigint" || value === undefined;
             break;
         case "true":
             // true value is always correct
