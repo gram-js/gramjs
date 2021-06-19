@@ -10,7 +10,7 @@ import { IGE } from "../crypto/IGE";
 import { InvalidBufferError, SecurityError } from "../errors";
 
 export class MTProtoState {
-    private authKey?: AuthKey;
+    private readonly authKey?: AuthKey;
     private _log: any;
     timeOffset: number;
     salt: bigInt.BigInteger;

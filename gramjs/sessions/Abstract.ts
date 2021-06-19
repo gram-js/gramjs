@@ -41,7 +41,7 @@ export abstract class Session {
 
     /**
      * Returns an ``AuthKey`` instance associated with the saved
-     * data center, or `None` if a new one should be generated.
+     * data center, or `undefined` if a new one should be generated.
      */
     abstract get authKey(): AuthKey | undefined;
 

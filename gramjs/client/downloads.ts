@@ -7,27 +7,48 @@ import type { Message } from "../tl/custom/message";
 import { EntityLike } from "../define";
 import { utils } from "../";
 
+/**
+ * progress callback that will be called each time a new chunk is downloaded.
+ */
 export interface progressCallback {
     (
-        progress: number, // Float between 0 and 1.
+        /** float between 0 and 1 */
+        progress: number,
+        /** other args to be passed if needed */
         ...args: any[]
     ): void;
-
+    /** When this value is set to true the download will stop */
     isCanceled?: boolean;
+    /** Does nothing for now. */
     acceptsBuffer?: boolean;
 }
 
+/**
+ * Low level interface for downloading files
+ */
 export interface DownloadFileParams {
+    /** The dcId that the file belongs to. Used to borrow a sender from that DC */
     dcId: number;
+    /** How much to download. The library will download until it reaches this amount.<br/>
+     *  can be useful for downloading by chunks */
     fileSize: number;
+    /** Used to determine how many download tasks should be run in parallel. anything above 16 is unstable. */
     workers?: number;
+    /** How much to download in each chunk. The larger the less requests to be made. (max is 512kb). */
     partSizeKb?: number;
+    /** Where to start downloading. useful for chunk downloading. */
     start?: number;
+    /** Where to stop downloading. useful for chunk downloading. */
     end?: number;
+    /** Progress callback accepting one param. (progress :number) which is a float between 0 and 1 */
     progressCallback?: progressCallback;
 }
 
+/**
+ * contains optional download params for profile photo.
+ */
 export interface DownloadProfilePhotoParams {
+    /** Whether to download the big version or the small one of the photo */
     isBig?: boolean;
 }
 
@@ -45,6 +66,7 @@ const DEFAULT_CHUNK_SIZE = 64; // kb
 const ONE_MB = 1024 * 1024;
 const REQUEST_TIMEOUT = 15000;
 
+/** @hidden */
 export async function downloadFile(
     client: TelegramClient,
     inputLocation: Api.TypeInputFileLocation,
@@ -129,12 +151,12 @@ export async function downloadFile(
                                 location: inputLocation,
                                 offset,
                                 limit,
-                                precise: isPrecise || undefined,
+                                precise: isPrecise || undefined
                             })
                         ),
                         sleep(REQUEST_TIMEOUT).then(() =>
                             Promise.reject(new Error("REQUEST_TIMEOUT"))
-                        ),
+                        )
                     ]);
 
                     if (progressCallback) {
@@ -177,7 +199,8 @@ class Foreman {
     private deferred: Deferred | undefined;
     private activeWorkers = 0;
 
-    constructor(private maxWorkers: number) {}
+    constructor(private maxWorkers: number) {
+    }
 
     requestWorker() {
         this.activeWorkers++;
@@ -207,24 +230,29 @@ function createDeferred(): Deferred {
 
     return {
         promise,
-        resolve: resolve!,
+        resolve: resolve!
     };
 }
 
+/**
+ * All of these are optional and will be calculated automatically if not specified.
+ */
 export interface DownloadMediaInterface {
     sizeType?: string;
     /** where to start downloading **/
     start?: number;
     /** where to stop downloading **/
     end?: number;
+    /** a progress callback that will be called each time a new chunk is downloaded and passes a number between 0 and 1*/
     progressCallback?: progressCallback;
+    /** number of workers to use while downloading. more means faster but anything above 16 may cause issues. */
     workers?: number;
 }
-
+/** @hidden */
 export async function downloadMedia(
     client: TelegramClient,
     messageOrMedia: Api.Message | Api.TypeMessageMedia | Message,
-    args: DownloadMediaInterface
+    downloadParams: DownloadMediaInterface
 ): Promise<Buffer> {
     let date;
     let media;
@@ -243,19 +271,19 @@ export async function downloadMedia(
         }
     }
     if (media instanceof Api.MessageMediaPhoto || media instanceof Api.Photo) {
-        return client._downloadPhoto(media, args);
+        return _downloadPhoto(client,media, downloadParams);
     } else if (
         media instanceof Api.MessageMediaDocument ||
         media instanceof Api.Document
     ) {
-        return client._downloadDocument(media, args);
+        return _downloadDocument(client,media, downloadParams);
     } else if (media instanceof Api.MessageMediaContact) {
-        return client._downloadContact(media, args);
+        return _downloadContact(client,media, downloadParams);
     } else if (
         media instanceof Api.WebDocument ||
         media instanceof Api.WebDocumentNoProxy
     ) {
-        return client._downloadWebDocument(media, args);
+        return _downloadWebDocument(client,media, downloadParams);
     } else {
         return Buffer.alloc(0);
     }
@@ -289,7 +317,7 @@ export async function _downloadDocument(
             (size instanceof Api.PhotoCachedSize ||
                 size instanceof Api.PhotoStrippedSize)
         ) {
-            return client._downloadCachedPhotoSize(size);
+            return _downloadCachedPhotoSize(size);
         }
     }
     return client.downloadFile(
@@ -297,7 +325,7 @@ export async function _downloadDocument(
             id: doc.id,
             accessHash: doc.accessHash,
             fileReference: doc.fileReference,
-            thumbSize: size ? size.type : "",
+            thumbSize: size ? size.type : ""
         }),
         {
             fileSize:
@@ -308,7 +336,7 @@ export async function _downloadDocument(
             start: args.start,
             end: args.end,
             dcId: doc.dcId,
-            workers: args.workers,
+            workers: args.workers
         }
     );
 }
@@ -351,7 +379,6 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
 }
 
 export function _downloadCachedPhotoSize(
-    client: TelegramClient,
     size: Api.PhotoCachedSize | Api.PhotoStrippedSize
 ) {
     // No need to download anything, simply write the bytes
@@ -387,23 +414,24 @@ export async function _downloadPhoto(
         size instanceof Api.PhotoCachedSize ||
         size instanceof Api.PhotoStrippedSize
     ) {
-        return client._downloadCachedPhotoSize(size);
+        return _downloadCachedPhotoSize(size);
     }
     return client.downloadFile(
         new Api.InputPhotoFileLocation({
             id: photo.id,
             accessHash: photo.accessHash,
             fileReference: photo.fileReference,
-            thumbSize: size.type,
+            thumbSize: size.type
         }),
         {
             dcId: photo.dcId,
             fileSize: size.size,
-            progressCallback: args.progressCallback,
+            progressCallback: args.progressCallback
         }
     );
 }
 
+/** @hidden */
 export async function downloadProfilePhoto(
     client: TelegramClient,
     entity: EntityLike,
@@ -429,7 +457,7 @@ export async function downloadProfilePhoto(
         loc = new Api.InputPeerPhotoFileLocation({
             peer: utils.getInputPeer(entity),
             photoId: photo.photoId,
-            big: fileParams.isBig,
+            big: fileParams.isBig
         });
     } else {
         return Buffer.alloc(0);
@@ -437,6 +465,6 @@ export async function downloadProfilePhoto(
     return client.downloadFile(loc, {
         dcId,
         fileSize: 2 * 1024 * 1024,
-        workers: 1,
+        workers: 1
     });
 }

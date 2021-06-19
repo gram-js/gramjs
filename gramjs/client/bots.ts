@@ -5,14 +5,15 @@ import GetInlineBotResults = Api.messages.GetInlineBotResults;
 import type { TelegramClient } from "./TelegramClient";
 
 // BotMethods
+/** @hidden */
 export async function inlineQuery(
     client: TelegramClient,
     bot: EntityLike,
     query: string,
-    entity?: Api.InputPeerSelf | null,
+    entity?: Api.InputPeerSelf,
     offset?: string,
     geoPoint?: Api.GeoPoint
-): Promise<InlineResults<Api.messages.BotResults>> {
+): Promise<InlineResults> {
     bot = await client.getInputEntity(bot);
     let peer = new Api.InputPeerSelf();
     if (entity) {
@@ -30,6 +31,6 @@ export async function inlineQuery(
     return new InlineResults(
         client,
         result,
-        (entity = entity ? peer : undefined)
+        (entity ? peer : undefined)
     );
 }

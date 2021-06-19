@@ -1,10 +1,11 @@
 import type { TelegramClient } from "./TelegramClient";
 import type { EntitiesLike, Entity, EntityLike, ValueOf } from "../define";
-import { sleep, getMinBigInt, TotalList } from "../Helpers";
+import { sleep, getMinBigInt, TotalList, betterConsoleLog } from "../Helpers";
 import { RequestIter } from "../requestIter";
 import { helpers, utils } from "../";
 import { Api } from "../tl";
 import bigInt, { BigInteger } from "big-integer";
+import { inspect } from "util";
 
 const _MAX_PARTICIPANTS_CHUNK_SIZE = 200;
 const _MAX_ADMIN_LOG_CHUNK_SIZE = 100;
@@ -37,17 +38,21 @@ class _ChatAction {
         document: new Api.SendMessageUploadDocumentAction({ progress: 1 }),
         file: new Api.SendMessageUploadDocumentAction({ progress: 1 }), // alias
 
-        cancel: new Api.SendMessageCancelAction(),
+        cancel: new Api.SendMessageCancelAction()
     };
 
     private _client: TelegramClient;
-    private _chat: EntityLike;
-    private _action: ValueOf<typeof _ChatAction._str_mapping>;
-    private _delay: number;
-    private autoCancel: boolean;
+    private readonly _chat: EntityLike;
+    private readonly _action: ValueOf<typeof _ChatAction._str_mapping>;
+    private readonly _delay: number;
+    private readonly autoCancel: boolean;
     private _request?: Api.AnyRequest;
     private _task: null;
     private _running: boolean;
+
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor(
         client: TelegramClient,
@@ -55,7 +60,7 @@ class _ChatAction {
         action: ValueOf<typeof _ChatAction._str_mapping>,
         params: ChatActionInterface = {
             delay: 4,
-            autoCancel: true,
+            autoCancel: true
         }
     ) {
         this._client = client;
@@ -71,7 +76,7 @@ class _ChatAction {
     async start() {
         this._request = new Api.messages.SetTyping({
             peer: this._chat,
-            action: this._action,
+            action: this._action
         });
         this._running = true;
         this._update();
@@ -83,7 +88,7 @@ class _ChatAction {
             await this._client.invoke(
                 new Api.messages.SetTyping({
                     peer: this._chat,
-                    action: new Api.SendMessageCancelAction(),
+                    action: new Api.SendMessageCancelAction()
                 })
             );
         }
@@ -115,22 +120,26 @@ export class _ParticipantsIter extends RequestIter {
     private filterEntity: ((entity: Entity) => boolean) | undefined;
     private requests?: Api.channels.GetParticipants[];
 
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
+
     async _init({
-        entity,
-        filter,
-        search,
-    }: ParticipantsIterInterface): Promise<boolean | void> {
+                    entity,
+                    filter,
+                    search
+                }: ParticipantsIterInterface): Promise<boolean | void> {
         if (filter && filter.constructor === Function) {
             if (
                 [
                     Api.ChannelParticipantsBanned,
                     Api.ChannelParticipantsKicked,
                     Api.ChannelParticipantsSearch,
-                    Api.ChannelParticipantsContacts,
+                    Api.ChannelParticipantsContacts
                 ].includes(filter)
             ) {
                 filter = new filter({
-                    q: "",
+                    q: ""
                 });
             } else {
                 filter = new filter();
@@ -160,7 +169,7 @@ export class _ParticipantsIter extends RequestIter {
         if (ty == helpers._EntityType.CHANNEL) {
             const channel = await this.client.invoke(
                 new Api.channels.GetFullChannel({
-                    channel: entity,
+                    channel: entity
                 })
             );
             if (!(channel.fullChat instanceof Api.ChatFull)) {
@@ -175,11 +184,11 @@ export class _ParticipantsIter extends RequestIter {
                     filter:
                         filter ||
                         new Api.ChannelParticipantsSearch({
-                            q: search || "",
+                            q: search || ""
                         }),
                     offset: 0,
                     limit: _MAX_PARTICIPANTS_CHUNK_SIZE,
-                    hash: 0,
+                    hash: 0
                 })
             );
         } else if (ty == helpers._EntityType.CHAT) {
@@ -190,7 +199,7 @@ export class _ParticipantsIter extends RequestIter {
             }
             const full = await this.client.invoke(
                 new Api.messages.GetFullChat({
-                    chatId: entity.chatId,
+                    chatId: entity.chatId
                 })
             );
 
@@ -256,7 +265,7 @@ export class _ParticipantsIter extends RequestIter {
             const participants = results[i];
             if (
                 participants instanceof
-                    Api.channels.ChannelParticipantsNotModified ||
+                Api.channels.ChannelParticipantsNotModified ||
                 !participants.users.length
             ) {
                 this.requests.splice(i, 1);
@@ -317,6 +326,10 @@ class _AdminLogIter extends RequestIter {
     private entity?: Api.TypeInputPeer;
     private request?: Api.channels.GetAdminLog;
 
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
+
     async _init(
         entity: EntityLike,
         searchArgs?: _AdminLogSearchInterface,
@@ -329,7 +342,7 @@ class _AdminLogIter extends RequestIter {
             Object.values(filterArgs).find((element) => element === true)
         ) {
             eventsFilter = new Api.ChannelAdminLogEventsFilter({
-                ...filterArgs,
+                ...filterArgs
             });
         }
         this.entity = await this.client.getInputEntity(entity);
@@ -346,7 +359,7 @@ class _AdminLogIter extends RequestIter {
             maxId: searchArgs?.maxId,
             limit: 0,
             eventsFilter: eventsFilter,
-            admins: adminList || undefined,
+            admins: adminList || undefined
         });
     }
 
@@ -378,12 +391,19 @@ class _AdminLogIter extends RequestIter {
     }
 }
 
+/**
+ * Used in iterParticipant and getParticipant. all params are optional.
+ */
 export interface IterParticipantsParams {
+    /** how many members to retrieve. defaults to Number.MAX_SAFE_INTEGER (everyone) */
     limit?: number;
+    /** a query string to filter participants based on their display names and usernames. defaults to "" (everyone) */
     search?: string;
+    /** optional filter to be used. E.g only admins filter or only banned members filter. PS : some filters need more permissions. */
     filter?: Api.TypeChannelParticipantsFilter;
 }
 
+/** @hidden */
 export function iterParticipants(
     client: TelegramClient,
     entity: EntityLike,
@@ -396,11 +416,12 @@ export function iterParticipants(
         {
             entity: entity,
             filter: filter,
-            search: search,
+            search: search
         }
     );
 }
 
+/** @hidden */
 export async function getParticipants(
     client: TelegramClient,
     entity: EntityLike,

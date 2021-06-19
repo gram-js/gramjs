@@ -1,4 +1,3 @@
-import type { BinaryReader } from "../../extensions";
 import { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 import { AsyncQueue } from "../../extensions";
 import { IS_NODE } from "../../Helpers";
@@ -17,8 +16,8 @@ import { IS_NODE } from "../../Helpers";
 class Connection {
     // @ts-ignore
     PacketCodecClass: any; //"typeof AbridgedPacketCodec|typeof FullPacketCodec|typeof ObfuscatedConnection as "
-    private _ip: string;
-    private _port: number;
+    private readonly _ip: string;
+    private readonly _port: number;
     private _dcId: number;
     private _log: any;
     private _connected: boolean;
@@ -26,7 +25,7 @@ class Connection {
     private _recvTask?: Promise<void>;
     protected _codec: any;
     protected _obfuscation: any;
-    private _sendArray: AsyncQueue;
+    private readonly _sendArray: AsyncQueue;
     private _recvArray: AsyncQueue;
     protected socket: PromisedNetSockets | PromisedWebSockets;
 

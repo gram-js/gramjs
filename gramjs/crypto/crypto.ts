@@ -89,7 +89,7 @@ export function randomBytes(count: Buffer) {
 }
 
 export class Hash {
-    private algorithm: string;
+    private readonly algorithm: string;
     private data?: Uint8Array;
 
     constructor(algorithm: string) {

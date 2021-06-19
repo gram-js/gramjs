@@ -1,6 +1,5 @@
 import { Api } from "../tl";
-import type { ValueOf } from "../define";
-import { DEFAULT_DELIMITERS, messageEntities } from "../client/messageParse";
+import { DEFAULT_DELIMITERS} from "../client/messageParse";
 
 export class MarkdownParser {
     // TODO maybe there is a better way :shrug:

@@ -69,7 +69,7 @@ PUBLIC_KEYS.forEach(({ fingerprint, ...keyInfo }) => {
 
  * @param fingerprint the fingerprint of the RSA key.
  * @param data the data to be encrypted.
- * @returns {Buffer|*|undefined} the cipher text, or None if no key matching this fingerprint is found.
+ * @returns {Buffer|*|undefined} the cipher text, or undefined if no key matching this fingerprint is found.
  */
 export async function encrypt(fingerprint: bigInt.BigInteger, data: Buffer) {
     const key = _serverKeys.get(fingerprint.toString());

@@ -1,6 +1,6 @@
 {
   "name": "telegram",
-  "version": "1.7.7",
+  "version": "1.7.9",
   "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "types": "index.d.ts",
@@ -35,6 +35,7 @@
     "raw-loader": "^4.0.2",
     "ts-loader": "^8.0.16",
     "ts-node": "^9.1.1",
+    "typedoc": "^0.21.0",
     "typescript": "^4.2.4",
     "webpack": "^5.21.2",
     "webpack-cli": "^4.5.0"

@@ -62,29 +62,29 @@ export class MTProtoSender {
         senderCallback: null,
     };
     private _connection?: Connection;
-    private _log: any;
+    private readonly _log: any;
     private _dcId: number;
-    private _retries: number;
-    private _delay: number;
+    private readonly _retries: number;
+    private readonly _delay: number;
     private _connectTimeout: null;
     private _autoReconnect: boolean;
-    private _authKeyCallback: any;
-    private _updateCallback: any;
-    private _autoReconnectCallback?: any;
-    private _senderCallback: any;
-    private _isMainSender: boolean;
+    private readonly _authKeyCallback: any;
+    private readonly _updateCallback: any;
+    private readonly _autoReconnectCallback?: any;
+    private readonly _senderCallback: any;
+    private readonly _isMainSender: boolean;
     private _userConnected: boolean;
     private _reconnecting: boolean;
     private _disconnected: boolean;
     private _sendLoopHandle: any;
     private _recvLoopHandle: any;
-    private authKey: AuthKey;
-    private _state: MTProtoState;
+    private readonly authKey: AuthKey;
+    private readonly _state: MTProtoState;
     private _sendQueue: MessagePacker;
     private _pendingState: Map<string, RequestState>;
-    private _pendingAck: Set<any>;
-    private _lastAcks: any[];
-    private _handlers: any;
+    private readonly _pendingAck: Set<any>;
+    private readonly _lastAcks: any[];
+    private readonly _handlers: any;
 
     /**
      * @param authKey

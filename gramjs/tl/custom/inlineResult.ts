@@ -1,24 +1,30 @@
-import type { TelegramClient } from "../../client/TelegramClient";
+import type { TelegramClient } from "../..";
 import type { EntityLike, MessageIDLike } from "../../define";
 import { Api } from "../api";
 import { utils } from "../../";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
 
 export class InlineResult {
-    ARTICLE = "article";
-    PHOTO = "photo";
-    GIF = "gif";
-    VIDEO = "video";
-    VIDEO_GIF = "mpeg4_gif";
-    AUDIO = "audio";
-    DOCUMENT = "document";
-    LOCATION = "location";
-    VENUE = "venue";
-    CONTACT = "contact";
-    GAME = "game";
-    private _entity: EntityLike | undefined;
-    private _queryId: Api.long | undefined;
-    private result: Api.TypeBotInlineResult;
+    private _ARTICLE = "article";
+    private _PHOTO = "photo";
+    private _GIF = "gif";
+    private _VIDEO = "video";
+    private _VIDEO_GIF = "mpeg4_gif";
+    private _AUDIO = "audio";
+    private _DOCUMENT = "document";
+    private _LOCATION = "location";
+    private _VENUE = "venue";
+    private _CONTACT = "contact";
+    private _GAME = "game";
+    private readonly _entity: EntityLike | undefined;
+    private readonly _queryId: Api.long | undefined;
+    private readonly result: Api.TypeBotInlineResult;
     private _client: TelegramClient;
+
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor(
         client: TelegramClient,
@@ -90,7 +96,7 @@ export class InlineResult {
             silent: silent,
             clearDraft: clearDraft,
             hideVia: hideVia,
-            replyToMsgId: replyId,
+            replyToMsgId: replyId
         });
         return await this._client.invoke(request);
     }

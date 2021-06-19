@@ -3,8 +3,7 @@ import { RequestIter } from "../requestIter";
 import { TelegramClient, utils } from "../index";
 import { Message } from "../tl/custom/message";
 import { Dialog } from "../tl/custom/dialog";
-import { DateLike, EntityLike, FileLike, MarkupLike } from "../define";
-import { IterMessagesParams } from "./messages";
+import { DateLike, EntityLike} from "../define";
 import { TotalList } from "../Helpers";
 
 const _MAX_CHUNK_SIZE = 100;
@@ -25,12 +24,12 @@ function _dialogMessageKey(peer: Api.TypePeer, messageId: number): string {
         "" +
         [
             peer instanceof Api.PeerChannel ? peer.channelId : undefined,
-            messageId,
+            messageId
         ]
     );
 }
 
-interface DialogsIterInterface {
+export interface DialogsIterInterface {
     offsetDate: number;
     offsetId: number;
     offsetPeer: Api.TypePeer;
@@ -46,13 +45,13 @@ export class _DialogsIter extends RequestIter {
     private ignoreMigrated?: boolean;
 
     async _init({
-        offsetDate,
-        offsetId,
-        offsetPeer,
-        ignorePinned,
-        ignoreMigrated,
-        folder,
-    }: DialogsIterInterface) {
+                    offsetDate,
+                    offsetId,
+                    offsetPeer,
+                    ignorePinned,
+                    ignoreMigrated,
+                    folder
+                }: DialogsIterInterface) {
         this.request = new Api.messages.GetDialogs({
             offsetDate,
             offsetId,
@@ -60,7 +59,7 @@ export class _DialogsIter extends RequestIter {
             limit: 1,
             hash: 0,
             excludePinned: ignorePinned,
-            folderId: folder,
+            folderId: folder
         });
         if (this.limit <= 0) {
             // Special case, get a single dialog and determine count
@@ -113,14 +112,14 @@ export class _DialogsIter extends RequestIter {
             } catch (e) {
                 this.client._log.error(
                     "Got error while trying to finish init message with id " +
-                        m.id
+                    m.id
                 );
                 if (this.client._log.canSend("error")) {
                     console.error(e);
                 }
             }
             messages.set(
-                _dialogMessageKey(message.peerId, message.id),
+                _dialogMessageKey(message.peerId!, message.id),
                 message
             );
         }
@@ -133,7 +132,7 @@ export class _DialogsIter extends RequestIter {
                 _dialogMessageKey(d.peer, d.topMessage)
             );
             if (this.offsetDate != undefined) {
-                const date = message?.date;
+                const date = message?.date!;
                 if (date != undefined || date > this.offsetDate) {
                     continue;
                 }
@@ -175,23 +174,40 @@ export class _DialogsIter extends RequestIter {
         }
         this.request.excludePinned = true;
         this.request.offsetId = lastMessage ? lastMessage.id : 0;
-        this.request.offsetDate = lastMessage ? lastMessage.date : undefined;
+        this.request.offsetDate = lastMessage ? lastMessage.date! : 0;
         this.request.offsetPeer =
             this.buffer[this.buffer.length - 1].inputEntity;
     }
 }
 
+
+/** interface for iterating and getting dialogs. */
 export interface IterDialogsParams {
+    /**  How many dialogs to be retrieved as maximum. Can be set to undefined to retrieve all dialogs.<br/>
+     * Note that this may take whole minutes if you have hundreds of dialogs, as Telegram will tell the library to slow down through a FloodWaitError.*/
     limit?: number;
+    /** The offset date of last message of dialog to be used. */
     offsetDate?: DateLike;
+    /** The message ID to be used as offset. */
     offsetId?: number;
+    /** offset Peer to be used (defaults to Empty = no offset) */
     offsetPeer?: EntityLike;
+    /** Whether pinned dialogs should be ignored or not. When set to true, these won't be yielded at all. */
     ignorePinned?: boolean;
+    /**  Whether Chat that have migratedTo a Supergroup should be included or not.<br/>
+     * By default all the chats in your dialogs are returned, but setting this to True will ignore (i.e. skip) them in the same way official applications do.*/
     ignoreMigrated?: boolean;
+    /** The folder from which the dialogs should be retrieved.<br/>
+     * If left unspecified, all dialogs (including those from folders) will be returned.<br/>
+     * If set to 0, all dialogs that don't belong to any folder will be returned.<br/>
+     * If set to a folder number like 1, only those from said folder will be returned.<br/>
+     * By default Telegram assigns the folder ID 1 to archived chats, so you should use that if you need to fetch the archived dialogs.<br/> */
     folder?: number;
+    /**  Alias for folder. If unspecified, all will be returned, false implies `folder:0` and True implies `folder:1`.*/
     archived?: boolean;
 }
 
+/** @hidden */
 export function iterDialogs(
     client: TelegramClient,
     {
@@ -202,7 +218,7 @@ export function iterDialogs(
         ignorePinned = false,
         ignoreMigrated = false,
         folder = undefined,
-        archived = undefined,
+        archived = undefined
     }: IterDialogsParams
 ): _DialogsIter {
     if (archived != undefined) {
@@ -219,10 +235,12 @@ export function iterDialogs(
             offsetPeer,
             ignorePinned,
             ignoreMigrated,
-            folder,
+            folder
         }
     );
 }
+
+/** @hidden */
 export async function getDialogs(
     client: TelegramClient,
     params: IterDialogsParams

@@ -5,7 +5,7 @@ import { tlobjects } from "../tl/AllTLObjects";
 import { readBigIntFromBuffer } from "../Helpers";
 
 export class BinaryReader {
-    private stream: Buffer;
+    private readonly stream: Buffer;
     private _last?: Buffer;
     private offset: number;
 
@@ -184,7 +184,7 @@ export class BinaryReader {
         let clazz = tlobjects[constructorId];
         if (clazz === undefined) {
             /**
-             * The class was None, but there's still a
+             * The class was undefined, but there's still a
              * chance of it being a manually parsed value like bool!
              */
             const value = constructorId;

@@ -1,6 +1,6 @@
 import { getPeerId, sanitizeParseMode } from "../Utils";
 import { Api } from "../tl";
-import type { EntityLike, ValueOf } from "../define";
+import type { EntityLike} from "../define";
 import type { TelegramClient } from "./TelegramClient";
 import { utils } from "../index";
 import { _EntityType, _entityType, isArrayLike } from "../Helpers";
@@ -20,7 +20,7 @@ export const DEFAULT_DELIMITERS: {
     __: Api.MessageEntityItalic,
     "~~": Api.MessageEntityStrike,
     "`": Api.MessageEntityCode,
-    "```": Api.MessageEntityPre,
+    "```": Api.MessageEntityPre
 };
 
 // export class MessageParseMethods {
@@ -29,7 +29,7 @@ export interface ParseInterface {
     parse: (message: string) => [string, Api.TypeMessageEntity[]];
     unparse: (
         text: string,
-        entities: Api.TypeMessageEntity[] | undefined
+        entities: Api.TypeMessageEntity[]
     ) => string;
 }
 
@@ -43,7 +43,7 @@ export async function _replaceWithMention(
         entities[i] = new Api.InputMessageEntityMentionName({
             offset: entities[i].offset,
             length: entities[i].length,
-            userId: await client.getInputEntity(user),
+            userId: await client.getInputEntity(user)
         });
         return true;
     } catch (e) {
@@ -54,12 +54,15 @@ export async function _replaceWithMention(
 export function _parseMessageText(
     client: TelegramClient,
     message: string,
-    parseMode: any
-) {
+    parseMode: false | string | ParseInterface
+): [string, Api.TypeMessageEntity[]] {
     if (parseMode == false) {
         return [message, []];
     }
     if (parseMode == undefined) {
+        if (client.parseMode == undefined) {
+            return [message, []];
+        }
         parseMode = client.parseMode;
     } else if (typeof parseMode === "string") {
         parseMode = sanitizeParseMode(parseMode);
@@ -133,8 +136,7 @@ export function _getResponseMessage(
         } else if (
             update instanceof Api.UpdateEditChannelMessage &&
             "peer" in request &&
-            getPeerId(request.peer) ==
-                getPeerId((update.message as unknown as Message).peerId)
+            getPeerId(request.peer) == getPeerId((update.message as unknown as Message).peerId!)
         ) {
             if (request.id == update.message.id) {
                 (update.message as unknown as Message)._finishInit(
@@ -161,10 +163,10 @@ export function _getResponseMessage(
                     peerId: utils.getPeerId(request.peer),
                     media: new Api.MessageMediaPoll({
                         poll: update.poll!,
-                        results: update.results,
+                        results: update.results
                     }),
                     message: "",
-                    date: 0,
+                    date: 0
                 });
                 m._finishInit(client, entities, inputChat);
                 return m;

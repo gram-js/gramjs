@@ -6,6 +6,7 @@ import {
 } from "../Helpers";
 import { BinaryReader } from "../extensions";
 import { sleep } from "../Helpers";
+import bigInt from "big-integer";
 
 export class AuthKey {
     private _key?: Buffer;

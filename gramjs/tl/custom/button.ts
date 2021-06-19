@@ -1,12 +1,18 @@
 import type { ButtonLike, EntityLike } from "../../define";
 import { Api } from "../api";
 import { utils } from "../../";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
 
 export class Button {
     public button: ButtonLike;
     public resize: boolean | undefined;
     public selective: boolean | undefined;
     public singleUse: boolean | undefined;
+
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor(
         button: Api.TypeKeyboardButton,
@@ -38,7 +44,7 @@ export class Button {
         }
         return new Api.KeyboardButtonCallback({
             text: text,
-            data: data,
+            data: data
         });
     }
 
@@ -46,14 +52,14 @@ export class Button {
         return new Api.KeyboardButtonSwitchInline({
             text,
             query,
-            samePeer,
+            samePeer
         });
     }
 
     static url(text: string, url?: string) {
         return new Api.KeyboardButtonUrl({
             text: text,
-            url: url || text,
+            url: url || text
         });
     }
 
@@ -69,7 +75,7 @@ export class Button {
             url: url || text,
             bot: utils.getInputPeer(bot || new Api.InputUserSelf()),
             requestWriteAccess: writeAccess,
-            fwdText: fwdText,
+            fwdText: fwdText
         });
     }
 

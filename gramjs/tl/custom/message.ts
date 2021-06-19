@@ -9,6 +9,9 @@ import type { File } from "./file";
 import { Mixin } from "ts-mixer";
 import { EditMessageParams, SendMessageParams } from "../../client/messages";
 import { DownloadFileParams } from "../../client/downloads";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
+import { _selfId } from "../../client/users";
 
 interface MessageBaseInterface {
     id: any;
@@ -43,88 +46,235 @@ interface MessageBaseInterface {
     _entities?: Map<number, Entity>;
 }
 
+/**
+ * This custom class aggregates both {@link Api.Message} and {@link Api.MessageService} to ease accessing their members.<br/>
+ * <br/>
+ * Remember that this class implements {@link ChatGetter} and {@link SenderGetter}<br/>
+ * which means you have access to all their sender and chat properties and methods.
+ */
 export class Message extends Mixin(SenderGetter, ChatGetter) {
+
+    /**
+     * Whether the message is outgoing (i.e. you sent it from
+     * another session) or incoming (i.e. someone else sent it).
+     * <br/>
+     * Note that messages in your own chat are always incoming,
+     * but this member will be `true` if you send a message
+     * to your own chat. Messages you forward to your chat are
+     * **not** considered outgoing, just like official clients
+     * display them.
+     */
     out?: boolean;
+    /**
+     * Whether you were mentioned in this message or not.
+     * Note that replies to your own messages also count as mentions.
+     */
     mentioned?: boolean;
+    /** Whether you have read the media in this message
+     * or not, e.g. listened to the voice note media.
+     */
     mediaUnread?: boolean;
+    /**
+     * Whether the message should notify people with sound or not.
+     * Previously used in channels, but since 9 August 2019, it can
+     * also be {@link https://telegram.org/blog/silent-messages-slow-mode|used in private chats}
+     */
     silent?: boolean;
-    post: boolean;
-    fromScheduled: any | undefined;
-    legacy: any | undefined;
-    editHide: any | undefined;
+    /**
+     * Whether this message is a post in a broadcast
+     * channel or not.
+     */
+    post?: boolean;
+    /**
+     * Whether this message was originated from a previously-scheduled
+     * message or not.
+     */
+    fromScheduled?: boolean;
+    /**
+     * Whether this is a legacy message or not.
+     */
+    legacy?: boolean;
+    /**
+     * Whether the edited mark of this message is edited
+     * should be hidden (e.g. in GUI clients) or shown.
+     */
+    editHide?: boolean;
+    /**
+     *  Whether this message is currently pinned or not.
+     */
+    pinned?: boolean;
+    /**
+     * The ID of this message. This field is *always* present.
+     * Any other member is optional and may be `undefined`.
+     */
     id: number;
-    fromId?: EntityLike;
-    peerId: any;
-    fwdFrom: Api.TypeMessageFwdHeader;
-    viaBotId: any;
-    replyTo: Api.MessageReplyHeader;
-    date: any | undefined;
-    message: string;
-    media: any;
-    replyMarkup: any | undefined;
-    entities: any | undefined;
+    /**
+     * The peer who sent this message, which is either
+     * {@link Api.PeerUser}, {@link Api.PeerChat} or {@link Api.PeerChannel}.
+     * This value will be `undefined` for anonymous messages.
+     */
+    fromId?: Api.TypePeer;
+    /**
+     * The peer to which this message was sent, which is either
+     * {@link Api.PeerUser}, {@link Api.PeerChat} or {@link Api.PeerChannel}.
+     * This will always be present except for empty messages.
+     */
+    peerId?: Api.TypePeer;
+    /**
+     * The original forward header if this message is a forward.
+     * You should probably use the `forward` property instead.
+     */
+    fwdFrom?: Api.TypeMessageFwdHeader;
+    /**
+     * The ID of the bot used to send this message
+     * through its inline mode (e.g. "via @like").
+     */
+    viaBotId?: number;
+    /**
+     * The original reply header if this message is replying to another.
+     */
+    replyTo?: Api.MessageReplyHeader;
+    /**
+     * The timestamp indicating when this message was sent.
+     * This will always be present except for empty messages.
+     */
+    date?: number;
+    /**
+     * The string text of the message for {@link Api.Message} instances,
+     * which will be `undefined` for other types of messages.
+     */
+    message?: string;
+    /**
+     * The media sent with this message if any (such as photos, videos, documents, gifs, stickers, etc.).
+     *
+     * You may want to access the `photo`, `document` etc. properties instead.
+     *
+     * If the media was not present or it was {@link Api.MessageMediaEmpty},
+     * this member will instead be `undefined` for convenience.
+     */
+    media?: Api.TypeMessageMedia;
+    /**
+     * The reply markup for this message (which was sent either via a bot or by a bot).
+     * You probably want to access `buttons` instead.
+     */
+    replyMarkup?: Api.TypeReplyMarkup;
+    /**
+     * The list of markup entities in this message,
+     * such as bold, italics, code, hyperlinks, etc.
+     */
+    entities?: Api.TypeMessageEntity[];
+    /**
+     *  The number of views this message from a broadcast channel has.
+     *  This is also present in forwards.
+     */
     views?: number;
-    forwards: any | undefined;
-    replies: any | undefined;
-    editDate: any;
-    pinned: any | undefined;
-    postAuthor: any;
+    /**
+     * The number of times this message has been forwarded.
+     */
+    forwards?: number;
+    /**
+     *  The number of times another message has replied to this message.
+     */
+    replies?: number;
+    /**
+     * The date when this message was last edited.
+     */
+    editDate?: number;
+    /**
+     * The display name of the message sender to show in messages sent to broadcast channels.
+     */
+    postAuthor?: string;
+    /**
+     *  If this message belongs to a group of messages (photo albums or video albums),
+     *  all of them will have the same value here.
+     */
     groupedId?: number;
-    restrictionReason: any;
-    action: any | undefined;
+    /**
+     * An optional list of reasons why this message was restricted.
+     * If the list is `undefined`, this message has not been restricted.
+     */
+    restrictionReason?: Api.TypeRestrictionReason[];
+    /**
+     * The message action object of the message for {@link Api.MessageService}
+     * instances, which will be `undefined` for other types of messages.
+     */
+    action?: any;
+    /**
+     * The Time To Live period configured for this message.
+     * The message should be erased from wherever it's stored (memory, a
+     * local database, etc.) when this threshold is met.
+     */
     ttlPeriod?: number;
-    _actionEntities: any;
-    public _client?: TelegramClient;
+    /** @hidden */
+    _actionEntities?: any;
+    /** @hidden */
+    _client?: TelegramClient;
+    /** @hidden */
     _text?: string;
+    /** @hidden */
     _file?: File;
+    /** @hidden */
     _replyMessage?: Message;
-    _buttons: undefined;
-    _buttonsFlat: undefined;
-    _buttonsCount: number;
+    /** @hidden */
+    _buttons?: undefined;
+    /** @hidden */
+    _buttonsFlat?: undefined;
+    /** @hidden */
+    _buttonsCount?: number;
+    /** @hidden */
     _viaBot?: EntityLike;
+    /** @hidden */
     _viaInputBot?: EntityLike;
-    _inputSender: any;
+    /** @hidden */
+    _inputSender?: any;
+    /** @hidden */
     _forward?: Forward;
-    _sender: any;
-    _entities: Map<number, Entity>;
+    /** @hidden */
+    _sender?: any;
+    /** @hidden */
+    _entities?: Map<number, Entity>;
     patternMatch?: RegExpMatchArray;
 
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
+
     constructor({
-        id,
-        peerId = undefined,
-        date = undefined,
+                    id,
+                    peerId = undefined,
+                    date = undefined,
 
-        out = undefined,
-        mentioned = undefined,
-        mediaUnread = undefined,
-        silent = undefined,
-        post = undefined,
-        fromId = undefined,
-        replyTo = undefined,
+                    out = undefined,
+                    mentioned = undefined,
+                    mediaUnread = undefined,
+                    silent = undefined,
+                    post = undefined,
+                    fromId = undefined,
+                    replyTo = undefined,
 
-        message = undefined,
+                    message = undefined,
 
-        fwdFrom = undefined,
-        viaBotId = undefined,
-        media = undefined,
-        replyMarkup = undefined,
-        entities = undefined,
-        views = undefined,
-        editDate = undefined,
-        postAuthor = undefined,
-        groupedId = undefined,
-        fromScheduled = undefined,
-        legacy = undefined,
-        editHide = undefined,
-        pinned = undefined,
-        restrictionReason = undefined,
-        forwards = undefined,
-        replies = undefined,
+                    fwdFrom = undefined,
+                    viaBotId = undefined,
+                    media = undefined,
+                    replyMarkup = undefined,
+                    entities = undefined,
+                    views = undefined,
+                    editDate = undefined,
+                    postAuthor = undefined,
+                    groupedId = undefined,
+                    fromScheduled = undefined,
+                    legacy = undefined,
+                    editHide = undefined,
+                    pinned = undefined,
+                    restrictionReason = undefined,
+                    forwards = undefined,
+                    replies = undefined,
 
-        action = undefined,
-        ttlPeriod = undefined,
-        _entities = new Map<number, Entity>(),
-    }: MessageBaseInterface) {
+                    action = undefined,
+                    ttlPeriod = undefined,
+                    _entities = new Map<number, Entity>()
+                }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
         if (fromId) {
@@ -242,10 +392,10 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                     entities.get(
                         utils.getPeerId(
                             new Api.PeerChannel({
-                                channelId: this.action.inviterId,
+                                channelId: this.action.inviterId
                             })
                         )
-                    ),
+                    )
                 ];
             } else if (
                 this.action instanceof Api.MessageActionChannelMigrateFrom
@@ -255,7 +405,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                         utils.getPeerId(
                             new Api.PeerChat({ chatId: this.action.chatId })
                         )
-                    ),
+                    )
                 ];
             }
         }
@@ -271,8 +421,8 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 this._text = this.message;
             } else {
                 this._text = this._client.parseMode.unparse(
-                    this.message,
-                    this.entities
+                    this.message || "",
+                    this.entities || []
                 );
             }
         }
@@ -290,7 +440,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     get rawText() {
-        return this.message;
+        return this.message || "";
     }
 
     /**
@@ -331,7 +481,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         } catch (e) {
             this._client._log.error(
                 "Got error while trying to finish init message with id " +
-                    this.id
+                this.id
             );
             if (this._client._log.canSend("error")) {
                 console.error(e);
@@ -533,7 +683,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     get toId() {
         if (this._client && !this.out && this.isPrivate) {
             return new Api.PeerUser({
-                userId: this._client._selfId!,
+                userId: _selfId(this._client)!
             });
         }
         return this.peerId;
@@ -543,9 +693,11 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         let ent = this.entities;
         if (!ent || ent.length == 0) return;
 
-        if (cls) ent = ent.filter((v: any) => v instanceof cls);
+        if (cls){
+            ent = ent.filter((v: any) => v instanceof cls);
+        }
 
-        const texts = utils.getInnerText(this.message, ent);
+        const texts = utils.getInnerText(this.message || "", ent);
         const zip = (rows: any[]) =>
             rows[0].map((_: any, c: string | number) =>
                 rows.map((row) => row[c])
@@ -564,7 +716,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 await this._client.getMessages(
                     this.isChannel ? await this.getInputChat() : undefined,
                     {
-                        ids: new Api.InputMessageReplyTo({ id: this.id }),
+                        ids: new Api.InputMessageReplyTo({ id: this.id })
                     }
                 )
             )[0];
@@ -578,7 +730,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                     await this._client.getMessages(
                         this.isChannel ? this._inputChat : undefined,
                         {
-                            ids: this.replyToMsgId,
+                            ids: this.replyToMsgId
                         }
                     )
                 )[0];
@@ -611,7 +763,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             entity = await this._client.getInputEntity(entity);
             const params = {
                 messages: [this.id],
-                fromPeer: (await this.getInputChat())!,
+                fromPeer: (await this.getInputChat())!
             };
 
             return this._client.forwardMessages(entity, params);
@@ -776,4 +928,5 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 }
 
-export interface Message extends ChatGetter, SenderGetter {}
+export interface Message extends ChatGetter, SenderGetter {
+}

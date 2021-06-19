@@ -2,6 +2,8 @@ import type { Entity, EntityLike } from "../../define";
 import type { TelegramClient } from "../../client/TelegramClient";
 import { utils } from "../../";
 import { Api } from "../api";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
 
 export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
@@ -16,6 +18,9 @@ export class ChatGetter {
     _chat?: Entity;
     _broadcast?: boolean;
     public _client?: TelegramClient;
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor({
         chatPeer,

@@ -4,33 +4,61 @@ import { sleep } from "../Helpers";
 import { computeCheck as computePasswordSrpCheck } from "../Password";
 import type { TelegramClient } from "./TelegramClient";
 
+/**
+ * For when you want to login as a {@link Api.User}<br/>
+ * this should handle all needed steps for authorization as a user.<br/>
+ * to stop the operation at any point just raise and error with the message `AUTH_USER_CANCEL`.
+ */
 export interface UserAuthParams {
+    /** Either a string or a callback that returns a string for the phone to use to login. */
     phoneNumber: string | (() => Promise<string>);
+    /** callback that should return the login code that telegram sent.<br/>
+     *  has optional bool `isCodeViaApp` param for whether the code was sent through the app (true) or an SMS (false). */
     phoneCode: (isCodeViaApp?: boolean) => Promise<string>;
+    /** optional string or callback that should return the 2FA password if present.<br/>
+     *  the password hint will be sent in the hint param */
     password: (hint?: string) => Promise<string>;
+    /** in case of a new account creation this callback should return a first name and last name `[first,last]`. */
     firstAndLastNames?: () => Promise<[string, string?]>;
+    /** a qrCode token for login through qrCode.<br/>
+     *  this would need a QR code that you should scan with another app to login with. */
     qrCode?: (qrCode: { token: Buffer; expires: number }) => Promise<void>;
+    /** when an error happens during auth this function will be called with the error.<br/>
+     *  if this returns true the auth operation will stop. */
     onError: (err: Error) => Promise<boolean> | void;
+    /** whether to send the code through SMS or not. */
     forceSMS?: boolean;
 }
 
 interface ReturnString {
     (): string;
 }
-
+/**
+ * For when you want as a normal bot created by https://t.me/Botfather.<br/>
+ * Logging in as bot is simple and requires no callbacks
+ */
 export interface BotAuthParams {
+    /**
+     * the bot token to use.
+     */
     botAuthToken: string | ReturnString;
 }
 
+/**
+ * Credential needed for the authentication. you can get theses from https://my.telegram.org/auth<br/>
+ * Note: This is required for both logging in as a bot and a user.<br/>
+ */
 export interface ApiCredentials {
+    /** The app api id. */
     apiId: number;
+    /** the app api hash */
     apiHash: string;
 }
 
 const QR_CODE_TIMEOUT = 30000;
 
 // region public methods
-
+/** @hidden */
 export async function start(
     client: TelegramClient,
     authParams: UserAuthParams | BotAuthParams
@@ -48,9 +76,9 @@ export async function start(
         apiHash: client.apiHash,
     };
 
-    await client.authFlow(apiCredentials, authParams);
+    await _authFlow(client,apiCredentials, authParams);
 }
-
+/** @hidden */
 export async function checkAuthorization(client: TelegramClient) {
     try {
         await client.invoke(new Api.updates.GetState());
@@ -59,7 +87,7 @@ export async function checkAuthorization(client: TelegramClient) {
         return false;
     }
 }
-
+/** @hidden */
 export async function signInUser(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
@@ -206,6 +234,7 @@ export async function signInUser(
     return client.signInUser(apiCredentials, authParams);
 }
 
+/** @hidden */
 export async function signInUserWithQrCode(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
@@ -292,6 +321,7 @@ export async function signInUserWithQrCode(
     return client.signInUser(apiCredentials, authParams);
 }
 
+/** @hidden */
 export async function sendCode(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
@@ -341,6 +371,7 @@ export async function sendCode(
     }
 }
 
+/** @hidden */
 export async function signInWithPassword(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
@@ -377,7 +408,7 @@ export async function signInWithPassword(
 
     return undefined!; // Never reached (TypeScript fix)
 }
-
+/** @hidden */
 export async function signInBot(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
@@ -408,8 +439,8 @@ export async function signInBot(
     )) as Api.auth.Authorization;
     return user;
 }
-
-export async function authFlow(
+/** @hidden */
+export async function _authFlow(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
     authParams: UserAuthParams | BotAuthParams
@@ -419,6 +450,5 @@ export async function authFlow(
             ? await client.signInUser(apiCredentials, authParams)
             : await client.signInBot(apiCredentials, authParams);
 
-    // TODO @logger
     client._log.info("Signed in successfully as " + utils.getDisplayName(me));
 }

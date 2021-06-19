@@ -2,11 +2,11 @@ export class MTProtoRequest {
     private sent: boolean;
     private sequence: number;
     private msgId: number;
-    private dirty: boolean;
+    private readonly dirty: boolean;
     private sendTime: number;
     private confirmReceived: boolean;
     private constructorId: number;
-    private confirmed: boolean;
+    private readonly confirmed: boolean;
     private responded: boolean;
 
     constructor() {

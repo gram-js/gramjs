@@ -47,7 +47,7 @@ module.exports = ({ types, constructors, functions }) => {
                 );
 
                 return `
-      export declare class ${upperFirst(name)} extends VirtualClass<{
+      export class ${upperFirst(name)} extends VirtualClass<{
 ${indent}  ${Object.keys(argsConfig)
                     .map((argName) =>
                         `
@@ -75,7 +75,7 @@ ${indent}}`.trim();
                 const argKeys = Object.keys(argsConfig);
 
                 if (!argKeys.length) {
-                    return `export declare class ${upperFirst(
+                    return `export class ${upperFirst(
                         name
                     )} extends Request<void, ${renderResult(result)}> {
     static fromReader(reader: Reader): ${upperFirst(name)};
@@ -88,7 +88,7 @@ ${indent}}`.trim();
                 );
 
                 return `
-      export declare class ${upperFirst(name)} extends Request<Partial<{
+      export class ${upperFirst(name)} extends Request<Partial<{
 ${indent}  ${argKeys
                     .map((argName) =>
                         `
@@ -194,7 +194,7 @@ export namespace Api {
   type long = BigInteger;
   type bytes = Buffer;
 
-  declare class VirtualClass<Args extends AnyLiteral> {
+  class VirtualClass<Args extends AnyLiteral> {
     static CONSTRUCTOR_ID: number;
     static SUBCLASS_OF_ID: number;
     static className: string;
@@ -213,7 +213,7 @@ export namespace Api {
     constructor(args: Args);
   }
 
-  declare class Request<Args, Response> extends VirtualClass<Partial<Args>> {
+  class Request<Args, Response> extends VirtualClass<Partial<Args>> {
     static readResult(reader: Reader): Buffer;
     resolve(client: Client, utils: Utils): Promise<void>;
 

@@ -2,7 +2,6 @@ import { isNode } from "browser-or-node";
 import bigInt from "big-integer";
 import type { EntityLike } from "./define";
 import type { Api } from "./tl";
-import exp from "constants";
 
 export const IS_NODE = isNode;
 const crypto = require(isNode ? "crypto" : "./crypto/crypto");
@@ -54,9 +53,28 @@ export function groupBy(list: any[], keyGetter: Function) {
 }
 
 /**
+ * Outputs the object in a better way by hiding all the private methods/attributes.
+ * @param object - the class to use
+ */
+export function betterConsoleLog(object: { [key: string]: any }) {
+    const toPrint: { [key: string]: any } = {};
+    for (const key in object) {
+        console.log("key is",key);
+        console.log("key starts with _?",key.startsWith("_"));
+
+        if (object.hasOwnProperty(key)) {
+            if (!key.startsWith("_")) {
+                toPrint[key] = object[key];
+            }
+        }
+    }
+    return toPrint;
+}
+
+/**
  * Helper to find if a given object is an array (or similar)
  */
-export const isArrayLike = <T>(x: any): x is ArrayLike<T> =>
+export const isArrayLike = <T>(x: any): x is Array<T> =>
     x &&
     typeof x.length === "number" &&
     typeof x !== "function" &&
@@ -183,9 +201,9 @@ export function mod(n: number, m: number) {
 
 /**
  * returns a positive bigInt
- * @param n {BigInt}
- * @param m {BigInt}
- * @returns {BigInt}
+ * @param n {bigInt.BigInteger}
+ * @param m {bigInt.BigInteger}
+ * @returns {bigInt.BigInteger}
  */
 export function bigIntMod(
     n: bigInt.BigInteger,

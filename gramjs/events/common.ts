@@ -6,6 +6,7 @@ import type { TelegramClient } from "..";
 import { isArrayLike } from "../Helpers";
 import { utils } from "../";
 
+/** @hidden */
 export async function _intoIdSet(
     client: TelegramClient,
     chats: EntityLike[] | EntityLike | undefined
@@ -25,21 +26,21 @@ export async function _intoIdSet(
                 result.add(
                     utils.getPeerId(
                         new Api.PeerUser({
-                            userId: chat,
+                            userId: chat
                         })
                     )
                 );
                 result.add(
                     utils.getPeerId(
                         new Api.PeerChat({
-                            chatId: chat,
+                            chatId: chat
                         })
                     )
                 );
                 result.add(
                     utils.getPeerId(
                         new Api.PeerChannel({
-                            channelId: chat,
+                            channelId: chat
                         })
                     )
                 );
@@ -60,23 +61,42 @@ export async function _intoIdSet(
     return Array.from(result);
 }
 
-interface DefaultEventInterface {
+export interface DefaultEventInterface {
+    /**
+     * May be one or more entities (username/peer/etc.), preferably IDs.<br/>
+     * By default, only matching chats will be handled.
+     */
     chats?: EntityLike[];
+    /**
+     * Whether to treat the chats as a blacklist instead of as a whitelist (default).<br/>
+     * This means that every chat will be handled *except* those specified in ``chats``<br/>
+     * which will be ignored if ``blacklistChats:true``.
+     */
     blacklistChats?: boolean;
+    /**
+     * A callable function that should accept the event as input
+     * parameter, and return a value indicating whether the event
+     * should be dispatched or not (any truthy value will do, it
+     * does not need to be a `bool`). It works like a custom filter:
+     */
     func?: CallableFunction;
 }
 
+/**
+ * The common event builder, with builtin support to filter per chat.<br/>
+ * All events inherit this.
+ */
 export class EventBuilder {
     chats?: EntityLike[];
-    private blacklistChats: boolean;
+    blacklistChats: boolean;
     resolved: boolean;
     func?: CallableFunction;
 
-    constructor({ chats, blacklistChats = true, func }: DefaultEventInterface) {
-        this.chats = chats;
-        this.blacklistChats = blacklistChats;
+    constructor(eventParams: DefaultEventInterface) {
+        this.chats = eventParams.chats;
+        this.blacklistChats = eventParams.blacklistChats || false;
         this.resolved = false;
-        this.func = func;
+        this.func = eventParams.func;
     }
 
     build(update: Api.TypeUpdate, others = null): any {
@@ -116,16 +136,17 @@ interface EventCommonInterface {
     msgId?: number;
     broadcast?: boolean;
 }
+
 export class EventCommon extends ChatGetter {
     _eventName = "Event";
     _entities: Map<number, Entity>;
     _messageId?: number;
 
     constructor({
-        chatPeer = undefined,
-        msgId = undefined,
-        broadcast = undefined,
-    }: EventCommonInterface) {
+                    chatPeer = undefined,
+                    msgId = undefined,
+                    broadcast = undefined
+                }: EventCommonInterface) {
         super({ chatPeer, broadcast });
         this._entities = new Map();
         this._client = undefined;

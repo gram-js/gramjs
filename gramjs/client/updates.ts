@@ -1,4 +1,4 @@
-import type { EventBuilder, EventCommon } from "../events/common";
+import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
 import { helpers } from "../";
 import type { TelegramClient } from "../";
@@ -7,9 +7,9 @@ import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
 
-// export class UpdateMethods {
-export function on(client: TelegramClient, event: any) {
-    return (f: CallableFunction) => {
+// export class UpdateMethods
+export function on(client: TelegramClient, event?: EventBuilder) {
+    return (f: { (event: any): void }) => {
         client.addEventHandler(f, event);
         return f;
     };
@@ -33,7 +33,7 @@ export function removeEventHandler(
     callback: CallableFunction,
     event: EventBuilder
 ) {
-    client._eventBuilders = client._eventBuilders.filter(function (item) {
+    client._eventBuilders = client._eventBuilders.filter(function(item) {
         return item !== [event, callback];
     });
 }
@@ -52,8 +52,8 @@ export function _handleUpdate(
 ): void {
     if (typeof update === "number") {
         if ([-1, 0, 1].includes(update)) {
-            client._dispatchUpdate({
-                update: new UpdateConnectionState(update),
+            _dispatchUpdate(client, {
+                update: new UpdateConnectionState(update)
             });
             return;
         }
@@ -73,12 +73,12 @@ export function _handleUpdate(
             entities.set(utils.getPeerId(x), x);
         }
         for (const u of update.updates) {
-            client._processUpdate(u, update.updates, entities);
+            _processUpdate(client, u, update.updates, entities);
         }
     } else if (update instanceof Api.UpdateShort) {
-        client._processUpdate(update.update, null);
+        _processUpdate(client, update.update, null);
     } else {
-        client._processUpdate(update, null);
+        _processUpdate(client, update, null);
     }
 }
 
@@ -91,10 +91,10 @@ export function _processUpdate(
     update._entities = entities || new Map();
     const args = {
         update: update,
-        others: others,
+        others: others
     };
 
-    client._dispatchUpdate(args);
+    _dispatchUpdate(client, args);
 }
 
 export async function _dispatchUpdate(
@@ -146,10 +146,11 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         try {
             client._sender.send(
                 new Api.Ping({
-                    pingId: bigInt(rnd),
+                    pingId: bigInt(rnd)
                 })
             );
-        } catch (e) {}
+        } catch (e) {
+        }
 
         // We need to send some content-related request at least hourly
         // for Telegram to keep delivering updates, otherwise they will
@@ -162,7 +163,8 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         ) {
             try {
                 await client.invoke(new Api.updates.GetState());
-            } catch (e) {}
+            } catch (e) {
+            }
         }
     }
 }

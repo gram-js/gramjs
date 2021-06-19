@@ -1,6 +1,8 @@
 import type { Entity } from "../../define";
-import type { TelegramClient } from "../../client/TelegramClient";
+import type { TelegramClient } from "../..";
 import { Api } from "../api";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
 
 interface SenderGetterConstructorInterface {
     senderId?: number;
@@ -13,6 +15,9 @@ export class SenderGetter {
     _sender?: Entity;
     _inputSender?: Api.TypeInputPeer;
     public _client?: TelegramClient;
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor({
         senderId,
@@ -44,7 +49,7 @@ export class SenderGetter {
             (await this.getInputSender())
         ) {
             try {
-                this._sender = await this._client.getEntity(this._inputSender);
+                this._sender = await this._client.getEntity(this._inputSender!);
             } catch (e) {
                 await this._refetchSender();
             }

@@ -1,9 +1,11 @@
-import type { TelegramClient } from "../../client/TelegramClient";
+import type { TelegramClient } from "../..";
 import { Api } from "../api";
 import type { Entity } from "../../define";
 import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
 import { Draft } from "./draft";
 import { Message } from "./message";
+import { inspect } from "util";
+import { betterConsoleLog } from "../../Helpers";
 
 export class Dialog {
     _client: TelegramClient;
@@ -24,6 +26,9 @@ export class Dialog {
     isUser: boolean;
     isGroup: boolean;
     isChannel: boolean;
+    [inspect.custom]() {
+        return betterConsoleLog(this);
+    }
 
     constructor(
         client: TelegramClient,
@@ -37,7 +42,7 @@ export class Dialog {
         this.folderId = dialog.folderId;
         this.archived = dialog.folderId != undefined;
         this.message = message;
-        this.date = this.message?.date;
+        this.date = this.message!.date!;
 
         this.entity = entities.get(getPeerId(dialog.peer));
         this.inputEntity = getInputPeer(this.entity);

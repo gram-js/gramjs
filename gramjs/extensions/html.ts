@@ -6,9 +6,9 @@ import { helpers } from "../index";
 class HTMLToTelegramParser implements Handler {
     text: string;
     entities: Api.TypeMessageEntity[];
-    private _buildingEntities: Map<string, Api.TypeMessageEntity>;
-    private _openTags: string[];
-    private _openTagsMeta: (string | undefined)[];
+    private readonly _buildingEntities: Map<string, Api.TypeMessageEntity>;
+    private readonly _openTags: string[];
+    private readonly _openTagsMeta: (string | undefined)[];
 
     constructor() {
         this.text = "";

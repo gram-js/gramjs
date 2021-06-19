@@ -49,7 +49,7 @@ export class GZIPPacked {
         if (constructor !== GZIPPacked.CONSTRUCTOR_ID) {
             throw new Error("not equal");
         }
-        return await GZIPPacked.gzip(reader.tgReadBytes());
+        return GZIPPacked.gzip(reader.tgReadBytes());
     }
 
     static async fromReader(reader: BinaryReader) {

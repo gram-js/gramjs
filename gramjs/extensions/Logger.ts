@@ -4,7 +4,7 @@ let _level: string | undefined = undefined;
 
 export class Logger {
     static levels = ["error", "warn", "info", "debug"];
-    private isBrowser: boolean;
+    private readonly isBrowser: boolean;
     private colors: {
         warn: string;
         debug: string;

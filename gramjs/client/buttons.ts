@@ -1,10 +1,11 @@
 import { Api } from "../tl";
-import type { ButtonLike, MarkupLike } from "../define";
+import type { ButtonLike} from "../define";
 import { Button } from "../tl/custom/button";
 import { MessageButton } from "../tl/custom/messageButton";
 import { isArrayLike } from "../Helpers";
 
 // ButtonMethods
+/** @hidden */
 export function buildReplyMarkup(
     buttons:
         | Api.TypeReplyMarkup

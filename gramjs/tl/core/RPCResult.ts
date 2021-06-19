@@ -1,6 +1,7 @@
 import { Api } from "../api";
 import type { BinaryReader } from "../../extensions";
 import { GZIPPacked } from "./";
+import bigInt from "big-integer";
 
 export class RPCResult {
     static CONSTRUCTOR_ID = 0xf35c6d01;
