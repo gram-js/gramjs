@@ -78,7 +78,7 @@ export class StringSession extends MemorySession {
         }
     }
 
-    save() {
+    save(): string {
         if (!this.authKey || !this.serverAddress || !this.port) {
             return "";
         }
