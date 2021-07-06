@@ -51,9 +51,6 @@ export class Raw extends EventBuilder {
                 return;
             }
         }
-        if (this.func) {
-            return this.func(event);
-        }
-        return event;
+        return super.filter(event);
     }
 }

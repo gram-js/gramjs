@@ -127,6 +127,9 @@ export class EventBuilder {
                 return;
             }
         }
+        if (this.func && !this.func(event)) {
+            return;
+        }
         return event;
     }
 }
