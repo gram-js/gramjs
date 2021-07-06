@@ -14,6 +14,7 @@ import { EntityCache } from "../entityCache";
 import type { ParseInterface } from "./messageParse";
 import type { EventBuilder } from "../events/common";
 import { MarkdownParser } from "../extensions/markdown";
+import { MTProtoSender } from "../network";
 
 const DEFAULT_DC_ID = 1;
 const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.51" : "pluto.web.telegram.org";
@@ -146,7 +147,7 @@ export class TelegramBaseClient {
     /** @hidden */
     public _initRequest: Api.InitConnection;
     /** @hidden */
-    public _sender?: any;
+    public _sender?: MTProtoSender;
     /** @hidden */
     public _floodWaitedRequests: any;
     /** @hidden */
@@ -263,7 +264,7 @@ export class TelegramBaseClient {
     }
 
     get disconnected() {
-        return !this._sender || this._sender.disconnected;
+        return !this._sender || this._sender._disconnected;
     }
 
     async destroy() {

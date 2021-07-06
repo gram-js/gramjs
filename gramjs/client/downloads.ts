@@ -101,14 +101,14 @@ export async function downloadFile(
             // This should never raise
             if (e.message === "DC_ID_INVALID") {
                 // Can't export a sender for the ID we are currently in
-                sender = client._sender;
+                sender = client._sender!;
             } else {
                 client._log.error(e);
                 throw e;
             }
         }
     } else {
-        sender = client._sender;
+        sender = client._sender!;
     }
 
     client._log.info(`Downloading file in chunks of ${partSize} bytes`);

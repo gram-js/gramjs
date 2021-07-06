@@ -144,12 +144,13 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         // We don't care about the result we just want to send it every
         // 60 seconds so telegram doesn't stop the connection
         try {
-            client._sender.send(
+            client._sender!.send(
                 new Api.Ping({
                     pingId: bigInt(rnd)
                 })
             );
         } catch (e) {
+            //await client.disconnect()
         }
 
         // We need to send some content-related request at least hourly

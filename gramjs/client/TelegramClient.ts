@@ -1084,7 +1084,7 @@ export class TelegramClient extends TelegramBaseClient {
         this.session.setDC(newDc, DC.ipAddress, DC.port);
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to undefined to force recreating it.
-        await this._sender.authKey.setKey();
+        await this._sender!.authKey.setKey();
         this.session.setAuthKey();
         await this.disconnect();
         return this.connect();
@@ -1134,7 +1134,7 @@ export class TelegramClient extends TelegramBaseClient {
             } catch (e) {
                 // we can't create sender for our own main DC
                 if (e.message == "DC_ID_INVALID") {
-                    return this._sender;
+                    return this._sender!;
                 }
                 await sender.disconnect();
             }

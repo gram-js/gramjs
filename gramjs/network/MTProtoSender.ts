@@ -75,10 +75,10 @@ export class MTProtoSender {
     private readonly _isMainSender: boolean;
     private _userConnected: boolean;
     private _reconnecting: boolean;
-    private _disconnected: boolean;
+    _disconnected: boolean;
     private _sendLoopHandle: any;
     private _recvLoopHandle: any;
-    private readonly authKey: AuthKey;
+    readonly authKey: AuthKey;
     private readonly _state: MTProtoState;
     private _sendQueue: MessagePacker;
     private _pendingState: Map<string, RequestState>;

@@ -155,10 +155,10 @@ export class _ParticipantsIter extends RequestIter {
                     utils
                         .getDisplayName(entity)
                         .toLowerCase()
-                        .includes(<string>search) ||
+                        .includes(search!) ||
                     ("username" in entity ? entity.username || "" : "")
                         .toLowerCase()
-                        .includes(<string>search)
+                        .includes(search!)
                 );
             };
         } else {
