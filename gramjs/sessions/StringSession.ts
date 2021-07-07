@@ -102,7 +102,7 @@ export class StringSession extends MemorySession {
                     addressLengthBuffer,
                     addressBuffer,
                     portBuffer,
-                    key
+                    key,
                 ])
             )
         );

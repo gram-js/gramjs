@@ -23,7 +23,11 @@ export class InlineResults extends Array<InlineResult> {
         original: Api.messages.TypeBotResults,
         entity?: EntityLike
     ) {
-        super(...original.results.map((res) => new InlineResult(client, res, original.queryId, entity)));
+        super(
+            ...original.results.map(
+                (res) => new InlineResult(client, res, original.queryId, entity)
+            )
+        );
         this.result = original;
         this.queryId = original.queryId;
         this.cacheTime = original.cacheTime;

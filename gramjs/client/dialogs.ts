@@ -3,7 +3,7 @@ import { RequestIter } from "../requestIter";
 import { TelegramClient, utils } from "../index";
 import { Message } from "../tl/custom/message";
 import { Dialog } from "../tl/custom/dialog";
-import { DateLike, EntityLike} from "../define";
+import { DateLike, EntityLike } from "../define";
 import { TotalList } from "../Helpers";
 
 const _MAX_CHUNK_SIZE = 100;
@@ -24,7 +24,7 @@ function _dialogMessageKey(peer: Api.TypePeer, messageId: number): string {
         "" +
         [
             peer instanceof Api.PeerChannel ? peer.channelId : undefined,
-            messageId
+            messageId,
         ]
     );
 }
@@ -45,13 +45,13 @@ export class _DialogsIter extends RequestIter {
     private ignoreMigrated?: boolean;
 
     async _init({
-                    offsetDate,
-                    offsetId,
-                    offsetPeer,
-                    ignorePinned,
-                    ignoreMigrated,
-                    folder
-                }: DialogsIterInterface) {
+        offsetDate,
+        offsetId,
+        offsetPeer,
+        ignorePinned,
+        ignoreMigrated,
+        folder,
+    }: DialogsIterInterface) {
         this.request = new Api.messages.GetDialogs({
             offsetDate,
             offsetId,
@@ -59,7 +59,7 @@ export class _DialogsIter extends RequestIter {
             limit: 1,
             hash: 0,
             excludePinned: ignorePinned,
-            folderId: folder
+            folderId: folder,
         });
         if (this.limit <= 0) {
             // Special case, get a single dialog and determine count
@@ -112,7 +112,7 @@ export class _DialogsIter extends RequestIter {
             } catch (e) {
                 this.client._log.error(
                     "Got error while trying to finish init message with id " +
-                    m.id
+                        m.id
                 );
                 if (this.client._log.canSend("error")) {
                     console.error(e);
@@ -180,7 +180,6 @@ export class _DialogsIter extends RequestIter {
     }
 }
 
-
 /** interface for iterating and getting dialogs. */
 export interface IterDialogsParams {
     /**  How many dialogs to be retrieved as maximum. Can be set to undefined to retrieve all dialogs.<br/>
@@ -218,7 +217,7 @@ export function iterDialogs(
         ignorePinned = false,
         ignoreMigrated = false,
         folder = undefined,
-        archived = undefined
+        archived = undefined,
     }: IterDialogsParams
 ): _DialogsIter {
     if (archived != undefined) {
@@ -235,7 +234,7 @@ export function iterDialogs(
             offsetPeer,
             ignorePinned,
             ignoreMigrated,
-            folder
+            folder,
         }
     );
 }

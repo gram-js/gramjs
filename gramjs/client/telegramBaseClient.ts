@@ -2,7 +2,7 @@ import { version } from "../";
 import { IS_NODE } from "../Helpers";
 import {
     ConnectionTCPFull,
-    ConnectionTCPObfuscated
+    ConnectionTCPObfuscated,
 } from "../network/connection";
 import { Session } from "../sessions";
 import { Logger } from "../extensions";
@@ -111,9 +111,10 @@ const clientParamsDefault = {
     langCode: "en",
     systemLangCode: "en",
     baseLogger: "gramjs",
-    useWSS: typeof window !== "undefined"
-        ? window.location.protocol == "https:"
-        : false
+    useWSS:
+        typeof window !== "undefined"
+            ? window.location.protocol == "https:"
+            : false,
 };
 
 export class TelegramBaseClient {
@@ -208,13 +209,15 @@ export class TelegramBaseClient {
         this._connection = clientParams.connection;
         this._initRequest = new Api.InitConnection({
             apiId: this.apiId,
-            deviceModel: clientParams.deviceModel || os.type().toString() || "Unknown",
-            systemVersion: clientParams.systemVersion || os.release().toString() || "1.0",
+            deviceModel:
+                clientParams.deviceModel || os.type().toString() || "Unknown",
+            systemVersion:
+                clientParams.systemVersion || os.release().toString() || "1.0",
             appVersion: clientParams.appVersion || "1.0",
             langCode: clientParams.langCode,
             langPack: "", // this should be left empty.
             systemLangCode: clientParams.systemLangCode,
-            proxy: undefined // no proxies yet.
+            proxy: undefined, // no proxies yet.
         });
         this._eventBuilders = [];
 
@@ -275,7 +278,7 @@ export class TelegramBaseClient {
                 (promise: any) => {
                     return promise.then((sender: any) => sender.disconnect());
                 }
-            )
+            ),
         ]);
 
         this._eventBuilders = [];

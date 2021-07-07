@@ -30,6 +30,7 @@ import {
     RPCMessageToError,
 } from "../errors";
 import { Connection, UpdateConnectionState } from "./";
+import type { TelegramClient } from "..";
 
 interface DEFAULT_OPTIONS {
     logger: any;
@@ -43,9 +44,7 @@ interface DEFAULT_OPTIONS {
     isMainSender: boolean;
     dcId: number;
     senderCallback?: any;
-}
-
-{
+    client: TelegramClient;
 }
 
 export class MTProtoSender {
@@ -69,7 +68,10 @@ export class MTProtoSender {
     private _connectTimeout: null;
     private _autoReconnect: boolean;
     private readonly _authKeyCallback: any;
-    private readonly _updateCallback: any;
+    private readonly _updateCallback: (
+        client: TelegramClient,
+        update: Api.TypeUpdate | number
+    ) => void;
     private readonly _autoReconnectCallback?: any;
     private readonly _senderCallback: any;
     private readonly _isMainSender: boolean;
@@ -85,6 +87,7 @@ export class MTProtoSender {
     private readonly _pendingAck: Set<any>;
     private readonly _lastAcks: any[];
     private readonly _handlers: any;
+    private readonly _client: TelegramClient;
 
     /**
      * @param authKey
@@ -104,6 +107,7 @@ export class MTProtoSender {
         this._autoReconnectCallback = args.autoReconnectCallback;
         this._isMainSender = args.isMainSender;
         this._senderCallback = args.senderCallback;
+        this._client = args.client;
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -335,7 +339,7 @@ export class MTProtoSender {
             return;
         }
         if (this._updateCallback) {
-            this._updateCallback(-1);
+            this._updateCallback(this._client, -1);
         }
         this._log.info(
             "Disconnecting from %s...".replace(
@@ -450,7 +454,7 @@ export class MTProtoSender {
                     this._log.info("Broken authorization key; resetting");
                     if (this._updateCallback && this._isMainSender) {
                         // 0 == broken
-                        this._updateCallback(0);
+                        this._updateCallback(this._client, 0);
                     } else if (this._senderCallback && !this._isMainSender) {
                         // Deletes the current sender from the object
                         this._senderCallback(this._dcId);
@@ -636,7 +640,7 @@ export class MTProtoSender {
         }
         this._log.debug("Handling update " + message.obj.className);
         if (this._updateCallback) {
-            this._updateCallback(message.obj);
+            this._updateCallback(this._client, message.obj);
         }
     }
 
@@ -872,7 +876,7 @@ export class MTProtoSender {
                     await this._autoReconnectCallback();
                 }
                 if (this._updateCallback) {
-                    this._updateCallback(1);
+                    this._updateCallback(this._client, 1);
                 }
 
                 break;

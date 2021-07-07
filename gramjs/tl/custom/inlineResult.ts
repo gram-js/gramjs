@@ -96,7 +96,7 @@ export class InlineResult {
             silent: silent,
             clearDraft: clearDraft,
             hideVia: hideVia,
-            replyToMsgId: replyId
+            replyToMsgId: replyId,
         });
         return await this._client.invoke(request);
     }

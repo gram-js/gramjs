@@ -12,7 +12,7 @@ import { HTMLParser } from "./extensions/html";
 
 const USERNAME_RE = new RegExp(
     "@|(?:https?:\\/\\/)?(?:www\\.)?" +
-    "(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?",
+        "(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?",
     "i"
 );
 
@@ -26,7 +26,7 @@ const TG_JOIN_RE = new RegExp("tg:\\/\\/(join)\\?invite=", "i");
 
 const VALID_USERNAME_RE = new RegExp(
     "^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|" +
-    "pic|bing|wiki|imdb|bold|vote|like|coub)$",
+        "pic|bing|wiki|imdb|bold|vote|like|coub)$",
     "i"
 );
 
@@ -81,7 +81,7 @@ export function getInputPeer(
         } else if (entity.accessHash !== undefined || !checkHash) {
             return new Api.InputPeerUser({
                 userId: entity.id,
-                accessHash: entity.accessHash || bigInt(0)
+                accessHash: entity.accessHash || bigInt(0),
             });
         } else {
             throw new Error("User without accessHash cannot be input");
@@ -98,7 +98,7 @@ export function getInputPeer(
         if (entity.accessHash !== undefined || !checkHash) {
             return new Api.InputPeerChannel({
                 channelId: entity.id,
-                accessHash: entity.accessHash || bigInt(0)
+                accessHash: entity.accessHash || bigInt(0),
             });
         } else {
             throw new TypeError(
@@ -111,20 +111,20 @@ export function getInputPeer(
         // also not optional, we assume that this truly is the case.
         return new Api.InputPeerChannel({
             channelId: entity.id,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         });
     }
 
     if (entity instanceof Api.InputUser) {
         return new Api.InputPeerUser({
             userId: entity.userId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         });
     }
     if (entity instanceof Api.InputChannel) {
         return new Api.InputPeerChannel({
             channelId: entity.channelId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         });
     }
     if (entity instanceof Api.UserEmpty) {
@@ -140,7 +140,7 @@ export function getInputPeer(
 
     if (entity instanceof Api.PeerChat) {
         return new Api.InputPeerChat({
-            chatId: entity.chatId
+            chatId: entity.chatId,
         });
     }
 
@@ -177,18 +177,14 @@ export function _getEntityPair(
     } catch (e) {
         try {
             inputEntity = getInputPeerFunction(inputEntity);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
     return [entity, inputEntity];
 }
 
-export function getInnerText(
-    text: string,
-    entities: Api.TypeMessageEntity[]
-) {
+export function getInnerText(text: string, entities: Api.TypeMessageEntity[]) {
     const result: string[] = [];
-    entities.forEach(function(value, key) {
+    entities.forEach(function (value, key) {
         const start = value.offset;
         const end = value.offset + value.length;
         result.push(text.slice(start, end));
@@ -226,14 +222,14 @@ export function getInputChannel(entity: EntityLike) {
     ) {
         return new Api.InputChannel({
             channelId: entity.id,
-            accessHash: entity.accessHash || bigInt.zero
+            accessHash: entity.accessHash || bigInt.zero,
         });
     }
 
     if (entity instanceof Api.InputPeerChannel) {
         return new Api.InputChannel({
             channelId: entity.channelId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         });
     }
     _raiseCastFail(entity, "InputChannel");
@@ -269,7 +265,7 @@ export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
         } else {
             return new Api.InputUser({
                 userId: entity.id,
-                accessHash: entity.accessHash || bigInt.zero
+                accessHash: entity.accessHash || bigInt.zero,
             });
         }
     }
@@ -290,7 +286,7 @@ export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
     if (entity instanceof Api.InputPeerUser) {
         return new Api.InputUser({
             userId: entity.userId,
-            accessHash: entity.accessHash
+            accessHash: entity.accessHash,
         });
     }
 
@@ -359,13 +355,13 @@ export function getInputChatPhoto(photo: any): Api.TypeInputChatPhoto {
     } else if (photo.SUBCLASS_OF_ID === 0xe7655f1f) {
         // crc32(b'InputFile'):
         return new Api.InputChatUploadedPhoto({
-            file: photo
+            file: photo,
         });
     }
     photo = getInputPhoto(photo);
     if (photo instanceof Api.InputPhoto) {
         return new Api.InputChatPhoto({
-            id: photo
+            id: photo,
         });
     } else if (photo instanceof Api.InputPhotoEmpty) {
         return new Api.InputChatPhotoEmpty();
@@ -469,7 +465,7 @@ export function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
         return new Api.InputPhoto({
             id: photo.id,
             accessHash: photo.accessHash,
-            fileReference: photo.fileReference
+            fileReference: photo.fileReference,
         });
     }
     if (photo instanceof Api.PhotoEmpty) {
@@ -523,7 +519,7 @@ export function getInputDocument(
         return new Api.InputDocument({
             id: document.id,
             accessHash: document.accessHash,
-            fileReference: document.fileReference
+            fileReference: document.fileReference,
         });
     }
     if (document instanceof Api.DocumentEmpty) {
@@ -582,8 +578,7 @@ export function getExtension(media: any): string {
     try {
         getInputPhoto(media);
         return ".jpg";
-    } catch (e) {
-    }
+    } catch (e) {}
     if (
         media instanceof Api.UserProfilePhoto ||
         media instanceof Api.ChatPhoto
@@ -658,7 +653,7 @@ export function getAttributes(
         voiceNote = false,
         videoNote = false,
         supportsStreaming = false,
-        thumb = null
+        thumb = null,
     }: GetAttributesParams
 ) {
     const name: string =
@@ -670,7 +665,7 @@ export function getAttributes(
     attrObj.set(
         Api.DocumentAttributeFilename,
         new Api.DocumentAttributeFilename({
-            fileName: name.split(/[\\/]/).pop() || ""
+            fileName: name.split(/[\\/]/).pop() || "",
         })
     );
     if (isAudio(file)) {
@@ -682,7 +677,7 @@ export function getAttributes(
                     voice: voiceNote,
                     title: m.has("title") ? m.get("title") : undefined,
                     performer: m.has("author") ? m.get("author") : undefined,
-                    duration: Number.parseInt(m.get("duration") ?? "0")
+                    duration: Number.parseInt(m.get("duration") ?? "0"),
                 })
             );
         }
@@ -696,7 +691,7 @@ export function getAttributes(
                 w: Number.parseInt(m.get("width") ?? "0"),
                 h: Number.parseInt(m.get("height") ?? "0"),
                 duration: Number.parseInt(m.get("duration") ?? "0"),
-                supportsStreaming: supportsStreaming
+                supportsStreaming: supportsStreaming,
             });
         } else {
             if (thumb) {
@@ -708,7 +703,7 @@ export function getAttributes(
                     h: height,
                     w: width,
                     roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming
+                    supportsStreaming: supportsStreaming,
                 });
             } else {
                 doc = new Api.DocumentAttributeVideo({
@@ -716,7 +711,7 @@ export function getAttributes(
                     h: 1,
                     w: 1,
                     roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming
+                    supportsStreaming: supportsStreaming,
                 });
             }
         }
@@ -730,7 +725,7 @@ export function getAttributes(
                 Api.DocumentAttributeAudio,
                 new Api.DocumentAttributeAudio({
                     duration: 0,
-                    voice: true
+                    voice: true,
                 })
             );
         }
@@ -747,7 +742,7 @@ export function getAttributes(
 
     return {
         attrs: Array.from(attrObj.values()) as Api.TypeDocumentAttribute[],
-        mimeType: mimeType
+        mimeType: mimeType,
     };
 }
 
@@ -787,7 +782,6 @@ export interface GetInputMediaInterface {
     supportsStreaming?: boolean;
 }
 
-
 /**
  *
  Similar to :meth:`get_input_peer`, but for media.
@@ -811,7 +805,7 @@ export function getInputMedia(
         forceDocument = false,
         voiceNote = false,
         videoNote = false,
-        supportsStreaming = false
+        supportsStreaming = false,
     }: GetInputMediaInterface = {}
 ): any {
     if (media.SUBCLASS_OF_ID === undefined) {
@@ -836,7 +830,7 @@ export function getInputMedia(
     if (media instanceof Api.MessageMediaPhoto) {
         return new Api.InputMediaPhoto({
             id: getInputPhoto(media.photo),
-            ttlSeconds: media.ttlSeconds
+            ttlSeconds: media.ttlSeconds,
         });
     }
     if (
@@ -849,7 +843,7 @@ export function getInputMedia(
     if (media instanceof Api.MessageMediaDocument) {
         return new Api.InputMediaDocument({
             id: getInputDocument(media.document),
-            ttlSeconds: media.ttlSeconds
+            ttlSeconds: media.ttlSeconds,
         });
     }
     if (media instanceof Api.Document || media instanceof Api.DocumentEmpty) {
@@ -864,13 +858,13 @@ export function getInputMedia(
                 forceDocument: forceDocument,
                 voiceNote: voiceNote,
                 videoNote: videoNote,
-                supportsStreaming: supportsStreaming
+                supportsStreaming: supportsStreaming,
             });
             return new Api.InputMediaUploadedDocument({
                 file: media,
                 mimeType: mimeType,
                 attributes: attrs,
-                forceFile: forceDocument
+                forceFile: forceDocument,
             });
         }
     }
@@ -878,8 +872,8 @@ export function getInputMedia(
         return new Api.InputMediaGame({
             id: new Api.InputGameID({
                 id: media.game.id,
-                accessHash: media.game.accessHash
-            })
+                accessHash: media.game.accessHash,
+            }),
         });
     }
     if (media instanceof Api.MessageMediaContact) {
@@ -887,7 +881,7 @@ export function getInputMedia(
             phoneNumber: media.phoneNumber,
             firstName: media.firstName,
             lastName: media.lastName,
-            vcard: ""
+            vcard: "",
         });
     }
     if (media instanceof Api.MessageMediaGeo) {
@@ -900,12 +894,12 @@ export function getInputMedia(
             address: media.address,
             provider: media.provider,
             venueId: media.venueId,
-            venueType: ""
+            venueType: "",
         });
     }
     if (media instanceof Api.MessageMediaDice) {
         return new Api.InputMediaDice({
-            emoticon: media.emoticon
+            emoticon: media.emoticon,
         });
     }
     if (
@@ -943,12 +937,12 @@ export function getInputMedia(
             poll: media.poll,
             correctAnswers: correctAnswers,
             solution: media.results.solution,
-            solutionEntities: media.results.solutionEntities
+            solutionEntities: media.results.solutionEntities,
         });
     }
     if (media instanceof Api.Poll) {
         return new Api.InputMediaPoll({
-            poll: media
+            poll: media,
         });
     }
     _raiseCastFail(media, "InputMedia");
@@ -1029,8 +1023,7 @@ export function getPeer(peer: EntityLike) {
         } else if (peer instanceof Api.InputPeerChannel) {
             return new Api.PeerChannel({ channelId: peer.channelId });
         }
-    } catch (e) {
-    }
+    } catch (e) {}
     _raiseCastFail(peer, "peer");
 }
 
@@ -1212,7 +1205,7 @@ export function parseUsername(username: string): {
         if (m[1]) {
             return {
                 username: username,
-                isInvite: true
+                isInvite: true,
             };
         } else {
             username = rtrim(username, "/");
@@ -1221,12 +1214,12 @@ export function parseUsername(username: string): {
     if (username.match(VALID_USERNAME_RE)) {
         return {
             username: username.toLowerCase(),
-            isInvite: false
+            isInvite: false,
         };
     } else {
         return {
             username: undefined,
-            isInvite: false
+            isInvite: false,
         };
     }
 }

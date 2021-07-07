@@ -18,12 +18,13 @@ import type { EventBuilder } from "../events/common";
 import { MTProtoSender, UpdateConnectionState } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
-import { IS_NODE } from "../Helpers";
+import { betterConsoleLog, IS_NODE } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
 import type { Message } from "../tl/custom/message";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _dispatchUpdate, _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
+import { inspect } from "util";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -36,10 +37,8 @@ import { Session } from "../sessions";
  * ```
  *
  * You don't need to import any methods that are inside the TelegramClient class as they binding in it.
-*/
+ */
 export class TelegramClient extends TelegramBaseClient {
-
-
     /**
      * @param session - a session to be used to save the connection and auth key to. This can be a custom session that inherits MemorySession.
      * @param apiId - The API ID you obtained from https://my.telegram.org.
@@ -109,7 +108,6 @@ export class TelegramClient extends TelegramBaseClient {
         return authMethods.checkAuthorization(this);
     }
 
-
     /**
      * Logs in as a user. Should only be used when not already logged in.<br/>
      * This method will send a code when needed.<br/>
@@ -160,7 +158,6 @@ export class TelegramClient extends TelegramBaseClient {
         );
     }
 
-
     /**
      * Sends a telegram authentication code to the phone number.
      * @example
@@ -203,7 +200,6 @@ export class TelegramClient extends TelegramBaseClient {
         return authMethods.signInWithPassword(this, apiCredentials, authParams);
     }
 
-
     /**
      * Used to sign in as a bot.
      * @example
@@ -228,7 +224,6 @@ export class TelegramClient extends TelegramBaseClient {
     ) {
         return authMethods.signInBot(this, apiCredentials, authParams);
     }
-
 
     //endregion auth
 
@@ -366,7 +361,7 @@ export class TelegramClient extends TelegramBaseClient {
     downloadProfilePhoto(
         entity: EntityLike,
         downloadProfilePhotoParams: downloadMethods.DownloadProfilePhotoParams = {
-            isBig: false
+            isBig: false,
         }
     ) {
         return downloadMethods.downloadProfilePhoto(
@@ -400,7 +395,11 @@ export class TelegramClient extends TelegramBaseClient {
         messageOrMedia: Api.Message | Api.TypeMessageMedia | Message,
         downloadParams: DownloadMediaInterface
     ) {
-        return downloadMethods.downloadMedia(this, messageOrMedia, downloadParams);
+        return downloadMethods.downloadMedia(
+            this,
+            messageOrMedia,
+            downloadParams
+        );
     }
 
     //endregion
@@ -440,7 +439,14 @@ export class TelegramClient extends TelegramBaseClient {
      * client.setParseMode(undefined);
      * await client.sendMessage("me","<u> this will be sent as it is</u> ** with no formatting **);
      */
-    setParseMode(mode: "md" | "markdown" | "html" | parseMethods.ParseInterface | undefined) {
+    setParseMode(
+        mode:
+            | "md"
+            | "markdown"
+            | "html"
+            | parseMethods.ParseInterface
+            | undefined
+    ) {
         if (mode) {
             this._parseMode = sanitizeParseMode(mode);
         } else {
@@ -575,10 +581,12 @@ export class TelegramClient extends TelegramBaseClient {
      *
      * ```
      */
-    sendMessage(entity: EntityLike, sendMessageParams: messageMethods.SendMessageParams) {
+    sendMessage(
+        entity: EntityLike,
+        sendMessageParams: messageMethods.SendMessageParams
+    ) {
         return messageMethods.sendMessage(this, entity, sendMessageParams);
     }
-
 
     /**
      * Forwards the given messages to the specified entity.<br/>
@@ -613,7 +621,11 @@ export class TelegramClient extends TelegramBaseClient {
         entity: EntityLike,
         forwardMessagesParams: messageMethods.ForwardMessagesParams
     ) {
-        return messageMethods.forwardMessages(this, entity, forwardMessagesParams);
+        return messageMethods.forwardMessages(
+            this,
+            entity,
+            forwardMessagesParams
+        );
     }
 
     /**
@@ -640,7 +652,10 @@ export class TelegramClient extends TelegramBaseClient {
      *  await client.editMessage(chat,{message:message.id,text:"Hello!"}
      *  ```
      */
-    editMessage(entity: EntityLike, editMessageParams: messageMethods.EditMessageParams) {
+    editMessage(
+        entity: EntityLike,
+        editMessageParams: messageMethods.EditMessageParams
+    ) {
         return messageMethods.editMessage(this, entity, editMessageParams);
     }
 
@@ -752,11 +767,16 @@ export class TelegramClient extends TelegramBaseClient {
         return updateMethods.on(this, event);
     }
 
-
     /** @hidden */
-    addEventHandler(callback: { (event: NewMessageEvent): void }, event: NewMessage): void;
+    addEventHandler(
+        callback: { (event: NewMessageEvent): void },
+        event: NewMessage
+    ): void;
     /** @hidden */
-    addEventHandler(callback: { (event: any): void }, event?: EventBuilder): void;
+    addEventHandler(
+        callback: { (event: any): void },
+        event?: EventBuilder
+    ): void;
 
     /**
      * Registers a new event handler callback.<br/>
@@ -867,7 +887,10 @@ export class TelegramClient extends TelegramBaseClient {
      *  }))
      ```
      */
-    sendFile(entity: EntityLike, sendFileParams: uploadMethods.SendFileInterface) {
+    sendFile(
+        entity: EntityLike,
+        sendFileParams: uploadMethods.SendFileInterface
+    ) {
         return uploadMethods.sendFile(this, entity, sendFileParams);
     }
 
@@ -1044,7 +1067,8 @@ export class TelegramClient extends TelegramBaseClient {
             connectTimeout: this._timeout,
             authKeyCallback: this._authKeyCallback.bind(this),
             updateCallback: _handleUpdate.bind(this),
-            isMainSender: true
+            isMainSender: true,
+            client: this,
         });
 
         const connection = new this._connection(
@@ -1067,7 +1091,7 @@ export class TelegramClient extends TelegramBaseClient {
         await this._sender.send(
             new Api.InvokeWithLayer({
                 layer: LAYER,
-                query: this._initRequest
+                query: this._initRequest,
             })
         );
 
@@ -1105,7 +1129,8 @@ export class TelegramClient extends TelegramBaseClient {
             connectTimeout: this._timeout,
             authKeyCallback: this._authKeyCallback.bind(this),
             isMainSender: dcId === this.session.dcId,
-            senderCallback: this._removeSender.bind(this)
+            senderCallback: this._removeSender.bind(this),
+            client: this,
         });
         for (let i = 0; i < retries; i++) {
             try {
@@ -1121,11 +1146,11 @@ export class TelegramClient extends TelegramBaseClient {
                     );
                     this._initRequest.query = new Api.auth.ImportAuthorization({
                         id: auth.id,
-                        bytes: auth.bytes
+                        bytes: auth.bytes,
                     });
                     const req = new Api.InvokeWithLayer({
                         layer: LAYER,
-                        query: this._initRequest
+                        query: this._initRequest,
                     });
                     await sender.send(req);
                 }
@@ -1157,31 +1182,31 @@ export class TelegramClient extends TelegramBaseClient {
                     return {
                         id: 1,
                         ipAddress: "pluto.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 2:
                     return {
                         id: 2,
                         ipAddress: "venus.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 3:
                     return {
                         id: 3,
                         ipAddress: "aurora.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 4:
                     return {
                         id: 4,
                         ipAddress: "vesta.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 5:
                     return {
                         id: 5,
                         ipAddress: "flora.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 default:
                     throw new Error(
@@ -1197,7 +1222,7 @@ export class TelegramClient extends TelegramBaseClient {
                 return {
                     id: DC.id,
                     ipAddress: DC.ipAddress,
-                    port: 443
+                    port: 443,
                 };
             }
         }
@@ -1229,6 +1254,11 @@ export class TelegramClient extends TelegramBaseClient {
     /** @hidden */
     _getResponseMessage(req: any, result: any, inputChat: any) {
         return parseMethods._getResponseMessage(this, req, result, inputChat);
+    }
+
+    /** @hidden */
+    [inspect.custom]() {
+        return betterConsoleLog(this);
     }
 
     // endregion

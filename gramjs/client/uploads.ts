@@ -2,7 +2,7 @@ import { Api } from "../tl";
 
 import { TelegramClient } from "./TelegramClient";
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from "../Helpers";
-import { getAppropriatedPartSize} from "../Utils";
+import { getAppropriatedPartSize } from "../Utils";
 import { EntityLike, FileLike, MarkupLike, MessageIDLike } from "../define";
 import path from "path";
 import { promises as fs } from "fs";
@@ -104,16 +104,16 @@ export async function uploadFile(
                     await sender.send(
                         isLarge
                             ? new Api.upload.SaveBigFilePart({
-                                fileId,
-                                filePart: j,
-                                fileTotalParts: partCount,
-                                bytes
-                            })
+                                  fileId,
+                                  filePart: j,
+                                  fileTotalParts: partCount,
+                                  bytes,
+                              })
                             : new Api.upload.SaveFilePart({
-                                fileId,
-                                filePart: j,
-                                bytes
-                            })
+                                  fileId,
+                                  filePart: j,
+                                  bytes,
+                              })
                     );
 
                     if (onProgress) {
@@ -132,7 +132,7 @@ export async function uploadFile(
                 await Promise.all(sendingParts),
                 sleep(UPLOAD_TIMEOUT * workers).then(() =>
                     Promise.reject(new Error("TIMEOUT"))
-                )
+                ),
             ]);
         } catch (err) {
             if (err.message === "TIMEOUT") {
@@ -146,16 +146,16 @@ export async function uploadFile(
     }
     return isLarge
         ? new Api.InputFileBig({
-            id: fileId,
-            parts: partCount,
-            name
-        })
+              id: fileId,
+              parts: partCount,
+              name,
+          })
         : new Api.InputFile({
-            id: fileId,
-            parts: partCount,
-            name,
-            md5Checksum: "" // This is not a "flag", so not sure if we can make it optional.
-        });
+              id: fileId,
+              parts: partCount,
+              name,
+              md5Checksum: "", // This is not a "flag", so not sure if we can make it optional.
+          });
 }
 
 /**
@@ -247,7 +247,7 @@ async function _fileToMedia(
         supportsStreaming = false,
         mimeType,
         asImage,
-        workers = 1
+        workers = 1,
     }: FileToMediaInterface
 ): Promise<{
     fileHandle?: any;
@@ -277,15 +277,15 @@ async function _fileToMedia(
                     forceDocument: forceDocument,
                     voiceNote: voiceNote,
                     videoNote: videoNote,
-                    supportsStreaming: supportsStreaming
+                    supportsStreaming: supportsStreaming,
                 }),
-                image: asImage
+                image: asImage,
             };
         } catch (e) {
             return {
                 fileHandle: undefined,
                 media: undefined,
-                image: isImage
+                image: isImage,
             };
         }
     }
@@ -321,7 +321,7 @@ async function _fileToMedia(
         fileHandle = await uploadFile(client, {
             file: createdFile,
             onProgress: progressCallback,
-            workers: workers
+            workers: workers,
         });
     } else if (file.startsWith("https://") || file.startsWith("http://")) {
         if (asImage) {
@@ -339,7 +339,7 @@ async function _fileToMedia(
         );
     } else if (asImage) {
         media = new Api.InputMediaUploadedPhoto({
-            file: fileHandle
+            file: fileHandle,
         });
     } else {
         // @ts-ignore
@@ -350,7 +350,7 @@ async function _fileToMedia(
             voiceNote: voiceNote,
             videoNote: videoNote,
             supportsStreaming: supportsStreaming,
-            thumb: thumb
+            thumb: thumb,
         });
         attributes = res.attrs;
         mimeType = res.mimeType;
@@ -389,7 +389,7 @@ async function _fileToMedia(
             }
             uploadedThumb = await uploadFile(client, {
                 file: uploadedThumb,
-                workers: 1
+                workers: 1,
             });
         }
         media = new Api.InputMediaUploadedDocument({
@@ -397,13 +397,13 @@ async function _fileToMedia(
             mimeType: mimeType,
             attributes: attributes,
             thumb: uploadedThumb,
-            forceFile: forceDocument && !isImage
+            forceFile: forceDocument && !isImage,
         });
     }
     return {
         fileHandle: fileHandle,
         media: media,
-        image: asImage
+        image: asImage,
     };
 }
 
@@ -428,7 +428,7 @@ export async function sendFile(
         silent,
         supportsStreaming = false,
         scheduleDate,
-        workers = 1
+        workers = 1,
     }: SendFileInterface
 ) {
     if (!file) {
@@ -461,7 +461,7 @@ export async function sendFile(
         voiceNote: voiceNote,
         videoNote: videoNote,
         supportsStreaming: supportsStreaming,
-        workers: workers
+        workers: workers,
     });
     if (media == undefined) {
         throw new Error(`Cannot use ${file} as file.`);
@@ -476,7 +476,7 @@ export async function sendFile(
         replyMarkup: markup,
         silent: silent,
         scheduleDate: scheduleDate,
-        clearDraft: clearDraft
+        clearDraft: clearDraft,
     });
     // todo get message
     const result = client.invoke(request);

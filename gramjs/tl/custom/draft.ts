@@ -30,18 +30,16 @@ export class Draft {
         this._entity = entity;
         this._inputEntity = entity ? getInputPeer(entity) : undefined;
         if (!draft || !(draft instanceof Api.DraftMessage)) {
-            draft
-                = new Api.DraftMessage({
+            draft = new Api.DraftMessage({
                 message: "",
-                date: -1
+                date: -1,
             });
         }
         if (!(draft instanceof Api.DraftMessageEmpty)) {
             this.linkPreview = !draft.noWebpage;
-            this._text = client.parseMode ? client.parseMode.unparse(
-                draft.message,
-                draft.entities|| [],
-            ) : draft.message;
+            this._text = client.parseMode
+                ? client.parseMode.unparse(draft.message, draft.entities || [])
+                : draft.message;
             this._rawText = draft.message;
             this.date = draft.date;
             this.replyToMsgId = draft.replyToMsgId;

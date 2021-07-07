@@ -59,9 +59,6 @@ export function groupBy(list: any[], keyGetter: Function) {
 export function betterConsoleLog(object: { [key: string]: any }) {
     const toPrint: { [key: string]: any } = {};
     for (const key in object) {
-        console.log("key is",key);
-        console.log("key starts with _?",key.startsWith("_"));
-
         if (object.hasOwnProperty(key)) {
             if (!key.startsWith("_")) {
                 toPrint[key] = object[key];
