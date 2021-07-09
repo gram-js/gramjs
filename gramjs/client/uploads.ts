@@ -266,7 +266,7 @@ async function _fileToMedia(
         !Buffer.isBuffer(file) &&
         !(file instanceof Api.InputFile) &&
         !(file instanceof Api.InputFileBig) &&
-        "read" in file
+        !("read" in file)
     ) {
         try {
             return {
@@ -307,6 +307,7 @@ async function _fileToMedia(
         } else {
             let name;
             if ("name" in file) {
+                // @ts-ignore
                 name = file.name;
             } else {
                 name = "unnamed";
@@ -316,7 +317,7 @@ async function _fileToMedia(
             }
         }
         if (!createdFile) {
-            throw new Error(`Could not create file from ${file}`);
+            throw new Error(`Could not create file from ${JSON.stringify(file)}`);
         }
         fileHandle = await uploadFile(client, {
             file: createdFile,
