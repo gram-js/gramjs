@@ -112,7 +112,7 @@ function extractParams(fileContent) {
     return [constructors, functions];
 }
 
-function argToBytes(x, type) {
+function argToBytes(x, type, argName) {
     switch (type) {
         case "int":
             const i = Buffer.alloc(4);
@@ -141,6 +141,9 @@ function argToBytes(x, type) {
         case "date":
             return serializeDate(x);
         default:
+            if (x === undefined || typeof x.getBytes !== "function") {
+                throw new Error(`Required object ${argName} is undefined`);
+            }
             return x.getBytes();
     }
 }
@@ -434,7 +437,7 @@ function createClasses(classesType, params) {
                                 l,
                                 Buffer.concat(
                                     this[arg].map((x) =>
-                                        argToBytes(x, argsConfig[arg].type)
+                                        argToBytes(x, argsConfig[arg].type, arg)
                                     )
                                 )
                             );
@@ -465,7 +468,7 @@ function createClasses(classesType, params) {
                             }
                         } else {
                             buffers.push(
-                                argToBytes(this[arg], argsConfig[arg].type)
+                                argToBytes(this[arg], argsConfig[arg].type, arg)
                             );
 
                             if (

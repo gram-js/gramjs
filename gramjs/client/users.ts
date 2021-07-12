@@ -23,7 +23,9 @@ export async function invoke<R extends Api.AnyRequest>(
         throw new Error("You can only invoke MTProtoRequests");
     }
     if (client._sender == undefined) {
-        throw new Error("Cannot send requests while disconnected");
+        throw new Error(
+            "Cannot send requests while disconnected. You need to call .connect()"
+        );
     }
     await request.resolve(client, utils);
     client._lastRequest = new Date().getTime();
@@ -304,7 +306,7 @@ export async function getInputEntity(
         }
     }
     throw new Error(
-        `Could not find the input entity for ${peer}.
+        `Could not find the input entity for ${JSON.stringify(peer)}.
          Please read https://` +
             "docs.telethon.dev/en/latest/concepts/entities.html to" +
             " find out more details."

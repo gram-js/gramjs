@@ -782,15 +782,17 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         return this._client.editMessage((await this.getInputChat())!, param);
     }
 
-    // TODO add delete messages
-    /*
-    async delete(args) {
+    async delete({ revoke = false }) {
         if (this._client) {
-            args.entity = await this.getInputChat();
-            args.messages = [this.id];
-            return this._client.deleteMessages(args);
+            return this._client.deleteMessages(
+                await this.getInputChat(),
+                [this.id],
+                {
+                    revoke,
+                }
+            );
         }
-    }*/
+    }
 
     async downloadMedia(params: DownloadFileParams) {
         if (this._client) return this._client.downloadMedia(this, params);

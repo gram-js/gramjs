@@ -271,7 +271,9 @@ export class MTProtoSender {
      */
     send(request: Api.AnyRequest): any {
         if (!this._userConnected) {
-            throw new Error("Cannot send requests while disconnected");
+            throw new Error(
+                "Cannot send requests while disconnected. You need to call .connect()"
+            );
         }
         const state = new RequestState(request);
         this._sendQueue.append(state);

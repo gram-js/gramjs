@@ -849,4 +849,58 @@ export async function editMessage(
     return client._getResponseMessage(request, result, entity) as Message;
 }
 
+/** @hidden */
+export async function deleteMessages(
+    client: TelegramClient,
+    entity: EntityLike | undefined,
+    messageIds: MessageIDLike[],
+    { revoke = false }
+) {
+    let ty = _EntityType.USER;
+    if (entity) {
+        entity = await client.getInputEntity(entity);
+        ty = _entityType(entity);
+    }
+    const ids: number[] = [];
+    for (const messageId of messageIds) {
+        if (
+            messageId instanceof Api.Message ||
+            messageId instanceof Api.MessageService ||
+            messageId instanceof Api.MessageEmpty
+        ) {
+            ids.push(messageId.id);
+        } else if (typeof messageId === "number") {
+            ids.push(messageId);
+        } else {
+            throw new Error(`Cannot convert ${messageId} to an integer`);
+        }
+    }
+    const results = [];
+
+    if (ty == _EntityType.CHANNEL) {
+        for (const chunk of utils.chunks(ids)) {
+            results.push(
+                client.invoke(
+                    new Api.channels.DeleteMessages({
+                        channel: entity,
+                        id: chunk,
+                    })
+                )
+            );
+        }
+    } else {
+        for (const chunk of utils.chunks(ids)) {
+            results.push(
+                client.invoke(
+                    new Api.messages.DeleteMessages({
+                        id: chunk,
+                        revoke: revoke,
+                    })
+                )
+            );
+        }
+    }
+    return Promise.all(results);
+}
+
 // TODO do the rest

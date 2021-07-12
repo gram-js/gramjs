@@ -11,7 +11,7 @@ import * as uploadMethods from "./uploads";
 import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
-import type { ButtonLike, Entity, EntityLike } from "../define";
+import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
@@ -659,6 +659,38 @@ export class TelegramClient extends TelegramBaseClient {
         return messageMethods.editMessage(this, entity, editMessageParams);
     }
 
+    /**
+     * Deletes the given messages, optionally "for everyone".
+     *
+     * See also {@link Message.delete}`.
+     *
+     * @remarks This method does **not** validate that the message IDs belong to the chat that you passed! It's possible for the method to delete messages from different private chats and small group chats at once, so make sure to pass the right IDs.
+     * @param entity - From who the message will be deleted. This can actually be `undefined` for normal chats, but **must** be present for channels and megagroups.
+     * @param messageIds - The IDs (or ID) or messages to be deleted.
+     * @param revoke - Whether the message should be deleted for everyone or not.
+     * By default it has the opposite behaviour of official clients,
+     * and it will delete the message for everyone.
+     * Disabling this has no effect on channels or megagroups,
+     * since it will unconditionally delete the message for everyone.
+     * @return
+     * A list of {@link AffectedMessages}, each item being the result for the delete calls of the messages in chunks of 100 each.
+     * @example
+     *  ```ts
+     *  await client.deleteMessages(chat, messages);
+     *
+     *  await client.deleteMessages(chat, messages, {revoke:false});
+     *  ```
+     */
+    deleteMessages(
+        entity: EntityLike | undefined,
+        messageIds: MessageIDLike[],
+        { revoke = true }
+    ) {
+        return messageMethods.deleteMessages(this, entity, messageIds, {
+            revoke: revoke,
+        });
+    }
+
     //endregion
     //region dialogs
 
@@ -1080,7 +1112,11 @@ export class TelegramClient extends TelegramBaseClient {
         if (
             !(await this._sender.connect(
                 connection,
-                _dispatchUpdate.bind(this)
+                (updateState: UpdateConnectionState) => {
+                    _dispatchUpdate(this, {
+                        update: updateState,
+                    });
+                }
             ))
         ) {
             return;

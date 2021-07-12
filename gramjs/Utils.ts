@@ -7,6 +7,17 @@ import mime from "mime-types";
 import type { ParseInterface } from "./client/messageParse";
 import { MarkdownParser } from "./extensions/markdown";
 import { CustomFile } from "./client/uploads";
+
+/**
+ * Turns the given iterable into chunks of the specified size,
+ * which is 100 by default since that's what Telegram uses the most.
+ */
+export function* chunks<T>(arr: T[], size = 100): Generator<T[]> {
+    for (let i = 0; i < arr.length; i += size) {
+        yield arr.slice(i, i + size);
+    }
+}
+
 import TypeInputFile = Api.TypeInputFile;
 import { HTMLParser } from "./extensions/html";
 
@@ -32,7 +43,7 @@ const VALID_USERNAME_RE = new RegExp(
 
 function _raiseCastFail(entity: EntityLike, target: any): never {
     let toWrite = entity;
-    if (typeof entity === "object") {
+    if (typeof entity === "object" && "className" in entity) {
         toWrite = entity.className;
     }
     throw new Error(`Cannot cast ${toWrite} to any kind of ${target}`);
@@ -47,7 +58,7 @@ function _raiseCastFail(entity: EntityLike, target: any): never {
  cannot be used for general purposes, and thus is not returned to avoid
  any issues which can derive from invalid access hashes.
 
- Note that ``check_hash`` **is ignored** if an input peer is already
+ Note that ``checkHash`` **is ignored** if an input peer is already
  passed since in that case we assume the user knows what they're doing.
  This is key to getting entities by explicitly passing ``hash = 0``.
 

@@ -1,4 +1,5 @@
 import { Api } from "../tl";
+import { Message } from "../tl/custom/message";
 
 import { TelegramClient } from "./TelegramClient";
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from "../Helpers";
@@ -317,7 +318,9 @@ async function _fileToMedia(
             }
         }
         if (!createdFile) {
-            throw new Error(`Could not create file from ${JSON.stringify(file)}`);
+            throw new Error(
+                `Could not create file from ${JSON.stringify(file)}`
+            );
         }
         fileHandle = await uploadFile(client, {
             file: createdFile,
@@ -481,7 +484,7 @@ export async function sendFile(
     });
     // todo get message
     const result = client.invoke(request);
-    return client._getResponseMessage(request, result, entity);
+    return client._getResponseMessage(request, result, entity) as Message;
 }
 
 function fileToBuffer(file: File | CustomFile) {
