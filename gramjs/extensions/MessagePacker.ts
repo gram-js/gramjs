@@ -34,6 +34,7 @@ export class MessagePacker {
     }
 
     append(state: RequestState) {
+        /* TODO later. still need fixes
         // we need to check if there is already a request with the same name that we should send after.
         if (USE_INVOKE_AFTER_WITH.includes(state.request.className)) {
             // we now need to check if there is any request in queue already.
@@ -48,7 +49,7 @@ export class MessagePacker {
                 }
             }
         }
-
+        */
         this._queue.push(state);
 
         if (this.setReady) {
