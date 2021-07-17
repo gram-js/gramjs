@@ -274,8 +274,6 @@ export namespace Api {
     }
     export class InputMediaInvoice extends VirtualClass<{
         // flags: null;
-        multipleAllowed?: boolean;
-        canForward?: boolean;
         title: string;
         description: string;
         photo?: Api.TypeInputWebDocument;
@@ -283,12 +281,10 @@ export namespace Api {
         payload: bytes;
         provider: string;
         providerData: Api.TypeDataJSON;
-        startParam: string;
+        startParam?: string;
     }> {
         static fromReader(reader: Reader): InputMediaInvoice;
         // flags: null;
-        multipleAllowed?: boolean;
-        canForward?: boolean;
         title: string;
         description: string;
         photo?: Api.TypeInputWebDocument;
@@ -296,7 +292,7 @@ export namespace Api {
         payload: bytes;
         provider: string;
         providerData: Api.TypeDataJSON;
-        startParam: string;
+        startParam?: string;
     }
     export class InputMediaGeoLive extends VirtualClass<{
         // flags: null;
@@ -1589,12 +1585,14 @@ export namespace Api {
         settings?: Api.TypeWallPaperSettings;
     }
     export class WallPaperNoFile extends VirtualClass<{
+        id: long;
         // flags: null;
         default?: boolean;
         dark?: boolean;
         settings?: Api.TypeWallPaperSettings;
     }> {
         static fromReader(reader: Reader): WallPaperNoFile;
+        id: long;
         // flags: null;
         default?: boolean;
         dark?: boolean;
@@ -2411,11 +2409,13 @@ export namespace Api {
         pollId: long;
         userId: int;
         options: bytes[];
+        qts: int;
     }> {
         static fromReader(reader: Reader): UpdateMessagePollVote;
         pollId: long;
         userId: int;
         options: bytes[];
+        qts: int;
     }
     export class UpdateDialogFilter extends VirtualClass<{
         // flags: null;
@@ -2623,6 +2623,26 @@ export namespace Api {
         date: int;
         stopped: Bool;
         qts: int;
+    }
+    export class UpdateGroupCallConnection extends VirtualClass<{
+        // flags: null;
+        presentation?: boolean;
+        params: Api.TypeDataJSON;
+    }> {
+        static fromReader(reader: Reader): UpdateGroupCallConnection;
+        // flags: null;
+        presentation?: boolean;
+        params: Api.TypeDataJSON;
+    }
+    export class UpdateBotCommands extends VirtualClass<{
+        peer: Api.TypePeer;
+        botId: int;
+        commands: Api.TypeBotCommand[];
+    }> {
+        static fromReader(reader: Reader): UpdateBotCommands;
+        peer: Api.TypePeer;
+        botId: int;
+        commands: Api.TypeBotCommand[];
     }
     export class UpdatesTooLong extends VirtualClass<void> {
         static fromReader(reader: Reader): UpdatesTooLong;
@@ -3748,11 +3768,13 @@ export namespace Api {
         // flags: null;
         singleUse?: boolean;
         selective?: boolean;
+        placeholder?: string;
     }> {
         static fromReader(reader: Reader): ReplyKeyboardForceReply;
         // flags: null;
         singleUse?: boolean;
         selective?: boolean;
+        placeholder?: string;
     }
     export class ReplyKeyboardMarkup extends VirtualClass<{
         // flags: null;
@@ -3760,6 +3782,7 @@ export namespace Api {
         singleUse?: boolean;
         selective?: boolean;
         rows: Api.TypeKeyboardButtonRow[];
+        placeholder?: string;
     }> {
         static fromReader(reader: Reader): ReplyKeyboardMarkup;
         // flags: null;
@@ -3767,6 +3790,7 @@ export namespace Api {
         singleUse?: boolean;
         selective?: boolean;
         rows: Api.TypeKeyboardButtonRow[];
+        placeholder?: string;
     }
     export class ReplyInlineMarkup extends VirtualClass<{
         rows: Api.TypeKeyboardButtonRow[];
@@ -4181,8 +4205,6 @@ export namespace Api {
     }
     export class InputBotInlineMessageMediaInvoice extends VirtualClass<{
         // flags: null;
-        multipleAllowed?: boolean;
-        canForward?: boolean;
         title: string;
         description: string;
         photo?: Api.TypeInputWebDocument;
@@ -4190,13 +4212,10 @@ export namespace Api {
         payload: bytes;
         provider: string;
         providerData: Api.TypeDataJSON;
-        startParam: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
         static fromReader(reader: Reader): InputBotInlineMessageMediaInvoice;
         // flags: null;
-        multipleAllowed?: boolean;
-        canForward?: boolean;
         title: string;
         description: string;
         photo?: Api.TypeInputWebDocument;
@@ -4204,7 +4223,6 @@ export namespace Api {
         payload: bytes;
         provider: string;
         providerData: Api.TypeDataJSON;
-        startParam: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }
     export class InputBotInlineResult extends VirtualClass<{
@@ -6585,8 +6603,11 @@ export namespace Api {
         static fromReader(reader: Reader): InputWallPaperSlug;
         slug: string;
     }
-    export class InputWallPaperNoFile extends VirtualClass<void> {
+    export class InputWallPaperNoFile extends VirtualClass<{
+        id: long;
+    }> {
         static fromReader(reader: Reader): InputWallPaperNoFile;
+        id: long;
     }
     export class CodeSettings extends VirtualClass<{
         // flags: null;
@@ -6606,6 +6627,8 @@ export namespace Api {
         motion?: boolean;
         backgroundColor?: int;
         secondBackgroundColor?: int;
+        thirdBackgroundColor?: int;
+        fourthBackgroundColor?: int;
         intensity?: int;
         rotation?: int;
     }> {
@@ -6615,6 +6638,8 @@ export namespace Api {
         motion?: boolean;
         backgroundColor?: int;
         secondBackgroundColor?: int;
+        thirdBackgroundColor?: int;
+        fourthBackgroundColor?: int;
         intensity?: int;
         rotation?: int;
     }
@@ -7125,14 +7150,16 @@ export namespace Api {
         canChangeJoinMuted?: boolean;
         joinDateAsc?: boolean;
         scheduleStartSubscribed?: boolean;
+        canStartVideo?: boolean;
         id: long;
         accessHash: long;
         participantsCount: int;
-        params?: Api.TypeDataJSON;
         title?: string;
         streamDcId?: int;
         recordStartDate?: int;
         scheduleDate?: int;
+        unmutedVideoCount?: int;
+        unmutedVideoLimit: int;
         version: int;
     }> {
         static fromReader(reader: Reader): GroupCall;
@@ -7141,14 +7168,16 @@ export namespace Api {
         canChangeJoinMuted?: boolean;
         joinDateAsc?: boolean;
         scheduleStartSubscribed?: boolean;
+        canStartVideo?: boolean;
         id: long;
         accessHash: long;
         participantsCount: int;
-        params?: Api.TypeDataJSON;
         title?: string;
         streamDcId?: int;
         recordStartDate?: int;
         scheduleDate?: int;
+        unmutedVideoCount?: int;
+        unmutedVideoLimit: int;
         version: int;
     }
     export class InputGroupCall extends VirtualClass<{
@@ -7170,6 +7199,7 @@ export namespace Api {
         mutedByYou?: boolean;
         volumeByAdmin?: boolean;
         self?: boolean;
+        videoJoined?: boolean;
         peer: Api.TypePeer;
         date: int;
         activeDate?: int;
@@ -7177,7 +7207,8 @@ export namespace Api {
         volume?: int;
         about?: string;
         raiseHandRating?: long;
-        params?: Api.TypeDataJSON;
+        video?: Api.TypeGroupCallParticipantVideo;
+        presentation?: Api.TypeGroupCallParticipantVideo;
     }> {
         static fromReader(reader: Reader): GroupCallParticipant;
         // flags: null;
@@ -7190,6 +7221,7 @@ export namespace Api {
         mutedByYou?: boolean;
         volumeByAdmin?: boolean;
         self?: boolean;
+        videoJoined?: boolean;
         peer: Api.TypePeer;
         date: int;
         activeDate?: int;
@@ -7197,7 +7229,8 @@ export namespace Api {
         volume?: int;
         about?: string;
         raiseHandRating?: long;
-        params?: Api.TypeDataJSON;
+        video?: Api.TypeGroupCallParticipantVideo;
+        presentation?: Api.TypeGroupCallParticipantVideo;
     }
     export class InlineQueryPeerTypeSameBotPM extends VirtualClass<void> {
         static fromReader(reader: Reader): InlineQueryPeerTypeSameBotPM;
@@ -7231,6 +7264,60 @@ export namespace Api {
         adminId: int;
         invitesCount: int;
         revokedInvitesCount: int;
+    }
+    export class GroupCallParticipantVideoSourceGroup extends VirtualClass<{
+        semantics: string;
+        sources: int[];
+    }> {
+        static fromReader(reader: Reader): GroupCallParticipantVideoSourceGroup;
+        semantics: string;
+        sources: int[];
+    }
+    export class GroupCallParticipantVideo extends VirtualClass<{
+        // flags: null;
+        paused?: boolean;
+        endpoint: string;
+        sourceGroups: Api.TypeGroupCallParticipantVideoSourceGroup[];
+        audioSource?: int;
+    }> {
+        static fromReader(reader: Reader): GroupCallParticipantVideo;
+        // flags: null;
+        paused?: boolean;
+        endpoint: string;
+        sourceGroups: Api.TypeGroupCallParticipantVideoSourceGroup[];
+        audioSource?: int;
+    }
+    export class BotCommandScopeDefault extends VirtualClass<void> {
+        static fromReader(reader: Reader): BotCommandScopeDefault;
+    }
+    export class BotCommandScopeUsers extends VirtualClass<void> {
+        static fromReader(reader: Reader): BotCommandScopeUsers;
+    }
+    export class BotCommandScopeChats extends VirtualClass<void> {
+        static fromReader(reader: Reader): BotCommandScopeChats;
+    }
+    export class BotCommandScopeChatAdmins extends VirtualClass<void> {
+        static fromReader(reader: Reader): BotCommandScopeChatAdmins;
+    }
+    export class BotCommandScopePeer extends VirtualClass<{
+        peer: Api.TypeInputPeer;
+    }> {
+        static fromReader(reader: Reader): BotCommandScopePeer;
+        peer: Api.TypeInputPeer;
+    }
+    export class BotCommandScopePeerAdmins extends VirtualClass<{
+        peer: Api.TypeInputPeer;
+    }> {
+        static fromReader(reader: Reader): BotCommandScopePeerAdmins;
+        peer: Api.TypeInputPeer;
+    }
+    export class BotCommandScopePeerUser extends VirtualClass<{
+        peer: Api.TypeInputPeer;
+        userId: Api.TypeInputUser;
+    }> {
+        static fromReader(reader: Reader): BotCommandScopePeerUser;
+        peer: Api.TypeInputPeer;
+        userId: Api.TypeInputUser;
     }
     export class ResPQ extends VirtualClass<{
         nonce: int128;
@@ -8774,6 +8861,7 @@ export namespace Api {
             entities: Api.TypeMessageEntity[];
             document?: Api.TypeDocument;
             url?: string;
+            sticker?: Api.TypeDocument;
         }> {
             static fromReader(reader: Reader): AppUpdate;
             // flags: null;
@@ -8784,6 +8872,7 @@ export namespace Api {
             entities: Api.TypeMessageEntity[];
             document?: Api.TypeDocument;
             url?: string;
+            sticker?: Api.TypeDocument;
         }
         export class NoAppUpdate extends VirtualClass<void> {
             static fromReader(reader: Reader): NoAppUpdate;
@@ -8996,6 +9085,7 @@ export namespace Api {
             newAlgo: Api.TypePasswordKdfAlgo;
             newSecureAlgo: Api.TypeSecurePasswordKdfAlgo;
             secureRandom: bytes;
+            pendingResetDate?: int;
         }> {
             static fromReader(reader: Reader): Password;
             // flags: null;
@@ -9010,6 +9100,7 @@ export namespace Api {
             newAlgo: Api.TypePasswordKdfAlgo;
             newSecureAlgo: Api.TypeSecurePasswordKdfAlgo;
             secureRandom: bytes;
+            pendingResetDate?: int;
         }
         export class PasswordSettings extends VirtualClass<{
             // flags: null;
@@ -9124,6 +9215,21 @@ export namespace Api {
             // flags: null;
             sensitiveEnabled?: boolean;
             sensitiveCanChange?: boolean;
+        }
+        export class ResetPasswordFailedWait extends VirtualClass<{
+            retryDate: int;
+        }> {
+            static fromReader(reader: Reader): ResetPasswordFailedWait;
+            retryDate: int;
+        }
+        export class ResetPasswordRequestedWait extends VirtualClass<{
+            untilDate: int;
+        }> {
+            static fromReader(reader: Reader): ResetPasswordRequestedWait;
+            untilDate: int;
+        }
+        export class ResetPasswordOk extends VirtualClass<void> {
+            static fromReader(reader: Reader): ResetPasswordOk;
         }
     }
 
@@ -9410,6 +9516,15 @@ export namespace Api {
         }
     }
 
+    export namespace stickers {
+        export class SuggestedShortName extends VirtualClass<{
+            shortName: string;
+        }> {
+            static fromReader(reader: Reader): SuggestedShortName;
+            shortName: string;
+        }
+    }
+
     export namespace storage {
         export type TypeFileType =
             | storage.FileUnknown
@@ -9596,6 +9711,10 @@ export namespace Api {
         export type TypeAutoDownloadSettings = account.AutoDownloadSettings;
         export type TypeThemes = account.ThemesNotModified | account.Themes;
         export type TypeContentSettings = account.ContentSettings;
+        export type TypeResetPasswordResult =
+            | account.ResetPasswordFailedWait
+            | account.ResetPasswordRequestedWait
+            | account.ResetPasswordOk;
     }
 
     export namespace channels {
@@ -9630,6 +9749,10 @@ export namespace Api {
         export type TypeBroadcastStats = stats.BroadcastStats;
         export type TypeMegagroupStats = stats.MegagroupStats;
         export type TypeMessageStats = stats.MessageStats;
+    }
+
+    export namespace stickers {
+        export type TypeSuggestedShortName = stickers.SuggestedShortName;
     }
 
     export namespace auth {
@@ -9749,12 +9872,16 @@ export namespace Api {
         }
         export class RecoverPassword extends Request<
             Partial<{
+                // flags: null;
                 code: string;
+                newSettings?: account.TypePasswordInputSettings;
             }>,
             auth.TypeAuthorization
         > {
             static fromReader(reader: Reader): RecoverPassword;
+            // flags: null;
             code: string;
+            newSettings?: account.TypePasswordInputSettings;
         }
         export class ResendCode extends Request<
             Partial<{
@@ -9817,6 +9944,15 @@ export namespace Api {
         > {
             static fromReader(reader: Reader): AcceptLoginToken;
             token: bytes;
+        }
+        export class CheckRecoveryPassword extends Request<
+            Partial<{
+                code: string;
+            }>,
+            Bool
+        > {
+            static fromReader(reader: Reader): CheckRecoveryPassword;
+            code: string;
         }
     }
 
@@ -10521,6 +10657,15 @@ export namespace Api {
             photoId: Api.TypeInputPhoto;
             reason: Api.TypeReportReason;
             message: string;
+        }
+        export class ResetPassword extends Request<
+            void,
+            account.TypeResetPasswordResult
+        > {
+            static fromReader(reader: Reader): ResetPassword;
+        }
+        export class DeclinePasswordReset extends Request<void, Bool> {
+            static fromReader(reader: Reader): DeclinePasswordReset;
         }
     }
 
@@ -13484,12 +13629,38 @@ export namespace Api {
         }
         export class SetBotCommands extends Request<
             Partial<{
+                scope: Api.TypeBotCommandScope;
+                langCode: string;
                 commands: Api.TypeBotCommand[];
             }>,
             Bool
         > {
             static fromReader(reader: Reader): SetBotCommands;
+            scope: Api.TypeBotCommandScope;
+            langCode: string;
             commands: Api.TypeBotCommand[];
+        }
+        export class ResetBotCommands extends Request<
+            Partial<{
+                scope: Api.TypeBotCommandScope;
+                langCode: string;
+            }>,
+            Bool
+        > {
+            static fromReader(reader: Reader): ResetBotCommands;
+            scope: Api.TypeBotCommandScope;
+            langCode: string;
+        }
+        export class GetBotCommands extends Request<
+            Partial<{
+                scope: Api.TypeBotCommandScope;
+                langCode: string;
+            }>,
+            Api.TypeBotCommand[]
+        > {
+            static fromReader(reader: Reader): GetBotCommands;
+            scope: Api.TypeBotCommandScope;
+            langCode: string;
         }
     }
 
@@ -13601,6 +13772,7 @@ export namespace Api {
                 shortName: string;
                 thumb?: Api.TypeInputDocument;
                 stickers: Api.TypeInputStickerSetItem[];
+                software?: string;
             }>,
             messages.TypeStickerSet
         > {
@@ -13613,6 +13785,7 @@ export namespace Api {
             shortName: string;
             thumb?: Api.TypeInputDocument;
             stickers: Api.TypeInputStickerSetItem[];
+            software?: string;
         }
         export class RemoveStickerFromSet extends Request<
             Partial<{
@@ -13655,6 +13828,24 @@ export namespace Api {
             static fromReader(reader: Reader): SetStickerSetThumb;
             stickerset: Api.TypeInputStickerSet;
             thumb: Api.TypeInputDocument;
+        }
+        export class CheckShortName extends Request<
+            Partial<{
+                shortName: string;
+            }>,
+            Bool
+        > {
+            static fromReader(reader: Reader): CheckShortName;
+            shortName: string;
+        }
+        export class SuggestShortName extends Request<
+            Partial<{
+                title: string;
+            }>,
+            stickers.TypeSuggestedShortName
+        > {
+            static fromReader(reader: Reader): SuggestShortName;
+            title: string;
         }
     }
 
@@ -13797,6 +13988,7 @@ export namespace Api {
             Partial<{
                 // flags: null;
                 muted?: boolean;
+                videoStopped?: boolean;
                 call: Api.TypeInputGroupCall;
                 joinAs: Api.TypeEntityLike;
                 inviteHash?: string;
@@ -13807,6 +13999,7 @@ export namespace Api {
             static fromReader(reader: Reader): JoinGroupCall;
             // flags: null;
             muted?: boolean;
+            videoStopped?: boolean;
             call: Api.TypeInputGroupCall;
             joinAs: Api.TypeEntityLike;
             inviteHash?: string;
@@ -13887,13 +14080,13 @@ export namespace Api {
         export class CheckGroupCall extends Request<
             Partial<{
                 call: Api.TypeInputGroupCall;
-                source: int;
+                sources: int[];
             }>,
-            Bool
+            int[]
         > {
             static fromReader(reader: Reader): CheckGroupCall;
             call: Api.TypeInputGroupCall;
-            source: int;
+            sources: int[];
         }
         export class ToggleGroupCallRecord extends Request<
             Partial<{
@@ -13913,21 +14106,27 @@ export namespace Api {
         export class EditGroupCallParticipant extends Request<
             Partial<{
                 // flags: null;
-                muted?: boolean;
                 call: Api.TypeInputGroupCall;
                 participant: Api.TypeEntityLike;
+                muted?: Bool;
                 volume?: int;
                 raiseHand?: Bool;
+                videoStopped?: Bool;
+                videoPaused?: Bool;
+                presentationPaused?: Bool;
             }>,
             Api.TypeUpdates
         > {
             static fromReader(reader: Reader): EditGroupCallParticipant;
             // flags: null;
-            muted?: boolean;
             call: Api.TypeInputGroupCall;
             participant: Api.TypeEntityLike;
+            muted?: Bool;
             volume?: int;
             raiseHand?: Bool;
+            videoStopped?: Bool;
+            videoPaused?: Bool;
+            presentationPaused?: Bool;
         }
         export class EditGroupCallTitle extends Request<
             Partial<{
@@ -13992,6 +14191,26 @@ export namespace Api {
             static fromReader(reader: Reader): SaveDefaultGroupCallJoinAs;
             peer: Api.TypeEntityLike;
             joinAs: Api.TypeEntityLike;
+        }
+        export class JoinGroupCallPresentation extends Request<
+            Partial<{
+                call: Api.TypeInputGroupCall;
+                params: Api.TypeDataJSON;
+            }>,
+            Api.TypeUpdates
+        > {
+            static fromReader(reader: Reader): JoinGroupCallPresentation;
+            call: Api.TypeInputGroupCall;
+            params: Api.TypeDataJSON;
+        }
+        export class LeaveGroupCallPresentation extends Request<
+            Partial<{
+                call: Api.TypeInputGroupCall;
+            }>,
+            Api.TypeUpdates
+        > {
+            static fromReader(reader: Reader): LeaveGroupCallPresentation;
+            call: Api.TypeInputGroupCall;
         }
     }
 
@@ -14412,7 +14631,9 @@ export namespace Api {
         | UpdatePeerHistoryTTL
         | UpdateChatParticipant
         | UpdateChannelParticipant
-        | UpdateBotStopped;
+        | UpdateBotStopped
+        | UpdateGroupCallConnection
+        | UpdateBotCommands;
     export type TypeUpdates =
         | UpdatesTooLong
         | UpdateShortMessage
@@ -14918,6 +15139,17 @@ export namespace Api {
         | InlineQueryPeerTypeBroadcast;
     export type TypeChatInviteImporter = ChatInviteImporter;
     export type TypeChatAdminWithInvites = ChatAdminWithInvites;
+    export type TypeGroupCallParticipantVideoSourceGroup =
+        GroupCallParticipantVideoSourceGroup;
+    export type TypeGroupCallParticipantVideo = GroupCallParticipantVideo;
+    export type TypeBotCommandScope =
+        | BotCommandScopeDefault
+        | BotCommandScopeUsers
+        | BotCommandScopeChats
+        | BotCommandScopeChatAdmins
+        | BotCommandScopePeer
+        | BotCommandScopePeerAdmins
+        | BotCommandScopePeerUser;
     export type TypeResPQ = ResPQ;
     export type TypeP_Q_inner_data =
         | PQInnerData
@@ -15002,6 +15234,7 @@ export namespace Api {
         | auth.ExportLoginToken
         | auth.ImportLoginToken
         | auth.AcceptLoginToken
+        | auth.CheckRecoveryPassword
         | account.RegisterDevice
         | account.UnregisterDevice
         | account.UpdateNotifySettings
@@ -15070,6 +15303,8 @@ export namespace Api {
         | account.GetGlobalPrivacySettings
         | account.SetGlobalPrivacySettings
         | account.ReportProfilePhoto
+        | account.ResetPassword
+        | account.DeclinePasswordReset
         | users.GetUsers
         | users.GetFullUser
         | users.SetSecureValueErrors
@@ -15311,6 +15546,8 @@ export namespace Api {
         | bots.SendCustomRequest
         | bots.AnswerWebhookJSONQuery
         | bots.SetBotCommands
+        | bots.ResetBotCommands
+        | bots.GetBotCommands
         | payments.GetPaymentForm
         | payments.GetPaymentReceipt
         | payments.ValidateRequestedInfo
@@ -15323,6 +15560,8 @@ export namespace Api {
         | stickers.ChangeStickerPosition
         | stickers.AddStickerToSet
         | stickers.SetStickerSetThumb
+        | stickers.CheckShortName
+        | stickers.SuggestShortName
         | phone.GetCallConfig
         | phone.RequestCall
         | phone.AcceptCall
@@ -15349,6 +15588,8 @@ export namespace Api {
         | phone.ToggleGroupCallStartSubscription
         | phone.StartScheduledGroupCall
         | phone.SaveDefaultGroupCallJoinAs
+        | phone.JoinGroupCallPresentation
+        | phone.LeaveGroupCallPresentation
         | langpack.GetLangPack
         | langpack.GetStrings
         | langpack.GetDifference

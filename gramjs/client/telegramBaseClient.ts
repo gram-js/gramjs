@@ -16,9 +16,9 @@ import type { EventBuilder } from "../events/common";
 import { MarkdownParser } from "../extensions/markdown";
 import { MTProtoSender } from "../network";
 
-const DEFAULT_DC_ID = 1;
-const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.51" : "pluto.web.telegram.org";
-const DEFAULT_IPV6_IP = "2001:67c:4e8:f002::a";
+const DEFAULT_DC_ID = 4;
+const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.91" : "vesta.web.telegram.org";
+const DEFAULT_IPV6_IP = "2001:067c:04e8:f004:0000:0000:0000:000a";
 
 /**
  * Interface for creating a new client.
