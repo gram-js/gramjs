@@ -1,6 +1,6 @@
 {
   "name": "telegram",
-  "version": "1.7.19",
+  "version": "1.7.20",
   "description": "NodeJS MTProto API Telegram client library,",
   "main": "index.js",
   "types": "index.d.ts",

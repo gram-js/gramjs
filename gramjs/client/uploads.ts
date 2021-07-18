@@ -448,7 +448,7 @@ export async function sendFile(
     if (formattingEntities != undefined) {
         msgEntities = formattingEntities;
     } else {
-        [caption, formattingEntities] = await _parseMessageText(
+        [caption, msgEntities] = await _parseMessageText(
             client,
             caption,
             parseMode
