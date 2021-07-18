@@ -329,7 +329,7 @@ export async function _downloadDocument(
         {
             fileSize:
                 size && !(size instanceof Api.PhotoSizeEmpty)
-                    ? size.size
+                    ? (size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size)
                     : doc.size,
             progressCallback: args.progressCallback,
             start: args.start,
@@ -367,7 +367,6 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
         if (
             size &&
             !(
-                size instanceof Api.PhotoSizeProgressive ||
                 size instanceof Api.PhotoPathSize
             )
         ) {
@@ -424,7 +423,7 @@ export async function _downloadPhoto(
         }),
         {
             dcId: photo.dcId,
-            fileSize: size.size,
+            fileSize: size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size,
             progressCallback: args.progressCallback,
         }
     );
