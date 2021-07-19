@@ -482,8 +482,7 @@ export async function sendFile(
         scheduleDate: scheduleDate,
         clearDraft: clearDraft,
     });
-    // todo get message
-    const result = client.invoke(request);
+    const result = await client.invoke(request);
     return client._getResponseMessage(request, result, entity) as Message;
 }
 
