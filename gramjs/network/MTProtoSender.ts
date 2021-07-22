@@ -500,7 +500,7 @@ export class MTProtoSender {
      */
     async _processMessage(message: TLMessage) {
         this._pendingAck.add(message.msgId);
-        // eslint-disable-next-line require-atomic-updates
+
         message.obj = await message.obj;
         let handler = this._handlers[message.obj.CONSTRUCTOR_ID.toString()];
         if (!handler) {
@@ -657,8 +657,8 @@ export class MTProtoSender {
     async _handlePong(message: TLMessage) {
         const pong = message.obj;
         this._log.debug(`Handling pong for message ${pong.msgId}`);
-        const state = this._pendingState.get(pong.msgId);
-        this._pendingState.delete(pong.msgId);
+        const state = this._pendingState.get(pong.msgId.toString());
+        this._pendingState.delete(pong.msgId.toString());
 
         // Todo Check result
         if (state) {
