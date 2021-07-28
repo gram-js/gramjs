@@ -329,7 +329,9 @@ export async function _downloadDocument(
         {
             fileSize:
                 size && !(size instanceof Api.PhotoSizeEmpty)
-                    ? (size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size)
+                    ? size instanceof Api.PhotoSizeProgressive
+                        ? Math.max(...size.sizes)
+                        : size.size
                     : doc.size,
             progressCallback: args.progressCallback,
             start: args.start,
@@ -364,12 +366,7 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
     let size;
     for (let i = indexOfSize; i < sizeTypes.length; i++) {
         size = sizes.find((s) => s.type === sizeTypes[i]);
-        if (
-            size &&
-            !(
-                size instanceof Api.PhotoPathSize
-            )
-        ) {
+        if (size && !(size instanceof Api.PhotoPathSize)) {
             return size;
         }
     }
@@ -423,7 +420,10 @@ export async function _downloadPhoto(
         }),
         {
             dcId: photo.dcId,
-            fileSize: size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size,
+            fileSize:
+                size instanceof Api.PhotoSizeProgressive
+                    ? Math.max(...size.sizes)
+                    : size.size,
             progressCallback: args.progressCallback,
         }
     );

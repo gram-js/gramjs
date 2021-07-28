@@ -8,20 +8,20 @@ module.exports = {
       {
         test: /\.ts$/,
         use: "ts-loader",
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
 
       {
         test: /\.js$/,
         use: "babel-loader",
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
 
       {
         test: /\.tl$/i,
-        loader: "raw-loader"
-      }
-    ]
+        loader: "raw-loader",
+      },
+    ],
   },
 
   resolve: {
@@ -35,17 +35,17 @@ module.exports = {
       util: require.resolve("util/"),
       assert: false,
       stream: false,
-      constants: false
-    }
+      constants: false,
+    },
   },
   mode: "development",
   plugins: [
     new webpack.ProvidePlugin({
-      Buffer: ["buffer", "Buffer"]
+      Buffer: ["buffer", "Buffer"],
     }),
     new webpack.ProvidePlugin({
-      process: "process/browser"
-    })
+      process: "process/browser",
+    }),
   ],
 
   output: {
@@ -53,6 +53,6 @@ module.exports = {
     libraryTarget: "umd",
     auxiliaryComment: "Test Comment",
     filename: "gramjs.js",
-    path: path.resolve(__dirname, "browser")
-  }
+    path: path.resolve(__dirname, "browser"),
+  },
 };

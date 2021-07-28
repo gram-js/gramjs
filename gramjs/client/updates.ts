@@ -25,6 +25,7 @@ export function addEventHandler(
         const raw = require("../events/Raw").Raw;
         event = new raw({}) as Raw;
     }
+    event.client = client;
     client._eventBuilders.push([event, callback]);
 }
 
@@ -113,7 +114,8 @@ export async function _dispatchUpdate(
             if (!(event instanceof UpdateConnectionState)) {
                 // TODO fix me
             }
-            event = builder.build(event);
+            // TODO fix others not being passed
+            event = builder.build(event, undefined, callback);
             if (event) {
                 if ("_eventName" in event) {
                     event._setClient(client);

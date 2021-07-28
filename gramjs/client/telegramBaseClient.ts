@@ -170,6 +170,11 @@ export class TelegramBaseClient {
     public _lastRequest?: number;
     /** @hidden */
     public _parseMode?: ParseInterface;
+    /** @hidden */
+    public _ALBUMS = new Map<
+        string,
+        [ReturnType<typeof setTimeout>, Api.TypeUpdate[]]
+    >();
 
     constructor(
         session: string | Session,

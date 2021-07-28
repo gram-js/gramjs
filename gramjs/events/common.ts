@@ -91,6 +91,7 @@ export class EventBuilder {
     blacklistChats: boolean;
     resolved: boolean;
     func?: CallableFunction;
+    client?: TelegramClient;
 
     constructor(eventParams: DefaultEventInterface) {
         this.chats = eventParams.chats;
@@ -99,7 +100,11 @@ export class EventBuilder {
         this.func = eventParams.func;
     }
 
-    build(update: Api.TypeUpdate, others = null): any {
+    build(
+        update: Api.TypeUpdate,
+        others?: any,
+        callback?: CallableFunction
+    ): any {
         if (update) return update;
     }
 

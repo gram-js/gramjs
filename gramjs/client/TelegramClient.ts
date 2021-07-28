@@ -25,6 +25,7 @@ import { NewMessage, NewMessageEvent } from "../events";
 import { _dispatchUpdate, _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
 import { inspect } from "util";
+import { Album, AlbumEvent } from "../events/Album";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -806,6 +807,11 @@ export class TelegramClient extends TelegramBaseClient {
     ): void;
     /** @hidden */
     addEventHandler(
+        callback: { (event: AlbumEvent): void },
+        event: Album
+    ): void;
+    /** @hidden */
+    addEventHandler(
         callback: { (event: any): void },
         event?: EventBuilder
     ): void;
@@ -1297,5 +1303,11 @@ export class TelegramClient extends TelegramBaseClient {
         return betterConsoleLog(this);
     }
 
+    /**
+     * Small hack for using it in browsers
+     */
+    static get events() {
+        return require("../events");
+    }
     // endregion
 }
