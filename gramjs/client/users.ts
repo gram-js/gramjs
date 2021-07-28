@@ -98,7 +98,7 @@ export async function getMe(
         if (!client._selfInputPeer) {
             client._selfInputPeer = utils.getInputPeer(
                 me,
-                true
+                false
             ) as Api.InputPeerUser;
         }
         return inputPeer ? client._selfInputPeer : me;
