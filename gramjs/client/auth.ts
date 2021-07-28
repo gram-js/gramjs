@@ -76,7 +76,7 @@ export async function start(
         apiHash: client.apiHash,
     };
 
-    await _authFlow(client,apiCredentials, authParams);
+    await _authFlow(client, apiCredentials, authParams);
 }
 /** @hidden */
 export async function checkAuthorization(client: TelegramClient) {

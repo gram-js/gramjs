@@ -6,7 +6,7 @@ import type {
     FileLike,
     MarkupLike,
     MessageIDLike,
-    MessageLike
+    MessageLike,
 } from "../define";
 import { RequestIter } from "../requestIter";
 import {
@@ -14,7 +14,7 @@ import {
     _entityType,
     TotalList,
     isArrayLike,
-    groupBy
+    groupBy,
 } from "../Helpers";
 import { getMessageId, getPeerId } from "../Utils";
 import type { TelegramClient } from "../";
@@ -51,17 +51,17 @@ export class _MessagesIter extends RequestIter {
     lastId?: number;
 
     async _init({
-                    entity,
-                    offsetId,
-                    minId,
-                    maxId,
-                    fromUser,
-                    offsetDate,
-                    addOffset,
-                    filter,
-                    search,
-                    replyTo
-                }: MessageIterParams) {
+        entity,
+        offsetId,
+        minId,
+        maxId,
+        fromUser,
+        offsetDate,
+        addOffset,
+        filter,
+        search,
+        replyTo,
+    }: MessageIterParams) {
         if (entity) {
             this.entity = await this.client.getInputEntity(entity);
         } else {
@@ -118,7 +118,7 @@ export class _MessagesIter extends RequestIter {
                 offsetRate: undefined,
                 offsetPeer: new Api.InputPeerEmpty(),
                 offsetId: offsetId,
-                limit: 1
+                limit: 1,
             });
         } else if (replyTo !== undefined) {
             this.request = new Api.messages.GetReplies({
@@ -130,7 +130,7 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: 0
+                hash: 0,
             });
         } else if (
             search !== undefined ||
@@ -155,7 +155,7 @@ export class _MessagesIter extends RequestIter {
                 maxId: 0,
                 minId: 0,
                 hash: 0,
-                fromId: fromUser
+                fromId: fromUser,
             });
             if (
                 filter instanceof Api.InputMessagesFilterEmpty &&
@@ -165,7 +165,7 @@ export class _MessagesIter extends RequestIter {
             ) {
                 for await (const m of this.client.iterMessages(this.entity, {
                     limit: 1,
-                    offsetDate: offsetDate
+                    offsetDate: offsetDate,
                 })) {
                     this.request.offsetId = m.id + 1;
                 }
@@ -179,7 +179,7 @@ export class _MessagesIter extends RequestIter {
                 minId: 0,
                 maxId: 0,
                 addOffset: addOffset,
-                hash: 0
+                hash: 0,
             });
         }
         if (this.limit <= 0) {
@@ -249,8 +249,7 @@ export class _MessagesIter extends RequestIter {
             try {
                 // if this fails it shouldn't be a big problem
                 message._finishInit(this.client, entities, this.entity);
-            } catch (e) {
-            }
+            } catch (e) {}
             message._entities = entities;
             this.buffer?.push(message);
         }
@@ -355,13 +354,13 @@ export class _IDsIter extends RequestIter {
                 r = await this.client.invoke(
                     new Api.channels.GetMessages({
                         channel: this._entity,
-                        id: ids
+                        id: ids,
                     })
                 );
             } catch (e) {
                 if (e.message == "MESSAGE_IDS_EMPTY") {
                     r = new Api.messages.MessagesNotModified({
-                        count: ids.length
+                        count: ids.length,
                     });
                 } else {
                     throw e;
@@ -370,7 +369,7 @@ export class _IDsIter extends RequestIter {
         } else {
             r = await this.client.invoke(
                 new Api.messages.GetMessages({
-                    id: ids
+                    id: ids,
                 })
             );
             if (this._entity) {
@@ -403,7 +402,7 @@ export class _IDsIter extends RequestIter {
     }
 }
 
- /**
+/**
  * Interface for iterating over messages. used in both {@link iterMessages} and {@link getMessages}.
  */
 export interface IterMessagesParams {
@@ -565,7 +564,7 @@ export function iterMessages(
         waitTime,
         ids,
         reverse = false,
-        replyTo
+        replyTo,
     }: IterMessagesParams
 ) {
     if (ids) {
@@ -580,11 +579,11 @@ export function iterMessages(
             idsArray.length,
             {
                 reverse: reverse,
-                waitTime: waitTime
+                waitTime: waitTime,
             },
             {
                 entity: entity,
-                ids: idsArray
+                ids: idsArray,
             }
         );
     }
@@ -593,7 +592,7 @@ export function iterMessages(
         limit || 1,
         {
             waitTime: waitTime,
-            reverse: reverse
+            reverse: reverse,
         },
         {
             entity: entity,
@@ -605,7 +604,7 @@ export function iterMessages(
             addOffset: addOffset,
             filter: filter,
             search: search,
-            replyTo: replyTo
+            replyTo: replyTo,
         }
     );
 }
@@ -654,13 +653,17 @@ export async function sendMessage(
         buttons,
         silent,
         supportStreaming,
-        schedule
+        schedule,
     }: SendMessageParams
 ) {
     if (file) {
         return client.sendFile(entity, {
             file: file,
-            caption: message ? (typeof message == "string" ? message : message.message) : "",
+            caption: message
+                ? typeof message == "string"
+                    ? message
+                    : message.message
+                : "",
             forceDocument: forceDocument,
             clearDraft: clearDraft,
             replyTo: replyTo,
@@ -671,9 +674,8 @@ export async function sendMessage(
             formattingEntities: formattingEntities,
             silent: silent,
             scheduleDate: schedule,
-            buttons: buttons
+            buttons: buttons,
         });
-
     }
     entity = await client.getInputEntity(entity);
     let markup, request;
@@ -712,7 +714,7 @@ export async function sendMessage(
             entities: message.entities,
             clearDraft: clearDraft,
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
         message = message.message;
     } else {
@@ -737,7 +739,7 @@ export async function sendMessage(
             clearDraft: clearDraft,
             silent: silent,
             replyMarkup: client.buildReplyMarkup(buttons),
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
     }
     const result = await client.invoke(request);
@@ -751,7 +753,7 @@ export async function sendMessage(
             media: result.media,
             entities: result.entities,
             replyMarkup: request.replyMarkup,
-            ttlPeriod: result.ttlPeriod
+            ttlPeriod: result.ttlPeriod,
         });
         msg._finishInit(client, new Map(), entity);
         return msg;
@@ -784,8 +786,10 @@ export async function forwardMessages(
         }
     };
     const sent: Message[] = [];
-    for (let [chatId, chunk] of groupBy(messages, getKey) as Map<number,
-        Message[] | number[]>) {
+    for (let [chatId, chunk] of groupBy(messages, getKey) as Map<
+        number,
+        Message[] | number[]
+    >) {
         let chat;
         let numbers: number[] = [];
         if (typeof chunk[0] == "number") {
@@ -801,7 +805,7 @@ export async function forwardMessages(
             id: numbers,
             toPeer: entity,
             silent: silent,
-            scheduleDate: schedule
+            scheduleDate: schedule,
         });
         const result = await client.invoke(request);
         sent.push(
@@ -824,16 +828,12 @@ export async function editMessage(
         file,
         forceDocument,
         buttons,
-        schedule
+        schedule,
     }: EditMessageParams
 ) {
     entity = await client.getInputEntity(entity);
     if (formattingEntities == undefined) {
-        [text, formattingEntities] = _parseMessageText(
-            client,
-            text,
-            parseMode
-        );
+        [text, formattingEntities] = _parseMessageText(client, text, parseMode);
     }
     const request = new Api.messages.EditMessage({
         peer: entity,
@@ -843,10 +843,64 @@ export async function editMessage(
         entities: formattingEntities,
         //media: no media for now,
         replyMarkup: client.buildReplyMarkup(buttons),
-        scheduleDate: schedule
+        scheduleDate: schedule,
     });
     const result = await client.invoke(request);
     return client._getResponseMessage(request, result, entity) as Message;
+}
+
+/** @hidden */
+export async function deleteMessages(
+    client: TelegramClient,
+    entity: EntityLike | undefined,
+    messageIds: MessageIDLike[],
+    { revoke = false }
+) {
+    let ty = _EntityType.USER;
+    if (entity) {
+        entity = await client.getInputEntity(entity);
+        ty = _entityType(entity);
+    }
+    const ids: number[] = [];
+    for (const messageId of messageIds) {
+        if (
+            messageId instanceof Api.Message ||
+            messageId instanceof Api.MessageService ||
+            messageId instanceof Api.MessageEmpty
+        ) {
+            ids.push(messageId.id);
+        } else if (typeof messageId === "number") {
+            ids.push(messageId);
+        } else {
+            throw new Error(`Cannot convert ${messageId} to an integer`);
+        }
+    }
+    const results = [];
+
+    if (ty == _EntityType.CHANNEL) {
+        for (const chunk of utils.chunks(ids)) {
+            results.push(
+                client.invoke(
+                    new Api.channels.DeleteMessages({
+                        channel: entity,
+                        id: chunk,
+                    })
+                )
+            );
+        }
+    } else {
+        for (const chunk of utils.chunks(ids)) {
+            results.push(
+                client.invoke(
+                    new Api.messages.DeleteMessages({
+                        id: chunk,
+                        revoke: revoke,
+                    })
+                )
+            );
+        }
+    }
+    return Promise.all(results);
 }
 
 // TODO do the rest

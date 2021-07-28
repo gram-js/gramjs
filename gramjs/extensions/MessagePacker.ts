@@ -4,6 +4,15 @@ import { BinaryWriter } from "./BinaryWriter";
 import type { MTProtoState } from "../network/MTProtoState";
 import type { RequestState } from "../network/RequestState";
 
+const USE_INVOKE_AFTER_WITH = [
+    "messages.SendMessage",
+    "messages.SendMedia",
+    "messages.SendMultiMedia",
+    "messages.ForwardMessages",
+    "messages.SendInlineBotResult",
+    "users.GetUsers",
+];
+
 export class MessagePacker {
     private _state: any;
     private _queue: any[];
@@ -25,7 +34,24 @@ export class MessagePacker {
     }
 
     append(state: RequestState) {
+        /* TODO later. still need fixes
+        // we need to check if there is already a request with the same name that we should send after.
+        if (USE_INVOKE_AFTER_WITH.includes(state.request.className)) {
+            // we now need to check if there is any request in queue already.
+            for (let i = this._queue.length - 1; i >= 0; i--) {
+                if (
+                    USE_INVOKE_AFTER_WITH.includes(
+                        this._queue[i].request.className
+                    )
+                ) {
+                    state.after = this._queue[i];
+                    break;
+                }
+            }
+        }
+        */
         this._queue.push(state);
+
         if (this.setReady) {
             this.setReady(true);
         }
@@ -33,10 +59,7 @@ export class MessagePacker {
 
     extend(states: RequestState[]) {
         for (const state of states) {
-            this._queue.push(state);
-        }
-        if (this.setReady) {
-            this.setReady(true);
+            this.append(state);
         }
     }
 

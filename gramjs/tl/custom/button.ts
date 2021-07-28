@@ -44,7 +44,7 @@ export class Button {
         }
         return new Api.KeyboardButtonCallback({
             text: text,
-            data: data
+            data: data,
         });
     }
 
@@ -52,14 +52,14 @@ export class Button {
         return new Api.KeyboardButtonSwitchInline({
             text,
             query,
-            samePeer
+            samePeer,
         });
     }
 
     static url(text: string, url?: string) {
         return new Api.KeyboardButtonUrl({
             text: text,
-            url: url || text
+            url: url || text,
         });
     }
 
@@ -75,7 +75,7 @@ export class Button {
             url: url || text,
             bot: utils.getInputPeer(bot || new Api.InputUserSelf()),
             requestWriteAccess: writeAccess,
-            fwdText: fwdText
+            fwdText: fwdText,
         });
     }
 

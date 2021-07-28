@@ -1,5 +1,5 @@
 import { Api } from "../tl";
-import type { ButtonLike} from "../define";
+import type { ButtonLike } from "../define";
 import { Button } from "../tl/custom/button";
 import { MessageButton } from "../tl/custom/messageButton";
 import { isArrayLike } from "../Helpers";

@@ -11,19 +11,20 @@ import * as uploadMethods from "./uploads";
 import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
-import type { ButtonLike, Entity, EntityLike } from "../define";
+import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
 import { MTProtoSender, UpdateConnectionState } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
-import { IS_NODE } from "../Helpers";
+import { betterConsoleLog, IS_NODE } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
 import type { Message } from "../tl/custom/message";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _dispatchUpdate, _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
+import { inspect } from "util";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -36,10 +37,8 @@ import { Session } from "../sessions";
  * ```
  *
  * You don't need to import any methods that are inside the TelegramClient class as they binding in it.
-*/
+ */
 export class TelegramClient extends TelegramBaseClient {
-
-
     /**
      * @param session - a session to be used to save the connection and auth key to. This can be a custom session that inherits MemorySession.
      * @param apiId - The API ID you obtained from https://my.telegram.org.
@@ -109,7 +108,6 @@ export class TelegramClient extends TelegramBaseClient {
         return authMethods.checkAuthorization(this);
     }
 
-
     /**
      * Logs in as a user. Should only be used when not already logged in.<br/>
      * This method will send a code when needed.<br/>
@@ -160,7 +158,6 @@ export class TelegramClient extends TelegramBaseClient {
         );
     }
 
-
     /**
      * Sends a telegram authentication code to the phone number.
      * @example
@@ -203,7 +200,6 @@ export class TelegramClient extends TelegramBaseClient {
         return authMethods.signInWithPassword(this, apiCredentials, authParams);
     }
 
-
     /**
      * Used to sign in as a bot.
      * @example
@@ -228,7 +224,6 @@ export class TelegramClient extends TelegramBaseClient {
     ) {
         return authMethods.signInBot(this, apiCredentials, authParams);
     }
-
 
     //endregion auth
 
@@ -366,7 +361,7 @@ export class TelegramClient extends TelegramBaseClient {
     downloadProfilePhoto(
         entity: EntityLike,
         downloadProfilePhotoParams: downloadMethods.DownloadProfilePhotoParams = {
-            isBig: false
+            isBig: false,
         }
     ) {
         return downloadMethods.downloadProfilePhoto(
@@ -400,7 +395,11 @@ export class TelegramClient extends TelegramBaseClient {
         messageOrMedia: Api.Message | Api.TypeMessageMedia | Message,
         downloadParams: DownloadMediaInterface
     ) {
-        return downloadMethods.downloadMedia(this, messageOrMedia, downloadParams);
+        return downloadMethods.downloadMedia(
+            this,
+            messageOrMedia,
+            downloadParams
+        );
     }
 
     //endregion
@@ -440,7 +439,14 @@ export class TelegramClient extends TelegramBaseClient {
      * client.setParseMode(undefined);
      * await client.sendMessage("me","<u> this will be sent as it is</u> ** with no formatting **);
      */
-    setParseMode(mode: "md" | "markdown" | "html" | parseMethods.ParseInterface | undefined) {
+    setParseMode(
+        mode:
+            | "md"
+            | "markdown"
+            | "html"
+            | parseMethods.ParseInterface
+            | undefined
+    ) {
         if (mode) {
             this._parseMode = sanitizeParseMode(mode);
         } else {
@@ -575,10 +581,12 @@ export class TelegramClient extends TelegramBaseClient {
      *
      * ```
      */
-    sendMessage(entity: EntityLike, sendMessageParams: messageMethods.SendMessageParams) {
+    sendMessage(
+        entity: EntityLike,
+        sendMessageParams: messageMethods.SendMessageParams
+    ) {
         return messageMethods.sendMessage(this, entity, sendMessageParams);
     }
-
 
     /**
      * Forwards the given messages to the specified entity.<br/>
@@ -613,7 +621,11 @@ export class TelegramClient extends TelegramBaseClient {
         entity: EntityLike,
         forwardMessagesParams: messageMethods.ForwardMessagesParams
     ) {
-        return messageMethods.forwardMessages(this, entity, forwardMessagesParams);
+        return messageMethods.forwardMessages(
+            this,
+            entity,
+            forwardMessagesParams
+        );
     }
 
     /**
@@ -640,8 +652,43 @@ export class TelegramClient extends TelegramBaseClient {
      *  await client.editMessage(chat,{message:message.id,text:"Hello!"}
      *  ```
      */
-    editMessage(entity: EntityLike, editMessageParams: messageMethods.EditMessageParams) {
+    editMessage(
+        entity: EntityLike,
+        editMessageParams: messageMethods.EditMessageParams
+    ) {
         return messageMethods.editMessage(this, entity, editMessageParams);
+    }
+
+    /**
+     * Deletes the given messages, optionally "for everyone".
+     *
+     * See also {@link Message.delete}`.
+     *
+     * @remarks This method does **not** validate that the message IDs belong to the chat that you passed! It's possible for the method to delete messages from different private chats and small group chats at once, so make sure to pass the right IDs.
+     * @param entity - From who the message will be deleted. This can actually be `undefined` for normal chats, but **must** be present for channels and megagroups.
+     * @param messageIds - The IDs (or ID) or messages to be deleted.
+     * @param revoke - Whether the message should be deleted for everyone or not.
+     * By default it has the opposite behaviour of official clients,
+     * and it will delete the message for everyone.
+     * Disabling this has no effect on channels or megagroups,
+     * since it will unconditionally delete the message for everyone.
+     * @return
+     * A list of {@link AffectedMessages}, each item being the result for the delete calls of the messages in chunks of 100 each.
+     * @example
+     *  ```ts
+     *  await client.deleteMessages(chat, messages);
+     *
+     *  await client.deleteMessages(chat, messages, {revoke:false});
+     *  ```
+     */
+    deleteMessages(
+        entity: EntityLike | undefined,
+        messageIds: MessageIDLike[],
+        { revoke = true }
+    ) {
+        return messageMethods.deleteMessages(this, entity, messageIds, {
+            revoke: revoke,
+        });
     }
 
     //endregion
@@ -752,11 +799,16 @@ export class TelegramClient extends TelegramBaseClient {
         return updateMethods.on(this, event);
     }
 
-
     /** @hidden */
-    addEventHandler(callback: { (event: NewMessageEvent): void }, event: NewMessage): void;
+    addEventHandler(
+        callback: { (event: NewMessageEvent): void },
+        event: NewMessage
+    ): void;
     /** @hidden */
-    addEventHandler(callback: { (event: any): void }, event?: EventBuilder): void;
+    addEventHandler(
+        callback: { (event: any): void },
+        event?: EventBuilder
+    ): void;
 
     /**
      * Registers a new event handler callback.<br/>
@@ -867,7 +919,10 @@ export class TelegramClient extends TelegramBaseClient {
      *  }))
      ```
      */
-    sendFile(entity: EntityLike, sendFileParams: uploadMethods.SendFileInterface) {
+    sendFile(
+        entity: EntityLike,
+        sendFileParams: uploadMethods.SendFileInterface
+    ) {
         return uploadMethods.sendFile(this, entity, sendFileParams);
     }
 
@@ -1044,7 +1099,8 @@ export class TelegramClient extends TelegramBaseClient {
             connectTimeout: this._timeout,
             authKeyCallback: this._authKeyCallback.bind(this),
             updateCallback: _handleUpdate.bind(this),
-            isMainSender: true
+            isMainSender: true,
+            client: this,
         });
 
         const connection = new this._connection(
@@ -1056,7 +1112,11 @@ export class TelegramClient extends TelegramBaseClient {
         if (
             !(await this._sender.connect(
                 connection,
-                _dispatchUpdate.bind(this)
+                (updateState: UpdateConnectionState) => {
+                    _dispatchUpdate(this, {
+                        update: updateState,
+                    });
+                }
             ))
         ) {
             return;
@@ -1067,7 +1127,7 @@ export class TelegramClient extends TelegramBaseClient {
         await this._sender.send(
             new Api.InvokeWithLayer({
                 layer: LAYER,
-                query: this._initRequest
+                query: this._initRequest,
             })
         );
 
@@ -1084,7 +1144,7 @@ export class TelegramClient extends TelegramBaseClient {
         this.session.setDC(newDc, DC.ipAddress, DC.port);
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to undefined to force recreating it.
-        await this._sender.authKey.setKey();
+        await this._sender!.authKey.setKey();
         this.session.setAuthKey();
         await this.disconnect();
         return this.connect();
@@ -1105,7 +1165,8 @@ export class TelegramClient extends TelegramBaseClient {
             connectTimeout: this._timeout,
             authKeyCallback: this._authKeyCallback.bind(this),
             isMainSender: dcId === this.session.dcId,
-            senderCallback: this._removeSender.bind(this)
+            senderCallback: this._removeSender.bind(this),
+            client: this,
         });
         for (let i = 0; i < retries; i++) {
             try {
@@ -1121,11 +1182,11 @@ export class TelegramClient extends TelegramBaseClient {
                     );
                     this._initRequest.query = new Api.auth.ImportAuthorization({
                         id: auth.id,
-                        bytes: auth.bytes
+                        bytes: auth.bytes,
                     });
                     const req = new Api.InvokeWithLayer({
                         layer: LAYER,
-                        query: this._initRequest
+                        query: this._initRequest,
                     });
                     await sender.send(req);
                 }
@@ -1134,7 +1195,7 @@ export class TelegramClient extends TelegramBaseClient {
             } catch (e) {
                 // we can't create sender for our own main DC
                 if (e.message == "DC_ID_INVALID") {
-                    return this._sender;
+                    return this._sender!;
                 }
                 await sender.disconnect();
             }
@@ -1157,31 +1218,31 @@ export class TelegramClient extends TelegramBaseClient {
                     return {
                         id: 1,
                         ipAddress: "pluto.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 2:
                     return {
                         id: 2,
                         ipAddress: "venus.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 3:
                     return {
                         id: 3,
                         ipAddress: "aurora.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 4:
                     return {
                         id: 4,
                         ipAddress: "vesta.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 case 5:
                     return {
                         id: 5,
                         ipAddress: "flora.web.telegram.org",
-                        port: 443
+                        port: 443,
                     };
                 default:
                     throw new Error(
@@ -1197,7 +1258,7 @@ export class TelegramClient extends TelegramBaseClient {
                 return {
                     id: DC.id,
                     ipAddress: DC.ipAddress,
-                    port: 443
+                    port: 443,
                 };
             }
         }
@@ -1229,6 +1290,11 @@ export class TelegramClient extends TelegramBaseClient {
     /** @hidden */
     _getResponseMessage(req: any, result: any, inputChat: any) {
         return parseMethods._getResponseMessage(this, req, result, inputChat);
+    }
+
+    /** @hidden */
+    [inspect.custom]() {
+        return betterConsoleLog(this);
     }
 
     // endregion

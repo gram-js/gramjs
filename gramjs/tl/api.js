@@ -112,7 +112,7 @@ function extractParams(fileContent) {
     return [constructors, functions];
 }
 
-function argToBytes(x, type) {
+function argToBytes(x, type, argName, requestName) {
     switch (type) {
         case "int":
             const i = Buffer.alloc(4);
@@ -141,6 +141,11 @@ function argToBytes(x, type) {
         case "date":
             return serializeDate(x);
         default:
+            if (x === undefined || typeof x.getBytes !== "function") {
+                throw new Error(
+                    `Required object ${argName} of ${requestName} is undefined`
+                );
+            }
             return x.getBytes();
     }
 }
@@ -232,7 +237,10 @@ function compareType(value, type) {
             correct = typeof value === type;
             break;
         case "bigInt":
-            correct = bigInt.isInstance(value) || typeof value==="bigint" || value === undefined;
+            correct =
+                bigInt.isInstance(value) ||
+                typeof value === "bigint" ||
+                value === undefined;
             break;
         case "true":
             // true value is always correct
@@ -431,7 +439,11 @@ function createClasses(classesType, params) {
                                 l,
                                 Buffer.concat(
                                     this[arg].map((x) =>
-                                        argToBytes(x, argsConfig[arg].type)
+                                        argToBytes(
+                                            x,
+                                            argsConfig[arg].type,
+                                            fullName
+                                        )
                                     )
                                 )
                             );
@@ -462,7 +474,12 @@ function createClasses(classesType, params) {
                             }
                         } else {
                             buffers.push(
-                                argToBytes(this[arg], argsConfig[arg].type)
+                                argToBytes(
+                                    this[arg],
+                                    argsConfig[arg].type,
+                                    arg,
+                                    fullName
+                                )
                             );
 
                             if (

@@ -6,11 +6,9 @@ module.exports = {
     "**/example/**/*",
     "**/extensions/**/*",
     "**/*+(Password|Version|RequestIter|entityCache).ts",
-    "**/*.js"
+    "**/*.js",
   ],
-  sort: [
-    "source-order"
-  ],
+  sort: ["source-order"],
   excludeExternals: true,
-  excludePrivate: true
+  excludePrivate: true,
 };

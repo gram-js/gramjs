@@ -26,21 +26,21 @@ export async function _intoIdSet(
                 result.add(
                     utils.getPeerId(
                         new Api.PeerUser({
-                            userId: chat
+                            userId: chat,
                         })
                     )
                 );
                 result.add(
                     utils.getPeerId(
                         new Api.PeerChat({
-                            chatId: chat
+                            chatId: chat,
                         })
                     )
                 );
                 result.add(
                     utils.getPeerId(
                         new Api.PeerChannel({
-                            channelId: chat
+                            channelId: chat,
                         })
                     )
                 );
@@ -146,10 +146,10 @@ export class EventCommon extends ChatGetter {
     _messageId?: number;
 
     constructor({
-                    chatPeer = undefined,
-                    msgId = undefined,
-                    broadcast = undefined
-                }: EventCommonInterface) {
+        chatPeer = undefined,
+        msgId = undefined,
+        broadcast = undefined,
+    }: EventCommonInterface) {
         super({ chatPeer, broadcast });
         this._entities = new Map();
         this._client = undefined;

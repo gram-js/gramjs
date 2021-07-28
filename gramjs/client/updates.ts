@@ -33,7 +33,7 @@ export function removeEventHandler(
     callback: CallableFunction,
     event: EventBuilder
 ) {
-    client._eventBuilders = client._eventBuilders.filter(function(item) {
+    client._eventBuilders = client._eventBuilders.filter(function (item) {
         return item !== [event, callback];
     });
 }
@@ -53,7 +53,7 @@ export function _handleUpdate(
     if (typeof update === "number") {
         if ([-1, 0, 1].includes(update)) {
             _dispatchUpdate(client, {
-                update: new UpdateConnectionState(update)
+                update: new UpdateConnectionState(update),
             });
             return;
         }
@@ -91,7 +91,7 @@ export function _processUpdate(
     update._entities = entities || new Map();
     const args = {
         update: update,
-        others: others
+        others: others,
     };
 
     _dispatchUpdate(client, args);
@@ -144,12 +144,13 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         // We don't care about the result we just want to send it every
         // 60 seconds so telegram doesn't stop the connection
         try {
-            client._sender.send(
+            client._sender!.send(
                 new Api.Ping({
-                    pingId: bigInt(rnd)
+                    pingId: bigInt(rnd),
                 })
             );
         } catch (e) {
+            //await client.disconnect()
         }
 
         // We need to send some content-related request at least hourly
@@ -163,8 +164,7 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         ) {
             try {
                 await client.invoke(new Api.updates.GetState());
-            } catch (e) {
-            }
+            } catch (e) {}
         }
     }
 }

@@ -38,7 +38,7 @@ class _ChatAction {
         document: new Api.SendMessageUploadDocumentAction({ progress: 1 }),
         file: new Api.SendMessageUploadDocumentAction({ progress: 1 }), // alias
 
-        cancel: new Api.SendMessageCancelAction()
+        cancel: new Api.SendMessageCancelAction(),
     };
 
     private _client: TelegramClient;
@@ -60,7 +60,7 @@ class _ChatAction {
         action: ValueOf<typeof _ChatAction._str_mapping>,
         params: ChatActionInterface = {
             delay: 4,
-            autoCancel: true
+            autoCancel: true,
         }
     ) {
         this._client = client;
@@ -76,7 +76,7 @@ class _ChatAction {
     async start() {
         this._request = new Api.messages.SetTyping({
             peer: this._chat,
-            action: this._action
+            action: this._action,
         });
         this._running = true;
         this._update();
@@ -88,7 +88,7 @@ class _ChatAction {
             await this._client.invoke(
                 new Api.messages.SetTyping({
                     peer: this._chat,
-                    action: new Api.SendMessageCancelAction()
+                    action: new Api.SendMessageCancelAction(),
                 })
             );
         }
@@ -125,21 +125,21 @@ export class _ParticipantsIter extends RequestIter {
     }
 
     async _init({
-                    entity,
-                    filter,
-                    search
-                }: ParticipantsIterInterface): Promise<boolean | void> {
+        entity,
+        filter,
+        search,
+    }: ParticipantsIterInterface): Promise<boolean | void> {
         if (filter && filter.constructor === Function) {
             if (
                 [
                     Api.ChannelParticipantsBanned,
                     Api.ChannelParticipantsKicked,
                     Api.ChannelParticipantsSearch,
-                    Api.ChannelParticipantsContacts
+                    Api.ChannelParticipantsContacts,
                 ].includes(filter)
             ) {
                 filter = new filter({
-                    q: ""
+                    q: "",
                 });
             } else {
                 filter = new filter();
@@ -155,10 +155,10 @@ export class _ParticipantsIter extends RequestIter {
                     utils
                         .getDisplayName(entity)
                         .toLowerCase()
-                        .includes(<string>search) ||
+                        .includes(search!) ||
                     ("username" in entity ? entity.username || "" : "")
                         .toLowerCase()
-                        .includes(<string>search)
+                        .includes(search!)
                 );
             };
         } else {
@@ -169,7 +169,7 @@ export class _ParticipantsIter extends RequestIter {
         if (ty == helpers._EntityType.CHANNEL) {
             const channel = await this.client.invoke(
                 new Api.channels.GetFullChannel({
-                    channel: entity
+                    channel: entity,
                 })
             );
             if (!(channel.fullChat instanceof Api.ChatFull)) {
@@ -184,11 +184,11 @@ export class _ParticipantsIter extends RequestIter {
                     filter:
                         filter ||
                         new Api.ChannelParticipantsSearch({
-                            q: search || ""
+                            q: search || "",
                         }),
                     offset: 0,
                     limit: _MAX_PARTICIPANTS_CHUNK_SIZE,
-                    hash: 0
+                    hash: 0,
                 })
             );
         } else if (ty == helpers._EntityType.CHAT) {
@@ -199,7 +199,7 @@ export class _ParticipantsIter extends RequestIter {
             }
             const full = await this.client.invoke(
                 new Api.messages.GetFullChat({
-                    chatId: entity.chatId
+                    chatId: entity.chatId,
                 })
             );
 
@@ -265,7 +265,7 @@ export class _ParticipantsIter extends RequestIter {
             const participants = results[i];
             if (
                 participants instanceof
-                Api.channels.ChannelParticipantsNotModified ||
+                    Api.channels.ChannelParticipantsNotModified ||
                 !participants.users.length
             ) {
                 this.requests.splice(i, 1);
@@ -342,7 +342,7 @@ class _AdminLogIter extends RequestIter {
             Object.values(filterArgs).find((element) => element === true)
         ) {
             eventsFilter = new Api.ChannelAdminLogEventsFilter({
-                ...filterArgs
+                ...filterArgs,
             });
         }
         this.entity = await this.client.getInputEntity(entity);
@@ -359,7 +359,7 @@ class _AdminLogIter extends RequestIter {
             maxId: searchArgs?.maxId,
             limit: 0,
             eventsFilter: eventsFilter,
-            admins: adminList || undefined
+            admins: adminList || undefined,
         });
     }
 
@@ -416,7 +416,7 @@ export function iterParticipants(
         {
             entity: entity,
             filter: filter,
-            search: search
+            search: search,
         }
     );
 }

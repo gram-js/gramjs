@@ -23,7 +23,9 @@ export async function invoke<R extends Api.AnyRequest>(
         throw new Error("You can only invoke MTProtoRequests");
     }
     if (client._sender == undefined) {
-        throw new Error("Cannot send requests while disconnected");
+        throw new Error(
+            "Cannot send requests while disconnected. You need to call .connect()"
+        );
     }
     await request.resolve(client, utils);
     client._lastRequest = new Date().getTime();
@@ -137,7 +139,6 @@ export async function getEntity(
         entityArray = entity;
     } else {
         entityArray.push(entity);
-
     }
 
     const inputs = [];
@@ -151,13 +152,12 @@ export async function getEntity(
     const lists = new Map<number, any[]>([
         [_EntityType.USER, []],
         [_EntityType.CHAT, []],
-        [_EntityType.CHANNEL, []]
+        [_EntityType.CHANNEL, []],
     ]);
     for (const x of inputs) {
         try {
             lists.get(_entityType(x))!.push(x);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
     let users = lists.get(_EntityType.USER)!;
     let chats = lists.get(_EntityType.CHAT)!;
@@ -166,7 +166,7 @@ export async function getEntity(
     if (users.length) {
         users = await client.invoke(
             new Api.users.GetUsers({
-                id: users
+                id: users,
             })
         );
     }
@@ -222,8 +222,7 @@ export async function getInputEntity(
     try {
         return utils.getInputPeer(peer);
         // eslint-disable-next-line no-empty
-    } catch (e) {
-    }
+    } catch (e) {}
     // Next in priority is having a peer (or its ID) cached in-memory
     try {
         // 0x2d45687 == crc32(b'Peer')
@@ -237,8 +236,7 @@ export async function getInputEntity(
             }
         }
         // eslint-disable-next-line no-empty
-    } catch (e) {
-    }
+    } catch (e) {}
     // Then come known strings that take precedence
     if (typeof peer == "string") {
         if (["me", "this", "self"].includes(peer)) {
@@ -252,8 +250,7 @@ export async function getInputEntity(
             return client.session.getInputEntity(peer);
         }
         // eslint-disable-next-line no-empty
-    } catch (e) {
-    }
+    } catch (e) {}
     // Only network left to try
     if (typeof peer === "string") {
         return utils.getInputPeer(await _getEntityFromString(client, peer));
@@ -269,9 +266,9 @@ export async function getInputEntity(
                 id: [
                     new Api.InputUser({
                         userId: peer.userId,
-                        accessHash: bigInt.zero
-                    })
-                ]
+                        accessHash: bigInt.zero,
+                    }),
+                ],
             })
         );
         if (users.length && !(users[0] instanceof Api.UserEmpty)) {
@@ -286,7 +283,7 @@ export async function getInputEntity(
         }
     } else if (peer instanceof Api.PeerChat) {
         return new Api.InputPeerChat({
-            chatId: peer.chatId
+            chatId: peer.chatId,
         });
     } else if (peer instanceof Api.PeerChannel) {
         try {
@@ -295,9 +292,9 @@ export async function getInputEntity(
                     id: [
                         new Api.InputChannel({
                             channelId: peer.channelId,
-                            accessHash: bigInt.zero
-                        })
-                    ]
+                            accessHash: bigInt.zero,
+                        }),
+                    ],
                 })
             );
 
@@ -309,10 +306,10 @@ export async function getInputEntity(
         }
     }
     throw new Error(
-        `Could not find the input entity for ${peer}.
+        `Could not find the input entity for ${JSON.stringify(peer)}.
          Please read https://` +
-        "docs.telethon.dev/en/latest/concepts/entities.html to" +
-        " find out more details."
+            "docs.telethon.dev/en/latest/concepts/entities.html to" +
+            " find out more details."
     );
 }
 
@@ -325,7 +322,7 @@ export async function _getEntityFromString(
         try {
             const result = await client.invoke(
                 new Api.contacts.GetContacts({
-                    hash: 0
+                    hash: 0,
                 })
             );
             if (!(result instanceof Api.contacts.ContactsNotModified)) {
@@ -339,7 +336,7 @@ export async function _getEntityFromString(
             if (e.message === "BOT_METHOD_INVALID") {
                 throw new Error(
                     "Cannot get entity by phone number as a " +
-                    "bot (try using integer IDs, not strings)"
+                        "bot (try using integer IDs, not strings)"
                 );
             }
             throw e;
@@ -351,13 +348,13 @@ export async function _getEntityFromString(
         if (isInvite) {
             const invite = await client.invoke(
                 new Api.messages.CheckChatInvite({
-                    hash: username
+                    hash: username,
                 })
             );
             if (invite instanceof Api.ChatInvite) {
                 throw new Error(
                     "Cannot get entity from a channel (or group) " +
-                    "that you are not part of. Join the group and retry"
+                        "that you are not part of. Join the group and retry"
                 );
             } else if (invite instanceof Api.ChatInviteAlready) {
                 return invite.chat;
@@ -421,7 +418,7 @@ export async function _getPeer(client: TelegramClient, peer: EntityLike) {
     return new cls({
         userId: i,
         channelId: i,
-        chatId: i
+        chatId: i,
     });
 }
 
@@ -434,13 +431,12 @@ export async function _getInputDialog(client: TelegramClient, dialog: any) {
         } else if (dialog.SUBCLASS_OF_ID == 0xc91c90b6) {
             //crc32(b'InputPeer')
             return new Api.InputDialogPeer({
-                peer: dialog
+                peer: dialog,
             });
         }
-    } catch (e) {
-    }
+    } catch (e) {}
     return new Api.InputDialogPeer({
-        peer: dialog
+        peer: dialog,
     });
 }
 
@@ -452,10 +448,9 @@ export async function _getInputNotify(client: TelegramClient, notify: any) {
             }
             return notify;
         }
-    } catch (e) {
-    }
+    } catch (e) {}
     return new Api.InputNotifyPeer({
-        peer: await client.getInputEntity(notify)
+        peer: await client.getInputEntity(notify),
     });
 }
 

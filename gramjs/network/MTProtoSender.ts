@@ -30,6 +30,7 @@ import {
     RPCMessageToError,
 } from "../errors";
 import { Connection, UpdateConnectionState } from "./";
+import type { TelegramClient } from "..";
 
 interface DEFAULT_OPTIONS {
     logger: any;
@@ -43,9 +44,7 @@ interface DEFAULT_OPTIONS {
     isMainSender: boolean;
     dcId: number;
     senderCallback?: any;
-}
-
-{
+    client: TelegramClient;
 }
 
 export class MTProtoSender {
@@ -69,22 +68,26 @@ export class MTProtoSender {
     private _connectTimeout: null;
     private _autoReconnect: boolean;
     private readonly _authKeyCallback: any;
-    private readonly _updateCallback: any;
+    private readonly _updateCallback: (
+        client: TelegramClient,
+        update: Api.TypeUpdate | number
+    ) => void;
     private readonly _autoReconnectCallback?: any;
     private readonly _senderCallback: any;
     private readonly _isMainSender: boolean;
     private _userConnected: boolean;
     private _reconnecting: boolean;
-    private _disconnected: boolean;
+    _disconnected: boolean;
     private _sendLoopHandle: any;
     private _recvLoopHandle: any;
-    private readonly authKey: AuthKey;
+    readonly authKey: AuthKey;
     private readonly _state: MTProtoState;
     private _sendQueue: MessagePacker;
     private _pendingState: Map<string, RequestState>;
     private readonly _pendingAck: Set<any>;
     private readonly _lastAcks: any[];
     private readonly _handlers: any;
+    private readonly _client: TelegramClient;
 
     /**
      * @param authKey
@@ -104,6 +107,7 @@ export class MTProtoSender {
         this._autoReconnectCallback = args.autoReconnectCallback;
         this._isMainSender = args.isMainSender;
         this._senderCallback = args.senderCallback;
+        this._client = args.client;
 
         /**
          * Whether the user has explicitly connected or disconnected.
@@ -267,7 +271,9 @@ export class MTProtoSender {
      */
     send(request: Api.AnyRequest): any {
         if (!this._userConnected) {
-            throw new Error("Cannot send requests while disconnected");
+            throw new Error(
+                "Cannot send requests while disconnected. You need to call .connect()"
+            );
         }
         const state = new RequestState(request);
         this._sendQueue.append(state);
@@ -335,7 +341,7 @@ export class MTProtoSender {
             return;
         }
         if (this._updateCallback) {
-            this._updateCallback(-1);
+            this._updateCallback(this._client, -1);
         }
         this._log.info(
             "Disconnecting from %s...".replace(
@@ -450,7 +456,7 @@ export class MTProtoSender {
                     this._log.info("Broken authorization key; resetting");
                     if (this._updateCallback && this._isMainSender) {
                         // 0 == broken
-                        this._updateCallback(0);
+                        this._updateCallback(this._client, 0);
                     } else if (this._senderCallback && !this._isMainSender) {
                         // Deletes the current sender from the object
                         this._senderCallback(this._dcId);
@@ -494,7 +500,7 @@ export class MTProtoSender {
      */
     async _processMessage(message: TLMessage) {
         this._pendingAck.add(message.msgId);
-        // eslint-disable-next-line require-atomic-updates
+
         message.obj = await message.obj;
         let handler = this._handlers[message.obj.CONSTRUCTOR_ID.toString()];
         if (!handler) {
@@ -636,7 +642,7 @@ export class MTProtoSender {
         }
         this._log.debug("Handling update " + message.obj.className);
         if (this._updateCallback) {
-            this._updateCallback(message.obj);
+            this._updateCallback(this._client, message.obj);
         }
     }
 
@@ -651,8 +657,8 @@ export class MTProtoSender {
     async _handlePong(message: TLMessage) {
         const pong = message.obj;
         this._log.debug(`Handling pong for message ${pong.msgId}`);
-        const state = this._pendingState.get(pong.msgId);
-        this._pendingState.delete(pong.msgId);
+        const state = this._pendingState.get(pong.msgId.toString());
+        this._pendingState.delete(pong.msgId.toString());
 
         // Todo Check result
         if (state) {
@@ -872,7 +878,7 @@ export class MTProtoSender {
                     await this._autoReconnectCallback();
                 }
                 if (this._updateCallback) {
-                    this._updateCallback(1);
+                    this._updateCallback(this._client, 1);
                 }
 
                 break;

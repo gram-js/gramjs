@@ -1,11 +1,16 @@
-import { _intoIdSet, DefaultEventInterface, EventBuilder, EventCommon } from "./common";
+import {
+    _intoIdSet,
+    DefaultEventInterface,
+    EventBuilder,
+    EventCommon,
+} from "./common";
 import type { Entity, EntityLike } from "../define";
 import type { TelegramClient } from "..";
 import { Api } from "../tl";
 import { Message } from "../tl/patched";
 import type { Message as CustomMessage } from "../tl/custom/message";
 
-export interface NewMessageInterface extends DefaultEventInterface{
+export interface NewMessageInterface extends DefaultEventInterface {
     func?: { (event: NewMessageEvent): boolean };
     /**
      * If set to `true`, only **incoming** messages will be handled.
@@ -84,7 +89,7 @@ export class NewMessage extends EventBuilder {
             fromUsers,
             forwards,
             pattern,
-            blacklistChats = false
+            blacklistChats = false,
         } = newMessageParams;
         if (incoming && outgoing) {
             incoming = outgoing = undefined;
@@ -108,7 +113,7 @@ export class NewMessage extends EventBuilder {
             outgoing,
             fromUsers,
             forwards,
-            pattern
+            pattern,
         ].every((v) => v == undefined);
     }
 
@@ -149,7 +154,7 @@ export class NewMessage extends EventBuilder {
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
-                    entities: update.entities
+                    entities: update.entities,
                     // ttlPeriod:update.ttlPeriod
                 }),
                 update
@@ -169,7 +174,7 @@ export class NewMessage extends EventBuilder {
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
-                    entities: update.entities
+                    entities: update.entities,
                     // ttlPeriod:update.ttlPeriod
                 }),
                 update
@@ -215,7 +220,7 @@ export class NewMessageEvent extends EventCommon {
         super({
             msgId: message.id,
             chatPeer: message.peerId,
-            broadcast: message.post
+            broadcast: message.post,
         });
         this.originalUpdate = originalUpdate;
         this.message = message;

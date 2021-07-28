@@ -2,7 +2,7 @@ import { version } from "../";
 import { IS_NODE } from "../Helpers";
 import {
     ConnectionTCPFull,
-    ConnectionTCPObfuscated
+    ConnectionTCPObfuscated,
 } from "../network/connection";
 import { Session } from "../sessions";
 import { Logger } from "../extensions";
@@ -14,10 +14,11 @@ import { EntityCache } from "../entityCache";
 import type { ParseInterface } from "./messageParse";
 import type { EventBuilder } from "../events/common";
 import { MarkdownParser } from "../extensions/markdown";
+import { MTProtoSender } from "../network";
 
-const DEFAULT_DC_ID = 1;
-const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.51" : "pluto.web.telegram.org";
-const DEFAULT_IPV6_IP = "2001:67c:4e8:f002::a";
+const DEFAULT_DC_ID = 4;
+const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.91" : "vesta.web.telegram.org";
+const DEFAULT_IPV6_IP = "2001:067c:04e8:f004:0000:0000:0000:000a";
 
 /**
  * Interface for creating a new client.
@@ -110,9 +111,10 @@ const clientParamsDefault = {
     langCode: "en",
     systemLangCode: "en",
     baseLogger: "gramjs",
-    useWSS: typeof window !== "undefined"
-        ? window.location.protocol == "https:"
-        : false
+    useWSS:
+        typeof window !== "undefined"
+            ? window.location.protocol == "https:"
+            : false,
 };
 
 export class TelegramBaseClient {
@@ -146,7 +148,7 @@ export class TelegramBaseClient {
     /** @hidden */
     public _initRequest: Api.InitConnection;
     /** @hidden */
-    public _sender?: any;
+    public _sender?: MTProtoSender;
     /** @hidden */
     public _floodWaitedRequests: any;
     /** @hidden */
@@ -207,13 +209,15 @@ export class TelegramBaseClient {
         this._connection = clientParams.connection;
         this._initRequest = new Api.InitConnection({
             apiId: this.apiId,
-            deviceModel: clientParams.deviceModel || os.type().toString() || "Unknown",
-            systemVersion: clientParams.systemVersion || os.release().toString() || "1.0",
+            deviceModel:
+                clientParams.deviceModel || os.type().toString() || "Unknown",
+            systemVersion:
+                clientParams.systemVersion || os.release().toString() || "1.0",
             appVersion: clientParams.appVersion || "1.0",
             langCode: clientParams.langCode,
             langPack: "", // this should be left empty.
             systemLangCode: clientParams.systemLangCode,
-            proxy: undefined // no proxies yet.
+            proxy: undefined, // no proxies yet.
         });
         this._eventBuilders = [];
 
@@ -263,7 +267,7 @@ export class TelegramBaseClient {
     }
 
     get disconnected() {
-        return !this._sender || this._sender.disconnected;
+        return !this._sender || this._sender._disconnected;
     }
 
     async destroy() {
@@ -274,7 +278,7 @@ export class TelegramBaseClient {
                 (promise: any) => {
                     return promise.then((sender: any) => sender.disconnect());
                 }
-            )
+            ),
         ]);
 
         this._eventBuilders = [];

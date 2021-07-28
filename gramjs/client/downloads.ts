@@ -101,14 +101,14 @@ export async function downloadFile(
             // This should never raise
             if (e.message === "DC_ID_INVALID") {
                 // Can't export a sender for the ID we are currently in
-                sender = client._sender;
+                sender = client._sender!;
             } else {
                 client._log.error(e);
                 throw e;
             }
         }
     } else {
-        sender = client._sender;
+        sender = client._sender!;
     }
 
     client._log.info(`Downloading file in chunks of ${partSize} bytes`);
@@ -151,12 +151,12 @@ export async function downloadFile(
                                 location: inputLocation,
                                 offset,
                                 limit,
-                                precise: isPrecise || undefined
+                                precise: isPrecise || undefined,
                             })
                         ),
                         sleep(REQUEST_TIMEOUT).then(() =>
                             Promise.reject(new Error("REQUEST_TIMEOUT"))
-                        )
+                        ),
                     ]);
 
                     if (progressCallback) {
@@ -199,8 +199,7 @@ class Foreman {
     private deferred: Deferred | undefined;
     private activeWorkers = 0;
 
-    constructor(private maxWorkers: number) {
-    }
+    constructor(private maxWorkers: number) {}
 
     requestWorker() {
         this.activeWorkers++;
@@ -230,7 +229,7 @@ function createDeferred(): Deferred {
 
     return {
         promise,
-        resolve: resolve!
+        resolve: resolve!,
     };
 }
 
@@ -271,19 +270,19 @@ export async function downloadMedia(
         }
     }
     if (media instanceof Api.MessageMediaPhoto || media instanceof Api.Photo) {
-        return _downloadPhoto(client,media, downloadParams);
+        return _downloadPhoto(client, media, downloadParams);
     } else if (
         media instanceof Api.MessageMediaDocument ||
         media instanceof Api.Document
     ) {
-        return _downloadDocument(client,media, downloadParams);
+        return _downloadDocument(client, media, downloadParams);
     } else if (media instanceof Api.MessageMediaContact) {
-        return _downloadContact(client,media, downloadParams);
+        return _downloadContact(client, media, downloadParams);
     } else if (
         media instanceof Api.WebDocument ||
         media instanceof Api.WebDocumentNoProxy
     ) {
-        return _downloadWebDocument(client,media, downloadParams);
+        return _downloadWebDocument(client, media, downloadParams);
     } else {
         return Buffer.alloc(0);
     }
@@ -325,18 +324,18 @@ export async function _downloadDocument(
             id: doc.id,
             accessHash: doc.accessHash,
             fileReference: doc.fileReference,
-            thumbSize: size ? size.type : ""
+            thumbSize: size ? size.type : "",
         }),
         {
             fileSize:
                 size && !(size instanceof Api.PhotoSizeEmpty)
-                    ? size.size
+                    ? (size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size)
                     : doc.size,
             progressCallback: args.progressCallback,
             start: args.start,
             end: args.end,
             dcId: doc.dcId,
-            workers: args.workers
+            workers: args.workers,
         }
     );
 }
@@ -368,7 +367,6 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
         if (
             size &&
             !(
-                size instanceof Api.PhotoSizeProgressive ||
                 size instanceof Api.PhotoPathSize
             )
         ) {
@@ -421,12 +419,12 @@ export async function _downloadPhoto(
             id: photo.id,
             accessHash: photo.accessHash,
             fileReference: photo.fileReference,
-            thumbSize: size.type
+            thumbSize: size.type,
         }),
         {
             dcId: photo.dcId,
-            fileSize: size.size,
-            progressCallback: args.progressCallback
+            fileSize: size instanceof Api.PhotoSizeProgressive ? Math.max(...size.sizes) : size.size,
+            progressCallback: args.progressCallback,
         }
     );
 }
@@ -457,7 +455,7 @@ export async function downloadProfilePhoto(
         loc = new Api.InputPeerPhotoFileLocation({
             peer: utils.getInputPeer(entity),
             photoId: photo.photoId,
-            big: fileParams.isBig
+            big: fileParams.isBig,
         });
     } else {
         return Buffer.alloc(0);
@@ -465,6 +463,6 @@ export async function downloadProfilePhoto(
     return client.downloadFile(loc, {
         dcId,
         fileSize: 2 * 1024 * 1024,
-        workers: 1
+        workers: 1,
     });
 }

@@ -53,7 +53,6 @@ interface MessageBaseInterface {
  * which means you have access to all their sender and chat properties and methods.
  */
 export class Message extends Mixin(SenderGetter, ChatGetter) {
-
     /**
      * Whether the message is outgoing (i.e. you sent it from
      * another session) or incoming (i.e. someone else sent it).
@@ -240,41 +239,41 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 
     constructor({
-                    id,
-                    peerId = undefined,
-                    date = undefined,
+        id,
+        peerId = undefined,
+        date = undefined,
 
-                    out = undefined,
-                    mentioned = undefined,
-                    mediaUnread = undefined,
-                    silent = undefined,
-                    post = undefined,
-                    fromId = undefined,
-                    replyTo = undefined,
+        out = undefined,
+        mentioned = undefined,
+        mediaUnread = undefined,
+        silent = undefined,
+        post = undefined,
+        fromId = undefined,
+        replyTo = undefined,
 
-                    message = undefined,
+        message = undefined,
 
-                    fwdFrom = undefined,
-                    viaBotId = undefined,
-                    media = undefined,
-                    replyMarkup = undefined,
-                    entities = undefined,
-                    views = undefined,
-                    editDate = undefined,
-                    postAuthor = undefined,
-                    groupedId = undefined,
-                    fromScheduled = undefined,
-                    legacy = undefined,
-                    editHide = undefined,
-                    pinned = undefined,
-                    restrictionReason = undefined,
-                    forwards = undefined,
-                    replies = undefined,
+        fwdFrom = undefined,
+        viaBotId = undefined,
+        media = undefined,
+        replyMarkup = undefined,
+        entities = undefined,
+        views = undefined,
+        editDate = undefined,
+        postAuthor = undefined,
+        groupedId = undefined,
+        fromScheduled = undefined,
+        legacy = undefined,
+        editHide = undefined,
+        pinned = undefined,
+        restrictionReason = undefined,
+        forwards = undefined,
+        replies = undefined,
 
-                    action = undefined,
-                    ttlPeriod = undefined,
-                    _entities = new Map<number, Entity>()
-                }: MessageBaseInterface) {
+        action = undefined,
+        ttlPeriod = undefined,
+        _entities = new Map<number, Entity>(),
+    }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
         if (fromId) {
@@ -392,10 +391,10 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                     entities.get(
                         utils.getPeerId(
                             new Api.PeerChannel({
-                                channelId: this.action.inviterId
+                                channelId: this.action.inviterId,
                             })
                         )
-                    )
+                    ),
                 ];
             } else if (
                 this.action instanceof Api.MessageActionChannelMigrateFrom
@@ -405,7 +404,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                         utils.getPeerId(
                             new Api.PeerChat({ chatId: this.action.chatId })
                         )
-                    )
+                    ),
                 ];
             }
         }
@@ -481,7 +480,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         } catch (e) {
             this._client._log.error(
                 "Got error while trying to finish init message with id " +
-                this.id
+                    this.id
             );
             if (this._client._log.canSend("error")) {
                 console.error(e);
@@ -683,7 +682,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     get toId() {
         if (this._client && !this.out && this.isPrivate) {
             return new Api.PeerUser({
-                userId: _selfId(this._client)!
+                userId: _selfId(this._client)!,
             });
         }
         return this.peerId;
@@ -693,7 +692,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         let ent = this.entities;
         if (!ent || ent.length == 0) return;
 
-        if (cls){
+        if (cls) {
             ent = ent.filter((v: any) => v instanceof cls);
         }
 
@@ -716,7 +715,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                 await this._client.getMessages(
                     this.isChannel ? await this.getInputChat() : undefined,
                     {
-                        ids: new Api.InputMessageReplyTo({ id: this.id })
+                        ids: new Api.InputMessageReplyTo({ id: this.id }),
                     }
                 )
             )[0];
@@ -730,7 +729,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
                     await this._client.getMessages(
                         this.isChannel ? this._inputChat : undefined,
                         {
-                            ids: this.replyToMsgId
+                            ids: this.replyToMsgId,
                         }
                     )
                 )[0];
@@ -763,7 +762,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
             entity = await this._client.getInputEntity(entity);
             const params = {
                 messages: [this.id],
-                fromPeer: (await this.getInputChat())!
+                fromPeer: (await this.getInputChat())!,
             };
 
             return this._client.forwardMessages(entity, params);
@@ -783,15 +782,17 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         return this._client.editMessage((await this.getInputChat())!, param);
     }
 
-    // TODO add delete messages
-    /*
-    async delete(args) {
+    async delete({ revoke = false }) {
         if (this._client) {
-            args.entity = await this.getInputChat();
-            args.messages = [this.id];
-            return this._client.deleteMessages(args);
+            return this._client.deleteMessages(
+                await this.getInputChat(),
+                [this.id],
+                {
+                    revoke,
+                }
+            );
         }
-    }*/
+    }
 
     async downloadMedia(params: DownloadFileParams) {
         if (this._client) return this._client.downloadMedia(this, params);
@@ -928,5 +929,4 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
     }
 }
 
-export interface Message extends ChatGetter, SenderGetter {
-}
+export interface Message extends ChatGetter, SenderGetter {}

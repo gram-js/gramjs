@@ -28,9 +28,5 @@ export async function inlineQuery(
             geoPoint: geoPoint,
         })
     );
-    return new InlineResults(
-        client,
-        result,
-        (entity ? peer : undefined)
-    );
+    return new InlineResults(client, result, entity ? peer : undefined);
 }

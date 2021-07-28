@@ -122,7 +122,11 @@ export class MTProtoState {
                 contentRelated,
                 new Api.InvokeAfterMsg({
                     msgId: afterId,
-                    query: data,
+                    query: {
+                        getBytes() {
+                            return data;
+                        },
+                    },
                 }).getBytes()
             );
         }
