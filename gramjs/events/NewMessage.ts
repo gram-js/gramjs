@@ -111,9 +111,11 @@ export class NewMessage extends EventBuilder {
         this._noCheck = [
             incoming,
             outgoing,
+            chats,
+            pattern,
             fromUsers,
             forwards,
-            pattern,
+            func,
         ].every((v) => v == undefined);
     }
 
