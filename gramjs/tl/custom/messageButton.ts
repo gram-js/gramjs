@@ -70,7 +70,7 @@ export class MessageButton {
             try {
                 return await this._client.invoke(request);
             } catch (e) {
-                if (e.messages == "BOT_RESPONSE_TIMEOUT") {
+                if (e.errorMessage == "BOT_RESPONSE_TIMEOUT") {
                     return null;
                 }
                 throw e;
@@ -94,7 +94,7 @@ export class MessageButton {
             try {
                 return await this._client.invoke(request);
             } catch (e) {
-                if (e.messages == "BOT_RESPONSE_TIMEOUT") {
+                if (e.errorMessage == "BOT_RESPONSE_TIMEOUT") {
                     return null;
                 }
                 throw e;

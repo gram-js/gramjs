@@ -103,7 +103,7 @@ export async function signInUser(
                 try {
                     phoneNumber = await authParams.phoneNumber();
                 } catch (err) {
-                    if (err.message === "RESTART_AUTH_WITH_QR") {
+                    if (err.errorMessage === "RESTART_AUTH_WITH_QR") {
                         return client.signInUserWithQrCode(
                             apiCredentials,
                             authParams
@@ -150,7 +150,7 @@ export async function signInUser(
                 phoneCode = await authParams.phoneCode(isCodeViaApp);
             } catch (err) {
                 // This is the support for changing phone number from the phone code screen.
-                if (err.message === "RESTART_AUTH") {
+                if (err.errorMessage === "RESTART_AUTH") {
                     return client.signInUser(apiCredentials, authParams);
                 }
             }
@@ -177,7 +177,7 @@ export async function signInUser(
 
             return result.user;
         } catch (err) {
-            if (err.message === "SESSION_PASSWORD_NEEDED") {
+            if (err.errorMessage === "SESSION_PASSWORD_NEEDED") {
                 return client.signInWithPassword(apiCredentials, authParams);
             } else {
                 const shouldWeStop = await authParams.onError(err);
@@ -275,7 +275,7 @@ export async function signInUserWithQrCode(
     try {
         await Promise.race([updatePromise, inputPromise]);
     } catch (err) {
-        if (err.message === "RESTART_AUTH") {
+        if (err.errorMessage === "RESTART_AUTH") {
             return client.signInUser(apiCredentials, authParams);
         }
 
@@ -312,7 +312,7 @@ export async function signInUserWithQrCode(
             }
         }
     } catch (err) {
-        if (err.message === "SESSION_PASSWORD_NEEDED") {
+        if (err.errorMessage === "SESSION_PASSWORD_NEEDED") {
             return client.signInWithPassword(apiCredentials, authParams);
         }
     }
@@ -363,7 +363,7 @@ export async function sendCode(
             isCodeViaApp: resendResult.type instanceof Api.auth.SentCodeTypeApp,
         };
     } catch (err) {
-        if (err.message === "AUTH_RESTART") {
+        if (err.errorMessage === "AUTH_RESTART") {
             return client.sendCode(apiCredentials, phoneNumber, forceSMS);
         } else {
             throw err;

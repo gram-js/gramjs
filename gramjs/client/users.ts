@@ -40,8 +40,8 @@ export async function invoke<R extends Api.AnyRequest>(
         } catch (e) {
             if (
                 e instanceof errors.ServerError ||
-                e.message === "RPC_CALL_FAIL" ||
-                e.message === "RPC_MCGET_FAIL"
+                e.errorMessage === "RPC_CALL_FAIL" ||
+                e.errorMessage === "RPC_MCGET_FAIL"
             ) {
                 client._log.warn(
                     `Telegram is having internal issues ${e.constructor.name}`
@@ -333,7 +333,7 @@ export async function _getEntityFromString(
                 }
             }
         } catch (e) {
-            if (e.message === "BOT_METHOD_INVALID") {
+            if (e.errorMessage === "BOT_METHOD_INVALID") {
                 throw new Error(
                     "Cannot get entity by phone number as a " +
                         "bot (try using integer IDs, not strings)"
@@ -379,7 +379,7 @@ export async function _getEntityFromString(
                     }
                 }
             } catch (e) {
-                if (e.message === "USERNAME_NOT_OCCUPIED") {
+                if (e.errorMessage === "USERNAME_NOT_OCCUPIED") {
                     throw new Error(`No user has "${username}" as username`);
                 }
                 throw e;

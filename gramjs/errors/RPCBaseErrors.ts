@@ -2,19 +2,21 @@
  * Base class for all Remote Procedure Call errors.
  */
 import { Api } from "../tl";
+import { CustomError } from 'ts-custom-error'
 
-export class RPCError extends Error {
+export class RPCError extends CustomError {
     protected code: number | undefined;
+    protected errorMessage: string;
 
     constructor(message: string, request: Api.AnyRequest, code?: number) {
         super(
-            "RPCError {0}: {1}{2}"
+            "{0}: {1}{2}"
                 .replace("{0}", code?.toString() || "")
                 .replace("{1}", message || "")
                 .replace("{2}", RPCError._fmtRequest(request))
         );
         this.code = code;
-        this.message = message;
+        this.errorMessage = message;
     }
 
     static _fmtRequest(request: Api.AnyRequest) {
@@ -34,7 +36,7 @@ export class InvalidDCError extends RPCError {
     constructor(message: string, request: Api.AnyRequest, code?: number) {
         super(message, request, code);
         this.code = code || 303;
-        this.message = message || "ERROR_SEE_OTHER";
+        this.errorMessage = message || "ERROR_SEE_OTHER";
     }
 }
 
@@ -45,7 +47,7 @@ export class InvalidDCError extends RPCError {
  */
 export class BadRequestError extends RPCError {
     code = 400;
-    message = "BAD_REQUEST";
+    errorMessage = "BAD_REQUEST";
 }
 
 /**
@@ -54,7 +56,7 @@ export class BadRequestError extends RPCError {
  */
 export class UnauthorizedError extends RPCError {
     code = 401;
-    message = "UNAUTHORIZED";
+    errorMessage = "UNAUTHORIZED";
 }
 
 /**
@@ -63,7 +65,7 @@ export class UnauthorizedError extends RPCError {
  */
 export class ForbiddenError extends RPCError {
     code = 403;
-    message = "FORBIDDEN";
+    errorMessage = "FORBIDDEN";
 }
 
 /**
@@ -71,7 +73,7 @@ export class ForbiddenError extends RPCError {
  */
 export class NotFoundError extends RPCError {
     code = 404;
-    message = "NOT_FOUND";
+    errorMessage = "NOT_FOUND";
 }
 
 /**
@@ -80,7 +82,7 @@ export class NotFoundError extends RPCError {
  */
 export class AuthKeyError extends RPCError {
     code = 406;
-    message = "AUTH_KEY";
+    errorMessage = "AUTH_KEY";
 }
 
 /**
@@ -91,7 +93,7 @@ export class AuthKeyError extends RPCError {
  */
 export class FloodError extends RPCError {
     code = 420;
-    message = "FLOOD";
+    errorMessage = "FLOOD";
 }
 
 /**
@@ -101,7 +103,7 @@ export class FloodError extends RPCError {
  */
 export class ServerError extends RPCError {
     code = 500; // Also witnessed as -500
-    message = "INTERNAL";
+    errorMessage = "INTERNAL";
 }
 
 /**
@@ -110,5 +112,5 @@ export class ServerError extends RPCError {
  */
 export class TimedOutError extends RPCError {
     code = 503; // Only witnessed as -503
-    message = "Timeout";
+    errorMessage = "Timeout";
 }

@@ -31,4 +31,8 @@ you can find all the requests and types at https://gram.js.org/
 
 ## Docs
 
-you can find the docs at https://painor.gitbook.io/gramjs/ which has all the functions with a usage example
+you can find the docs at https://painor.gitbook.io/gramjs/ or https://gram.js.org/  which has all the functions with a usage example
+
+##Asking question
+
+If you have any question about how to use the library feel free to open a github issue or join us at the telegram group [@GramJSChat](https://t.me/gramjschat)

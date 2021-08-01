@@ -136,7 +136,7 @@ export async function uploadFile(
                 ),
             ]);
         } catch (err) {
-            if (err.message === "TIMEOUT") {
+            if (err.error === "TIMEOUT") {
                 console.warn("Upload timeout. Retrying...");
                 i -= workers;
                 continue;

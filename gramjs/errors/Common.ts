@@ -141,6 +141,7 @@ export class BadMessageError extends Error {
         64: "Invalid container.",
     };
     private code: number;
+    private errorMessage: string;
 
     constructor(request: Api.AnyRequest, code: number) {
         let errorMessage =
@@ -148,7 +149,7 @@ export class BadMessageError extends Error {
             `Unknown error code (this should not happen): ${code}.`;
         errorMessage += `  Caused by ${request.className}`;
         super(errorMessage);
-        this.message = errorMessage;
+        this.errorMessage = errorMessage;
         this.code = code;
     }
 }

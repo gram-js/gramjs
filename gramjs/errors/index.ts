@@ -13,6 +13,7 @@ export function RPCMessageToError(
     rpcError: Api.RpcError,
     request: Api.AnyRequest
 ) {
+
     for (const [msgRegex, Cls] of rpcErrorRe) {
         const m = rpcError.errorMessage.match(msgRegex);
         if (m) {
@@ -20,8 +21,7 @@ export function RPCMessageToError(
             return new Cls({ request: request, capture: capture });
         }
     }
-
-    return new RPCError(rpcError.errorMessage, request);
+    return new RPCError(rpcError.errorMessage, request, rpcError.errorCode);
 }
 
 export * from "./Common";
