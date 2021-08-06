@@ -269,7 +269,7 @@ export class MemorySession extends Session {
 
         if (result) {
             let entityId = result[0]; // unpack resulting tuple
-            const entityHash = result[1];
+            const entityHash = bigInt(result[1]);
             const resolved = utils.resolveId(entityId);
             entityId = resolved[0];
             const kind = resolved[1];
