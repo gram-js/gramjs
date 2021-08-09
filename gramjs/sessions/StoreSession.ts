@@ -1,7 +1,6 @@
 import { MemorySession } from "./Memory";
 import store from "store2";
 import { AuthKey } from "../crypto/AuthKey";
-import { LocalStorage } from "node-localstorage";
 
 export class StoreSession extends MemorySession {
     private readonly sessionName: string;
@@ -9,7 +8,12 @@ export class StoreSession extends MemorySession {
 
     constructor(sessionName: string) {
         super();
-        this.store = store.area("fs", new LocalStorage("./" + sessionName));
+        if (typeof localStorage === "undefined" || localStorage === null) {
+            const LocalStorage = require('node-localstorage').LocalStorage;
+            this.store = store.area("fs", new LocalStorage("./" + sessionName));
+        }else{
+            this.store = store.area("fs", localStorage);
+        }
         this.sessionName = sessionName + ":";
     }
 

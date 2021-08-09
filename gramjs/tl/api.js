@@ -23,8 +23,8 @@ if (IS_NODE) {
     tlContent = fs.readFileSync(__dirname + "/static/api.tl", "utf-8");
     schemeContent = fs.readFileSync(__dirname + "/static/schema.tl", "utf-8");
 } else {
-    tlContent = require("./static/api.tl").default;
-    schemeContent = require("./static/schema.tl").default;
+    tlContent = require("!!raw-loader!./static/api.tl").default;
+    schemeContent = require("!!raw-loader!./static/schema.tl").default;
 }
 const NAMED_AUTO_CASTS = new Set(["chatId,int"]);
 const NAMED_BLACKLIST = new Set(["discardEncryption"]);

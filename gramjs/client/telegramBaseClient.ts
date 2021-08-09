@@ -4,7 +4,7 @@ import {
     ConnectionTCPFull,
     ConnectionTCPObfuscated,
 } from "../network/connection";
-import { Session } from "../sessions";
+import { Session, StoreSession } from "../sessions";
 import { Logger } from "../extensions";
 import { Api } from "../tl";
 
@@ -192,6 +192,9 @@ export class TelegramBaseClient {
             this._log = clientParams.baseLogger;
         }
         this._log.debug("Running gramJS version " + version);
+        if (session && typeof session=="string"){
+            session = new StoreSession(session);
+        }
         if (!(session instanceof Session)) {
             throw new Error(
                 "Only StringSession and StoreSessions are supported currently :( "
