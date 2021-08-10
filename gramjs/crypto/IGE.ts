@@ -14,7 +14,7 @@ class IGENEW {
      * @param cipherText {Buffer}
      * @returns {Buffer}
      */
-    decryptIge(cipherText: Buffer) {
+    decryptIge(cipherText: Buffer): Buffer {
         return Helpers.convertToLittle(this.ige.decrypt(cipherText));
     }
 
@@ -23,7 +23,7 @@ class IGENEW {
      * @param plainText {Buffer}
      * @returns {Buffer}
      */
-    encryptIge(plainText: Buffer) {
+    encryptIge(plainText: Buffer): Buffer {
         const padding = plainText.length % 16;
         if (padding) {
             plainText = Buffer.concat([
