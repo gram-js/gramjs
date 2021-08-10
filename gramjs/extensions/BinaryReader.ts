@@ -84,14 +84,15 @@ export class BinaryReader {
     /**
      * Read the given amount of bytes, or -1 to read all remaining.
      * @param length {number}
+     * @param checkLength {boolean} whether to check if the length overflows or not.
      */
-    read(length = -1) {
+    read(length = -1, checkLength = true) {
         if (length === -1) {
             length = this.stream.length - this.offset;
         }
         const result = this.stream.slice(this.offset, this.offset + length);
         this.offset += length;
-        if (result.length !== length) {
+        if (checkLength && result.length !== length) {
             throw Error(
                 `No more data left to read (need ${length}, got ${result.length}: ${result}); last read ${this._last}`
             );

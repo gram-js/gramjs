@@ -1,5 +1,5 @@
-const { TelegramClient } = require("telegram/dist");
-const { StringSession } = require("telegram/dist/sessions");
+const { TelegramClient } = require("telegram");
+const { StringSession } = require("telegram/sessions");
 
 (async () => {
   console.log("Loading interactive example...");

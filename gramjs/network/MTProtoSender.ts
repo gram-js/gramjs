@@ -226,6 +226,9 @@ export class MTProtoSender {
                 this._log.error(
                     "WebSocket connection failed attempt : " + (attempt + 1)
                 );
+                if (this._log.canSend("error")) {
+                    console.error(e);
+                }
                 await sleep(this._delay);
             }
         }
@@ -886,6 +889,9 @@ export class MTProtoSender {
                 this._log.error(
                     "WebSocket connection failed attempt : " + (attempt + 1)
                 );
+                if (this._log.canSend("error")) {
+                    console.error(e);
+                }
                 await sleep(this._delay);
             }
         }
