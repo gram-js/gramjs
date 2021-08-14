@@ -233,7 +233,7 @@ interface FileToMediaInterface {
     asImage?: boolean;
     workers?: number;
 }
-
+/** @hidden */
 async function _fileToMedia(
     client: TelegramClient,
     {
@@ -410,7 +410,7 @@ async function _fileToMedia(
         image: asImage,
     };
 }
-
+/** @hidden */
 export async function sendFile(
     client: TelegramClient,
     entity: EntityLike,

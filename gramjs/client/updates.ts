@@ -7,7 +7,7 @@ import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
 
-// export class UpdateMethods
+/** @hidden */
 export function on(client: TelegramClient, event?: EventBuilder) {
     return (f: { (event: any): void }) => {
         client.addEventHandler(f, event);
@@ -15,6 +15,7 @@ export function on(client: TelegramClient, event?: EventBuilder) {
     };
 }
 
+/** @hidden */
 export function addEventHandler(
     client: TelegramClient,
     callback: CallableFunction,
@@ -29,24 +30,28 @@ export function addEventHandler(
     client._eventBuilders.push([event, callback]);
 }
 
+/** @hidden */
 export function removeEventHandler(
     client: TelegramClient,
     callback: CallableFunction,
     event: EventBuilder
 ) {
-    client._eventBuilders = client._eventBuilders.filter(function (item) {
+    client._eventBuilders = client._eventBuilders.filter(function(item) {
         return item !== [event, callback];
     });
 }
 
+/** @hidden */
 export function listEventHandlers(client: TelegramClient) {
     return client._eventBuilders;
 }
 
+/** @hidden */
 export function catchUp() {
     // TODO
 }
 
+/** @hidden */
 export function _handleUpdate(
     client: TelegramClient,
     update: Api.TypeUpdate | number
@@ -54,7 +59,7 @@ export function _handleUpdate(
     if (typeof update === "number") {
         if ([-1, 0, 1].includes(update)) {
             _dispatchUpdate(client, {
-                update: new UpdateConnectionState(update),
+                update: new UpdateConnectionState(update)
             });
             return;
         }
@@ -83,6 +88,7 @@ export function _handleUpdate(
     }
 }
 
+/** @hidden */
 export function _processUpdate(
     client: TelegramClient,
     update: any,
@@ -92,12 +98,13 @@ export function _processUpdate(
     update._entities = entities || new Map();
     const args = {
         update: update,
-        others: others,
+        others: others
     };
 
     _dispatchUpdate(client, args);
 }
 
+/** @hidden */
 export async function _dispatchUpdate(
     client: TelegramClient,
     args: { update: UpdateConnectionState | any }
@@ -136,6 +143,7 @@ export async function _dispatchUpdate(
     }
 }
 
+/** @hidden */
 export async function _updateLoop(client: TelegramClient): Promise<void> {
     while (client.connected) {
         const rnd = helpers.getRandomInt(
@@ -148,7 +156,7 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         try {
             client._sender!.send(
                 new Api.Ping({
-                    pingId: bigInt(rnd),
+                    pingId: bigInt(rnd)
                 })
             );
         } catch (e) {
@@ -166,7 +174,8 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         ) {
             try {
                 await client.invoke(new Api.updates.GetState());
-            } catch (e) {}
+            } catch (e) {
+            }
         }
     }
 }

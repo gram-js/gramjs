@@ -547,7 +547,7 @@ export interface EditMessageParams {
     schedule?: DateLike;
 }
 
-//  MessageMethods
+/** @hidden */
 export function iterMessages(
     client: TelegramClient,
     entity: EntityLike | undefined,

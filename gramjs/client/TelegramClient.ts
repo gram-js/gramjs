@@ -435,10 +435,10 @@ export class TelegramClient extends TelegramBaseClient {
      * @example
      * // sets the mode to HTML
      * client.setParseMode("html");
-     * await client.sendMessage("me","<u>This is an underline text</u>");
+     * await client.sendMessage("me",{message:"<u>This is an underline text</u>"});
      * // disable formatting
      * client.setParseMode(undefined);
-     * await client.sendMessage("me","<u> this will be sent as it is</u> ** with no formatting **);
+     * await client.sendMessage("me",{message:"<u> this will be sent as it is</u> ** with no formatting **});
      */
     setParseMode(
         mode:
@@ -557,28 +557,28 @@ export class TelegramClient extends TelegramBaseClient {
      * @example
      * ```ts
      * // Markdown is the default.
-     * await client.sendMessage("me","Hello **world!**);
+     * await client.sendMessage("me",{message:"Hello **world!**});
      *
      * // Defaults to another parse mode.
      * client.setParseMode("HTML");
      *
-     * await client.sendMessage('me', 'Some <b>bold</b> and <i>italic</i> text')
-     * await client.sendMessage('me', 'An <a href="https://example.com">URL</a>')
-     * await client.sendMessage('me', '<a href="tg://user?id=me">Mentions</a>')
+     * await client.sendMessage('me', {message:'Some <b>bold</b> and <i>italic</i> text'})
+     * await client.sendMessage('me', {message:'An <a href="https://example.com">URL</a>'})
+     * await client.sendMessage('me', {message:'<a href="tg://user?id=me">Mentions</a>'})
      *
      * // Explicit parse mode.
      * //  No parse mode by default
      * client.setParseMode(undefined);
      * //...but here I want markdown
-     * await client.sendMessage('me', 'Hello, **world**!', {parseMode:"md"})
+     * await client.sendMessage('me', {message:'Hello, **world**!', {parseMode:"md"}})
      *
      * // ...and here I need HTML
-     * await client.sendMessage('me', 'Hello, <i>world</i>!', {parseMode='html'})
+     * await client.sendMessage('me', {message:'Hello, <i>world</i>!', {parseMode='html'}})
      *
      *
      * // Scheduling a message to be sent after 5 minutes
      *
-     * await client.sendMessage(chat, 'Hi, future!', {schedule:(60 * 5)+ new Date()}
+     * await client.sendMessage(chat, {message:'Hi, future!', schedule:(60 * 5)+ new Date()})
      *
      * ```
      */
@@ -646,7 +646,7 @@ export class TelegramClient extends TelegramBaseClient {
      *  For example, when trying to edit messages with a reply markup (or clear markup) this error will be raised.
      *  @example
      *  ```ts
-     *  const message = await client.sendMessage(chat,"Hi!");
+     *  const message = await client.sendMessage(chat,{message:"Hi!"});
      *
      *  await client.editMessage(chat,{message:message,text:"Hello!"}
      *  // or
@@ -999,10 +999,6 @@ export class TelegramClient extends TelegramBaseClient {
         return userMethods.isUserAuthorized(this);
     }
 
-    /** @hidden */
-    getEntity(entity: EntityLike): Promise<Entity>;
-    /** @hidden */
-    getEntity(entity: EntityLike[]): Promise<Entity[]>;
     /**
      * Turns the given entity into a valid Telegram {@link Api.User}, {@link Api.Chat} or {@link Api.Channel}.<br/>
      * You can also pass a list or iterable of entities, and they will be efficiently fetched from the network.
@@ -1030,6 +1026,38 @@ export class TelegramClient extends TelegramBaseClient {
      * // good to use getInputEntity if you will reuse it a lot.
      * ```
      */
+
+    getEntity(entity: EntityLike): Promise<Entity>;
+    /**
+     * Turns the given entity into a valid Telegram {@link Api.User}, {@link Api.Chat} or {@link Api.Channel}.<br/>
+     * You can also pass a list or iterable of entities, and they will be efficiently fetched from the network.
+     * @param entity - If a username is given, the username will be resolved making an API call every time.<br/>
+     * Resolving usernames is an expensive operation and will start hitting flood waits around 50 usernames in a short period of time.<br/>
+     * <br/>
+     * Similar limits apply to invite links, and you should use their ID instead.<br/>
+     * Using phone numbers (from people in your contact list), exact names, integer IDs or Peer rely on a getInputEntity first,<br/>
+     * which in turn needs the entity to be in cache, unless a InputPeer was passed.<br/>
+     * <br/>
+     * If the entity can't be found, ValueError will be raised.
+     * @return
+     * {@link Api.Chat},{@link Api.Chat} or {@link Api.Channel} corresponding to the input entity. A list will be returned if more than one was given.
+     * @example
+     * ```ts
+     * const me = await client.getEntity("me");
+     * console.log("My name is",utils.getDisplayName(me));
+     *
+     * const chat = await client.getInputEntity("username");
+     * for await (const message of client.iterMessages(chat){
+     *     console.log("Message text is",message.text);
+     * }
+     *
+     * // Note that you could have used the username directly, but it's
+     * // good to use getInputEntity if you will reuse it a lot.
+     * ```
+     */
+
+    getEntity(entity: EntityLike[]): Promise<Entity[]>;
+
     getEntity(entity: any) {
         return userMethods.getEntity(this, entity);
     }

@@ -17,7 +17,7 @@ export class Logger {
 
     constructor(level?: string) {
         if (!_level) {
-            _level = level || "debug";
+            _level = level || "info"; // defaults to info
         }
         this.isBrowser = !IS_NODE;
         if (!this.isBrowser) {

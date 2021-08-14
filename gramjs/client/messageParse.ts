@@ -23,13 +23,12 @@ export const DEFAULT_DELIMITERS: {
     "```": Api.MessageEntityPre,
 };
 
-// export class MessageParseMethods {
 
 export interface ParseInterface {
     parse: (message: string) => [string, Api.TypeMessageEntity[]];
     unparse: (text: string, entities: Api.TypeMessageEntity[]) => string;
 }
-
+/** @hidden */
 export async function _replaceWithMention(
     client: TelegramClient,
     entities: Api.TypeMessageEntity[],
@@ -47,7 +46,7 @@ export async function _replaceWithMention(
         return false;
     }
 }
-
+/** @hidden */
 export function _parseMessageText(
     client: TelegramClient,
     message: string,
@@ -66,7 +65,7 @@ export function _parseMessageText(
     }
     return parseMode.parse(message);
 }
-
+/** @hidden */
 export function _getResponseMessage(
     client: TelegramClient,
     request: any,

@@ -17,6 +17,7 @@ export interface progressCallback {
         /** other args to be passed if needed */
         ...args: any[]
     ): void;
+
     /** When this value is set to true the download will stop */
     isCanceled?: boolean;
     /** Does nothing for now. */
@@ -151,12 +152,12 @@ export async function downloadFile(
                                 location: inputLocation,
                                 offset,
                                 limit,
-                                precise: isPrecise || undefined,
+                                precise: isPrecise || undefined
                             })
                         ),
                         sleep(REQUEST_TIMEOUT).then(() =>
                             Promise.reject(new Error("REQUEST_TIMEOUT"))
-                        ),
+                        )
                     ]);
 
                     if (progressCallback) {
@@ -199,7 +200,8 @@ class Foreman {
     private deferred: Deferred | undefined;
     private activeWorkers = 0;
 
-    constructor(private maxWorkers: number) {}
+    constructor(private maxWorkers: number) {
+    }
 
     requestWorker() {
         this.activeWorkers++;
@@ -229,7 +231,7 @@ function createDeferred(): Deferred {
 
     return {
         promise,
-        resolve: resolve!,
+        resolve: resolve!
     };
 }
 
@@ -247,6 +249,7 @@ export interface DownloadMediaInterface {
     /** number of workers to use while downloading. more means faster but anything above 16 may cause issues. */
     workers?: number;
 }
+
 /** @hidden */
 export async function downloadMedia(
     client: TelegramClient,
@@ -288,6 +291,7 @@ export async function downloadMedia(
     }
 }
 
+/** @hidden */
 export async function _downloadDocument(
     client: TelegramClient,
     doc: Api.MessageMediaDocument | Api.Document,
@@ -324,24 +328,25 @@ export async function _downloadDocument(
             id: doc.id,
             accessHash: doc.accessHash,
             fileReference: doc.fileReference,
-            thumbSize: size ? size.type : "",
+            thumbSize: size ? size.type : ""
         }),
         {
             fileSize:
                 size && !(size instanceof Api.PhotoSizeEmpty)
                     ? size instanceof Api.PhotoSizeProgressive
-                        ? Math.max(...size.sizes)
-                        : size.size
+                    ? Math.max(...size.sizes)
+                    : size.size
                     : doc.size,
             progressCallback: args.progressCallback,
             start: args.start,
             end: args.end,
             dcId: doc.dcId,
-            workers: args.workers,
+            workers: args.workers
         }
     );
 }
 
+/** @hidden */
 export async function _downloadContact(
     client: TelegramClient,
     media: Api.MessageMediaContact,
@@ -350,6 +355,7 @@ export async function _downloadContact(
     throw new Error("not implemented");
 }
 
+/** @hidden */
 export async function _downloadWebDocument(
     client: TelegramClient,
     media: Api.WebDocument | Api.WebDocumentNoProxy,
@@ -373,6 +379,7 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
     return undefined;
 }
 
+/** @hidden */
 export function _downloadCachedPhotoSize(
     size: Api.PhotoCachedSize | Api.PhotoStrippedSize
 ) {
@@ -386,6 +393,7 @@ export function _downloadCachedPhotoSize(
     return data;
 }
 
+/** @hidden */
 export async function _downloadPhoto(
     client: TelegramClient,
     photo: Api.MessageMediaPhoto | Api.Photo,
@@ -416,7 +424,7 @@ export async function _downloadPhoto(
             id: photo.id,
             accessHash: photo.accessHash,
             fileReference: photo.fileReference,
-            thumbSize: size.type,
+            thumbSize: size.type
         }),
         {
             dcId: photo.dcId,
@@ -424,7 +432,7 @@ export async function _downloadPhoto(
                 size instanceof Api.PhotoSizeProgressive
                     ? Math.max(...size.sizes)
                     : size.size,
-            progressCallback: args.progressCallback,
+            progressCallback: args.progressCallback
         }
     );
 }
@@ -455,7 +463,7 @@ export async function downloadProfilePhoto(
         loc = new Api.InputPeerPhotoFileLocation({
             peer: utils.getInputPeer(entity),
             photoId: photo.photoId,
-            big: fileParams.isBig,
+            big: fileParams.isBig
         });
     } else {
         return Buffer.alloc(0);
@@ -463,6 +471,6 @@ export async function downloadProfilePhoto(
     return client.downloadFile(loc, {
         dcId,
         fileSize: 2 * 1024 * 1024,
-        workers: 1,
+        workers: 1
     });
 }

@@ -974,8 +974,8 @@ export function getAppropriatedPartSize(fileSize: number) {
         // 750MB
         return 256;
     }
-    if (fileSize <= 1572864000) {
-        // 1500MB
+    if (fileSize <= 2097152000) {
+        // 2000MB
         return 512;
     }
 
