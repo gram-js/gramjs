@@ -89,13 +89,13 @@ export function getInputPeer(
     if (entity instanceof Api.User) {
         if (entity.self && allowSelf) {
             return new Api.InputPeerSelf();
-        } else if (entity.accessHash !== undefined || !checkHash) {
+        } else if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
             return new Api.InputPeerUser({
                 userId: entity.id,
                 accessHash: entity.accessHash || bigInt(0),
             });
         } else {
-            throw new Error("User without accessHash cannot be input");
+            throw new Error("User without accessHash or min cannot be input");
         }
     }
     if (
@@ -106,7 +106,7 @@ export function getInputPeer(
         return new Api.InputPeerChat({ chatId: entity.id });
     }
     if (entity instanceof Api.Channel) {
-        if (entity.accessHash !== undefined || !checkHash) {
+        if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
             return new Api.InputPeerChannel({
                 channelId: entity.id,
                 accessHash: entity.accessHash || bigInt(0),
