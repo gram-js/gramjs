@@ -13,7 +13,6 @@ export function RPCMessageToError(
     rpcError: Api.RpcError,
     request: Api.AnyRequest
 ) {
-
     for (const [msgRegex, Cls] of rpcErrorRe) {
         const m = rpcError.errorMessage.match(msgRegex);
         if (m) {

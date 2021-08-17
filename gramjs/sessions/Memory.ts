@@ -145,6 +145,12 @@ export class MemorySession extends Session {
                 if ("user" in tlo) {
                     entities.push(tlo.user);
                 }
+                if ("chat" in tlo) {
+                    entities.push(tlo.chat);
+                }
+                if ("channel" in tlo) {
+                    entities.push(tlo.channel);
+                }
                 if ("chats" in tlo && isArrayLike(tlo.chats)) {
                     entities = entities.concat(tlo.chats);
                 }

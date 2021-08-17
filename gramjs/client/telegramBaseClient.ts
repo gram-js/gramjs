@@ -192,7 +192,7 @@ export class TelegramBaseClient {
             this._log = clientParams.baseLogger;
         }
         this._log.debug("Running gramJS version " + version);
-        if (session && typeof session=="string"){
+        if (session && typeof session == "string") {
             session = new StoreSession(session);
         }
         if (!(session instanceof Session)) {

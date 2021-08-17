@@ -9,9 +9,9 @@ export class StoreSession extends MemorySession {
     constructor(sessionName: string) {
         super();
         if (typeof localStorage === "undefined" || localStorage === null) {
-            const LocalStorage = require('node-localstorage').LocalStorage;
+            const LocalStorage = require("node-localstorage").LocalStorage;
             this.store = store.area("fs", new LocalStorage("./" + sessionName));
-        }else{
+        } else {
             this.store = store.area("fs", localStorage);
         }
         this.sessionName = sessionName + ":";

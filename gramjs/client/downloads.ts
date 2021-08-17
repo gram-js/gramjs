@@ -152,12 +152,12 @@ export async function downloadFile(
                                 location: inputLocation,
                                 offset,
                                 limit,
-                                precise: isPrecise || undefined
+                                precise: isPrecise || undefined,
                             })
                         ),
                         sleep(REQUEST_TIMEOUT).then(() =>
                             Promise.reject(new Error("REQUEST_TIMEOUT"))
-                        )
+                        ),
                     ]);
 
                     if (progressCallback) {
@@ -200,8 +200,7 @@ class Foreman {
     private deferred: Deferred | undefined;
     private activeWorkers = 0;
 
-    constructor(private maxWorkers: number) {
-    }
+    constructor(private maxWorkers: number) {}
 
     requestWorker() {
         this.activeWorkers++;
@@ -231,7 +230,7 @@ function createDeferred(): Deferred {
 
     return {
         promise,
-        resolve: resolve!
+        resolve: resolve!,
     };
 }
 
@@ -328,20 +327,20 @@ export async function _downloadDocument(
             id: doc.id,
             accessHash: doc.accessHash,
             fileReference: doc.fileReference,
-            thumbSize: size ? size.type : ""
+            thumbSize: size ? size.type : "",
         }),
         {
             fileSize:
                 size && !(size instanceof Api.PhotoSizeEmpty)
                     ? size instanceof Api.PhotoSizeProgressive
-                    ? Math.max(...size.sizes)
-                    : size.size
+                        ? Math.max(...size.sizes)
+                        : size.size
                     : doc.size,
             progressCallback: args.progressCallback,
             start: args.start,
             end: args.end,
             dcId: doc.dcId,
-            workers: args.workers
+            workers: args.workers,
         }
     );
 }
@@ -424,7 +423,7 @@ export async function _downloadPhoto(
             id: photo.id,
             accessHash: photo.accessHash,
             fileReference: photo.fileReference,
-            thumbSize: size.type
+            thumbSize: size.type,
         }),
         {
             dcId: photo.dcId,
@@ -432,7 +431,7 @@ export async function _downloadPhoto(
                 size instanceof Api.PhotoSizeProgressive
                     ? Math.max(...size.sizes)
                     : size.size,
-            progressCallback: args.progressCallback
+            progressCallback: args.progressCallback,
         }
     );
 }
@@ -463,7 +462,7 @@ export async function downloadProfilePhoto(
         loc = new Api.InputPeerPhotoFileLocation({
             peer: utils.getInputPeer(entity),
             photoId: photo.photoId,
-            big: fileParams.isBig
+            big: fileParams.isBig,
         });
     } else {
         return Buffer.alloc(0);
@@ -471,6 +470,6 @@ export async function downloadProfilePhoto(
     return client.downloadFile(loc, {
         dcId,
         fileSize: 2 * 1024 * 1024,
-        workers: 1
+        workers: 1,
     });
 }

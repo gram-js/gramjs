@@ -23,7 +23,6 @@ export const DEFAULT_DELIMITERS: {
     "```": Api.MessageEntityPre,
 };
 
-
 export interface ParseInterface {
     parse: (message: string) => [string, Api.TypeMessageEntity[]];
     unparse: (text: string, entities: Api.TypeMessageEntity[]) => string;

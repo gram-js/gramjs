@@ -89,7 +89,10 @@ export function getInputPeer(
     if (entity instanceof Api.User) {
         if (entity.self && allowSelf) {
             return new Api.InputPeerSelf();
-        } else if ((entity.accessHash !== undefined && !entity.min) || !checkHash) {
+        } else if (
+            (entity.accessHash !== undefined && !entity.min) ||
+            !checkHash
+        ) {
             return new Api.InputPeerUser({
                 userId: entity.id,
                 accessHash: entity.accessHash || bigInt(0),
