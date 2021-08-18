@@ -114,6 +114,7 @@ interface ParticipantsIterInterface {
     entity: EntityLike;
     filter: any;
     search?: string;
+    showTotal?: boolean;
 }
 
 export class _ParticipantsIter extends RequestIter {
@@ -128,6 +129,7 @@ export class _ParticipantsIter extends RequestIter {
         entity,
         filter,
         search,
+        showTotal,
     }: ParticipantsIterInterface): Promise<boolean | void> {
         if (filter && filter.constructor === Function) {
             if (
@@ -167,13 +169,16 @@ export class _ParticipantsIter extends RequestIter {
         // Only used for channels, but we should always set the attribute
         this.requests = [];
         if (ty == helpers._EntityType.CHANNEL) {
-            const channel = await this.client.invoke(
-                new Api.channels.GetFullChannel({
-                    channel: entity,
-                })
-            );
-            if (!(channel.fullChat instanceof Api.ChatFull)) {
-                this.total = channel.fullChat.participantsCount;
+            if (showTotal) {
+                console.log("called me!");
+                const channel = await this.client.invoke(
+                    new Api.channels.GetFullChannel({
+                        channel: entity,
+                    })
+                );
+                if (!(channel.fullChat instanceof Api.ChatFull)) {
+                    this.total = channel.fullChat.participantsCount;
+                }
             }
             if (this.total && this.total <= 0) {
                 return false;
@@ -401,13 +406,15 @@ export interface IterParticipantsParams {
     search?: string;
     /** optional filter to be used. E.g only admins filter or only banned members filter. PS : some filters need more permissions. */
     filter?: Api.TypeChannelParticipantsFilter;
+    /** whether to call an extra request (GetFullChannel) to show the total of users in the group/channel. if set to false total will be 0 */
+    showTotal?: boolean;
 }
 
 /** @hidden */
 export function iterParticipants(
     client: TelegramClient,
     entity: EntityLike,
-    { limit, search, filter }: IterParticipantsParams
+    { limit, search, filter, showTotal = true }: IterParticipantsParams
 ) {
     return new _ParticipantsIter(
         client,
@@ -417,6 +424,7 @@ export function iterParticipants(
             entity: entity,
             filter: filter,
             search: search,
+            showTotal: showTotal,
         }
     );
 }
