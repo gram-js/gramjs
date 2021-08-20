@@ -6,8 +6,9 @@ import type { Entity } from "../../define";
 import { _EntityType, _entityType, betterConsoleLog } from "../../Helpers";
 import { _getEntityPair, getPeerId } from "../../Utils";
 import { inspect } from "util";
+import { Mixin } from "ts-mixer";
 
-export class Forward {
+export class Forward extends Mixin(SenderGetter, ChatGetter){
     private originalFwd: Api.MessageFwdHeader;
     [inspect.custom]() {
         return betterConsoleLog(this);
@@ -18,9 +19,9 @@ export class Forward {
         original: Api.MessageFwdHeader,
         entities: Map<number, Entity>
     ) {
-        // Copy all objects here. probably need a better way tho. PRs are welcome
-        Object.assign(this, original);
-        this.originalFwd = original;
+        super({});
+        // contains info for the original header sent by telegram.
+       this.originalFwd = original;
 
         let senderId = undefined;
         let sender = undefined;
