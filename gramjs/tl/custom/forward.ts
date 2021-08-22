@@ -8,7 +8,7 @@ import { _getEntityPair, getPeerId } from "../../Utils";
 import { inspect } from "util";
 import { Mixin } from "ts-mixer";
 
-export class Forward extends Mixin(SenderGetter, ChatGetter){
+export class Forward extends Mixin(SenderGetter, ChatGetter) {
     private originalFwd: Api.MessageFwdHeader;
     [inspect.custom]() {
         return betterConsoleLog(this);
@@ -21,7 +21,7 @@ export class Forward extends Mixin(SenderGetter, ChatGetter){
     ) {
         super({});
         // contains info for the original header sent by telegram.
-       this.originalFwd = original;
+        this.originalFwd = original;
 
         let senderId = undefined;
         let sender = undefined;

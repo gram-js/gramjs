@@ -233,6 +233,7 @@ interface FileToMediaInterface {
     asImage?: boolean;
     workers?: number;
 }
+
 /** @hidden */
 async function _fileToMedia(
     client: TelegramClient,
@@ -259,6 +260,7 @@ async function _fileToMedia(
         return { fileHandle: undefined, media: undefined, image: undefined };
     }
     const isImage = utils.isImage(file);
+    console.log("as image?", isImage);
     if (asImage == undefined) {
         asImage = isImage && !forceDocument;
     }
@@ -296,6 +298,15 @@ async function _fileToMedia(
 
     if (file instanceof Api.InputFile || file instanceof Api.InputFileBig) {
         fileHandle = file;
+    } else if (
+        typeof file == "string" &&
+        (file.startsWith("https://") || file.startsWith("http://"))
+    ) {
+        if (asImage) {
+            media = new Api.InputMediaPhotoExternal({ url: file });
+        } else {
+            media = new Api.InputMediaPhotoExternal({ url: file });
+        }
     } else if (!(typeof file == "string") || (await fs.lstat(file)).isFile()) {
         if (typeof file == "string") {
             createdFile = new CustomFile(
@@ -327,12 +338,6 @@ async function _fileToMedia(
             onProgress: progressCallback,
             workers: workers,
         });
-    } else if (file.startsWith("https://") || file.startsWith("http://")) {
-        if (asImage) {
-            media = new Api.InputMediaPhotoExternal({ url: file });
-        } else {
-            media = new Api.InputMediaPhotoExternal({ url: file });
-        }
     } else {
         throw new Error(`"Not a valid path nor a url ${file}`);
     }
@@ -410,6 +415,7 @@ async function _fileToMedia(
         image: asImage,
     };
 }
+
 /** @hidden */
 export async function sendFile(
     client: TelegramClient,
