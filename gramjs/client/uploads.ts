@@ -260,7 +260,7 @@ async function _fileToMedia(
         return { fileHandle: undefined, media: undefined, image: undefined };
     }
     const isImage = utils.isImage(file);
-    console.log("as image?", isImage);
+
     if (asImage == undefined) {
         asImage = isImage && !forceDocument;
     }
@@ -305,7 +305,7 @@ async function _fileToMedia(
         if (asImage) {
             media = new Api.InputMediaPhotoExternal({ url: file });
         } else {
-            media = new Api.InputMediaPhotoExternal({ url: file });
+            media = new Api.InputMediaDocumentExternal({ url: file });
         }
     } else if (!(typeof file == "string") || (await fs.lstat(file)).isFile()) {
         if (typeof file == "string") {
@@ -473,6 +473,7 @@ export async function sendFile(
         supportsStreaming: supportsStreaming,
         workers: workers,
     });
+    console.log({ fileHandle, media, image })
     if (media == undefined) {
         throw new Error(`Cannot use ${file} as file.`);
     }
