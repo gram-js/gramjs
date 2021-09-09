@@ -42,8 +42,6 @@ export class SenderGetter {
     }
 
     async getSender() {
-        console.log("sender is", this._inputSender);
-        console.log("getInputSender is", this._inputSender);
         if (
             this._client &&
             (!this._sender ||

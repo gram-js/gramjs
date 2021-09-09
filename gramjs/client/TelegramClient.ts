@@ -800,21 +800,6 @@ export class TelegramClient extends TelegramBaseClient {
         return updateMethods.on(this, event);
     }
 
-    /** @hidden */
-    addEventHandler(
-        callback: { (event: NewMessageEvent): void },
-        event: NewMessage
-    ): void;
-    /** @hidden */
-    addEventHandler(
-        callback: { (event: AlbumEvent): void },
-        event: Album
-    ): void;
-    /** @hidden */
-    addEventHandler(
-        callback: { (event: any): void },
-        event?: EventBuilder
-    ): void;
 
     /**
      * Registers a new event handler callback.<br/>
@@ -837,6 +822,18 @@ export class TelegramClient extends TelegramBaseClient {
      * client.addEventHandler(handler, new NewMessage({}));
      ```
      */
+    addEventHandler(
+        callback: { (event: NewMessageEvent): void },
+        event: NewMessage
+    ): void;
+    addEventHandler(
+        callback: { (event: AlbumEvent): void },
+        event: Album
+    ): void;
+    addEventHandler(
+        callback: { (event: any): void },
+        event?: EventBuilder
+    ): void;
     addEventHandler(callback: { (event: any): void }, event?: EventBuilder) {
         return updateMethods.addEventHandler(this, callback, event);
     }
@@ -1028,36 +1025,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
 
     getEntity(entity: EntityLike): Promise<Entity>;
-    /**
-     * Turns the given entity into a valid Telegram {@link Api.User}, {@link Api.Chat} or {@link Api.Channel}.<br/>
-     * You can also pass a list or iterable of entities, and they will be efficiently fetched from the network.
-     * @param entity - If a username is given, the username will be resolved making an API call every time.<br/>
-     * Resolving usernames is an expensive operation and will start hitting flood waits around 50 usernames in a short period of time.<br/>
-     * <br/>
-     * Similar limits apply to invite links, and you should use their ID instead.<br/>
-     * Using phone numbers (from people in your contact list), exact names, integer IDs or Peer rely on a getInputEntity first,<br/>
-     * which in turn needs the entity to be in cache, unless a InputPeer was passed.<br/>
-     * <br/>
-     * If the entity can't be found, ValueError will be raised.
-     * @return
-     * {@link Api.Chat},{@link Api.Chat} or {@link Api.Channel} corresponding to the input entity. A list will be returned if more than one was given.
-     * @example
-     * ```ts
-     * const me = await client.getEntity("me");
-     * console.log("My name is",utils.getDisplayName(me));
-     *
-     * const chat = await client.getInputEntity("username");
-     * for await (const message of client.iterMessages(chat){
-     *     console.log("Message text is",message.text);
-     * }
-     *
-     * // Note that you could have used the username directly, but it's
-     * // good to use getInputEntity if you will reuse it a lot.
-     * ```
-     */
-
     getEntity(entity: EntityLike[]): Promise<Entity[]>;
-
     getEntity(entity: any) {
         return userMethods.getEntity(this, entity);
     }
