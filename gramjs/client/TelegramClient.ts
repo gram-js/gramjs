@@ -145,12 +145,37 @@ export class TelegramClient extends TelegramBaseClient {
     /**
      * logs the user using a QR code to be scanned.<br/>
      * this function generates the QR code that needs to be scanned by mobile.
+     * @example
+     * '''ts
+     * await client.connect();
+     * const user = await client.signInUserWithQrCode({ apiId, apiHash },
+     * {
+     *       onError: async function(p1: Error) {
+     *           console.log("error", p1);
+     *           // true = stop the authentication processes
+     *           return true;
+     *       },
+     *       qrCode: async (code) => {
+     *           console.log("Convert the next string to a QR code and scan it");
+     *           console.log(
+     *               `tg://login?token=${code.token.toString("base64url")}`
+     *           );
+     *       },
+     *       password: async (hint) => {
+     *           // password if needed
+     *           return "1111";
+     *       }
+     *   }
+     * );
+     * console.log("user is", user);
+     *
+     * '''
      * @param apiCredentials - credentials to be used.
      * @param authParams - user auth params.
      */
     signInUserWithQrCode(
         apiCredentials: authMethods.ApiCredentials,
-        authParams: authMethods.UserAuthParams
+        authParams: authMethods.QrCodeAuthParams
     ) {
         return authMethods.signInUserWithQrCode(
             this,
@@ -196,7 +221,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     signInWithPassword(
         apiCredentials: authMethods.ApiCredentials,
-        authParams: authMethods.UserAuthParams
+        authParams: authMethods.UserPasswordAuthParams
     ) {
         return authMethods.signInWithPassword(this, apiCredentials, authParams);
     }
@@ -799,7 +824,6 @@ export class TelegramClient extends TelegramBaseClient {
     on(event: any) {
         return updateMethods.on(this, event);
     }
-
 
     /**
      * Registers a new event handler callback.<br/>

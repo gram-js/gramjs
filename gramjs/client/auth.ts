@@ -30,9 +30,28 @@ export interface UserAuthParams {
     forceSMS?: boolean;
 }
 
+export interface UserPasswordAuthParams {
+    /** optional string or callback that should return the 2FA password if present.<br/>
+     *  the password hint will be sent in the hint param */
+    password?: (hint?: string) => Promise<string>;
+    /** when an error happens during auth this function will be called with the error.<br/>
+     *  if this returns true the auth operation will stop. */
+    onError: (err: Error) => Promise<boolean> | void;
+}
+
+export interface QrCodeAuthParams extends UserPasswordAuthParams {
+    /** a qrCode token for login through qrCode.<br/>
+     *  this would need a QR code that you should scan with another app to login with. */
+    qrCode?: (qrCode: { token: Buffer; expires: number }) => Promise<void>;
+    /** when an error happens during auth this function will be called with the error.<br/>
+     *  if this returns true the auth operation will stop. */
+    onError: (err: Error) => Promise<boolean> | void;
+}
+
 interface ReturnString {
     (): string;
 }
+
 /**
  * For when you want as a normal bot created by https://t.me/Botfather.<br/>
  * Logging in as bot is simple and requires no callbacks
@@ -78,6 +97,7 @@ export async function start(
 
     await _authFlow(client, apiCredentials, authParams);
 }
+
 /** @hidden */
 export async function checkAuthorization(client: TelegramClient) {
     try {
@@ -87,6 +107,7 @@ export async function checkAuthorization(client: TelegramClient) {
         return false;
     }
 }
+
 /** @hidden */
 export async function signInUser(
     client: TelegramClient,
@@ -238,7 +259,7 @@ export async function signInUser(
 export async function signInUserWithQrCode(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
-    authParams: UserAuthParams
+    authParams: QrCodeAuthParams
 ): Promise<Api.TypeUser> {
     const inputPromise = (async () => {
         while (1) {
@@ -261,6 +282,7 @@ export async function signInUserWithQrCode(
                     sleep(QR_CODE_TIMEOUT),
                 ]);
             }
+            await sleep(QR_CODE_TIMEOUT);
         }
     })();
 
@@ -275,10 +297,6 @@ export async function signInUserWithQrCode(
     try {
         await Promise.race([updatePromise, inputPromise]);
     } catch (err) {
-        if (err.errorMessage === "RESTART_AUTH") {
-            return client.signInUser(apiCredentials, authParams);
-        }
-
         throw err;
     }
 
@@ -290,7 +308,6 @@ export async function signInUserWithQrCode(
                 exceptIds: [],
             })
         );
-
         if (
             result2 instanceof Api.auth.LoginTokenSuccess &&
             result2.authorization instanceof Api.auth.Authorization
@@ -318,7 +335,7 @@ export async function signInUserWithQrCode(
     }
 
     await authParams.onError(new Error("QR auth failed"));
-    return client.signInUser(apiCredentials, authParams);
+    throw new Error("QR auth failed");
 }
 
 /** @hidden */
@@ -375,15 +392,17 @@ export async function sendCode(
 export async function signInWithPassword(
     client: TelegramClient,
     apiCredentials: ApiCredentials,
-    authParams: UserAuthParams
+    authParams: UserPasswordAuthParams
 ): Promise<Api.TypeUser> {
+    let emptyPassword = false;
     while (1) {
         try {
             const passwordSrpResult = await client.invoke(
                 new Api.account.GetPassword()
             );
             if (!authParams.password) {
-                throw new Error("Account has 2FA enabled.");
+                emptyPassword = true;
+                break;
             }
 
             const password = await authParams.password(passwordSrpResult.hint);
@@ -409,9 +428,12 @@ export async function signInWithPassword(
             }
         }
     }
-
+    if (emptyPassword) {
+        throw new Error("Account has 2FA enabled.");
+    }
     return undefined!; // Never reached (TypeScript fix)
 }
+
 /** @hidden */
 export async function signInBot(
     client: TelegramClient,
@@ -443,6 +465,7 @@ export async function signInBot(
     )) as Api.auth.Authorization;
     return user;
 }
+
 /** @hidden */
 export async function _authFlow(
     client: TelegramClient,

@@ -83,27 +83,20 @@ export async function getMe(
     if (inputPeer && client._selfInputPeer) {
         return client._selfInputPeer;
     }
-    try {
-        const me = (
-            await client.invoke(
-                new Api.users.GetUsers({ id: [new Api.InputUserSelf()] })
-            )
-        )[0] as Api.User;
-        client._bot = me.bot;
+    const me = (
+        await client.invoke(
+            new Api.users.GetUsers({ id: [new Api.InputUserSelf()] })
+        )
+    )[0] as Api.User;
+    client._bot = me.bot;
 
-        if (!client._selfInputPeer) {
-            client._selfInputPeer = utils.getInputPeer(
-                me,
-                false
-            ) as Api.InputPeerUser;
-        }
-        return inputPeer ? client._selfInputPeer : me;
-    } catch (e) {
-        if (client._log.canSend("error")) {
-            console.error(e);
-        }
-        throw new Error("Could not get me");
+    if (!client._selfInputPeer) {
+        client._selfInputPeer = utils.getInputPeer(
+            me,
+            false
+        ) as Api.InputPeerUser;
     }
+    return inputPeer ? client._selfInputPeer : me;
 }
 
 /** @hidden */

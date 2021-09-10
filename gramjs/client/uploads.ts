@@ -473,7 +473,6 @@ export async function sendFile(
         supportsStreaming: supportsStreaming,
         workers: workers,
     });
-    console.log({ fileHandle, media, image })
     if (media == undefined) {
         throw new Error(`Cannot use ${file} as file.`);
     }
