@@ -17,7 +17,7 @@ export interface UserAuthParams {
     phoneCode: (isCodeViaApp?: boolean) => Promise<string>;
     /** optional string or callback that should return the 2FA password if present.<br/>
      *  the password hint will be sent in the hint param */
-    password: (hint?: string) => Promise<string>;
+    password?: (hint?: string) => Promise<string>;
     /** in case of a new account creation this callback should return a first name and last name `[first,last]`. */
     firstAndLastNames?: () => Promise<[string, string?]>;
     /** a qrCode token for login through qrCode.<br/>
