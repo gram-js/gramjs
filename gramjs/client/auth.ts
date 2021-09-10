@@ -382,6 +382,10 @@ export async function signInWithPassword(
             const passwordSrpResult = await client.invoke(
                 new Api.account.GetPassword()
             );
+            if (!authParams.password) {
+                throw new Error("Account has 2FA enabled.");
+            }
+
             const password = await authParams.password(passwordSrpResult.hint);
             if (!password) {
                 throw new Error("Password is empty");
