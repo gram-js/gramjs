@@ -18,6 +18,7 @@ export class ChatGetter {
     _chat?: Entity;
     _broadcast?: boolean;
     public _client?: TelegramClient;
+
     [inspect.custom]() {
         return betterConsoleLog(this);
     }
@@ -72,11 +73,12 @@ export class ChatGetter {
     }
 
     async getInputChat() {
-        /*
         if (!this._inputChat && this.chatId && this._client) {
             try {
                 const target = this.chatId;
-                for await (const dialog of this._client.iterDialogs(100)) {
+                for await (const dialog of this._client.iterDialogs({
+                    limit: 100,
+                })) {
                     if (dialog.id === target) {
                         this._chat = dialog.entity;
                         this._inputChat = dialog.inputEntity;
@@ -87,7 +89,7 @@ export class ChatGetter {
                 // do nothing
             }
             return this._inputChat;
-        }*/
+        }
         return this._inputChat;
     }
 
