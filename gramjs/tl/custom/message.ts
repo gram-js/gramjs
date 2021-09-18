@@ -799,7 +799,8 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
 
     async downloadMedia(params: DownloadMediaInterface) {
         // small hack for patched method
-        if (this._client) return this._client.downloadMedia(this as any, params);
+        if (this._client)
+            return this._client.downloadMedia(this as any, params);
     }
 
     /* TODO doesn't look good enough.

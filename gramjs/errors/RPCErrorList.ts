@@ -1,4 +1,9 @@
-import { RPCError, InvalidDCError, FloodError } from "./RPCBaseErrors";
+import {
+    RPCError,
+    InvalidDCError,
+    FloodError,
+    BadRequestError,
+} from "./RPCBaseErrors";
 
 export class UserMigrateError extends InvalidDCError {
     public newDc: number;
@@ -119,12 +124,46 @@ export class NetworkMigrateError extends InvalidDCError {
     }
 }
 
+export class EmailUnconfirmedError extends BadRequestError {
+    codeLength: number;
+
+    constructor(args: any) {
+        const codeLength = Number(args.capture || 0);
+        super(
+            `Email unconfirmed, the length of the code must be ${codeLength}${RPCError._fmtRequest(
+                args.request
+            )}`,
+            args.request,
+            400
+        );
+        // eslint-disable-next-line max-len
+        this.message = `Email unconfirmed, the length of the code must be ${codeLength}${RPCError._fmtRequest(
+            args.request
+        )}`;
+        this.codeLength = codeLength;
+    }
+}
+
+export class MsgWaitError extends FloodError {
+    constructor(args: any) {
+        super(
+            `Message failed to be sent.${RPCError._fmtRequest(args.request)}`,
+            args.request
+        );
+        this.message = `Message failed to be sent.${RPCError._fmtRequest(
+            args.request
+        )}`;
+    }
+}
+
 export const rpcErrorRe = new Map<RegExp, any>([
     [/FILE_MIGRATE_(\d+)/, FileMigrateError],
     [/FLOOD_TEST_PHONE_WAIT_(\d+)/, FloodTestPhoneWaitError],
     [/FLOOD_WAIT_(\d+)/, FloodWaitError],
+    [/MSG_WAIT_(.*)/, MsgWaitError],
     [/PHONE_MIGRATE_(\d+)/, PhoneMigrateError],
     [/SLOWMODE_WAIT_(\d+)/, SlowModeWaitError],
     [/USER_MIGRATE_(\d+)/, UserMigrateError],
     [/NETWORK_MIGRATE_(\d+)/, NetworkMigrateError],
+    [/EMAIL_UNCONFIRMED_(\d+)/, EmailUnconfirmedError],
 ]);
