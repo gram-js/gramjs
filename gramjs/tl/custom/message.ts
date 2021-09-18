@@ -8,7 +8,10 @@ import { Forward } from "./forward";
 import type { File } from "./file";
 import { Mixin } from "ts-mixer";
 import { EditMessageParams, SendMessageParams } from "../../client/messages";
-import { DownloadFileParams } from "../../client/downloads";
+import {
+    DownloadFileParams,
+    DownloadMediaInterface,
+} from "../../client/downloads";
 import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
 import { _selfId } from "../../client/users";
@@ -794,7 +797,7 @@ export class Message extends Mixin(SenderGetter, ChatGetter) {
         }
     }
 
-    async downloadMedia(params: DownloadFileParams) {
+    async downloadMedia(params: DownloadMediaInterface) {
         if (this._client) return this._client.downloadMedia(this, params);
     }
 

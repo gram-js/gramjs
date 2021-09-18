@@ -38,6 +38,7 @@ export function generateRandomBigInt() {
 export function escapeRegex(string: string) {
     return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
+
 export function groupBy(list: any[], keyGetter: Function) {
     const map = new Map();
     list.forEach((item) => {
@@ -433,10 +434,17 @@ export const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Checks if the obj is an array
- * @param obj
- * @returns {boolean}
+ * Helper to export two buffers of same length
+ * @returns {Buffer}
  */
+
+export function bufferXor(a: Buffer, b: Buffer) {
+    const res = [];
+    for (let i = 0; i < a.length; i++) {
+        res.push(a[i] ^ b[i]);
+    }
+    return Buffer.from(res);
+}
 
 // Taken from https://stackoverflow.com/questions/18638900/javascript-crc32/18639999#18639999
 function makeCRCTable() {

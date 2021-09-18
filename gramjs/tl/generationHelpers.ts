@@ -245,7 +245,7 @@ const parseTl = function* (
     // Once all objects have been parsed, replace the
     // string type from the arguments with references
     for (const obj of objAll) {
-        //console.log(obj)
+
         if (AUTH_KEY_TYPES.has(obj.constructorId)) {
             for (const arg in obj.argsConfig) {
                 if (obj.argsConfig[arg].type === "string") {

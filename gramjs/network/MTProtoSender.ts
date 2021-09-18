@@ -13,7 +13,7 @@
  */
 import { AuthKey } from "../crypto/AuthKey";
 import { MTProtoState } from "./MTProtoState";
-import { BinaryReader } from "../extensions";
+import { BinaryReader, Logger } from "../extensions";
 import { MessagePacker } from "../extensions";
 import { GZIPPacked, MessageContainer, RPCResult, TLMessage } from "../tl/core";
 import { Api } from "../tl";
@@ -45,6 +45,7 @@ interface DEFAULT_OPTIONS {
     dcId: number;
     senderCallback?: any;
     client: TelegramClient;
+    onConnectionBreak?: CallableFunction;
 }
 
 export class MTProtoSender {
@@ -59,9 +60,10 @@ export class MTProtoSender {
         autoReconnectCallback: null,
         isMainSender: null,
         senderCallback: null,
+        onConnectionBreak: undefined,
     };
     private _connection?: Connection;
-    private readonly _log: any;
+    private readonly _log: Logger;
     private _dcId: number;
     private readonly _retries: number;
     private readonly _delay: number;
@@ -70,13 +72,13 @@ export class MTProtoSender {
     private readonly _authKeyCallback: any;
     private readonly _updateCallback: (
         client: TelegramClient,
-        update: Api.TypeUpdate | number
+        update: UpdateConnectionState
     ) => void;
     private readonly _autoReconnectCallback?: any;
     private readonly _senderCallback: any;
     private readonly _isMainSender: boolean;
-    private _userConnected: boolean;
-    private _reconnecting: boolean;
+    _userConnected: boolean;
+    _reconnecting: boolean;
     _disconnected: boolean;
     private _sendLoopHandle: any;
     private _recvLoopHandle: any;
@@ -88,6 +90,10 @@ export class MTProtoSender {
     private readonly _lastAcks: any[];
     private readonly _handlers: any;
     private readonly _client: TelegramClient;
+    private readonly _onConnectionBreak?: CallableFunction;
+    userDisconnected: boolean;
+    isConnecting: boolean;
+    _authenticated: boolean;
 
     /**
      * @param authKey
@@ -108,15 +114,21 @@ export class MTProtoSender {
         this._isMainSender = args.isMainSender;
         this._senderCallback = args.senderCallback;
         this._client = args.client;
+        this._onConnectionBreak = args.onConnectionBreak;
 
         /**
-         * Whether the user has explicitly connected or disconnected.
-         *
+         * whether we disconnected ourself or telegram did it.
+         */
+        this.userDisconnected = false;
+
+        /**
          * If a disconnection happens for any other reason and it
          * was *not* user action then the pending messages won't
          * be cleared but on explicit user disconnection all the
          * pending futures should be cancelled.
          */
+        this.isConnecting = false;
+        this._authenticated = false;
         this._userConnected = false;
         this._reconnecting = false;
         this._disconnected = true;
@@ -202,36 +214,46 @@ export class MTProtoSender {
 
     /**
      * Connects to the specified given connection using the given auth key.
-     * @param connection
-     * @param eventDispatch {function}
-     * @returns {Promise<boolean>}
      */
-    async connect(connection: any, eventDispatch?: any) {
-        if (this._userConnected) {
+    async connect(connection: Connection, force?: boolean) {
+        if (this._userConnected && !force) {
             this._log.info("User is already connected!");
             return false;
         }
+        this.isConnecting = true;
         this._connection = connection;
 
-        const retries = this._retries;
-
-        for (let attempt = 0; attempt < retries; attempt++) {
+        for (let attempt = 0; attempt < this._retries; attempt++) {
             try {
                 await this._connect();
+                if (this._updateCallback) {
+                    this._updateCallback(
+                        this._client,
+                        new UpdateConnectionState(
+                            UpdateConnectionState.connected
+                        )
+                    );
+                }
                 break;
-            } catch (e) {
-                if (attempt === 0 && eventDispatch) {
-                    eventDispatch({ update: new UpdateConnectionState(-1) });
+            } catch (err) {
+                if (this._updateCallback && attempt === 0) {
+                    this._updateCallback(
+                        this._client,
+                        new UpdateConnectionState(
+                            UpdateConnectionState.disconnected
+                        )
+                    );
                 }
                 this._log.error(
-                    "WebSocket connection failed attempt : " + (attempt + 1)
+                    `WebSocket connection failed attempt: ${attempt + 1}`
                 );
                 if (this._log.canSend("error")) {
-                    console.error(e);
+                    console.error(err);
                 }
                 await sleep(this._delay);
             }
         }
+        this.isConnecting = false;
         return true;
     }
 
@@ -244,6 +266,7 @@ export class MTProtoSender {
      * all pending requests, and closes the send and receive loops.
      */
     async disconnect() {
+        this.userDisconnected = true;
         await this._disconnect();
     }
 
@@ -296,7 +319,7 @@ export class MTProtoSender {
         );
         await this._connection!.connect();
         this._log.debug("Connection success!");
-        //process.exit(0)
+
         if (!this.authKey.getKey()) {
             const plain = new MTProtoPlainSender(this._connection, this._log);
             this._log.debug("New auth_key attempt ...");
@@ -316,6 +339,7 @@ export class MTProtoSender {
                 await this._authKeyCallback(this.authKey, this._dcId);
             }
         } else {
+            this._authenticated = true;
             this._log.debug("Already have an auth key ...");
         }
         this._userConnected = true;
@@ -339,12 +363,17 @@ export class MTProtoSender {
     }
 
     async _disconnect(error = null) {
+        this._sendQueue.rejectAll();
+
         if (this._connection === null) {
             this._log.info("Not disconnecting (already have no connection)");
             return;
         }
         if (this._updateCallback) {
-            this._updateCallback(this._client, -1);
+            this._updateCallback(
+                this._client,
+                new UpdateConnectionState(UpdateConnectionState.disconnected)
+            );
         }
         this._log.info(
             "Disconnecting from %s...".replace(
@@ -389,11 +418,11 @@ export class MTProtoSender {
             }
 
             if (!res) {
-                this._log.debug("Empty result. will stop loop");
+                this._log.debug("Empty result. will not stop loop");
                 continue;
             }
-            let data = res.data;
-            const batch = res.batch;
+            let { data } = res;
+            const { batch } = res;
             this._log.debug(
                 `Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`
             );
@@ -434,9 +463,13 @@ export class MTProtoSender {
             try {
                 body = await this._connection!.recv();
             } catch (e) {
-                // this._log.info('Connection closed while receiving data');
+                /** when the server disconnects us we want to reconnect */
                 this._log.warn("Connection closed while receiving data");
-                this._startReconnect();
+                if (!this.userDisconnected) {
+                    this._log.error(e);
+                    this._log.warn("Connection closed while receiving data");
+                    this.reconnect();
+                }
                 return;
             }
             try {
@@ -456,29 +489,39 @@ export class MTProtoSender {
                     );
                     continue;
                 } else if (e instanceof InvalidBufferError) {
-                    this._log.info("Broken authorization key; resetting");
-                    if (this._updateCallback && this._isMainSender) {
-                        // 0 == broken
-                        this._updateCallback(this._client, 0);
-                    } else if (this._senderCallback && !this._isMainSender) {
-                        // Deletes the current sender from the object
-                        this._senderCallback(this._dcId);
+                    // 404 means that the server has "forgotten" our auth key and we need to create a new one.
+                    if (e.code === 404) {
+                        this._log.warn(
+                            `Broken authorization key for dc ${this._dcId}; resetting`
+                        );
+                        if (this._updateCallback && this._isMainSender) {
+                            this._updateCallback(
+                                this._client,
+                                new UpdateConnectionState(
+                                    UpdateConnectionState.broken
+                                )
+                            );
+                        } else if (
+                            this._onConnectionBreak &&
+                            !this._isMainSender
+                        ) {
+                            // Deletes the current sender from the object
+                            this._onConnectionBreak(this._dcId);
+                        }
+                    } else {
+                        // this happens sometimes when telegram is having some internal issues.
+                        // reconnecting should be enough usually
+                        // since the data we sent and received is probably wrong now.
+                        this._log.warn(
+                            `Invalid buffer ${e.code} for dc ${this._dcId}`
+                        );
+                        this.reconnect();
                     }
-
-                    // We don't really need to do this if we're going to sign in again
-                    /*await this.authKey.setKey(null)
-
-                    if (this._authKeyCallback) {
-                        await this._authKeyCallback(null)
-                    }*/
-                    // We can disconnect at sign in
-                    /* await this.disconnect()
-                     */
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data");
                     this._log.error(e);
-                    this._startReconnect();
+                    this.reconnect();
                     return;
                 }
             }
@@ -849,13 +892,17 @@ export class MTProtoSender {
      */
     async _handleMsgAll(message: TLMessage) {}
 
-    async _startReconnect() {
+    reconnect() {
         if (this._userConnected && !this._reconnecting) {
             this._reconnecting = true;
             // TODO Should we set this?
             // this._user_connected = false
-            this._log.info("Started reconnecting");
-            this._reconnect();
+            // we want to wait a second between each reconnect try to not flood the server with reconnects
+            // in case of internal server issues.
+            sleep(1000).then(() => {
+                this._log.info("Started reconnecting");
+                this._reconnect();
+            });
         }
     }
 
@@ -867,33 +914,26 @@ export class MTProtoSender {
             this._log.warn(err);
         }
         // @ts-ignore
-        this._sendQueue.append(null);
+        this._sendQueue.append(undefined);
         this._state.reset();
-        const retries = this._retries;
 
-        for (let attempt = 0; attempt < retries; attempt++) {
-            try {
-                await this._connect();
-                // uncomment this if you want to resend
-                this._sendQueue.extend(Array.from(this._pendingState.values()));
-                this._pendingState = new Map<string, RequestState>();
-                if (this._autoReconnectCallback) {
-                    await this._autoReconnectCallback();
-                }
-                if (this._updateCallback) {
-                    this._updateCallback(this._client, 1);
-                }
+        // For some reason reusing existing connection caused stuck requests
+        const constructor = this._connection!
+            .constructor as unknown as typeof Connection;
 
-                break;
-            } catch (e) {
-                this._log.error(
-                    "WebSocket connection failed attempt : " + (attempt + 1)
-                );
-                if (this._log.canSend("error")) {
-                    console.error(e);
-                }
-                await sleep(this._delay);
-            }
+        const newConnection = new constructor(
+            this._connection!._ip,
+            this._connection!._port,
+            this._connection!._dcId,
+            this._connection!._log
+        );
+        await this.connect(newConnection, true);
+
+        this._reconnecting = false;
+        this._sendQueue.extend(Array.from(this._pendingState.values()));
+        this._pendingState = new Map<string, RequestState>();
+        if (this._autoReconnectCallback) {
+            await this._autoReconnectCallback();
         }
     }
 }

@@ -110,7 +110,7 @@ export class MTProtoState {
         buffer: BinaryWriter,
         data: Buffer,
         contentRelated: boolean,
-        afterId: bigInt.BigInteger
+        afterId?: bigInt.BigInteger
     ) {
         const msgId = this._getNewMsgId();
         const seqNo = this._getSeqNo(contentRelated);

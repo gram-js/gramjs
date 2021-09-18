@@ -4,66 +4,128 @@
  * @param log
  * @returns {Promise<{authKey: *, timeOffset: *}>}
  */
+import { MTProtoPlainSender } from "./MTProtoPlainSender";
+import {
+    bufferXor,
+    generateKeyDataFromNonce,
+    generateRandomBytes,
+    getByteArray,
+    modExp,
+    readBigIntFromBuffer,
+    readBufferFromBigInt,
+    sha1,
+    sha256,
+    toSignedLittleBuffer,
+} from "../Helpers";
 import { Api } from "../tl";
 import { SecurityError } from "../errors";
 import { Factorizator } from "../crypto/Factorizator";
+import { _serverKeys } from "../crypto/RSA";
 import { IGE } from "../crypto/IGE";
+import bigInt from "big-integer";
 import { BinaryReader } from "../extensions";
 import { AuthKey } from "../crypto/AuthKey";
-import { helpers } from "../";
-import { encrypt } from "../crypto/RSA";
-import bigInt from "big-integer";
-import type { MTProtoPlainSender } from "./MTProtoPlainSender";
+
+const RETRIES = 20;
 
 export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
     // Step 1 sending: PQ Request, endianness doesn't matter since it's random
-    let bytes = helpers.generateRandomBytes(16);
+    let bytes = generateRandomBytes(16);
 
-    const nonce = helpers.readBigIntFromBuffer(bytes, false, true);
-    const resPQ = await sender.send(new Api.ReqPqMulti({ nonce: nonce }));
+    const nonce = readBigIntFromBuffer(bytes, false, true);
+    const resPQ = await sender.send(new Api.ReqPqMulti({ nonce }));
     log.debug("Starting authKey generation step 1");
 
     if (!(resPQ instanceof Api.ResPQ)) {
-        throw new Error(`Step 1 answer was ${resPQ}`);
+        throw new SecurityError(`Step 1 answer was ${resPQ}`);
     }
     if (resPQ.nonce.neq(nonce)) {
         throw new SecurityError("Step 1 invalid nonce from server");
     }
-    const pq = helpers.readBigIntFromBuffer(resPQ.pq, false, true);
+    const pq = readBigIntFromBuffer(resPQ.pq, false, true);
     log.debug("Finished authKey generation step 1");
-    log.debug("Starting authKey generation step 2");
     // Step 2 sending: DH Exchange
-    let { p, q } = Factorizator.factorize(pq);
+    const { p, q } = Factorizator.factorize(pq);
 
-    const pBuffer = helpers.getByteArray(p);
-    const qBuffer = helpers.getByteArray(q);
+    const pBuffer = getByteArray(p);
+    const qBuffer = getByteArray(q);
 
-    bytes = helpers.generateRandomBytes(32);
-    const newNonce = helpers.readBigIntFromBuffer(bytes, true, true);
+    bytes = generateRandomBytes(32);
+    const newNonce = readBigIntFromBuffer(bytes, true, true);
     const pqInnerData = new Api.PQInnerData({
-        pq: helpers.getByteArray(pq), // unsigned
+        pq: getByteArray(pq), // unsigned
         p: pBuffer,
         q: qBuffer,
         nonce: resPQ.nonce,
         serverNonce: resPQ.serverNonce,
-        newNonce: newNonce,
-    });
-
-    // sha_digest + data + random_bytes
-    let cipherText = undefined;
-    let targetFingerprint = undefined;
+        newNonce,
+    }).getBytes();
+    if (pqInnerData.length > 144) {
+        throw new SecurityError("Step 1 invalid nonce from server");
+    }
+    let targetFingerprint;
+    let targetKey;
     for (const fingerprint of resPQ.serverPublicKeyFingerprints) {
-        cipherText = await encrypt(fingerprint, pqInnerData.getBytes());
-        if (cipherText !== undefined) {
+        targetKey = _serverKeys.get(fingerprint.toString());
+        if (targetKey !== undefined) {
             targetFingerprint = fingerprint;
             break;
         }
     }
-    if (cipherText === undefined) {
+    if (targetFingerprint === undefined || targetKey === undefined) {
         throw new SecurityError(
             "Step 2 could not find a valid key for fingerprints"
         );
     }
+    // Value should be padded to be made 192 exactly
+    const padding = generateRandomBytes(192 - pqInnerData.length);
+    const dataWithPadding = Buffer.concat([pqInnerData, padding]);
+    const dataPadReversed = Buffer.from(dataWithPadding).reverse();
+
+    let encryptedData;
+    for (let i = 0; i < RETRIES; i++) {
+        const tempKey = generateRandomBytes(32);
+        const shaDigestKeyWithData = await sha256(
+            Buffer.concat([tempKey, dataWithPadding])
+        );
+        const dataWithHash = Buffer.concat([
+            dataPadReversed,
+            shaDigestKeyWithData,
+        ]);
+
+        const ige = new IGE(tempKey, Buffer.alloc(32));
+        const aesEncrypted = ige.encryptIge(dataWithHash);
+        const tempKeyXor = bufferXor(tempKey, await sha256(aesEncrypted));
+
+        const keyAesEncrypted = Buffer.concat([tempKeyXor, aesEncrypted]);
+        const keyAesEncryptedInt = readBigIntFromBuffer(
+            keyAesEncrypted,
+            false,
+            false
+        );
+        if (keyAesEncryptedInt.greaterOrEquals(targetKey.n)) {
+            log.debug("Aes key greater than RSA. retrying");
+            continue;
+        }
+        const encryptedDataBuffer = modExp(
+            keyAesEncryptedInt,
+            bigInt(targetKey.e),
+            targetKey.n
+        );
+        encryptedData = readBufferFromBigInt(
+            encryptedDataBuffer,
+            256,
+            false,
+            false
+        );
+
+        break;
+    }
+    if (encryptedData === undefined) {
+        throw new SecurityError("Step 2 could create a secure encrypted key");
+    }
+    log.debug("Step 2 : Generated a secure aes encrypted data");
+
     const serverDhParams = await sender.send(
         new Api.ReqDHParams({
             nonce: resPQ.nonce,
@@ -71,7 +133,7 @@ export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
             p: pBuffer,
             q: qBuffer,
             publicKeyFingerprint: targetFingerprint,
-            encryptedData: cipherText,
+            encryptedData,
         })
     );
 
@@ -92,10 +154,8 @@ export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
     }
 
     if (serverDhParams instanceof Api.ServerDHParamsFail) {
-        const sh = await helpers.sha1(
-            helpers.toSignedLittleBuffer(newNonce, 32).slice(4, 20)
-        );
-        const nnh = helpers.readBigIntFromBuffer(sh, true, true);
+        const sh = await sha1(toSignedLittleBuffer(newNonce, 32).slice(4, 20));
+        const nnh = readBigIntFromBuffer(sh, true, true);
         if (serverDhParams.newNonceHash.neq(nnh)) {
             throw new SecurityError("Step 2 invalid DH fail nonce from server");
         }
@@ -107,7 +167,7 @@ export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
     log.debug("Starting authKey generation step 3");
 
     // Step 3 sending: Complete DH Exchange
-    const { key, iv } = await helpers.generateKeyDataFromNonce(
+    const { key, iv } = await generateKeyDataFromNonce(
         resPQ.serverNonce,
         newNonce
     );
@@ -132,32 +192,24 @@ export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
             "Step 3 Invalid server nonce in encrypted answer"
         );
     }
-    const dhPrime = helpers.readBigIntFromBuffer(
-        serverDhInner.dhPrime,
-        false,
-        false
-    );
-    const ga = helpers.readBigIntFromBuffer(serverDhInner.gA, false, false);
+    const dhPrime = readBigIntFromBuffer(serverDhInner.dhPrime, false, false);
+    const ga = readBigIntFromBuffer(serverDhInner.gA, false, false);
     const timeOffset =
         serverDhInner.serverTime - Math.floor(new Date().getTime() / 1000);
-    const b = helpers.readBigIntFromBuffer(
-        helpers.generateRandomBytes(256),
-        false,
-        false
-    );
-    const gb = helpers.modExp(bigInt(serverDhInner.g), b, dhPrime);
-    const gab = helpers.modExp(ga, b, dhPrime);
+    const b = readBigIntFromBuffer(generateRandomBytes(256), false, false);
+    const gb = modExp(bigInt(serverDhInner.g), b, dhPrime);
+    const gab = modExp(ga, b, dhPrime);
 
     // Prepare client DH Inner Data
     const clientDhInner = new Api.ClientDHInnerData({
         nonce: resPQ.nonce,
         serverNonce: resPQ.serverNonce,
         retryId: bigInt.zero, // TODO Actual retry ID
-        gB: helpers.getByteArray(gb, false),
+        gB: getByteArray(gb, false),
     }).getBytes();
 
     const clientDdhInnerHashed = Buffer.concat([
-        await helpers.sha1(clientDhInner),
+        await sha1(clientDhInner),
         clientDhInner,
     ]);
     // Encryption
@@ -192,7 +244,7 @@ export async function doAuthentication(sender: MTProtoPlainSender, log: any) {
         );
     }
     const authKey = new AuthKey();
-    await authKey.setKey(helpers.getByteArray(gab));
+    await authKey.setKey(getByteArray(gab));
 
     const nonceNumber = 1 + nonceTypesString.indexOf(dhGen.className);
 

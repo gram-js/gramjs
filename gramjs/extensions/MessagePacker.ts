@@ -14,7 +14,8 @@ const USE_INVOKE_AFTER_WITH = [
 ];
 
 export class MessagePacker {
-    private _state: any;
+    private _state: MTProtoState;
+    private _pendingStates: RequestState[];
     private _queue: any[];
     private _ready: Promise<unknown>;
     private setReady: ((value?: any) => void) | undefined;
@@ -23,6 +24,8 @@ export class MessagePacker {
     constructor(state: MTProtoState, logger: any) {
         this._state = state;
         this._queue = [];
+        this._pendingStates = [];
+
         this._ready = new Promise((resolve) => {
             this.setReady = resolve;
         });
@@ -34,26 +37,21 @@ export class MessagePacker {
     }
 
     append(state: RequestState) {
-        /* TODO later. still need fixes
-        // we need to check if there is already a request with the same name that we should send after.
-        if (USE_INVOKE_AFTER_WITH.includes(state.request.className)) {
-            // we now need to check if there is any request in queue already.
-            for (let i = this._queue.length - 1; i >= 0; i--) {
-                if (
-                    USE_INVOKE_AFTER_WITH.includes(
-                        this._queue[i].request.className
-                    )
-                ) {
-                    state.after = this._queue[i];
-                    break;
-                }
-            }
-        }
-        */
         this._queue.push(state);
 
         if (this.setReady) {
             this.setReady(true);
+        }
+        if (state) {
+            this._pendingStates.push(state);
+            state.promise
+                // Using finally causes triggering `unhandledrejection` event
+                .catch(() => {})
+                .finally(() => {
+                    this._pendingStates = this._pendingStates.filter(
+                        (s) => s !== state
+                    );
+                });
         }
     }
 
@@ -139,5 +137,10 @@ export class MessagePacker {
 
         data = buffer.getValue();
         return { batch, data };
+    }
+    rejectAll() {
+        this._pendingStates.forEach((requestState) => {
+            requestState.reject(new Error("Disconnect"));
+        });
     }
 }

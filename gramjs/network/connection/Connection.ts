@@ -16,10 +16,10 @@ import { IS_NODE } from "../../Helpers";
 class Connection {
     // @ts-ignore
     PacketCodecClass: any; //"typeof AbridgedPacketCodec|typeof FullPacketCodec|typeof ObfuscatedConnection as "
-    private readonly _ip: string;
-    private readonly _port: number;
-    private _dcId: number;
-    private _log: any;
+    readonly _ip: string;
+    readonly _port: number;
+    _dcId: number;
+    _log: any;
     private _connected: boolean;
     private _sendTask?: Promise<void>;
     private _recvTask?: Promise<void>;

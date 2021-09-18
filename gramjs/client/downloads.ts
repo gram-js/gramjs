@@ -2,10 +2,9 @@ import { Api } from "../tl";
 import type { TelegramClient } from "./TelegramClient";
 import { getAppropriatedPartSize, strippedPhotoToJpg } from "../Utils";
 import { sleep } from "../Helpers";
-import { MTProtoSender } from "../network";
-import type { Message } from "../tl/custom/message";
+import { Message } from "../tl/patched";
 import { EntityLike } from "../define";
-import { utils } from "../";
+import { errors, utils } from "../";
 
 /**
  * progress callback that will be called each time a new chunk is downloaded.
@@ -66,6 +65,7 @@ const MIN_CHUNK_SIZE = 4096;
 const DEFAULT_CHUNK_SIZE = 64; // kb
 const ONE_MB = 1024 * 1024;
 const REQUEST_TIMEOUT = 15000;
+const DISCONNECT_SLEEP = 1000;
 
 /** @hidden */
 export async function downloadFile(
@@ -73,7 +73,8 @@ export async function downloadFile(
     inputLocation: Api.TypeInputFileLocation,
     fileParams: DownloadFileParams
 ) {
-    let { partSizeKb, fileSize, workers = 1, end } = fileParams;
+    let { partSizeKb, end } = fileParams;
+    const { fileSize, workers = 1 } = fileParams;
     const { dcId, progressCallback, start = 0 } = fileParams;
 
     end = end && end < fileSize ? end : fileSize - 1;
@@ -86,30 +87,11 @@ export async function downloadFile(
 
     const partSize = partSizeKb * 1024;
     const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
+
     if (partSize % MIN_CHUNK_SIZE !== 0) {
         throw new Error(
             `The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`
         );
-    }
-
-    let sender: MTProtoSender;
-
-    if (dcId) {
-        try {
-            sender = await client._borrowExportedSender(dcId);
-            client._log.debug(`Finished creating sender for ${dcId}`);
-        } catch (e) {
-            // This should never raise
-            if (e.errorMessage === "DC_ID_INVALID") {
-                // Can't export a sender for the ID we are currently in
-                sender = client._sender!;
-            } else {
-                client._log.error(e);
-                throw e;
-            }
-        }
-    } else {
-        sender = client._sender!;
     }
 
     client._log.info(`Downloading file in chunks of ${partSize} bytes`);
@@ -125,6 +107,10 @@ export async function downloadFile(
         progressCallback(progress);
     }
 
+    // Preload sender
+    await client.getSender(dcId);
+
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         let limit = partSize;
         let isPrecise = false;
@@ -140,47 +126,58 @@ export async function downloadFile(
         await foreman.requestWorker();
 
         if (hasEnded) {
-            await foreman.releaseWorker();
+            foreman.releaseWorker();
             break;
         }
+        // eslint-disable-next-line no-loop-func
         promises.push(
-            (async () => {
-                try {
-                    const result = await Promise.race([
-                        await sender.send(
+            (async (offsetMemo: number) => {
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    let sender;
+                    try {
+                        sender = await client.getSender(dcId);
+                        const result = await sender.send(
                             new Api.upload.GetFile({
                                 location: inputLocation,
-                                offset,
+                                offset: offsetMemo,
                                 limit,
                                 precise: isPrecise || undefined,
                             })
-                        ),
-                        sleep(REQUEST_TIMEOUT).then(() =>
-                            Promise.reject(new Error("REQUEST_TIMEOUT"))
-                        ),
-                    ]);
+                        );
 
-                    if (progressCallback) {
-                        if (progressCallback.isCanceled) {
-                            throw new Error("USER_CANCELED");
+                        if (progressCallback) {
+                            if (progressCallback.isCanceled) {
+                                throw new Error("USER_CANCELED");
+                            }
+
+                            progress += 1 / partsCount;
+                            progressCallback(progress);
                         }
 
-                        progress += 1 / partsCount;
-                        progressCallback(progress);
-                    }
+                        if (!end && result.bytes.length < limit) {
+                            hasEnded = true;
+                        }
 
-                    if (!end && result.bytes.length < limit) {
+                        foreman.releaseWorker();
+
+                        return result.bytes;
+                    } catch (err) {
+                        if (sender && !sender.isConnected()) {
+                            await sleep(DISCONNECT_SLEEP);
+                            continue;
+                        } else if (err instanceof errors.FloodWaitError) {
+                            await sleep(err.seconds * 1000);
+                            continue;
+                        }
+
+                        foreman.releaseWorker();
+
                         hasEnded = true;
+                        throw err;
                     }
-
-                    return result.bytes;
-                } catch (err) {
-                    hasEnded = true;
-                    throw err;
-                } finally {
-                    foreman.releaseWorker();
                 }
-            })()
+            })(offset)
         );
 
         offset += limit;
@@ -189,7 +186,6 @@ export async function downloadFile(
             break;
         }
     }
-
     const results = await Promise.all(promises);
     const buffers = results.filter(Boolean);
     const totalLength = end ? end + 1 - start : undefined;
@@ -257,7 +253,11 @@ export async function downloadMedia(
 ): Promise<Buffer> {
     let date;
     let media;
-    if (messageOrMedia instanceof Api.Message) {
+
+    if (
+        messageOrMedia instanceof Message ||
+        messageOrMedia instanceof Api.Message
+    ) {
         media = messageOrMedia.media;
     } else {
         media = messageOrMedia;
@@ -265,7 +265,6 @@ export async function downloadMedia(
     if (typeof media == "string") {
         throw new Error("not implemented");
     }
-
     if (media instanceof Api.MessageMediaWebPage) {
         if (media.webpage instanceof Api.WebPage) {
             media = media.webpage.document || media.webpage.photo;

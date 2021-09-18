@@ -1,11 +1,17 @@
 import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
-import { helpers } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
 import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
+import { getRandomInt, sleep } from "../Helpers";
+
+const PING_INTERVAL = 3000; // 3 sec
+const PING_TIMEOUT = 5000; // 5 sec
+const PING_FAIL_ATTEMPTS = 3;
+const PING_FAIL_INTERVAL = 100; // ms
+const PING_DISCONNECT_DELAY = 60000; // 1 min
 
 /** @hidden */
 export function on(client: TelegramClient, event?: EventBuilder) {
@@ -149,22 +155,42 @@ export async function _dispatchUpdate(
 
 /** @hidden */
 export async function _updateLoop(client: TelegramClient): Promise<void> {
-    while (client.connected) {
-        const rnd = helpers.getRandomInt(
-            Number.MIN_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER
-        );
-        await helpers.sleep(1000 * 60);
-        // We don't care about the result we just want to send it every
-        // 60 seconds so telegram doesn't stop the connection
+    while (!client._destroyed) {
+        await sleep(PING_INTERVAL);
+        if (client._reconnecting) {
+            continue;
+        }
+
         try {
-            client._sender!.send(
-                new Api.Ping({
-                    pingId: bigInt(rnd),
-                })
+            await attempts(
+                () => {
+                    return timeout(
+                        client._sender!.send(
+                            new Api.PingDelayDisconnect({
+                                pingId: bigInt(
+                                    getRandomInt(
+                                        Number.MIN_SAFE_INTEGER,
+                                        Number.MAX_SAFE_INTEGER
+                                    )
+                                ),
+                                disconnectDelay: PING_DISCONNECT_DELAY,
+                            })
+                        ),
+                        PING_TIMEOUT
+                    );
+                },
+                PING_FAIL_ATTEMPTS,
+                PING_FAIL_INTERVAL
             );
-        } catch (e) {
-            //await client.disconnect()
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            client._log.error(err);
+            if (client._reconnecting) {
+                continue;
+            }
+
+            await client.disconnect();
+            await client.connect();
         }
 
         // We need to send some content-related request at least hourly
@@ -173,12 +199,40 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
 
         // TODO Call getDifference instead since it's more relevant
         if (
-            !client._lastRequest ||
-            new Date().getTime() - client._lastRequest > 30 * 60 * 1000
+            new Date().getTime() - (client._lastRequest || 0) >
+            30 * 60 * 1000
         ) {
             try {
                 await client.invoke(new Api.updates.GetState());
-            } catch (e) {}
+            } catch (e) {
+                // we don't care about errors here
+            }
         }
     }
+    await client.disconnect();
+}
+
+/** @hidden */
+async function attempts(cb: CallableFunction, times: number, pause: number) {
+    for (let i = 0; i < times; i++) {
+        try {
+            // We need to `return await` here so it can be caught locally
+            return await cb();
+        } catch (err) {
+            if (i === times - 1) {
+                throw err;
+            }
+
+            await sleep(pause);
+        }
+    }
+    return undefined;
+}
+
+/** @hidden */
+function timeout(promise: Promise<any>, ms: number) {
+    return Promise.race([
+        promise,
+        sleep(ms).then(() => Promise.reject(new Error("TIMEOUT"))),
+    ]);
 }

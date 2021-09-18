@@ -20,9 +20,9 @@ import { MTProtoSender, UpdateConnectionState } from "../network";
 import { LAYER } from "../tl/AllTLObjects";
 import { betterConsoleLog, IS_NODE } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
-import type { Message } from "../tl/custom/message";
+import type { Message } from "../tl/patched";
 import { NewMessage, NewMessageEvent } from "../events";
-import { _dispatchUpdate, _handleUpdate, _updateLoop } from "./updates";
+import { _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
 import { inspect } from "util";
 import { Album, AlbumEvent } from "../events/Album";
@@ -1115,19 +1115,25 @@ export class TelegramClient extends TelegramBaseClient {
 
     async connect() {
         await this._initSession();
-
-        this._sender = new MTProtoSender(this.session.getAuthKey(), {
-            logger: this._log,
-            dcId: this.session.dcId || 4,
-            retries: this._connectionRetries,
-            delay: this._retryDelay,
-            autoReconnect: this._autoReconnect,
-            connectTimeout: this._timeout,
-            authKeyCallback: this._authKeyCallback.bind(this),
-            updateCallback: _handleUpdate.bind(this),
-            isMainSender: true,
-            client: this,
-        });
+        if (this._sender === undefined) {
+            this._sender = new MTProtoSender(this.session.getAuthKey(), {
+                logger: this._log,
+                dcId: this.session.dcId || 4,
+                retries: this._connectionRetries,
+                delay: this._retryDelay,
+                autoReconnect: this._autoReconnect,
+                connectTimeout: this._timeout,
+                authKeyCallback: this._authKeyCallback.bind(this),
+                updateCallback: _handleUpdate.bind(this),
+                isMainSender: true,
+                client: this,
+            });
+        }
+        // set defaults vars
+        this._sender.userDisconnected = false;
+        this._sender._userConnected = false;
+        this._sender._reconnecting = false;
+        this._sender._disconnected = true;
 
         const connection = new this._connection(
             this.session.serverAddress,
@@ -1135,20 +1141,17 @@ export class TelegramClient extends TelegramBaseClient {
             this.session.dcId,
             this._log
         );
-        if (
-            !(await this._sender.connect(
-                connection,
-                (updateState: UpdateConnectionState) => {
-                    _dispatchUpdate(this, {
-                        update: updateState,
-                    });
-                }
-            ))
-        ) {
+        const newConnection = await this._sender.connect(connection);
+        if (!newConnection) {
+            // we're already connected so no need to reset auth key.
+            if (!this._loopStarted) {
+                _updateLoop(this);
+                this._loopStarted = true;
+            }
             return;
         }
+
         this.session.setAuthKey(this._sender.authKey);
-        await this.session.save();
         this._initRequest.query = new Api.help.GetConfig();
         await this._sender.send(
             new Api.InvokeWithLayer({
@@ -1157,8 +1160,11 @@ export class TelegramClient extends TelegramBaseClient {
             })
         );
 
-        _dispatchUpdate(this, { update: new UpdateConnectionState(1) });
-        _updateLoop(this);
+        if (!this._loopStarted) {
+            _updateLoop(this);
+            this._loopStarted = true;
+        }
+        this._reconnecting = false;
     }
 
     //endregion
@@ -1170,72 +1176,23 @@ export class TelegramClient extends TelegramBaseClient {
         this.session.setDC(newDc, DC.ipAddress, DC.port);
         // authKey's are associated with a server, which has now changed
         // so it's not valid anymore. Set to undefined to force recreating it.
-        await this._sender!.authKey.setKey();
-        this.session.setAuthKey();
+        await this._sender!.authKey.setKey(undefined);
+        this.session.setAuthKey(undefined);
+        this._reconnecting = true;
         await this.disconnect();
         return this.connect();
-    }
-
-    /** @hidden */
-    async _createExportedSender(
-        dcId: number,
-        retries: number
-    ): Promise<MTProtoSender> {
-        const dc = await this.getDC(dcId);
-        const sender = new MTProtoSender(this.session.getAuthKey(dcId), {
-            logger: this._log,
-            dcId: dcId,
-            retries: this._connectionRetries,
-            delay: this._retryDelay,
-            autoReconnect: this._autoReconnect,
-            connectTimeout: this._timeout,
-            authKeyCallback: this._authKeyCallback.bind(this),
-            isMainSender: dcId === this.session.dcId,
-            senderCallback: this._removeSender.bind(this),
-            client: this,
-        });
-        for (let i = 0; i < retries; i++) {
-            try {
-                await sender.connect(
-                    new this._connection(dc.ipAddress, dc.port, dcId, this._log)
-                );
-                if (this.session.dcId !== dcId) {
-                    this._log.info(
-                        `Exporting authorization for data center ${dc.ipAddress}`
-                    );
-                    const auth = await this.invoke(
-                        new Api.auth.ExportAuthorization({ dcId: dcId })
-                    );
-                    this._initRequest.query = new Api.auth.ImportAuthorization({
-                        id: auth.id,
-                        bytes: auth.bytes,
-                    });
-                    const req = new Api.InvokeWithLayer({
-                        layer: LAYER,
-                        query: this._initRequest,
-                    });
-                    await sender.send(req);
-                }
-                sender.dcId = dcId;
-                return sender;
-            } catch (e) {
-                // we can't create sender for our own main DC
-                if (e.errorMessage == "DC_ID_INVALID") {
-                    return this._sender!;
-                }
-                await sender.disconnect();
-            }
-        }
-        throw new Error("Could not create sender for DC " + dcId);
     }
 
     /**
      * Returns the DC ip in case of node or the DC web address in case of browser.<br/>
      * This will do an API request to fill the cache if it's the first time it's called.
      * @param dcId The DC ID.
+     * @param downloadDC whether to use -1 DCs or not
+     * (These only support downloading/uploading and not creating a new AUTH key)
      */
     async getDC(
-        dcId: number
+        dcId: number,
+        downloadDC = false
     ): Promise<{ id: number; ipAddress: string; port: number }> {
         this._log.debug(`Getting DC ${dcId}`);
         if (!IS_NODE) {
@@ -1243,31 +1200,41 @@ export class TelegramClient extends TelegramBaseClient {
                 case 1:
                     return {
                         id: 1,
-                        ipAddress: "pluto.web.telegram.org",
+                        ipAddress: `pluto${
+                            downloadDC ? "-1" : ""
+                        }.web.telegram.org`,
                         port: 443,
                     };
                 case 2:
                     return {
                         id: 2,
-                        ipAddress: "venus.web.telegram.org",
+                        ipAddress: `venus${
+                            downloadDC ? "-1" : ""
+                        }.web.telegram.org`,
                         port: 443,
                     };
                 case 3:
                     return {
                         id: 3,
-                        ipAddress: "aurora.web.telegram.org",
+                        ipAddress: `aurora${
+                            downloadDC ? "-1" : ""
+                        }.web.telegram.org`,
                         port: 443,
                     };
                 case 4:
                     return {
                         id: 4,
-                        ipAddress: "vesta.web.telegram.org",
+                        ipAddress: `vesta${
+                            downloadDC ? "-1" : ""
+                        }.web.telegram.org`,
                         port: 443,
                     };
                 case 5:
                     return {
                         id: 5,
-                        ipAddress: "flora.web.telegram.org",
+                        ipAddress: `flora${
+                            downloadDC ? "-1" : ""
+                        }.web.telegram.org`,
                         port: 443,
                     };
                 default:
@@ -1297,23 +1264,6 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     /** @hidden */
-    async _borrowExportedSender(dcId: number, retries = this._requestRetries) {
-        this._log.debug(`Borrowing client for DC ${dcId}`);
-        let senderPromise = this._borrowedSenderPromises[dcId];
-        if (!senderPromise) {
-            senderPromise = this._createExportedSender(dcId, retries);
-            this._borrowedSenderPromises[dcId] = senderPromise;
-
-            senderPromise.then((sender: any) => {
-                if (!sender) {
-                    delete this._borrowedSenderPromises[dcId];
-                }
-            });
-        }
-        return senderPromise;
-    }
-
-    /** @hidden */
     _getResponseMessage(req: any, result: any, inputChat: any) {
         return parseMethods._getResponseMessage(this, req, result, inputChat);
     }
@@ -1329,5 +1279,6 @@ export class TelegramClient extends TelegramBaseClient {
     static get events() {
         return require("../events");
     }
+
     // endregion
 }

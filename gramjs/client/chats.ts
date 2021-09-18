@@ -170,7 +170,6 @@ export class _ParticipantsIter extends RequestIter {
         this.requests = [];
         if (ty == helpers._EntityType.CHANNEL) {
             if (showTotal) {
-                console.log("called me!");
                 const channel = await this.client.invoke(
                     new Api.channels.GetFullChannel({
                         channel: entity,

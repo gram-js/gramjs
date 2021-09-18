@@ -57,8 +57,8 @@ export class InvalidChecksumError extends Error {
  * For instance, 404 means "forgotten/broken authorization key", while
  */
 export class InvalidBufferError extends Error {
-    private code?: number;
-    private payload: Buffer;
+    code?: number;
+    payload: Buffer;
 
     constructor(payload: Buffer) {
         let code = undefined;
