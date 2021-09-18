@@ -719,7 +719,7 @@ export async function sendMessage(
         message = message.message;
     } else {
         if (formattingEntities == undefined) {
-            [message, formattingEntities] = _parseMessageText(
+            [message, formattingEntities] = await _parseMessageText(
                 client,
                 message,
                 parseMode
@@ -833,7 +833,11 @@ export async function editMessage(
 ) {
     entity = await client.getInputEntity(entity);
     if (formattingEntities == undefined) {
-        [text, formattingEntities] = _parseMessageText(client, text, parseMode);
+        [text, formattingEntities] = await _parseMessageText(
+            client,
+            text,
+            parseMode
+        );
     }
     const request = new Api.messages.EditMessage({
         peer: entity,

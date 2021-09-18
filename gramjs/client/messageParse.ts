@@ -27,6 +27,7 @@ export interface ParseInterface {
     parse: (message: string) => [string, Api.TypeMessageEntity[]];
     unparse: (text: string, entities: Api.TypeMessageEntity[]) => string;
 }
+
 /** @hidden */
 export async function _replaceWithMention(
     client: TelegramClient,
@@ -45,12 +46,13 @@ export async function _replaceWithMention(
         return false;
     }
 }
+
 /** @hidden */
-export function _parseMessageText(
+export async function _parseMessageText(
     client: TelegramClient,
     message: string,
     parseMode: false | string | ParseInterface
-): [string, Api.TypeMessageEntity[]] {
+): Promise<[string, Api.TypeMessageEntity[]]> {
     if (parseMode == false) {
         return [message, []];
     }
@@ -62,8 +64,28 @@ export function _parseMessageText(
     } else if (typeof parseMode === "string") {
         parseMode = sanitizeParseMode(parseMode);
     }
-    return parseMode.parse(message);
+    const [rawMessage, msgEntities] = parseMode.parse(message);
+    for (let i = msgEntities.length - 1; i >= 0; i--) {
+        const e = msgEntities[i];
+        if (e instanceof Api.MessageEntityTextUrl) {
+            const m = /^@|\+|tg:\/\/user\?id=(\d+)/.exec(e.url);
+            if (m) {
+                const userIdOrUsername = m[1] ? Number(m[1]) : e.url;
+                const isMention = await _replaceWithMention(
+                    client,
+                    msgEntities,
+                    i,
+                    userIdOrUsername
+                );
+                if (!isMention) {
+                    msgEntities.splice(i, 1);
+                }
+            }
+        }
+    }
+    return [rawMessage, msgEntities];
 }
+
 /** @hidden */
 export function _getResponseMessage(
     client: TelegramClient,
