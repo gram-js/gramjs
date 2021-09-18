@@ -121,7 +121,7 @@ const clientParamsDefault = {
             : false,
 };
 
-export class TelegramBaseClient {
+export abstract class TelegramBaseClient {
     /** The current gramJS version. */
     __version__ = version;
     /** @hidden */
