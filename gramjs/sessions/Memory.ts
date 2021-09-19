@@ -40,11 +40,11 @@ export class MemorySession extends Session {
     }
 
     get serverAddress() {
-        return this._serverAddress;
+        return this._serverAddress!;
     }
 
     get port() {
-        return this._port;
+        return this._port!;
     }
 
     get authKey() {

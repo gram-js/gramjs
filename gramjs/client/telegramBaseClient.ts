@@ -1,4 +1,4 @@
-import { TelegramClient, version } from "../";
+import { Connection, TelegramClient, version } from "../";
 import { IS_NODE, sleep } from "../Helpers";
 import {
     ConnectionTCPFull,
@@ -16,6 +16,11 @@ import type { EventBuilder } from "../events/common";
 import { MarkdownParser } from "../extensions/markdown";
 import { MTProtoSender } from "../network";
 import { LAYER } from "../tl/AllTLObjects";
+import {
+    ConnectionTCPMTProxyAbridged,
+    ProxyInterface,
+    TCPMTProxy,
+} from "../network/connection/TCPMTProxy";
 
 const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
@@ -32,7 +37,7 @@ export interface TelegramClientParams {
     /** The connection instance to be used when creating a new connection to the servers. It must be a type.<br/>
      * Defaults to {@link ConnectionTCPFull} on Node and {@link ConnectionTCPObfuscated} on browsers.
      */
-    connection?: any;
+    connection?: typeof Connection;
     /**
      * Whether to connect to the servers through IPv6 or not. By default this is false.
      */
@@ -54,6 +59,10 @@ export interface TelegramClientParams {
      * defaults to 5
      */
     connectionRetries?: number;
+    /**
+     * Experimental proxy to be used for the connection. (only supports MTProxies)
+     */
+    proxy?: ProxyInterface;
     /**
      * How many times we should retry borrowing a sender from another DC when it fails. defaults to 5
      */
@@ -118,7 +127,7 @@ const clientParamsDefault = {
     useWSS:
         typeof window !== "undefined"
             ? window.location.protocol == "https:"
-            : false,
+            : true,
 };
 
 export abstract class TelegramBaseClient {
@@ -148,7 +157,7 @@ export abstract class TelegramBaseClient {
     /** @hidden */
     public _autoReconnect: boolean;
     /** @hidden */
-    public _connection: any;
+    public _connection: typeof Connection;
     /** @hidden */
     public _initRequest: Api.InitConnection;
     /** @hidden */
@@ -187,6 +196,7 @@ export abstract class TelegramBaseClient {
     protected _loopStarted: boolean;
     _reconnecting: boolean;
     _destroyed: boolean;
+    protected _proxy?: ProxyInterface;
 
     constructor(
         session: string | Session,
@@ -223,10 +233,20 @@ export abstract class TelegramBaseClient {
         this._retryDelay = clientParams.retryDelay || 0;
         this._timeout = clientParams.timeout!;
         this._autoReconnect = clientParams.autoReconnect!;
+        this._proxy = clientParams.proxy;
+
         if (!(clientParams.connection instanceof Function)) {
             throw new Error("Connection should be a class not an instance");
         }
         this._connection = clientParams.connection;
+        let initProxy;
+        if (this._proxy?.MTProxy) {
+            this._connection = ConnectionTCPMTProxyAbridged;
+            initProxy = new Api.InputClientProxy({
+                address: this._proxy!.ip,
+                port: this._proxy!.port,
+            });
+        }
         this._initRequest = new Api.InitConnection({
             apiId: this.apiId,
             deviceModel:
@@ -237,7 +257,7 @@ export abstract class TelegramBaseClient {
             langCode: clientParams.langCode,
             langPack: "", // this should be left empty.
             systemLangCode: clientParams.systemLangCode,
-            proxy: undefined, // no proxies yet.
+            proxy: initProxy,
         });
         this._eventBuilders = [];
 
@@ -246,6 +266,11 @@ export abstract class TelegramBaseClient {
         this._bot = undefined;
         this._selfInputPeer = undefined;
         this.useWSS = clientParams.useWSS!;
+        if (this.useWSS && this._proxy) {
+            throw new Error(
+                "Cannot use SSL with proxies. You need to disable the useWSS client param in TelegramClient"
+            );
+        }
         this._entityCache = new EntityCache();
         // These will be set later
         this._config = undefined;
@@ -356,7 +381,13 @@ export abstract class TelegramBaseClient {
         while (true) {
             try {
                 await sender.connect(
-                    new this._connection(dc.ipAddress, dc.port, dcId, this._log)
+                    new this._connection(
+                        dc.ipAddress,
+                        dc.port,
+                        dcId,
+                        this._log,
+                        this._proxy
+                    )
                 );
 
                 if (this.session.dcId !== dcId && !sender._authenticated) {

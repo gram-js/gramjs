@@ -3,7 +3,7 @@ import { crc32 } from "../../Helpers";
 import { InvalidChecksumError } from "../../errors";
 import type { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 
-class FullPacketCodec extends PacketCodec {
+export class FullPacketCodec extends PacketCodec {
     private _sendCounter: number;
 
     constructor(connection: any) {

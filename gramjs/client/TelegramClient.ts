@@ -1195,9 +1195,11 @@ export class TelegramClient extends TelegramBaseClient {
 
         const connection = new this._connection(
             this.session.serverAddress,
-            this.session.port,
+            // We don't want to use the session for this.
+            this.useWSS ? 433 : 80,
             this.session.dcId,
-            this._log
+            this._log,
+            this._proxy
         );
         const newConnection = await this._sender.connect(connection);
         if (!newConnection) {

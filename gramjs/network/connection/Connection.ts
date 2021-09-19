@@ -1,6 +1,13 @@
-import { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
+import {
+    Logger,
+    PromisedNetSockets,
+    PromisedWebSockets,
+} from "../../extensions";
 import { AsyncQueue } from "../../extensions";
 import { IS_NODE } from "../../Helpers";
+import { AbridgedPacketCodec } from "./TCPAbridged";
+import { FullPacketCodec } from "./TCPFull";
+import { ProxyInterface } from "./TCPMTProxy";
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -14,12 +21,12 @@ import { IS_NODE } from "../../Helpers";
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    // @ts-ignore
-    PacketCodecClass: any; //"typeof AbridgedPacketCodec|typeof FullPacketCodec|typeof ObfuscatedConnection as "
+    PacketCodecClass?: typeof AbridgedPacketCodec | typeof FullPacketCodec;
     readonly _ip: string;
     readonly _port: number;
     _dcId: number;
-    _log: any;
+    _log: Logger;
+    _proxy?: ProxyInterface;
     private _connected: boolean;
     private _sendTask?: Promise<void>;
     private _recvTask?: Promise<void>;
@@ -27,13 +34,20 @@ class Connection {
     protected _obfuscation: any;
     private readonly _sendArray: AsyncQueue;
     private _recvArray: AsyncQueue;
-    protected socket: PromisedNetSockets | PromisedWebSockets;
+    socket: PromisedNetSockets | PromisedWebSockets;
 
-    constructor(ip: string, port: number, dcId: number, loggers: any) {
+    constructor(
+        ip: string,
+        port: number,
+        dcId: number,
+        loggers: Logger,
+        proxy?: ProxyInterface
+    ) {
         this._ip = ip;
         this._port = port;
         this._dcId = dcId;
         this._log = loggers;
+        this._proxy = proxy;
         this._connected = false;
         this._sendTask = undefined;
         this._recvTask = undefined;
@@ -42,7 +56,7 @@ class Connection {
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
         this.socket = IS_NODE
-            ? new PromisedNetSockets()
+            ? new PromisedNetSockets(this._proxy)
             : new PromisedWebSockets();
 
         //this.socket = new PromisedWebSockets()
@@ -50,7 +64,7 @@ class Connection {
 
     async _connect() {
         this._log.debug("Connecting");
-        this._codec = new this.PacketCodecClass(this);
+        this._codec = new this.PacketCodecClass!(this);
         await this.socket.connect(this._port, this._ip);
         this._log.debug("Finished connecting");
         // await this.socket.connect({host: this._ip, port: this._port});
@@ -155,6 +169,7 @@ class ObfuscatedConnection extends Connection {
 
     async _initConn() {
         this._obfuscation = new this.ObfuscatedIO(this);
+        await this._obfuscation.initHeader();
         this.socket.write(this._obfuscation.header);
     }
 

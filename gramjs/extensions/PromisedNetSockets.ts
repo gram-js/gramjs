@@ -1,5 +1,8 @@
 import { Socket } from "net";
+import { SocksClient } from "socks";
+
 import { Mutex } from "async-mutex";
+import { ProxyInterface } from "../network/connection/TCPMTProxy";
 
 const mutex = new Mutex();
 
@@ -11,11 +14,23 @@ export class PromisedNetSockets {
     private stream: Buffer;
     private canRead?: boolean | Promise<boolean>;
     private resolveRead: ((value?: any) => void) | undefined;
+    private proxy?: ProxyInterface;
 
-    constructor() {
+    constructor(proxy?: ProxyInterface) {
         this.client = undefined;
         this.closed = true;
         this.stream = Buffer.alloc(0);
+        if (!proxy?.MTProxy) {
+            // we only want to use this when it's not an MTProto proxy.
+            if (proxy) {
+                if (!proxy.ip || !proxy.port || !proxy.socksType) {
+                    throw new Error(
+                        `Invalid sockets params. ${proxy.ip}, ${proxy.port}, ${proxy.socksType}`
+                    );
+                }
+            }
+            this.proxy = proxy;
+        }
     }
 
     async readExactly(number: number) {
@@ -69,18 +84,43 @@ export class PromisedNetSockets {
      */
     async connect(port: number, ip: string) {
         this.stream = Buffer.alloc(0);
+        let connected = false;
+        if (this.proxy) {
+            const info = await SocksClient.createConnection({
+                proxy: {
+                    host: this.proxy.ip,
+                    port: this.proxy.port,
+                    type: this.proxy.socksType!, // Proxy version (4 or 5)
+                },
 
-        this.client = new Socket();
+                command: "connect",
+                timeout: (this.proxy.timeout || 5) * 1000,
+                destination: {
+                    host: ip,
+                    port: port,
+                },
+            });
+            this.client = info.socket;
+            connected = true;
+        } else {
+            this.client = new Socket();
+        }
+
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve;
         });
         this.closed = false;
         return new Promise((resolve, reject) => {
             if (this.client) {
-                this.client.connect(port, ip, () => {
+                if (connected) {
                     this.receive();
                     resolve(this);
-                });
+                } else {
+                    this.client.connect(port, ip, () => {
+                        this.receive();
+                        resolve(this);
+                    });
+                }
                 this.client.on("error", reject);
                 this.client.on("close", () => {
                     if (this.client && this.client.destroyed) {

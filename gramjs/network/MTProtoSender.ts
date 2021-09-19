@@ -925,7 +925,8 @@ export class MTProtoSender {
             this._connection!._ip,
             this._connection!._port,
             this._connection!._dcId,
-            this._connection!._log
+            this._connection!._log,
+            this._connection!._proxy
         );
         await this.connect(newConnection, true);
 

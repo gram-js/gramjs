@@ -32,12 +32,12 @@ export abstract class Session {
     /**
      * Returns the server address where the library should connect to.
      */
-    abstract get serverAddress(): string | undefined;
+    abstract get serverAddress(): string;
 
     /**
      * Returns the port to which the library should connect to.
      */
-    abstract get port(): number | undefined;
+    abstract get port(): number;
 
     /**
      * Returns an ``AuthKey`` instance associated with the saved

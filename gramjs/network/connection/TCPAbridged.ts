@@ -8,7 +8,7 @@ export class AbridgedPacketCodec extends PacketCodec {
     static tag = Buffer.from("ef", "hex");
     static obfuscateTag = Buffer.from("efefefef", "hex");
     private tag: Buffer;
-    private obfuscateTag: Buffer;
+    obfuscateTag: Buffer;
 
     constructor(props: any) {
         super(props);

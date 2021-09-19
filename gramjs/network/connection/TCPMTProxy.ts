@@ -1,22 +1,49 @@
-import { generateRandomBytes } from "../../Helpers";
 import { ObfuscatedConnection } from "./Connection";
 import { AbridgedPacketCodec } from "./TCPAbridged";
+import { generateRandomBytes, sha256 } from "../../Helpers";
+import {
+    Logger,
+    PromisedNetSockets,
+    PromisedWebSockets,
+} from "../../extensions";
 import { CTR } from "../../crypto/CTR";
-import { PromisedNetSockets, PromisedWebSockets } from "../../extensions";
 
-class ObfuscatedIO {
+export interface ProxyInterface {
+    socksType?: 4 | 5;
+    ip: string;
+    port: number;
+    secret?: string;
+    MTProxy?: boolean;
+    timeout?: number;
+}
+
+class MTProxyIO {
     header?: Buffer = undefined;
     private connection: PromisedNetSockets | PromisedWebSockets;
     private _encrypt?: CTR;
     private _decrypt?: CTR;
-    private _packetClass;
-    constructor(connection: ConnectionTCPObfuscated) {
+    private _packetClass: AbridgedPacketCodec;
+    private _secret: Buffer;
+    private _dcId: number;
+
+    constructor(connection: TCPMTProxy) {
         this.connection = connection.socket;
-        this._packetClass = connection.PacketCodecClass;
+        this._packetClass =
+            connection.PacketCodecClass as unknown as AbridgedPacketCodec;
+
+        this._secret = connection._secret;
+        this._dcId = connection._dcId;
     }
 
     async initHeader() {
-        // Obfuscated messages secrets cannot start with any of these
+        let secret = this._secret;
+        const isDD = secret.length == 17 && secret[0] == 0xdd;
+        secret = isDD ? secret.slice(1) : secret;
+        if (secret.length != 16) {
+            throw new Error(
+                "MTProxy secret must be a hex-string representing 16 bytes"
+            );
+        }
         const keywords = [
             Buffer.from("50567247", "hex"),
             Buffer.from("474554", "hex"),
@@ -45,20 +72,31 @@ class ObfuscatedIO {
             }
         }
         random = random.toJSON().data;
-
         const randomReversed = Buffer.from(random.slice(8, 56)).reverse();
         // Encryption has "continuous buffer" enabled
-        const encryptKey = Buffer.from(random.slice(8, 40));
+        const encryptKey = await sha256(
+            Buffer.concat([Buffer.from(random.slice(8, 40)), secret])
+        );
         const encryptIv = Buffer.from(random.slice(40, 56));
-        const decryptKey = Buffer.from(randomReversed.slice(0, 32));
+
+        const decryptKey = await sha256(
+            Buffer.concat([Buffer.from(randomReversed.slice(0, 32)), secret])
+        );
         const decryptIv = Buffer.from(randomReversed.slice(32, 48));
+
         const encryptor = new CTR(encryptKey, encryptIv);
         const decryptor = new CTR(decryptKey, decryptIv);
-
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)),
             this._packetClass.obfuscateTag,
             Buffer.from(random.slice(60)),
+        ]);
+        const dcIdBytes = Buffer.alloc(2);
+        dcIdBytes.writeInt8(this._dcId);
+        random = Buffer.concat([
+            Buffer.from(random.slice(0, 60)),
+            dcIdBytes,
+            Buffer.from(random.slice(62)),
         ]);
         random = Buffer.concat([
             Buffer.from(random.slice(0, 56)),
@@ -81,7 +119,29 @@ class ObfuscatedIO {
     }
 }
 
-export class ConnectionTCPObfuscated extends ObfuscatedConnection {
-    ObfuscatedIO = ObfuscatedIO;
+export class TCPMTProxy extends ObfuscatedConnection {
+    ObfuscatedIO = MTProxyIO;
+
+    _secret: Buffer;
+
+    constructor(
+        ip: string,
+        port: number,
+        dcId: number,
+        loggers: Logger,
+        proxy: ProxyInterface
+    ) {
+        super(proxy.ip, proxy.port, dcId, loggers);
+        if (!proxy.MTProxy) {
+            throw new Error("This connection only supports MPTProxies");
+        }
+        if (!proxy.secret) {
+            throw new Error("You need to provide the secret for the MTProxy");
+        }
+        this._secret = Buffer.from(proxy.secret, "hex");
+    }
+}
+
+export class ConnectionTCPMTProxyAbridged extends TCPMTProxy {
     PacketCodecClass = AbridgedPacketCodec;
 }
