@@ -188,7 +188,7 @@ export function _getEntityPair(
     let inputEntity;
     try {
         inputEntity = cache.get(entityId);
-    } catch (e) {
+    } catch (e:any) {
         try {
             inputEntity = getInputPeerFunction(inputEntity);
         } catch (e) {}

@@ -431,7 +431,7 @@ export class MTProtoSender {
 
             try {
                 await this._connection!.send(data);
-            } catch (e) {
+            } catch (e:any) {
                 this._log.error(e);
                 this._log.info("Connection closed while sending data");
                 return;
@@ -462,7 +462,7 @@ export class MTProtoSender {
             this._log.debug("Receiving items from the network...");
             try {
                 body = await this._connection!.recv();
-            } catch (e) {
+            } catch (e:any) {
                 /** when the server disconnects us we want to reconnect */
                 this._log.warn("Connection closed while receiving data");
                 if (!this.userDisconnected) {
@@ -474,7 +474,7 @@ export class MTProtoSender {
             }
             try {
                 message = await this._state.decryptMessageData(body);
-            } catch (e) {
+            } catch (e:any) {
                 if (e instanceof TypeNotFoundError) {
                     // Received object which we don't know how to deserialize
                     this._log.info(
@@ -527,7 +527,7 @@ export class MTProtoSender {
             }
             try {
                 await this._processMessage(message);
-            } catch (e) {
+            } catch (e:any) {
                 this._log.error("Unhandled error while receiving data");
                 this._log.error(e);
             }
@@ -624,7 +624,7 @@ export class MTProtoSender {
                 if (!(reader.tgReadObject() instanceof Api.upload.File)) {
                     throw new Error("Not an upload.File");
                 }
-            } catch (e) {
+            } catch (e:any) {
                 this._log.error(e);
                 if (e instanceof TypeNotFoundError) {
                     this._log.info(
@@ -910,7 +910,7 @@ export class MTProtoSender {
         this._log.debug("Closing current connection...");
         try {
             await this.disconnect();
-        } catch (err) {
+        } catch (err: any) {
             this._log.warn(err);
         }
         // @ts-ignore

@@ -3,6 +3,7 @@ import * as utils from "../Utils";
 import { sleep } from "../Helpers";
 import { computeCheck as computePasswordSrpCheck } from "../Password";
 import type { TelegramClient } from "./TelegramClient";
+import { RPCError } from "../errors";
 
 /**
  * For when you want to login as a {@link Api.User}<br/>
@@ -92,7 +93,7 @@ export async function start(
 
     const apiCredentials = {
         apiId: client.apiId,
-        apiHash: client.apiHash,
+        apiHash: client.apiHash
     };
 
     await _authFlow(client, apiCredentials, authParams);
@@ -123,7 +124,7 @@ export async function signInUser(
             if (typeof authParams.phoneNumber === "function") {
                 try {
                     phoneNumber = await authParams.phoneNumber();
-                } catch (err) {
+                } catch (err: any) {
                     if (err.errorMessage === "RESTART_AUTH_WITH_QR") {
                         return client.signInUserWithQrCode(
                             apiCredentials,
@@ -149,7 +150,7 @@ export async function signInUser(
             }
 
             break;
-        } catch (err) {
+        } catch (err:any) {
             if (typeof authParams.phoneNumber !== "function") {
                 throw err;
             }
@@ -169,7 +170,7 @@ export async function signInUser(
         try {
             try {
                 phoneCode = await authParams.phoneCode(isCodeViaApp);
-            } catch (err) {
+            } catch (err:any) {
                 // This is the support for changing phone number from the phone code screen.
                 if (err.errorMessage === "RESTART_AUTH") {
                     return client.signInUser(apiCredentials, authParams);
@@ -186,7 +187,7 @@ export async function signInUser(
                 new Api.auth.SignIn({
                     phoneNumber,
                     phoneCodeHash,
-                    phoneCode,
+                    phoneCode
                 })
             );
 
@@ -197,7 +198,7 @@ export async function signInUser(
             }
 
             return result.user;
-        } catch (err) {
+        } catch (err:any) {
             if (err.errorMessage === "SESSION_PASSWORD_NEEDED") {
                 return client.signInWithPassword(apiCredentials, authParams);
             } else {
@@ -228,7 +229,7 @@ export async function signInUser(
                         phoneNumber,
                         phoneCodeHash,
                         firstName,
-                        lastName,
+                        lastName
                     })
                 )) as Api.auth.Authorization;
 
@@ -236,13 +237,13 @@ export async function signInUser(
                     // This is a violation of Telegram rules: the user should be presented with and accept TOS.
                     await client.invoke(
                         new Api.help.AcceptTermsOfService({
-                            id: termsOfService.id,
+                            id: termsOfService.id
                         })
                     );
                 }
 
                 return user;
-            } catch (err) {
+            } catch (err:any) {
                 const shouldWeStop = await authParams.onError(err);
                 if (shouldWeStop) {
                     throw new Error("AUTH_USER_CANCEL");
@@ -267,7 +268,7 @@ export async function signInUserWithQrCode(
                 new Api.auth.ExportLoginToken({
                     apiId: Number(apiCredentials.apiId),
                     apiHash: apiCredentials.apiHash,
-                    exceptIds: [],
+                    exceptIds: []
                 })
             );
 
@@ -279,7 +280,7 @@ export async function signInUserWithQrCode(
             if (authParams.qrCode) {
                 await Promise.race([
                     authParams.qrCode({ token, expires }),
-                    sleep(QR_CODE_TIMEOUT),
+                    sleep(QR_CODE_TIMEOUT)
                 ]);
             }
             await sleep(QR_CODE_TIMEOUT);
@@ -305,7 +306,7 @@ export async function signInUserWithQrCode(
             new Api.auth.ExportLoginToken({
                 apiId: Number(apiCredentials.apiId),
                 apiHash: apiCredentials.apiHash,
-                exceptIds: [],
+                exceptIds: []
             })
         );
         if (
@@ -317,7 +318,7 @@ export async function signInUserWithQrCode(
             await client._switchDC(result2.dcId);
             const migratedResult = await client.invoke(
                 new Api.auth.ImportLoginToken({
-                    token: result2.token,
+                    token: result2.token
                 })
             );
 
@@ -328,7 +329,7 @@ export async function signInUserWithQrCode(
                 return migratedResult.authorization.user;
             }
         }
-    } catch (err) {
+    } catch (err:any) {
         if (err.errorMessage === "SESSION_PASSWORD_NEEDED") {
             return client.signInWithPassword(apiCredentials, authParams);
         }
@@ -355,7 +356,7 @@ export async function sendCode(
                 phoneNumber,
                 apiId,
                 apiHash,
-                settings: new Api.CodeSettings({}),
+                settings: new Api.CodeSettings({})
             })
         );
 
@@ -364,22 +365,22 @@ export async function sendCode(
             return {
                 phoneCodeHash: sendResult.phoneCodeHash,
                 isCodeViaApp:
-                    sendResult.type instanceof Api.auth.SentCodeTypeApp,
+                    sendResult.type instanceof Api.auth.SentCodeTypeApp
             };
         }
 
         const resendResult = await client.invoke(
             new Api.auth.ResendCode({
                 phoneNumber,
-                phoneCodeHash: sendResult.phoneCodeHash,
+                phoneCodeHash: sendResult.phoneCodeHash
             })
         );
 
         return {
             phoneCodeHash: resendResult.phoneCodeHash,
-            isCodeViaApp: resendResult.type instanceof Api.auth.SentCodeTypeApp,
+            isCodeViaApp: resendResult.type instanceof Api.auth.SentCodeTypeApp
         };
-    } catch (err) {
+    } catch (err:any) {
         if (err.errorMessage === "AUTH_RESTART") {
             return client.sendCode(apiCredentials, phoneNumber, forceSMS);
         } else {
@@ -416,12 +417,12 @@ export async function signInWithPassword(
             );
             const { user } = (await client.invoke(
                 new Api.auth.CheckPassword({
-                    password: passwordSrpCheck,
+                    password: passwordSrpCheck
                 })
             )) as Api.auth.Authorization;
 
             return user;
-        } catch (err) {
+        } catch (err:any) {
             const shouldWeStop = await authParams.onError(err);
             if (shouldWeStop) {
                 throw new Error("AUTH_USER_CANCEL");
@@ -460,7 +461,7 @@ export async function signInBot(
         new Api.auth.ImportBotAuthorization({
             apiId,
             apiHash,
-            botAuthToken,
+            botAuthToken
         })
     )) as Api.auth.Authorization;
     return user;

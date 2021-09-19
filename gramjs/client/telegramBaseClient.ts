@@ -412,7 +412,7 @@ export abstract class TelegramBaseClient {
                 sender.userDisconnected = false;
 
                 return sender;
-            } catch (err) {
+            } catch (err:any) {
                 if (err.errorMessage === "DC_ID_INVALID") {
                     sender._authenticated = true;
                     sender.userDisconnected = false;

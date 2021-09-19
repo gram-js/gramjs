@@ -2,7 +2,7 @@ import {
     _intoIdSet,
     DefaultEventInterface,
     EventBuilder,
-    EventCommon,
+    EventCommon
 } from "./common";
 import type { Entity, EntityLike } from "../define";
 import type { TelegramClient } from "..";
@@ -89,7 +89,7 @@ export class NewMessage extends EventBuilder {
             fromUsers,
             forwards,
             pattern,
-            blacklistChats = false,
+            blacklistChats = false
         } = newMessageParams;
         if (incoming && outgoing) {
             incoming = outgoing = undefined;
@@ -115,7 +115,7 @@ export class NewMessage extends EventBuilder {
             pattern,
             fromUsers,
             forwards,
-            func,
+            func
         ].every((v) => v == undefined);
     }
 
@@ -156,7 +156,7 @@ export class NewMessage extends EventBuilder {
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
-                    entities: update.entities,
+                    entities: update.entities
                     // ttlPeriod:update.ttlPeriod
                 }),
                 update
@@ -176,7 +176,7 @@ export class NewMessage extends EventBuilder {
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
-                    entities: update.entities,
+                    entities: update.entities
                     // ttlPeriod:update.ttlPeriod
                 }),
                 update
@@ -199,6 +199,13 @@ export class NewMessage extends EventBuilder {
                 return;
             }
         }
+
+        if (this.fromUsers != undefined) {
+            if (!this.fromUsers.includes(event.message.senderId!)) {
+                return;
+            }
+        }
+
         if (this.pattern) {
             const match = event.message.message?.match(this.pattern);
             if (!match) {
@@ -222,7 +229,7 @@ export class NewMessageEvent extends EventCommon {
         super({
             msgId: message.id,
             chatPeer: message.peerId,
-            broadcast: message.post,
+            broadcast: message.post
         });
         this.originalUpdate = originalUpdate;
         this.message = message;

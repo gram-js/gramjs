@@ -125,7 +125,7 @@ export async function uploadFile(
                                           bytes: bytesMemo,
                                       })
                             );
-                        } catch (err) {
+                        } catch (err: any) {
                             if (sender && !sender.isConnected()) {
                                 await sleep(DISCONNECT_SLEEP);
                                 continue;
