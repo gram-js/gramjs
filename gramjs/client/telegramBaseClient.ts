@@ -127,7 +127,7 @@ const clientParamsDefault = {
     useWSS:
         typeof window !== "undefined"
             ? window.location.protocol == "https:"
-            : true,
+            : false,
 };
 
 export abstract class TelegramBaseClient {
@@ -213,7 +213,7 @@ export abstract class TelegramBaseClient {
         } else {
             this._log = clientParams.baseLogger;
         }
-        this._log.debug("Running gramJS version " + version);
+        this._log.info("Running gramJS version " + version);
         if (session && typeof session == "string") {
             session = new StoreSession(session);
         }
