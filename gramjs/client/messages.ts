@@ -357,7 +357,7 @@ export class _IDsIter extends RequestIter {
                         id: ids,
                     })
                 );
-            } catch (e:any) {
+            } catch (e: any) {
                 if (e.errorMessage == "MESSAGE_IDS_EMPTY") {
                     r = new Api.messages.MessagesNotModified({
                         count: ids.length,

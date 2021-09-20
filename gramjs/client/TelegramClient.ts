@@ -661,7 +661,7 @@ export class TelegramClient extends TelegramBaseClient {
      *
      * // Scheduling a message to be sent after 5 minutes
      *
-     * await client.sendMessage(chat, {message:'Hi, future!', schedule:(60 * 5)+ new Date()})
+     * await client.sendMessage(chat, {message:'Hi, future!', schedule:(60 * 5) + (Date.now() / 1000)})
      *
      * ```
      */

@@ -117,7 +117,7 @@ class Connection {
                 }
                 await this._send(data);
             }
-        } catch (e:any) {
+        } catch (e: any) {
             this._log.info("The server closed the connection while sending");
         }
     }
@@ -130,7 +130,7 @@ class Connection {
                 if (!data) {
                     throw new Error("no data received");
                 }
-            } catch (e:any) {
+            } catch (e: any) {
                 this._log.info("connection closed");
                 //await this._recvArray.push()
 

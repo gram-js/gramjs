@@ -182,7 +182,7 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
                 PING_FAIL_ATTEMPTS,
                 PING_FAIL_INTERVAL
             );
-        } catch (err:any) {
+        } catch (err: any) {
             // eslint-disable-next-line no-console
             client._log.error(err);
             if (client._reconnecting) {

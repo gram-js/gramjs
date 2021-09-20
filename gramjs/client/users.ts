@@ -32,7 +32,7 @@ export async function invoke<R extends Api.AnyRequest>(
             client.session.processEntities(result);
             client._entityCache.add(result);
             return result;
-        } catch (e:any) {
+        } catch (e: any) {
             if (
                 e instanceof errors.ServerError ||
                 e.errorMessage === "RPC_CALL_FAIL" ||
@@ -326,7 +326,7 @@ export async function _getEntityFromString(
                     }
                 }
             }
-        } catch (e:any) {
+        } catch (e: any) {
             if (e.errorMessage === "BOT_METHOD_INVALID") {
                 throw new Error(
                     "Cannot get entity by phone number as a " +
@@ -372,7 +372,7 @@ export async function _getEntityFromString(
                         }
                     }
                 }
-            } catch (e:any) {
+            } catch (e: any) {
                 if (e.errorMessage === "USERNAME_NOT_OCCUPIED") {
                     throw new Error(`No user has "${username}" as username`);
                 }

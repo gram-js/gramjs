@@ -15,7 +15,7 @@ const CORE_TYPES = new Set([
     0x997275b5, // boolTrue#997275b5 = Bool;
     0x3fedd339, // true#3fedd339 = True;
     0xc4b9f9bb, // error#c4b9f9bb code:int text:string = Error;
-    0x56730bcc // null#56730bcc = Null;
+    0x56730bcc, // null#56730bcc = Null;
 ]);
 const AUTH_KEY_TYPES = new Set([
     0x05162463, // resPQ,
@@ -28,7 +28,7 @@ const AUTH_KEY_TYPES = new Set([
     0x6643b654, // client_DH_inner_data
     0xd712e4be, // req_DH_params
     0xf5045f1f, // set_client_DH_params
-    0x3072cfa1 // gzip_packed
+    0x3072cfa1, // gzip_packed
 ]);
 
 const fromLine = (line: string, isFunction: boolean) => {
@@ -48,7 +48,7 @@ const fromLine = (line: string, isFunction: boolean) => {
         subclassOfId: crc32(match[3]),
         result: match[3],
         isFunction: isFunction,
-        namespace: undefined
+        namespace: undefined,
     };
     if (!currentConfig.constructorId) {
         const hexId = "";
@@ -112,7 +112,7 @@ function buildArgConfig(name: string, argType: string) {
         flagIndex: -1,
         flagIndicator: true,
         type: null,
-        useVectorId: null
+        useVectorId: null,
     };
 
     // Special case: some types can be inferred, which makes it
@@ -301,7 +301,7 @@ export function serializeBytes(data: Buffer | string | any) {
                 254,
                 data.length % 256,
                 (data.length >> 8) % 256,
-                (data.length >> 16) % 256
+                (data.length >> 16) % 256,
             ])
         );
         r.push(data);
@@ -333,5 +333,5 @@ export {
     fromLine,
     CORE_TYPES,
     snakeToCamelCase,
-    variableSnakeToCamelCase
+    variableSnakeToCamelCase,
 };

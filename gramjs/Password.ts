@@ -206,7 +206,7 @@ async function computeDigest(
 ) {
     try {
         checkPrimeAndGood(algo.p, algo.g);
-    } catch (e:any) {
+    } catch (e: any) {
         throw new Error("bad p/g in password");
     }
 
@@ -244,7 +244,7 @@ async function computeCheck(request: Api.account.Password, password: string) {
     const B = readBigIntFromBuffer(srp_B, false);
     try {
         checkPrimeAndGood(algo.p, g);
-    } catch (e:any) {
+    } catch (e: any) {
         throw new Error("bad /g in password");
     }
     if (!isGoodLarge(B, p)) {

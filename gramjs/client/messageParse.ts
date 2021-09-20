@@ -165,6 +165,7 @@ export function _getResponseMessage(
                 return update.message;
             }
         } else if (update instanceof Api.UpdateNewScheduledMessage) {
+            console.log("here!");
             (update.message as unknown as Message)._finishInit(
                 client,
                 entities,
@@ -194,12 +195,22 @@ export function _getResponseMessage(
     if (request == undefined) {
         return idToMessage;
     }
+    let mapping: Map<number, Message>;
+    let opposite = new Map<number, Message>();
+    if ("scheduleDate" in request && request.scheduleDate != undefined) {
+        mapping = schedToMessage;
+        opposite = idToMessage;
+    } else {
+        mapping = idToMessage;
+    }
+    console.log("request is", request);
     let randomId =
         isArrayLike(request) ||
         typeof request == "number" ||
         bigInt.isInstance(request)
             ? request
             : request.randomId.toString();
+    console.log("random id", randomToId);
     if (!randomId) {
         client._log.warn(
             `No randomId in ${request} to map to. returning undefined for ${result}`
@@ -208,27 +219,60 @@ export function _getResponseMessage(
     }
 
     if (!isArrayLike(randomId)) {
-        const msg = idToMessage.get(randomToId.get(randomId)!);
+        let msg = mapping.get(randomToId.get(randomId)!);
+        if (!msg) {
+            msg = opposite.get(randomToId.get(randomId)!);
+        }
         if (!msg) {
             client._log.warn(
-                `Request ${request} had missing message mapping ${result}`
+                `Request ${request.className} had missing message mapping ${result.className}`
             );
         }
         return msg;
     } else {
-        const mapping = [];
+        const mappingToReturn = [];
+        let warned = false;
         for (let i = 0; i < randomId.length; i++) {
             const rnd = randomId[i] + "";
-            const msg = idToMessage.get(randomToId.get(rnd)!);
+            const msg = mapping.get(randomToId.get(rnd)!);
+            if (!msg) {
+                warned = true;
+                break;
+            } else {
+                mappingToReturn.push(msg);
+            }
+        }
+        if (!warned) {
+            return mappingToReturn;
+        }
+        const oppositeToReturn = [];
+        warned = false;
+        for (let i = 0; i < randomId.length; i++) {
+            const rnd = randomId[i] + "";
+            const msg = opposite.get(randomToId.get(rnd)!);
             if (!msg) {
                 client._log.warn(
                     `Request ${request} had missing message mapping ${result}`
                 );
+                warned = true;
                 break;
             } else {
-                mapping.push(msg);
+                oppositeToReturn.push(msg);
             }
         }
-        return mapping;
+        if (!warned) {
+            return mappingToReturn;
+        }
     }
+    const finalToReturn = [];
+    for (let i = 0; i < randomId.length; i++) {
+        const rnd = randomId[i] + "";
+        if (randomToId.has(rnd)) {
+            finalToReturn.push(
+                mapping.get(randomToId.get(rnd)!) ||
+                    opposite.get(randomToId.get(rnd)!)
+            );
+        }
+    }
+    return finalToReturn;
 }
