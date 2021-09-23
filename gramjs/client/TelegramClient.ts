@@ -1196,7 +1196,7 @@ export class TelegramClient extends TelegramBaseClient {
         const connection = new this._connection(
             this.session.serverAddress,
             // We don't want to use the session for this.
-            this.useWSS ? 433 : 80,
+            this.useWSS ? 443 : 80,
             this.session.dcId,
             this._log,
             this._proxy
