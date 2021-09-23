@@ -373,8 +373,10 @@ function createClasses(classesType, params) {
                         case "long":
                         case "int128":
                         case "int256":
-                        case "double":
                             expected = "bigInt";
+                            break;
+                        case "double":
+                            expected = "number";
                             break;
                         case "string":
                             expected = "string";

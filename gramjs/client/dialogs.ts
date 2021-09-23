@@ -133,7 +133,7 @@ export class _DialogsIter extends RequestIter {
             );
             if (this.offsetDate != undefined) {
                 const date = message?.date!;
-                if (date != undefined || date > this.offsetDate) {
+                if (date == undefined || date > this.offsetDate) {
                     continue;
                 }
             }
