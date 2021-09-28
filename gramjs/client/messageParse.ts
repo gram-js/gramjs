@@ -165,7 +165,6 @@ export function _getResponseMessage(
                 return update.message;
             }
         } else if (update instanceof Api.UpdateNewScheduledMessage) {
-            console.log("here!");
             (update.message as unknown as Message)._finishInit(
                 client,
                 entities,
@@ -203,14 +202,12 @@ export function _getResponseMessage(
     } else {
         mapping = idToMessage;
     }
-    console.log("request is", request);
     let randomId =
         isArrayLike(request) ||
         typeof request == "number" ||
         bigInt.isInstance(request)
             ? request
             : request.randomId.toString();
-    console.log("random id", randomToId);
     if (!randomId) {
         client._log.warn(
             `No randomId in ${request} to map to. returning undefined for ${result}`
