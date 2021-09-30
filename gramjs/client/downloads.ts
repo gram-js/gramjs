@@ -31,7 +31,7 @@ export interface DownloadFileParams {
     dcId: number;
     /** How much to download. The library will download until it reaches this amount.<br/>
      *  can be useful for downloading by chunks */
-    fileSize: number;
+    fileSize?: number;
     /** Used to determine how many download tasks should be run in parallel. anything above 16 is unstable. */
     workers?: number;
     /** How much to download in each chunk. The larger the less requests to be made. (max is 512kb). */
@@ -76,8 +76,9 @@ export async function downloadFile(
     let { partSizeKb, end } = fileParams;
     const { fileSize, workers = 1 } = fileParams;
     const { dcId, progressCallback, start = 0 } = fileParams;
-
-    end = end && end < fileSize ? end : fileSize - 1;
+    if (end && fileSize) {
+        end = end < fileSize ? end : fileSize - 1;
+    }
 
     if (!partSizeKb) {
         partSizeKb = fileSize
@@ -441,15 +442,20 @@ export async function downloadProfilePhoto(
     entity: EntityLike,
     fileParams: DownloadProfilePhotoParams
 ) {
-    entity = await client.getEntity(entity);
-
     let photo;
-    if ("photo" in entity) {
+    if (typeof entity == "object" && "photo" in entity) {
         photo = entity.photo;
     } else {
-        throw new Error(
-            `Could not get photo from ${entity ? entity.className : undefined}`
-        );
+        entity = await client.getEntity(entity);
+        if ("photo" in entity) {
+            photo = entity.photo;
+        } else {
+            throw new Error(
+                `Could not get photo from ${
+                    entity ? entity.className : undefined
+                }`
+            );
+        }
     }
     let dcId;
     let loc;
@@ -468,7 +474,6 @@ export async function downloadProfilePhoto(
     }
     return client.downloadFile(loc, {
         dcId,
-        fileSize: 2 * 1024 * 1024,
         workers: 1,
     });
 }

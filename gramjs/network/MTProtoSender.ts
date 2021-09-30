@@ -464,7 +464,6 @@ export class MTProtoSender {
                 body = await this._connection!.recv();
             } catch (e: any) {
                 /** when the server disconnects us we want to reconnect */
-                this._log.warn("Connection closed while receiving data");
                 if (!this.userDisconnected) {
                     this._log.error(e);
                     this._log.warn("Connection closed while receiving data");
