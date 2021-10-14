@@ -43,7 +43,7 @@ export function removeEventHandler(
     event: EventBuilder
 ) {
     client._eventBuilders = client._eventBuilders.filter(function (item) {
-        return item !== [event, callback];
+        return item[0] !== event && item[1] !== callback;
     });
 }
 

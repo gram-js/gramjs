@@ -921,9 +921,7 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     /**
-     * Inverse operation of add_event_handler().<br>
-     *
-     * If no event is given, all events for this callback are removed.<br>
+     * Inverse operation of addEventHandler().<br>
      *
      * @param callback - the callback function to be removed.
      * @param event - the type of the event.
