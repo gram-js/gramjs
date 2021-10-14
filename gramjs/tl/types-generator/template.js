@@ -37,6 +37,7 @@ module.exports = ({ types, constructors, functions }) => {
                     return `export class ${upperFirst(
                         name
                     )} extends VirtualClass<void> {
+    className: "${upperFirst(name)}";
     static fromReader(reader: Reader): ${upperFirst(name)};
 }`;
                 }
@@ -56,6 +57,7 @@ ${indent}  ${Object.keys(argsConfig)
                     )
                     .join(`\n${indent}  `)}
 ${indent}}${!hasRequiredArgs ? "" : ""}> {
+${indent}className: "${upperFirst(name)}";
 ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 ${indent}  ${Object.keys(argsConfig)
                     .map((argName) =>
