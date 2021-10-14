@@ -37,7 +37,7 @@ module.exports = ({ types, constructors, functions }) => {
                     return `export class ${upperFirst(
                         name
                     )} extends VirtualClass<void> {
-    className: "${upperFirst(name)}";
+    className: "${lowerFirst(name)}";
     static fromReader(reader: Reader): ${upperFirst(name)};
 }`;
                 }
@@ -57,7 +57,7 @@ ${indent}  ${Object.keys(argsConfig)
                     )
                     .join(`\n${indent}  `)}
 ${indent}}${!hasRequiredArgs ? "" : ""}> {
-${indent}className: "${upperFirst(name)}";
+${indent}className: "${lowerFirst(name)}";
 ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 ${indent}  ${Object.keys(argsConfig)
                     .map((argName) =>
@@ -163,6 +163,10 @@ ${indent}}`.trim();
 
     function upperFirst(str) {
         return `${str[0].toUpperCase()}${str.slice(1)}`;
+    }
+
+    function lowerFirst(str){
+        return `${str[0].toLowerCase()}${str.slice(1)}`;
     }
 
     const typesByNs = groupByKey(types, "namespace");

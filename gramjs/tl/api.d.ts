@@ -48,17 +48,17 @@ export namespace Api {
     }
 
     export class InputPeerEmpty extends VirtualClass<void> {
-        className: "InputPeerEmpty";
+        className: "inputPeerEmpty";
         static fromReader(reader: Reader): InputPeerEmpty;
     }
     export class InputPeerSelf extends VirtualClass<void> {
-        className: "InputPeerSelf";
+        className: "inputPeerSelf";
         static fromReader(reader: Reader): InputPeerSelf;
     }
     export class InputPeerChat extends VirtualClass<{
         chatId: int;
     }> {
-        className: "InputPeerChat";
+        className: "inputPeerChat";
         static fromReader(reader: Reader): InputPeerChat;
         chatId: int;
     }
@@ -66,7 +66,7 @@ export namespace Api {
         userId: int;
         accessHash: long;
     }> {
-        className: "InputPeerUser";
+        className: "inputPeerUser";
         static fromReader(reader: Reader): InputPeerUser;
         userId: int;
         accessHash: long;
@@ -75,7 +75,7 @@ export namespace Api {
         channelId: int;
         accessHash: long;
     }> {
-        className: "InputPeerChannel";
+        className: "inputPeerChannel";
         static fromReader(reader: Reader): InputPeerChannel;
         channelId: int;
         accessHash: long;
@@ -85,7 +85,7 @@ export namespace Api {
         msgId: int;
         userId: int;
     }> {
-        className: "InputPeerUserFromMessage";
+        className: "inputPeerUserFromMessage";
         static fromReader(reader: Reader): InputPeerUserFromMessage;
         peer: Api.TypeInputPeer;
         msgId: int;
@@ -96,25 +96,25 @@ export namespace Api {
         msgId: int;
         channelId: int;
     }> {
-        className: "InputPeerChannelFromMessage";
+        className: "inputPeerChannelFromMessage";
         static fromReader(reader: Reader): InputPeerChannelFromMessage;
         peer: Api.TypeInputPeer;
         msgId: int;
         channelId: int;
     }
     export class InputUserEmpty extends VirtualClass<void> {
-        className: "InputUserEmpty";
+        className: "inputUserEmpty";
         static fromReader(reader: Reader): InputUserEmpty;
     }
     export class InputUserSelf extends VirtualClass<void> {
-        className: "InputUserSelf";
+        className: "inputUserSelf";
         static fromReader(reader: Reader): InputUserSelf;
     }
     export class InputUser extends VirtualClass<{
         userId: int;
         accessHash: long;
     }> {
-        className: "InputUser";
+        className: "inputUser";
         static fromReader(reader: Reader): InputUser;
         userId: int;
         accessHash: long;
@@ -124,7 +124,7 @@ export namespace Api {
         msgId: int;
         userId: int;
     }> {
-        className: "InputUserFromMessage";
+        className: "inputUserFromMessage";
         static fromReader(reader: Reader): InputUserFromMessage;
         peer: Api.TypeInputPeer;
         msgId: int;
@@ -136,7 +136,7 @@ export namespace Api {
         firstName: string;
         lastName: string;
     }> {
-        className: "InputPhoneContact";
+        className: "inputPhoneContact";
         static fromReader(reader: Reader): InputPhoneContact;
         clientId: long;
         phone: string;
@@ -149,7 +149,7 @@ export namespace Api {
         name: string;
         md5Checksum: string;
     }> {
-        className: "InputFile";
+        className: "inputFile";
         static fromReader(reader: Reader): InputFile;
         id: long;
         parts: int;
@@ -161,14 +161,14 @@ export namespace Api {
         parts: int;
         name: string;
     }> {
-        className: "InputFileBig";
+        className: "inputFileBig";
         static fromReader(reader: Reader): InputFileBig;
         id: long;
         parts: int;
         name: string;
     }
     export class InputMediaEmpty extends VirtualClass<void> {
-        className: "InputMediaEmpty";
+        className: "inputMediaEmpty";
         static fromReader(reader: Reader): InputMediaEmpty;
     }
     export class InputMediaUploadedPhoto extends VirtualClass<{
@@ -177,7 +177,7 @@ export namespace Api {
         stickers?: Api.TypeInputDocument[];
         ttlSeconds?: int;
     }> {
-        className: "InputMediaUploadedPhoto";
+        className: "inputMediaUploadedPhoto";
         static fromReader(reader: Reader): InputMediaUploadedPhoto;
         // flags: null;
         file: Api.TypeInputFile;
@@ -189,7 +189,7 @@ export namespace Api {
         id: Api.TypeInputPhoto;
         ttlSeconds?: int;
     }> {
-        className: "InputMediaPhoto";
+        className: "inputMediaPhoto";
         static fromReader(reader: Reader): InputMediaPhoto;
         // flags: null;
         id: Api.TypeInputPhoto;
@@ -198,7 +198,7 @@ export namespace Api {
     export class InputMediaGeoPoint extends VirtualClass<{
         geoPoint: Api.TypeInputGeoPoint;
     }> {
-        className: "InputMediaGeoPoint";
+        className: "inputMediaGeoPoint";
         static fromReader(reader: Reader): InputMediaGeoPoint;
         geoPoint: Api.TypeInputGeoPoint;
     }
@@ -208,7 +208,7 @@ export namespace Api {
         lastName: string;
         vcard: string;
     }> {
-        className: "InputMediaContact";
+        className: "inputMediaContact";
         static fromReader(reader: Reader): InputMediaContact;
         phoneNumber: string;
         firstName: string;
@@ -226,7 +226,7 @@ export namespace Api {
         stickers?: Api.TypeInputDocument[];
         ttlSeconds?: int;
     }> {
-        className: "InputMediaUploadedDocument";
+        className: "inputMediaUploadedDocument";
         static fromReader(reader: Reader): InputMediaUploadedDocument;
         // flags: null;
         nosoundVideo?: boolean;
@@ -244,7 +244,7 @@ export namespace Api {
         ttlSeconds?: int;
         query?: string;
     }> {
-        className: "InputMediaDocument";
+        className: "inputMediaDocument";
         static fromReader(reader: Reader): InputMediaDocument;
         // flags: null;
         id: Api.TypeInputDocument;
@@ -259,7 +259,7 @@ export namespace Api {
         venueId: string;
         venueType: string;
     }> {
-        className: "InputMediaVenue";
+        className: "inputMediaVenue";
         static fromReader(reader: Reader): InputMediaVenue;
         geoPoint: Api.TypeInputGeoPoint;
         title: string;
@@ -273,7 +273,7 @@ export namespace Api {
         url: string;
         ttlSeconds?: int;
     }> {
-        className: "InputMediaPhotoExternal";
+        className: "inputMediaPhotoExternal";
         static fromReader(reader: Reader): InputMediaPhotoExternal;
         // flags: null;
         url: string;
@@ -284,7 +284,7 @@ export namespace Api {
         url: string;
         ttlSeconds?: int;
     }> {
-        className: "InputMediaDocumentExternal";
+        className: "inputMediaDocumentExternal";
         static fromReader(reader: Reader): InputMediaDocumentExternal;
         // flags: null;
         url: string;
@@ -293,7 +293,7 @@ export namespace Api {
     export class InputMediaGame extends VirtualClass<{
         id: Api.TypeInputGame;
     }> {
-        className: "InputMediaGame";
+        className: "inputMediaGame";
         static fromReader(reader: Reader): InputMediaGame;
         id: Api.TypeInputGame;
     }
@@ -308,7 +308,7 @@ export namespace Api {
         providerData: Api.TypeDataJSON;
         startParam?: string;
     }> {
-        className: "InputMediaInvoice";
+        className: "inputMediaInvoice";
         static fromReader(reader: Reader): InputMediaInvoice;
         // flags: null;
         title: string;
@@ -328,7 +328,7 @@ export namespace Api {
         period?: int;
         proximityNotificationRadius?: int;
     }> {
-        className: "InputMediaGeoLive";
+        className: "inputMediaGeoLive";
         static fromReader(reader: Reader): InputMediaGeoLive;
         // flags: null;
         stopped?: boolean;
@@ -344,7 +344,7 @@ export namespace Api {
         solution?: string;
         solutionEntities?: Api.TypeMessageEntity[];
     }> {
-        className: "InputMediaPoll";
+        className: "inputMediaPoll";
         static fromReader(reader: Reader): InputMediaPoll;
         // flags: null;
         poll: Api.TypePoll;
@@ -355,12 +355,12 @@ export namespace Api {
     export class InputMediaDice extends VirtualClass<{
         emoticon: string;
     }> {
-        className: "InputMediaDice";
+        className: "inputMediaDice";
         static fromReader(reader: Reader): InputMediaDice;
         emoticon: string;
     }
     export class InputChatPhotoEmpty extends VirtualClass<void> {
-        className: "InputChatPhotoEmpty";
+        className: "inputChatPhotoEmpty";
         static fromReader(reader: Reader): InputChatPhotoEmpty;
     }
     export class InputChatUploadedPhoto extends VirtualClass<{
@@ -369,7 +369,7 @@ export namespace Api {
         video?: Api.TypeInputFile;
         videoStartTs?: double;
     }> {
-        className: "InputChatUploadedPhoto";
+        className: "inputChatUploadedPhoto";
         static fromReader(reader: Reader): InputChatUploadedPhoto;
         // flags: null;
         file?: Api.TypeInputFile;
@@ -379,12 +379,12 @@ export namespace Api {
     export class InputChatPhoto extends VirtualClass<{
         id: Api.TypeInputPhoto;
     }> {
-        className: "InputChatPhoto";
+        className: "inputChatPhoto";
         static fromReader(reader: Reader): InputChatPhoto;
         id: Api.TypeInputPhoto;
     }
     export class InputGeoPointEmpty extends VirtualClass<void> {
-        className: "InputGeoPointEmpty";
+        className: "inputGeoPointEmpty";
         static fromReader(reader: Reader): InputGeoPointEmpty;
     }
     export class InputGeoPoint extends VirtualClass<{
@@ -393,7 +393,7 @@ export namespace Api {
         long: double;
         accuracyRadius?: int;
     }> {
-        className: "InputGeoPoint";
+        className: "inputGeoPoint";
         static fromReader(reader: Reader): InputGeoPoint;
         // flags: null;
         lat: double;
@@ -401,7 +401,7 @@ export namespace Api {
         accuracyRadius?: int;
     }
     export class InputPhotoEmpty extends VirtualClass<void> {
-        className: "InputPhotoEmpty";
+        className: "inputPhotoEmpty";
         static fromReader(reader: Reader): InputPhotoEmpty;
     }
     export class InputPhoto extends VirtualClass<{
@@ -409,7 +409,7 @@ export namespace Api {
         accessHash: long;
         fileReference: bytes;
     }> {
-        className: "InputPhoto";
+        className: "inputPhoto";
         static fromReader(reader: Reader): InputPhoto;
         id: long;
         accessHash: long;
@@ -421,7 +421,7 @@ export namespace Api {
         secret: long;
         fileReference: bytes;
     }> {
-        className: "InputFileLocation";
+        className: "inputFileLocation";
         static fromReader(reader: Reader): InputFileLocation;
         volumeId: long;
         localId: int;
@@ -432,7 +432,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputEncryptedFileLocation";
+        className: "inputEncryptedFileLocation";
         static fromReader(reader: Reader): InputEncryptedFileLocation;
         id: long;
         accessHash: long;
@@ -443,7 +443,7 @@ export namespace Api {
         fileReference: bytes;
         thumbSize: string;
     }> {
-        className: "InputDocumentFileLocation";
+        className: "inputDocumentFileLocation";
         static fromReader(reader: Reader): InputDocumentFileLocation;
         id: long;
         accessHash: long;
@@ -454,13 +454,13 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputSecureFileLocation";
+        className: "inputSecureFileLocation";
         static fromReader(reader: Reader): InputSecureFileLocation;
         id: long;
         accessHash: long;
     }
     export class InputTakeoutFileLocation extends VirtualClass<void> {
-        className: "InputTakeoutFileLocation";
+        className: "inputTakeoutFileLocation";
         static fromReader(reader: Reader): InputTakeoutFileLocation;
     }
     export class InputPhotoFileLocation extends VirtualClass<{
@@ -469,7 +469,7 @@ export namespace Api {
         fileReference: bytes;
         thumbSize: string;
     }> {
-        className: "InputPhotoFileLocation";
+        className: "inputPhotoFileLocation";
         static fromReader(reader: Reader): InputPhotoFileLocation;
         id: long;
         accessHash: long;
@@ -484,7 +484,7 @@ export namespace Api {
         localId: int;
         secret: long;
     }> {
-        className: "InputPhotoLegacyFileLocation";
+        className: "inputPhotoLegacyFileLocation";
         static fromReader(reader: Reader): InputPhotoLegacyFileLocation;
         id: long;
         accessHash: long;
@@ -499,7 +499,7 @@ export namespace Api {
         peer: Api.TypeInputPeer;
         photoId: long;
     }> {
-        className: "InputPeerPhotoFileLocation";
+        className: "inputPeerPhotoFileLocation";
         static fromReader(reader: Reader): InputPeerPhotoFileLocation;
         // flags: null;
         big?: boolean;
@@ -510,7 +510,7 @@ export namespace Api {
         stickerset: Api.TypeInputStickerSet;
         thumbVersion: int;
     }> {
-        className: "InputStickerSetThumb";
+        className: "inputStickerSetThumb";
         static fromReader(reader: Reader): InputStickerSetThumb;
         stickerset: Api.TypeInputStickerSet;
         thumbVersion: int;
@@ -520,7 +520,7 @@ export namespace Api {
         timeMs: long;
         scale: int;
     }> {
-        className: "InputGroupCallStream";
+        className: "inputGroupCallStream";
         static fromReader(reader: Reader): InputGroupCallStream;
         call: Api.TypeInputGroupCall;
         timeMs: long;
@@ -529,28 +529,28 @@ export namespace Api {
     export class PeerUser extends VirtualClass<{
         userId: int;
     }> {
-        className: "PeerUser";
+        className: "peerUser";
         static fromReader(reader: Reader): PeerUser;
         userId: int;
     }
     export class PeerChat extends VirtualClass<{
         chatId: int;
     }> {
-        className: "PeerChat";
+        className: "peerChat";
         static fromReader(reader: Reader): PeerChat;
         chatId: int;
     }
     export class PeerChannel extends VirtualClass<{
         channelId: int;
     }> {
-        className: "PeerChannel";
+        className: "peerChannel";
         static fromReader(reader: Reader): PeerChannel;
         channelId: int;
     }
     export class UserEmpty extends VirtualClass<{
         id: int;
     }> {
-        className: "UserEmpty";
+        className: "userEmpty";
         static fromReader(reader: Reader): UserEmpty;
         id: int;
     }
@@ -584,7 +584,7 @@ export namespace Api {
         botInlinePlaceholder?: string;
         langCode?: string;
     }> {
-        className: "User";
+        className: "user";
         static fromReader(reader: Reader): User;
         // flags: null;
         self?: boolean;
@@ -616,7 +616,7 @@ export namespace Api {
         langCode?: string;
     }
     export class UserProfilePhotoEmpty extends VirtualClass<void> {
-        className: "UserProfilePhotoEmpty";
+        className: "userProfilePhotoEmpty";
         static fromReader(reader: Reader): UserProfilePhotoEmpty;
     }
     export class UserProfilePhoto extends VirtualClass<{
@@ -626,7 +626,7 @@ export namespace Api {
         strippedThumb?: bytes;
         dcId: int;
     }> {
-        className: "UserProfilePhoto";
+        className: "userProfilePhoto";
         static fromReader(reader: Reader): UserProfilePhoto;
         // flags: null;
         hasVideo?: boolean;
@@ -635,39 +635,39 @@ export namespace Api {
         dcId: int;
     }
     export class UserStatusEmpty extends VirtualClass<void> {
-        className: "UserStatusEmpty";
+        className: "userStatusEmpty";
         static fromReader(reader: Reader): UserStatusEmpty;
     }
     export class UserStatusOnline extends VirtualClass<{
         expires: int;
     }> {
-        className: "UserStatusOnline";
+        className: "userStatusOnline";
         static fromReader(reader: Reader): UserStatusOnline;
         expires: int;
     }
     export class UserStatusOffline extends VirtualClass<{
         wasOnline: int;
     }> {
-        className: "UserStatusOffline";
+        className: "userStatusOffline";
         static fromReader(reader: Reader): UserStatusOffline;
         wasOnline: int;
     }
     export class UserStatusRecently extends VirtualClass<void> {
-        className: "UserStatusRecently";
+        className: "userStatusRecently";
         static fromReader(reader: Reader): UserStatusRecently;
     }
     export class UserStatusLastWeek extends VirtualClass<void> {
-        className: "UserStatusLastWeek";
+        className: "userStatusLastWeek";
         static fromReader(reader: Reader): UserStatusLastWeek;
     }
     export class UserStatusLastMonth extends VirtualClass<void> {
-        className: "UserStatusLastMonth";
+        className: "userStatusLastMonth";
         static fromReader(reader: Reader): UserStatusLastMonth;
     }
     export class ChatEmpty extends VirtualClass<{
         id: int;
     }> {
-        className: "ChatEmpty";
+        className: "chatEmpty";
         static fromReader(reader: Reader): ChatEmpty;
         id: int;
     }
@@ -689,7 +689,7 @@ export namespace Api {
         adminRights?: Api.TypeChatAdminRights;
         defaultBannedRights?: Api.TypeChatBannedRights;
     }> {
-        className: "Chat";
+        className: "chat";
         static fromReader(reader: Reader): Chat;
         // flags: null;
         creator?: boolean;
@@ -712,7 +712,7 @@ export namespace Api {
         id: int;
         title: string;
     }> {
-        className: "ChatForbidden";
+        className: "chatForbidden";
         static fromReader(reader: Reader): ChatForbidden;
         id: int;
         title: string;
@@ -748,7 +748,7 @@ export namespace Api {
         defaultBannedRights?: Api.TypeChatBannedRights;
         participantsCount?: int;
     }> {
-        className: "Channel";
+        className: "channel";
         static fromReader(reader: Reader): Channel;
         // flags: null;
         creator?: boolean;
@@ -789,7 +789,7 @@ export namespace Api {
         title: string;
         untilDate?: int;
     }> {
-        className: "ChannelForbidden";
+        className: "channelForbidden";
         static fromReader(reader: Reader): ChannelForbidden;
         // flags: null;
         broadcast?: boolean;
@@ -816,7 +816,7 @@ export namespace Api {
         ttlPeriod?: int;
         groupcallDefaultJoinAs?: Api.TypePeer;
     }> {
-        className: "ChatFull";
+        className: "chatFull";
         static fromReader(reader: Reader): ChatFull;
         // flags: null;
         canSetUsername?: boolean;
@@ -875,7 +875,7 @@ export namespace Api {
         pendingSuggestions?: string[];
         groupcallDefaultJoinAs?: Api.TypePeer;
     }> {
-        className: "ChannelFull";
+        className: "channelFull";
         static fromReader(reader: Reader): ChannelFull;
         // flags: null;
         canViewParticipants?: boolean;
@@ -922,7 +922,7 @@ export namespace Api {
         inviterId: int;
         date: int;
     }> {
-        className: "ChatParticipant";
+        className: "chatParticipant";
         static fromReader(reader: Reader): ChatParticipant;
         userId: int;
         inviterId: int;
@@ -931,7 +931,7 @@ export namespace Api {
     export class ChatParticipantCreator extends VirtualClass<{
         userId: int;
     }> {
-        className: "ChatParticipantCreator";
+        className: "chatParticipantCreator";
         static fromReader(reader: Reader): ChatParticipantCreator;
         userId: int;
     }
@@ -940,7 +940,7 @@ export namespace Api {
         inviterId: int;
         date: int;
     }> {
-        className: "ChatParticipantAdmin";
+        className: "chatParticipantAdmin";
         static fromReader(reader: Reader): ChatParticipantAdmin;
         userId: int;
         inviterId: int;
@@ -951,7 +951,7 @@ export namespace Api {
         chatId: int;
         selfParticipant?: Api.TypeChatParticipant;
     }> {
-        className: "ChatParticipantsForbidden";
+        className: "chatParticipantsForbidden";
         static fromReader(reader: Reader): ChatParticipantsForbidden;
         // flags: null;
         chatId: int;
@@ -962,14 +962,14 @@ export namespace Api {
         participants: Api.TypeChatParticipant[];
         version: int;
     }> {
-        className: "ChatParticipants";
+        className: "chatParticipants";
         static fromReader(reader: Reader): ChatParticipants;
         chatId: int;
         participants: Api.TypeChatParticipant[];
         version: int;
     }
     export class ChatPhotoEmpty extends VirtualClass<void> {
-        className: "ChatPhotoEmpty";
+        className: "chatPhotoEmpty";
         static fromReader(reader: Reader): ChatPhotoEmpty;
     }
     export class ChatPhoto extends VirtualClass<{
@@ -979,7 +979,7 @@ export namespace Api {
         strippedThumb?: bytes;
         dcId: int;
     }> {
-        className: "ChatPhoto";
+        className: "chatPhoto";
         static fromReader(reader: Reader): ChatPhoto;
         // flags: null;
         hasVideo?: boolean;
@@ -992,7 +992,7 @@ export namespace Api {
         id: int;
         peerId?: Api.TypePeer;
     }> {
-        className: "MessageEmpty";
+        className: "messageEmpty";
         static fromReader(reader: Reader): MessageEmpty;
         // flags: null;
         id: int;
@@ -1029,7 +1029,7 @@ export namespace Api {
         restrictionReason?: Api.TypeRestrictionReason[];
         ttlPeriod?: int;
     }> {
-        className: "Message";
+        className: "message";
         static fromReader(reader: Reader): Message;
         // flags: null;
         out?: boolean;
@@ -1077,7 +1077,7 @@ export namespace Api {
         action: Api.TypeMessageAction;
         ttlPeriod?: int;
     }> {
-        className: "MessageService";
+        className: "messageService";
         static fromReader(reader: Reader): MessageService;
         // flags: null;
         out?: boolean;
@@ -1095,7 +1095,7 @@ export namespace Api {
         ttlPeriod?: int;
     }
     export class MessageMediaEmpty extends VirtualClass<void> {
-        className: "MessageMediaEmpty";
+        className: "messageMediaEmpty";
         static fromReader(reader: Reader): MessageMediaEmpty;
     }
     export class MessageMediaPhoto extends VirtualClass<{
@@ -1103,7 +1103,7 @@ export namespace Api {
         photo?: Api.TypePhoto;
         ttlSeconds?: int;
     }> {
-        className: "MessageMediaPhoto";
+        className: "messageMediaPhoto";
         static fromReader(reader: Reader): MessageMediaPhoto;
         // flags: null;
         photo?: Api.TypePhoto;
@@ -1112,7 +1112,7 @@ export namespace Api {
     export class MessageMediaGeo extends VirtualClass<{
         geo: Api.TypeGeoPoint;
     }> {
-        className: "MessageMediaGeo";
+        className: "messageMediaGeo";
         static fromReader(reader: Reader): MessageMediaGeo;
         geo: Api.TypeGeoPoint;
     }
@@ -1123,7 +1123,7 @@ export namespace Api {
         vcard: string;
         userId: int;
     }> {
-        className: "MessageMediaContact";
+        className: "messageMediaContact";
         static fromReader(reader: Reader): MessageMediaContact;
         phoneNumber: string;
         firstName: string;
@@ -1132,7 +1132,7 @@ export namespace Api {
         userId: int;
     }
     export class MessageMediaUnsupported extends VirtualClass<void> {
-        className: "MessageMediaUnsupported";
+        className: "messageMediaUnsupported";
         static fromReader(reader: Reader): MessageMediaUnsupported;
     }
     export class MessageMediaDocument extends VirtualClass<{
@@ -1140,7 +1140,7 @@ export namespace Api {
         document?: Api.TypeDocument;
         ttlSeconds?: int;
     }> {
-        className: "MessageMediaDocument";
+        className: "messageMediaDocument";
         static fromReader(reader: Reader): MessageMediaDocument;
         // flags: null;
         document?: Api.TypeDocument;
@@ -1149,7 +1149,7 @@ export namespace Api {
     export class MessageMediaWebPage extends VirtualClass<{
         webpage: Api.TypeWebPage;
     }> {
-        className: "MessageMediaWebPage";
+        className: "messageMediaWebPage";
         static fromReader(reader: Reader): MessageMediaWebPage;
         webpage: Api.TypeWebPage;
     }
@@ -1161,7 +1161,7 @@ export namespace Api {
         venueId: string;
         venueType: string;
     }> {
-        className: "MessageMediaVenue";
+        className: "messageMediaVenue";
         static fromReader(reader: Reader): MessageMediaVenue;
         geo: Api.TypeGeoPoint;
         title: string;
@@ -1173,7 +1173,7 @@ export namespace Api {
     export class MessageMediaGame extends VirtualClass<{
         game: Api.TypeGame;
     }> {
-        className: "MessageMediaGame";
+        className: "messageMediaGame";
         static fromReader(reader: Reader): MessageMediaGame;
         game: Api.TypeGame;
     }
@@ -1189,7 +1189,7 @@ export namespace Api {
         totalAmount: long;
         startParam: string;
     }> {
-        className: "MessageMediaInvoice";
+        className: "messageMediaInvoice";
         static fromReader(reader: Reader): MessageMediaInvoice;
         // flags: null;
         shippingAddressRequested?: boolean;
@@ -1209,7 +1209,7 @@ export namespace Api {
         period: int;
         proximityNotificationRadius?: int;
     }> {
-        className: "MessageMediaGeoLive";
+        className: "messageMediaGeoLive";
         static fromReader(reader: Reader): MessageMediaGeoLive;
         // flags: null;
         geo: Api.TypeGeoPoint;
@@ -1221,7 +1221,7 @@ export namespace Api {
         poll: Api.TypePoll;
         results: Api.TypePollResults;
     }> {
-        className: "MessageMediaPoll";
+        className: "messageMediaPoll";
         static fromReader(reader: Reader): MessageMediaPoll;
         poll: Api.TypePoll;
         results: Api.TypePollResults;
@@ -1230,20 +1230,20 @@ export namespace Api {
         value: int;
         emoticon: string;
     }> {
-        className: "MessageMediaDice";
+        className: "messageMediaDice";
         static fromReader(reader: Reader): MessageMediaDice;
         value: int;
         emoticon: string;
     }
     export class MessageActionEmpty extends VirtualClass<void> {
-        className: "MessageActionEmpty";
+        className: "messageActionEmpty";
         static fromReader(reader: Reader): MessageActionEmpty;
     }
     export class MessageActionChatCreate extends VirtualClass<{
         title: string;
         users: int[];
     }> {
-        className: "MessageActionChatCreate";
+        className: "messageActionChatCreate";
         static fromReader(reader: Reader): MessageActionChatCreate;
         title: string;
         users: int[];
@@ -1251,53 +1251,53 @@ export namespace Api {
     export class MessageActionChatEditTitle extends VirtualClass<{
         title: string;
     }> {
-        className: "MessageActionChatEditTitle";
+        className: "messageActionChatEditTitle";
         static fromReader(reader: Reader): MessageActionChatEditTitle;
         title: string;
     }
     export class MessageActionChatEditPhoto extends VirtualClass<{
         photo: Api.TypePhoto;
     }> {
-        className: "MessageActionChatEditPhoto";
+        className: "messageActionChatEditPhoto";
         static fromReader(reader: Reader): MessageActionChatEditPhoto;
         photo: Api.TypePhoto;
     }
     export class MessageActionChatDeletePhoto extends VirtualClass<void> {
-        className: "MessageActionChatDeletePhoto";
+        className: "messageActionChatDeletePhoto";
         static fromReader(reader: Reader): MessageActionChatDeletePhoto;
     }
     export class MessageActionChatAddUser extends VirtualClass<{
         users: int[];
     }> {
-        className: "MessageActionChatAddUser";
+        className: "messageActionChatAddUser";
         static fromReader(reader: Reader): MessageActionChatAddUser;
         users: int[];
     }
     export class MessageActionChatDeleteUser extends VirtualClass<{
         userId: int;
     }> {
-        className: "MessageActionChatDeleteUser";
+        className: "messageActionChatDeleteUser";
         static fromReader(reader: Reader): MessageActionChatDeleteUser;
         userId: int;
     }
     export class MessageActionChatJoinedByLink extends VirtualClass<{
         inviterId: int;
     }> {
-        className: "MessageActionChatJoinedByLink";
+        className: "messageActionChatJoinedByLink";
         static fromReader(reader: Reader): MessageActionChatJoinedByLink;
         inviterId: int;
     }
     export class MessageActionChannelCreate extends VirtualClass<{
         title: string;
     }> {
-        className: "MessageActionChannelCreate";
+        className: "messageActionChannelCreate";
         static fromReader(reader: Reader): MessageActionChannelCreate;
         title: string;
     }
     export class MessageActionChatMigrateTo extends VirtualClass<{
         channelId: int;
     }> {
-        className: "MessageActionChatMigrateTo";
+        className: "messageActionChatMigrateTo";
         static fromReader(reader: Reader): MessageActionChatMigrateTo;
         channelId: int;
     }
@@ -1305,24 +1305,24 @@ export namespace Api {
         title: string;
         chatId: int;
     }> {
-        className: "MessageActionChannelMigrateFrom";
+        className: "messageActionChannelMigrateFrom";
         static fromReader(reader: Reader): MessageActionChannelMigrateFrom;
         title: string;
         chatId: int;
     }
     export class MessageActionPinMessage extends VirtualClass<void> {
-        className: "MessageActionPinMessage";
+        className: "messageActionPinMessage";
         static fromReader(reader: Reader): MessageActionPinMessage;
     }
     export class MessageActionHistoryClear extends VirtualClass<void> {
-        className: "MessageActionHistoryClear";
+        className: "messageActionHistoryClear";
         static fromReader(reader: Reader): MessageActionHistoryClear;
     }
     export class MessageActionGameScore extends VirtualClass<{
         gameId: long;
         score: int;
     }> {
-        className: "MessageActionGameScore";
+        className: "messageActionGameScore";
         static fromReader(reader: Reader): MessageActionGameScore;
         gameId: long;
         score: int;
@@ -1336,7 +1336,7 @@ export namespace Api {
         shippingOptionId?: string;
         charge: Api.TypePaymentCharge;
     }> {
-        className: "MessageActionPaymentSentMe";
+        className: "messageActionPaymentSentMe";
         static fromReader(reader: Reader): MessageActionPaymentSentMe;
         // flags: null;
         currency: string;
@@ -1350,7 +1350,7 @@ export namespace Api {
         currency: string;
         totalAmount: long;
     }> {
-        className: "MessageActionPaymentSent";
+        className: "messageActionPaymentSent";
         static fromReader(reader: Reader): MessageActionPaymentSent;
         currency: string;
         totalAmount: long;
@@ -1362,7 +1362,7 @@ export namespace Api {
         reason?: Api.TypePhoneCallDiscardReason;
         duration?: int;
     }> {
-        className: "MessageActionPhoneCall";
+        className: "messageActionPhoneCall";
         static fromReader(reader: Reader): MessageActionPhoneCall;
         // flags: null;
         video?: boolean;
@@ -1371,20 +1371,20 @@ export namespace Api {
         duration?: int;
     }
     export class MessageActionScreenshotTaken extends VirtualClass<void> {
-        className: "MessageActionScreenshotTaken";
+        className: "messageActionScreenshotTaken";
         static fromReader(reader: Reader): MessageActionScreenshotTaken;
     }
     export class MessageActionCustomAction extends VirtualClass<{
         message: string;
     }> {
-        className: "MessageActionCustomAction";
+        className: "messageActionCustomAction";
         static fromReader(reader: Reader): MessageActionCustomAction;
         message: string;
     }
     export class MessageActionBotAllowed extends VirtualClass<{
         domain: string;
     }> {
-        className: "MessageActionBotAllowed";
+        className: "messageActionBotAllowed";
         static fromReader(reader: Reader): MessageActionBotAllowed;
         domain: string;
     }
@@ -1392,7 +1392,7 @@ export namespace Api {
         values: Api.TypeSecureValue[];
         credentials: Api.TypeSecureCredentialsEncrypted;
     }> {
-        className: "MessageActionSecureValuesSentMe";
+        className: "messageActionSecureValuesSentMe";
         static fromReader(reader: Reader): MessageActionSecureValuesSentMe;
         values: Api.TypeSecureValue[];
         credentials: Api.TypeSecureCredentialsEncrypted;
@@ -1400,12 +1400,12 @@ export namespace Api {
     export class MessageActionSecureValuesSent extends VirtualClass<{
         types: Api.TypeSecureValueType[];
     }> {
-        className: "MessageActionSecureValuesSent";
+        className: "messageActionSecureValuesSent";
         static fromReader(reader: Reader): MessageActionSecureValuesSent;
         types: Api.TypeSecureValueType[];
     }
     export class MessageActionContactSignUp extends VirtualClass<void> {
-        className: "MessageActionContactSignUp";
+        className: "messageActionContactSignUp";
         static fromReader(reader: Reader): MessageActionContactSignUp;
     }
     export class MessageActionGeoProximityReached extends VirtualClass<{
@@ -1413,7 +1413,7 @@ export namespace Api {
         toId: Api.TypePeer;
         distance: int;
     }> {
-        className: "MessageActionGeoProximityReached";
+        className: "messageActionGeoProximityReached";
         static fromReader(reader: Reader): MessageActionGeoProximityReached;
         fromId: Api.TypePeer;
         toId: Api.TypePeer;
@@ -1424,7 +1424,7 @@ export namespace Api {
         call: Api.TypeInputGroupCall;
         duration?: int;
     }> {
-        className: "MessageActionGroupCall";
+        className: "messageActionGroupCall";
         static fromReader(reader: Reader): MessageActionGroupCall;
         // flags: null;
         call: Api.TypeInputGroupCall;
@@ -1434,7 +1434,7 @@ export namespace Api {
         call: Api.TypeInputGroupCall;
         users: int[];
     }> {
-        className: "MessageActionInviteToGroupCall";
+        className: "messageActionInviteToGroupCall";
         static fromReader(reader: Reader): MessageActionInviteToGroupCall;
         call: Api.TypeInputGroupCall;
         users: int[];
@@ -1442,7 +1442,7 @@ export namespace Api {
     export class MessageActionSetMessagesTTL extends VirtualClass<{
         period: int;
     }> {
-        className: "MessageActionSetMessagesTTL";
+        className: "messageActionSetMessagesTTL";
         static fromReader(reader: Reader): MessageActionSetMessagesTTL;
         period: int;
     }
@@ -1450,7 +1450,7 @@ export namespace Api {
         call: Api.TypeInputGroupCall;
         scheduleDate: int;
     }> {
-        className: "MessageActionGroupCallScheduled";
+        className: "messageActionGroupCallScheduled";
         static fromReader(reader: Reader): MessageActionGroupCallScheduled;
         call: Api.TypeInputGroupCall;
         scheduleDate: int;
@@ -1470,7 +1470,7 @@ export namespace Api {
         draft?: Api.TypeDraftMessage;
         folderId?: int;
     }> {
-        className: "Dialog";
+        className: "dialog";
         static fromReader(reader: Reader): Dialog;
         // flags: null;
         pinned?: boolean;
@@ -1497,7 +1497,7 @@ export namespace Api {
         unreadMutedMessagesCount: int;
         unreadUnmutedMessagesCount: int;
     }> {
-        className: "DialogFolder";
+        className: "dialogFolder";
         static fromReader(reader: Reader): DialogFolder;
         // flags: null;
         pinned?: boolean;
@@ -1512,7 +1512,7 @@ export namespace Api {
     export class PhotoEmpty extends VirtualClass<{
         id: long;
     }> {
-        className: "PhotoEmpty";
+        className: "photoEmpty";
         static fromReader(reader: Reader): PhotoEmpty;
         id: long;
     }
@@ -1527,7 +1527,7 @@ export namespace Api {
         videoSizes?: Api.TypeVideoSize[];
         dcId: int;
     }> {
-        className: "Photo";
+        className: "photo";
         static fromReader(reader: Reader): Photo;
         // flags: null;
         hasStickers?: boolean;
@@ -1542,7 +1542,7 @@ export namespace Api {
     export class PhotoSizeEmpty extends VirtualClass<{
         type: string;
     }> {
-        className: "PhotoSizeEmpty";
+        className: "photoSizeEmpty";
         static fromReader(reader: Reader): PhotoSizeEmpty;
         type: string;
     }
@@ -1552,7 +1552,7 @@ export namespace Api {
         h: int;
         size: int;
     }> {
-        className: "PhotoSize";
+        className: "photoSize";
         static fromReader(reader: Reader): PhotoSize;
         type: string;
         w: int;
@@ -1565,7 +1565,7 @@ export namespace Api {
         h: int;
         bytes: bytes;
     }> {
-        className: "PhotoCachedSize";
+        className: "photoCachedSize";
         static fromReader(reader: Reader): PhotoCachedSize;
         type: string;
         w: int;
@@ -1576,7 +1576,7 @@ export namespace Api {
         type: string;
         bytes: bytes;
     }> {
-        className: "PhotoStrippedSize";
+        className: "photoStrippedSize";
         static fromReader(reader: Reader): PhotoStrippedSize;
         type: string;
         bytes: bytes;
@@ -1587,7 +1587,7 @@ export namespace Api {
         h: int;
         sizes: int[];
     }> {
-        className: "PhotoSizeProgressive";
+        className: "photoSizeProgressive";
         static fromReader(reader: Reader): PhotoSizeProgressive;
         type: string;
         w: int;
@@ -1598,13 +1598,13 @@ export namespace Api {
         type: string;
         bytes: bytes;
     }> {
-        className: "PhotoPathSize";
+        className: "photoPathSize";
         static fromReader(reader: Reader): PhotoPathSize;
         type: string;
         bytes: bytes;
     }
     export class GeoPointEmpty extends VirtualClass<void> {
-        className: "GeoPointEmpty";
+        className: "geoPointEmpty";
         static fromReader(reader: Reader): GeoPointEmpty;
     }
     export class GeoPoint extends VirtualClass<{
@@ -1614,7 +1614,7 @@ export namespace Api {
         accessHash: long;
         accuracyRadius?: int;
     }> {
-        className: "GeoPoint";
+        className: "geoPoint";
         static fromReader(reader: Reader): GeoPoint;
         // flags: null;
         long: double;
@@ -1625,20 +1625,20 @@ export namespace Api {
     export class InputNotifyPeer extends VirtualClass<{
         peer: Api.TypeInputPeer;
     }> {
-        className: "InputNotifyPeer";
+        className: "inputNotifyPeer";
         static fromReader(reader: Reader): InputNotifyPeer;
         peer: Api.TypeInputPeer;
     }
     export class InputNotifyUsers extends VirtualClass<void> {
-        className: "InputNotifyUsers";
+        className: "inputNotifyUsers";
         static fromReader(reader: Reader): InputNotifyUsers;
     }
     export class InputNotifyChats extends VirtualClass<void> {
-        className: "InputNotifyChats";
+        className: "inputNotifyChats";
         static fromReader(reader: Reader): InputNotifyChats;
     }
     export class InputNotifyBroadcasts extends VirtualClass<void> {
-        className: "InputNotifyBroadcasts";
+        className: "inputNotifyBroadcasts";
         static fromReader(reader: Reader): InputNotifyBroadcasts;
     }
     export class InputPeerNotifySettings extends VirtualClass<{
@@ -1648,7 +1648,7 @@ export namespace Api {
         muteUntil?: int;
         sound?: string;
     }> {
-        className: "InputPeerNotifySettings";
+        className: "inputPeerNotifySettings";
         static fromReader(reader: Reader): InputPeerNotifySettings;
         // flags: null;
         showPreviews?: Bool;
@@ -1663,7 +1663,7 @@ export namespace Api {
         muteUntil?: int;
         sound?: string;
     }> {
-        className: "PeerNotifySettings";
+        className: "peerNotifySettings";
         static fromReader(reader: Reader): PeerNotifySettings;
         // flags: null;
         showPreviews?: Bool;
@@ -1683,7 +1683,7 @@ export namespace Api {
         inviteMembers?: boolean;
         geoDistance?: int;
     }> {
-        className: "PeerSettings";
+        className: "peerSettings";
         static fromReader(reader: Reader): PeerSettings;
         // flags: null;
         reportSpam?: boolean;
@@ -1708,7 +1708,7 @@ export namespace Api {
         document: Api.TypeDocument;
         settings?: Api.TypeWallPaperSettings;
     }> {
-        className: "WallPaper";
+        className: "wallPaper";
         static fromReader(reader: Reader): WallPaper;
         id: long;
         // flags: null;
@@ -1728,7 +1728,7 @@ export namespace Api {
         dark?: boolean;
         settings?: Api.TypeWallPaperSettings;
     }> {
-        className: "WallPaperNoFile";
+        className: "wallPaperNoFile";
         static fromReader(reader: Reader): WallPaperNoFile;
         id: long;
         // flags: null;
@@ -1737,35 +1737,35 @@ export namespace Api {
         settings?: Api.TypeWallPaperSettings;
     }
     export class InputReportReasonSpam extends VirtualClass<void> {
-        className: "InputReportReasonSpam";
+        className: "inputReportReasonSpam";
         static fromReader(reader: Reader): InputReportReasonSpam;
     }
     export class InputReportReasonViolence extends VirtualClass<void> {
-        className: "InputReportReasonViolence";
+        className: "inputReportReasonViolence";
         static fromReader(reader: Reader): InputReportReasonViolence;
     }
     export class InputReportReasonPornography extends VirtualClass<void> {
-        className: "InputReportReasonPornography";
+        className: "inputReportReasonPornography";
         static fromReader(reader: Reader): InputReportReasonPornography;
     }
     export class InputReportReasonChildAbuse extends VirtualClass<void> {
-        className: "InputReportReasonChildAbuse";
+        className: "inputReportReasonChildAbuse";
         static fromReader(reader: Reader): InputReportReasonChildAbuse;
     }
     export class InputReportReasonOther extends VirtualClass<void> {
-        className: "InputReportReasonOther";
+        className: "inputReportReasonOther";
         static fromReader(reader: Reader): InputReportReasonOther;
     }
     export class InputReportReasonCopyright extends VirtualClass<void> {
-        className: "InputReportReasonCopyright";
+        className: "inputReportReasonCopyright";
         static fromReader(reader: Reader): InputReportReasonCopyright;
     }
     export class InputReportReasonGeoIrrelevant extends VirtualClass<void> {
-        className: "InputReportReasonGeoIrrelevant";
+        className: "inputReportReasonGeoIrrelevant";
         static fromReader(reader: Reader): InputReportReasonGeoIrrelevant;
     }
     export class InputReportReasonFake extends VirtualClass<void> {
-        className: "InputReportReasonFake";
+        className: "inputReportReasonFake";
         static fromReader(reader: Reader): InputReportReasonFake;
     }
     export class UserFull extends VirtualClass<{
@@ -1787,7 +1787,7 @@ export namespace Api {
         folderId?: int;
         ttlPeriod?: int;
     }> {
-        className: "UserFull";
+        className: "userFull";
         static fromReader(reader: Reader): UserFull;
         // flags: null;
         blocked?: boolean;
@@ -1811,7 +1811,7 @@ export namespace Api {
         userId: int;
         mutual: Bool;
     }> {
-        className: "Contact";
+        className: "contact";
         static fromReader(reader: Reader): Contact;
         userId: int;
         mutual: Bool;
@@ -1820,7 +1820,7 @@ export namespace Api {
         userId: int;
         clientId: long;
     }> {
-        className: "ImportedContact";
+        className: "importedContact";
         static fromReader(reader: Reader): ImportedContact;
         userId: int;
         clientId: long;
@@ -1829,82 +1829,82 @@ export namespace Api {
         userId: int;
         status: Api.TypeUserStatus;
     }> {
-        className: "ContactStatus";
+        className: "contactStatus";
         static fromReader(reader: Reader): ContactStatus;
         userId: int;
         status: Api.TypeUserStatus;
     }
     export class InputMessagesFilterEmpty extends VirtualClass<void> {
-        className: "InputMessagesFilterEmpty";
+        className: "inputMessagesFilterEmpty";
         static fromReader(reader: Reader): InputMessagesFilterEmpty;
     }
     export class InputMessagesFilterPhotos extends VirtualClass<void> {
-        className: "InputMessagesFilterPhotos";
+        className: "inputMessagesFilterPhotos";
         static fromReader(reader: Reader): InputMessagesFilterPhotos;
     }
     export class InputMessagesFilterVideo extends VirtualClass<void> {
-        className: "InputMessagesFilterVideo";
+        className: "inputMessagesFilterVideo";
         static fromReader(reader: Reader): InputMessagesFilterVideo;
     }
     export class InputMessagesFilterPhotoVideo extends VirtualClass<void> {
-        className: "InputMessagesFilterPhotoVideo";
+        className: "inputMessagesFilterPhotoVideo";
         static fromReader(reader: Reader): InputMessagesFilterPhotoVideo;
     }
     export class InputMessagesFilterDocument extends VirtualClass<void> {
-        className: "InputMessagesFilterDocument";
+        className: "inputMessagesFilterDocument";
         static fromReader(reader: Reader): InputMessagesFilterDocument;
     }
     export class InputMessagesFilterUrl extends VirtualClass<void> {
-        className: "InputMessagesFilterUrl";
+        className: "inputMessagesFilterUrl";
         static fromReader(reader: Reader): InputMessagesFilterUrl;
     }
     export class InputMessagesFilterGif extends VirtualClass<void> {
-        className: "InputMessagesFilterGif";
+        className: "inputMessagesFilterGif";
         static fromReader(reader: Reader): InputMessagesFilterGif;
     }
     export class InputMessagesFilterVoice extends VirtualClass<void> {
-        className: "InputMessagesFilterVoice";
+        className: "inputMessagesFilterVoice";
         static fromReader(reader: Reader): InputMessagesFilterVoice;
     }
     export class InputMessagesFilterMusic extends VirtualClass<void> {
-        className: "InputMessagesFilterMusic";
+        className: "inputMessagesFilterMusic";
         static fromReader(reader: Reader): InputMessagesFilterMusic;
     }
     export class InputMessagesFilterChatPhotos extends VirtualClass<void> {
-        className: "InputMessagesFilterChatPhotos";
+        className: "inputMessagesFilterChatPhotos";
         static fromReader(reader: Reader): InputMessagesFilterChatPhotos;
     }
     export class InputMessagesFilterPhoneCalls extends VirtualClass<{
         // flags: null;
         missed?: boolean;
     }> {
-        className: "InputMessagesFilterPhoneCalls";
+        className: "inputMessagesFilterPhoneCalls";
         static fromReader(reader: Reader): InputMessagesFilterPhoneCalls;
         // flags: null;
         missed?: boolean;
     }
     export class InputMessagesFilterRoundVoice extends VirtualClass<void> {
-        className: "InputMessagesFilterRoundVoice";
+        className: "inputMessagesFilterRoundVoice";
         static fromReader(reader: Reader): InputMessagesFilterRoundVoice;
     }
     export class InputMessagesFilterRoundVideo extends VirtualClass<void> {
-        className: "InputMessagesFilterRoundVideo";
+        className: "inputMessagesFilterRoundVideo";
         static fromReader(reader: Reader): InputMessagesFilterRoundVideo;
     }
     export class InputMessagesFilterMyMentions extends VirtualClass<void> {
-        className: "InputMessagesFilterMyMentions";
+        className: "inputMessagesFilterMyMentions";
         static fromReader(reader: Reader): InputMessagesFilterMyMentions;
     }
     export class InputMessagesFilterGeo extends VirtualClass<void> {
-        className: "InputMessagesFilterGeo";
+        className: "inputMessagesFilterGeo";
         static fromReader(reader: Reader): InputMessagesFilterGeo;
     }
     export class InputMessagesFilterContacts extends VirtualClass<void> {
-        className: "InputMessagesFilterContacts";
+        className: "inputMessagesFilterContacts";
         static fromReader(reader: Reader): InputMessagesFilterContacts;
     }
     export class InputMessagesFilterPinned extends VirtualClass<void> {
-        className: "InputMessagesFilterPinned";
+        className: "inputMessagesFilterPinned";
         static fromReader(reader: Reader): InputMessagesFilterPinned;
     }
     export class UpdateNewMessage extends VirtualClass<{
@@ -1912,7 +1912,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateNewMessage";
+        className: "updateNewMessage";
         static fromReader(reader: Reader): UpdateNewMessage;
         message: Api.TypeMessage;
         pts: int;
@@ -1922,7 +1922,7 @@ export namespace Api {
         id: int;
         randomId: long;
     }> {
-        className: "UpdateMessageID";
+        className: "updateMessageID";
         static fromReader(reader: Reader): UpdateMessageID;
         id: int;
         randomId: long;
@@ -1932,7 +1932,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateDeleteMessages";
+        className: "updateDeleteMessages";
         static fromReader(reader: Reader): UpdateDeleteMessages;
         messages: int[];
         pts: int;
@@ -1942,7 +1942,7 @@ export namespace Api {
         userId: int;
         action: Api.TypeSendMessageAction;
     }> {
-        className: "UpdateUserTyping";
+        className: "updateUserTyping";
         static fromReader(reader: Reader): UpdateUserTyping;
         userId: int;
         action: Api.TypeSendMessageAction;
@@ -1952,7 +1952,7 @@ export namespace Api {
         fromId: Api.TypePeer;
         action: Api.TypeSendMessageAction;
     }> {
-        className: "UpdateChatUserTyping";
+        className: "updateChatUserTyping";
         static fromReader(reader: Reader): UpdateChatUserTyping;
         chatId: int;
         fromId: Api.TypePeer;
@@ -1961,7 +1961,7 @@ export namespace Api {
     export class UpdateChatParticipants extends VirtualClass<{
         participants: Api.TypeChatParticipants;
     }> {
-        className: "UpdateChatParticipants";
+        className: "updateChatParticipants";
         static fromReader(reader: Reader): UpdateChatParticipants;
         participants: Api.TypeChatParticipants;
     }
@@ -1969,7 +1969,7 @@ export namespace Api {
         userId: int;
         status: Api.TypeUserStatus;
     }> {
-        className: "UpdateUserStatus";
+        className: "updateUserStatus";
         static fromReader(reader: Reader): UpdateUserStatus;
         userId: int;
         status: Api.TypeUserStatus;
@@ -1980,7 +1980,7 @@ export namespace Api {
         lastName: string;
         username: string;
     }> {
-        className: "UpdateUserName";
+        className: "updateUserName";
         static fromReader(reader: Reader): UpdateUserName;
         userId: int;
         firstName: string;
@@ -1993,7 +1993,7 @@ export namespace Api {
         photo: Api.TypeUserProfilePhoto;
         previous: Bool;
     }> {
-        className: "UpdateUserPhoto";
+        className: "updateUserPhoto";
         static fromReader(reader: Reader): UpdateUserPhoto;
         userId: int;
         date: int;
@@ -2004,7 +2004,7 @@ export namespace Api {
         message: Api.TypeEncryptedMessage;
         qts: int;
     }> {
-        className: "UpdateNewEncryptedMessage";
+        className: "updateNewEncryptedMessage";
         static fromReader(reader: Reader): UpdateNewEncryptedMessage;
         message: Api.TypeEncryptedMessage;
         qts: int;
@@ -2012,7 +2012,7 @@ export namespace Api {
     export class UpdateEncryptedChatTyping extends VirtualClass<{
         chatId: int;
     }> {
-        className: "UpdateEncryptedChatTyping";
+        className: "updateEncryptedChatTyping";
         static fromReader(reader: Reader): UpdateEncryptedChatTyping;
         chatId: int;
     }
@@ -2020,7 +2020,7 @@ export namespace Api {
         chat: Api.TypeEncryptedChat;
         date: int;
     }> {
-        className: "UpdateEncryption";
+        className: "updateEncryption";
         static fromReader(reader: Reader): UpdateEncryption;
         chat: Api.TypeEncryptedChat;
         date: int;
@@ -2030,7 +2030,7 @@ export namespace Api {
         maxDate: int;
         date: int;
     }> {
-        className: "UpdateEncryptedMessagesRead";
+        className: "updateEncryptedMessagesRead";
         static fromReader(reader: Reader): UpdateEncryptedMessagesRead;
         chatId: int;
         maxDate: int;
@@ -2043,7 +2043,7 @@ export namespace Api {
         date: int;
         version: int;
     }> {
-        className: "UpdateChatParticipantAdd";
+        className: "updateChatParticipantAdd";
         static fromReader(reader: Reader): UpdateChatParticipantAdd;
         chatId: int;
         userId: int;
@@ -2056,7 +2056,7 @@ export namespace Api {
         userId: int;
         version: int;
     }> {
-        className: "UpdateChatParticipantDelete";
+        className: "updateChatParticipantDelete";
         static fromReader(reader: Reader): UpdateChatParticipantDelete;
         chatId: int;
         userId: int;
@@ -2065,7 +2065,7 @@ export namespace Api {
     export class UpdateDcOptions extends VirtualClass<{
         dcOptions: Api.TypeDcOption[];
     }> {
-        className: "UpdateDcOptions";
+        className: "updateDcOptions";
         static fromReader(reader: Reader): UpdateDcOptions;
         dcOptions: Api.TypeDcOption[];
     }
@@ -2073,7 +2073,7 @@ export namespace Api {
         peer: Api.TypeNotifyPeer;
         notifySettings: Api.TypePeerNotifySettings;
     }> {
-        className: "UpdateNotifySettings";
+        className: "updateNotifySettings";
         static fromReader(reader: Reader): UpdateNotifySettings;
         peer: Api.TypeNotifyPeer;
         notifySettings: Api.TypePeerNotifySettings;
@@ -2087,7 +2087,7 @@ export namespace Api {
         media: Api.TypeMessageMedia;
         entities: Api.TypeMessageEntity[];
     }> {
-        className: "UpdateServiceNotification";
+        className: "updateServiceNotification";
         static fromReader(reader: Reader): UpdateServiceNotification;
         // flags: null;
         popup?: boolean;
@@ -2101,7 +2101,7 @@ export namespace Api {
         key: Api.TypePrivacyKey;
         rules: Api.TypePrivacyRule[];
     }> {
-        className: "UpdatePrivacy";
+        className: "updatePrivacy";
         static fromReader(reader: Reader): UpdatePrivacy;
         key: Api.TypePrivacyKey;
         rules: Api.TypePrivacyRule[];
@@ -2110,7 +2110,7 @@ export namespace Api {
         userId: int;
         phone: string;
     }> {
-        className: "UpdateUserPhone";
+        className: "updateUserPhone";
         static fromReader(reader: Reader): UpdateUserPhone;
         userId: int;
         phone: string;
@@ -2124,7 +2124,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateReadHistoryInbox";
+        className: "updateReadHistoryInbox";
         static fromReader(reader: Reader): UpdateReadHistoryInbox;
         // flags: null;
         folderId?: int;
@@ -2140,7 +2140,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateReadHistoryOutbox";
+        className: "updateReadHistoryOutbox";
         static fromReader(reader: Reader): UpdateReadHistoryOutbox;
         peer: Api.TypePeer;
         maxId: int;
@@ -2152,7 +2152,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateWebPage";
+        className: "updateWebPage";
         static fromReader(reader: Reader): UpdateWebPage;
         webpage: Api.TypeWebPage;
         pts: int;
@@ -2163,7 +2163,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateReadMessagesContents";
+        className: "updateReadMessagesContents";
         static fromReader(reader: Reader): UpdateReadMessagesContents;
         messages: int[];
         pts: int;
@@ -2174,7 +2174,7 @@ export namespace Api {
         channelId: int;
         pts?: int;
     }> {
-        className: "UpdateChannelTooLong";
+        className: "updateChannelTooLong";
         static fromReader(reader: Reader): UpdateChannelTooLong;
         // flags: null;
         channelId: int;
@@ -2183,7 +2183,7 @@ export namespace Api {
     export class UpdateChannel extends VirtualClass<{
         channelId: int;
     }> {
-        className: "UpdateChannel";
+        className: "updateChannel";
         static fromReader(reader: Reader): UpdateChannel;
         channelId: int;
     }
@@ -2192,7 +2192,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateNewChannelMessage";
+        className: "updateNewChannelMessage";
         static fromReader(reader: Reader): UpdateNewChannelMessage;
         message: Api.TypeMessage;
         pts: int;
@@ -2206,7 +2206,7 @@ export namespace Api {
         stillUnreadCount: int;
         pts: int;
     }> {
-        className: "UpdateReadChannelInbox";
+        className: "updateReadChannelInbox";
         static fromReader(reader: Reader): UpdateReadChannelInbox;
         // flags: null;
         folderId?: int;
@@ -2221,7 +2221,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateDeleteChannelMessages";
+        className: "updateDeleteChannelMessages";
         static fromReader(reader: Reader): UpdateDeleteChannelMessages;
         channelId: int;
         messages: int[];
@@ -2233,7 +2233,7 @@ export namespace Api {
         id: int;
         views: int;
     }> {
-        className: "UpdateChannelMessageViews";
+        className: "updateChannelMessageViews";
         static fromReader(reader: Reader): UpdateChannelMessageViews;
         channelId: int;
         id: int;
@@ -2245,7 +2245,7 @@ export namespace Api {
         isAdmin: Bool;
         version: int;
     }> {
-        className: "UpdateChatParticipantAdmin";
+        className: "updateChatParticipantAdmin";
         static fromReader(reader: Reader): UpdateChatParticipantAdmin;
         chatId: int;
         userId: int;
@@ -2255,7 +2255,7 @@ export namespace Api {
     export class UpdateNewStickerSet extends VirtualClass<{
         stickerset: messages.TypeStickerSet;
     }> {
-        className: "UpdateNewStickerSet";
+        className: "updateNewStickerSet";
         static fromReader(reader: Reader): UpdateNewStickerSet;
         stickerset: messages.TypeStickerSet;
     }
@@ -2264,18 +2264,18 @@ export namespace Api {
         masks?: boolean;
         order: long[];
     }> {
-        className: "UpdateStickerSetsOrder";
+        className: "updateStickerSetsOrder";
         static fromReader(reader: Reader): UpdateStickerSetsOrder;
         // flags: null;
         masks?: boolean;
         order: long[];
     }
     export class UpdateStickerSets extends VirtualClass<void> {
-        className: "UpdateStickerSets";
+        className: "updateStickerSets";
         static fromReader(reader: Reader): UpdateStickerSets;
     }
     export class UpdateSavedGifs extends VirtualClass<void> {
-        className: "UpdateSavedGifs";
+        className: "updateSavedGifs";
         static fromReader(reader: Reader): UpdateSavedGifs;
     }
     export class UpdateBotInlineQuery extends VirtualClass<{
@@ -2287,7 +2287,7 @@ export namespace Api {
         peerType?: Api.TypeInlineQueryPeerType;
         offset: string;
     }> {
-        className: "UpdateBotInlineQuery";
+        className: "updateBotInlineQuery";
         static fromReader(reader: Reader): UpdateBotInlineQuery;
         // flags: null;
         queryId: long;
@@ -2305,7 +2305,7 @@ export namespace Api {
         id: string;
         msgId?: Api.TypeInputBotInlineMessageID;
     }> {
-        className: "UpdateBotInlineSend";
+        className: "updateBotInlineSend";
         static fromReader(reader: Reader): UpdateBotInlineSend;
         // flags: null;
         userId: int;
@@ -2319,7 +2319,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateEditChannelMessage";
+        className: "updateEditChannelMessage";
         static fromReader(reader: Reader): UpdateEditChannelMessage;
         message: Api.TypeMessage;
         pts: int;
@@ -2335,7 +2335,7 @@ export namespace Api {
         data?: bytes;
         gameShortName?: string;
     }> {
-        className: "UpdateBotCallbackQuery";
+        className: "updateBotCallbackQuery";
         static fromReader(reader: Reader): UpdateBotCallbackQuery;
         // flags: null;
         queryId: long;
@@ -2351,7 +2351,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateEditMessage";
+        className: "updateEditMessage";
         static fromReader(reader: Reader): UpdateEditMessage;
         message: Api.TypeMessage;
         pts: int;
@@ -2366,7 +2366,7 @@ export namespace Api {
         data?: bytes;
         gameShortName?: string;
     }> {
-        className: "UpdateInlineBotCallbackQuery";
+        className: "updateInlineBotCallbackQuery";
         static fromReader(reader: Reader): UpdateInlineBotCallbackQuery;
         // flags: null;
         queryId: long;
@@ -2380,7 +2380,7 @@ export namespace Api {
         channelId: int;
         maxId: int;
     }> {
-        className: "UpdateReadChannelOutbox";
+        className: "updateReadChannelOutbox";
         static fromReader(reader: Reader): UpdateReadChannelOutbox;
         channelId: int;
         maxId: int;
@@ -2389,25 +2389,25 @@ export namespace Api {
         peer: Api.TypePeer;
         draft: Api.TypeDraftMessage;
     }> {
-        className: "UpdateDraftMessage";
+        className: "updateDraftMessage";
         static fromReader(reader: Reader): UpdateDraftMessage;
         peer: Api.TypePeer;
         draft: Api.TypeDraftMessage;
     }
     export class UpdateReadFeaturedStickers extends VirtualClass<void> {
-        className: "UpdateReadFeaturedStickers";
+        className: "updateReadFeaturedStickers";
         static fromReader(reader: Reader): UpdateReadFeaturedStickers;
     }
     export class UpdateRecentStickers extends VirtualClass<void> {
-        className: "UpdateRecentStickers";
+        className: "updateRecentStickers";
         static fromReader(reader: Reader): UpdateRecentStickers;
     }
     export class UpdateConfig extends VirtualClass<void> {
-        className: "UpdateConfig";
+        className: "updateConfig";
         static fromReader(reader: Reader): UpdateConfig;
     }
     export class UpdatePtsChanged extends VirtualClass<void> {
-        className: "UpdatePtsChanged";
+        className: "updatePtsChanged";
         static fromReader(reader: Reader): UpdatePtsChanged;
     }
     export class UpdateChannelWebPage extends VirtualClass<{
@@ -2416,7 +2416,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateChannelWebPage";
+        className: "updateChannelWebPage";
         static fromReader(reader: Reader): UpdateChannelWebPage;
         channelId: int;
         webpage: Api.TypeWebPage;
@@ -2429,7 +2429,7 @@ export namespace Api {
         folderId?: int;
         peer: Api.TypeDialogPeer;
     }> {
-        className: "UpdateDialogPinned";
+        className: "updateDialogPinned";
         static fromReader(reader: Reader): UpdateDialogPinned;
         // flags: null;
         pinned?: boolean;
@@ -2441,7 +2441,7 @@ export namespace Api {
         folderId?: int;
         order?: Api.TypeDialogPeer[];
     }> {
-        className: "UpdatePinnedDialogs";
+        className: "updatePinnedDialogs";
         static fromReader(reader: Reader): UpdatePinnedDialogs;
         // flags: null;
         folderId?: int;
@@ -2450,7 +2450,7 @@ export namespace Api {
     export class UpdateBotWebhookJSON extends VirtualClass<{
         data: Api.TypeDataJSON;
     }> {
-        className: "UpdateBotWebhookJSON";
+        className: "updateBotWebhookJSON";
         static fromReader(reader: Reader): UpdateBotWebhookJSON;
         data: Api.TypeDataJSON;
     }
@@ -2459,7 +2459,7 @@ export namespace Api {
         data: Api.TypeDataJSON;
         timeout: int;
     }> {
-        className: "UpdateBotWebhookJSONQuery";
+        className: "updateBotWebhookJSONQuery";
         static fromReader(reader: Reader): UpdateBotWebhookJSONQuery;
         queryId: long;
         data: Api.TypeDataJSON;
@@ -2471,7 +2471,7 @@ export namespace Api {
         payload: bytes;
         shippingAddress: Api.TypePostAddress;
     }> {
-        className: "UpdateBotShippingQuery";
+        className: "updateBotShippingQuery";
         static fromReader(reader: Reader): UpdateBotShippingQuery;
         queryId: long;
         userId: int;
@@ -2488,7 +2488,7 @@ export namespace Api {
         currency: string;
         totalAmount: long;
     }> {
-        className: "UpdateBotPrecheckoutQuery";
+        className: "updateBotPrecheckoutQuery";
         static fromReader(reader: Reader): UpdateBotPrecheckoutQuery;
         // flags: null;
         queryId: long;
@@ -2502,46 +2502,46 @@ export namespace Api {
     export class UpdatePhoneCall extends VirtualClass<{
         phoneCall: Api.TypePhoneCall;
     }> {
-        className: "UpdatePhoneCall";
+        className: "updatePhoneCall";
         static fromReader(reader: Reader): UpdatePhoneCall;
         phoneCall: Api.TypePhoneCall;
     }
     export class UpdateLangPackTooLong extends VirtualClass<{
         langCode: string;
     }> {
-        className: "UpdateLangPackTooLong";
+        className: "updateLangPackTooLong";
         static fromReader(reader: Reader): UpdateLangPackTooLong;
         langCode: string;
     }
     export class UpdateLangPack extends VirtualClass<{
         difference: Api.TypeLangPackDifference;
     }> {
-        className: "UpdateLangPack";
+        className: "updateLangPack";
         static fromReader(reader: Reader): UpdateLangPack;
         difference: Api.TypeLangPackDifference;
     }
     export class UpdateFavedStickers extends VirtualClass<void> {
-        className: "UpdateFavedStickers";
+        className: "updateFavedStickers";
         static fromReader(reader: Reader): UpdateFavedStickers;
     }
     export class UpdateChannelReadMessagesContents extends VirtualClass<{
         channelId: int;
         messages: int[];
     }> {
-        className: "UpdateChannelReadMessagesContents";
+        className: "updateChannelReadMessagesContents";
         static fromReader(reader: Reader): UpdateChannelReadMessagesContents;
         channelId: int;
         messages: int[];
     }
     export class UpdateContactsReset extends VirtualClass<void> {
-        className: "UpdateContactsReset";
+        className: "updateContactsReset";
         static fromReader(reader: Reader): UpdateContactsReset;
     }
     export class UpdateChannelAvailableMessages extends VirtualClass<{
         channelId: int;
         availableMinId: int;
     }> {
-        className: "UpdateChannelAvailableMessages";
+        className: "updateChannelAvailableMessages";
         static fromReader(reader: Reader): UpdateChannelAvailableMessages;
         channelId: int;
         availableMinId: int;
@@ -2551,7 +2551,7 @@ export namespace Api {
         unread?: boolean;
         peer: Api.TypeDialogPeer;
     }> {
-        className: "UpdateDialogUnreadMark";
+        className: "updateDialogUnreadMark";
         static fromReader(reader: Reader): UpdateDialogUnreadMark;
         // flags: null;
         unread?: boolean;
@@ -2563,7 +2563,7 @@ export namespace Api {
         poll?: Api.TypePoll;
         results: Api.TypePollResults;
     }> {
-        className: "UpdateMessagePoll";
+        className: "updateMessagePoll";
         static fromReader(reader: Reader): UpdateMessagePoll;
         // flags: null;
         pollId: long;
@@ -2575,7 +2575,7 @@ export namespace Api {
         defaultBannedRights: Api.TypeChatBannedRights;
         version: int;
     }> {
-        className: "UpdateChatDefaultBannedRights";
+        className: "updateChatDefaultBannedRights";
         static fromReader(reader: Reader): UpdateChatDefaultBannedRights;
         peer: Api.TypePeer;
         defaultBannedRights: Api.TypeChatBannedRights;
@@ -2586,7 +2586,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdateFolderPeers";
+        className: "updateFolderPeers";
         static fromReader(reader: Reader): UpdateFolderPeers;
         folderPeers: Api.TypeFolderPeer[];
         pts: int;
@@ -2596,7 +2596,7 @@ export namespace Api {
         peer: Api.TypePeer;
         settings: Api.TypePeerSettings;
     }> {
-        className: "UpdatePeerSettings";
+        className: "updatePeerSettings";
         static fromReader(reader: Reader): UpdatePeerSettings;
         peer: Api.TypePeer;
         settings: Api.TypePeerSettings;
@@ -2604,14 +2604,14 @@ export namespace Api {
     export class UpdatePeerLocated extends VirtualClass<{
         peers: Api.TypePeerLocated[];
     }> {
-        className: "UpdatePeerLocated";
+        className: "updatePeerLocated";
         static fromReader(reader: Reader): UpdatePeerLocated;
         peers: Api.TypePeerLocated[];
     }
     export class UpdateNewScheduledMessage extends VirtualClass<{
         message: Api.TypeMessage;
     }> {
-        className: "UpdateNewScheduledMessage";
+        className: "updateNewScheduledMessage";
         static fromReader(reader: Reader): UpdateNewScheduledMessage;
         message: Api.TypeMessage;
     }
@@ -2619,7 +2619,7 @@ export namespace Api {
         peer: Api.TypePeer;
         messages: int[];
     }> {
-        className: "UpdateDeleteScheduledMessages";
+        className: "updateDeleteScheduledMessages";
         static fromReader(reader: Reader): UpdateDeleteScheduledMessages;
         peer: Api.TypePeer;
         messages: int[];
@@ -2627,7 +2627,7 @@ export namespace Api {
     export class UpdateTheme extends VirtualClass<{
         theme: Api.TypeTheme;
     }> {
-        className: "UpdateTheme";
+        className: "updateTheme";
         static fromReader(reader: Reader): UpdateTheme;
         theme: Api.TypeTheme;
     }
@@ -2635,13 +2635,13 @@ export namespace Api {
         peer: Api.TypePeer;
         msgId: int;
     }> {
-        className: "UpdateGeoLiveViewed";
+        className: "updateGeoLiveViewed";
         static fromReader(reader: Reader): UpdateGeoLiveViewed;
         peer: Api.TypePeer;
         msgId: int;
     }
     export class UpdateLoginToken extends VirtualClass<void> {
-        className: "UpdateLoginToken";
+        className: "updateLoginToken";
         static fromReader(reader: Reader): UpdateLoginToken;
     }
     export class UpdateMessagePollVote extends VirtualClass<{
@@ -2650,7 +2650,7 @@ export namespace Api {
         options: bytes[];
         qts: int;
     }> {
-        className: "UpdateMessagePollVote";
+        className: "updateMessagePollVote";
         static fromReader(reader: Reader): UpdateMessagePollVote;
         pollId: long;
         userId: int;
@@ -2662,7 +2662,7 @@ export namespace Api {
         id: int;
         filter?: Api.TypeDialogFilter;
     }> {
-        className: "UpdateDialogFilter";
+        className: "updateDialogFilter";
         static fromReader(reader: Reader): UpdateDialogFilter;
         // flags: null;
         id: int;
@@ -2671,19 +2671,19 @@ export namespace Api {
     export class UpdateDialogFilterOrder extends VirtualClass<{
         order: int[];
     }> {
-        className: "UpdateDialogFilterOrder";
+        className: "updateDialogFilterOrder";
         static fromReader(reader: Reader): UpdateDialogFilterOrder;
         order: int[];
     }
     export class UpdateDialogFilters extends VirtualClass<void> {
-        className: "UpdateDialogFilters";
+        className: "updateDialogFilters";
         static fromReader(reader: Reader): UpdateDialogFilters;
     }
     export class UpdatePhoneCallSignalingData extends VirtualClass<{
         phoneCallId: long;
         data: bytes;
     }> {
-        className: "UpdatePhoneCallSignalingData";
+        className: "updatePhoneCallSignalingData";
         static fromReader(reader: Reader): UpdatePhoneCallSignalingData;
         phoneCallId: long;
         data: bytes;
@@ -2693,7 +2693,7 @@ export namespace Api {
         id: int;
         forwards: int;
     }> {
-        className: "UpdateChannelMessageForwards";
+        className: "updateChannelMessageForwards";
         static fromReader(reader: Reader): UpdateChannelMessageForwards;
         channelId: int;
         id: int;
@@ -2707,7 +2707,7 @@ export namespace Api {
         broadcastId?: int;
         broadcastPost?: int;
     }> {
-        className: "UpdateReadChannelDiscussionInbox";
+        className: "updateReadChannelDiscussionInbox";
         static fromReader(reader: Reader): UpdateReadChannelDiscussionInbox;
         // flags: null;
         channelId: int;
@@ -2721,7 +2721,7 @@ export namespace Api {
         topMsgId: int;
         readMaxId: int;
     }> {
-        className: "UpdateReadChannelDiscussionOutbox";
+        className: "updateReadChannelDiscussionOutbox";
         static fromReader(reader: Reader): UpdateReadChannelDiscussionOutbox;
         channelId: int;
         topMsgId: int;
@@ -2731,7 +2731,7 @@ export namespace Api {
         peerId: Api.TypePeer;
         blocked: Bool;
     }> {
-        className: "UpdatePeerBlocked";
+        className: "updatePeerBlocked";
         static fromReader(reader: Reader): UpdatePeerBlocked;
         peerId: Api.TypePeer;
         blocked: Bool;
@@ -2743,7 +2743,7 @@ export namespace Api {
         fromId: Api.TypePeer;
         action: Api.TypeSendMessageAction;
     }> {
-        className: "UpdateChannelUserTyping";
+        className: "updateChannelUserTyping";
         static fromReader(reader: Reader): UpdateChannelUserTyping;
         // flags: null;
         channelId: int;
@@ -2759,7 +2759,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdatePinnedMessages";
+        className: "updatePinnedMessages";
         static fromReader(reader: Reader): UpdatePinnedMessages;
         // flags: null;
         pinned?: boolean;
@@ -2776,7 +2776,7 @@ export namespace Api {
         pts: int;
         ptsCount: int;
     }> {
-        className: "UpdatePinnedChannelMessages";
+        className: "updatePinnedChannelMessages";
         static fromReader(reader: Reader): UpdatePinnedChannelMessages;
         // flags: null;
         pinned?: boolean;
@@ -2788,7 +2788,7 @@ export namespace Api {
     export class UpdateChat extends VirtualClass<{
         chatId: int;
     }> {
-        className: "UpdateChat";
+        className: "updateChat";
         static fromReader(reader: Reader): UpdateChat;
         chatId: int;
     }
@@ -2797,7 +2797,7 @@ export namespace Api {
         participants: Api.TypeGroupCallParticipant[];
         version: int;
     }> {
-        className: "UpdateGroupCallParticipants";
+        className: "updateGroupCallParticipants";
         static fromReader(reader: Reader): UpdateGroupCallParticipants;
         call: Api.TypeInputGroupCall;
         participants: Api.TypeGroupCallParticipant[];
@@ -2807,7 +2807,7 @@ export namespace Api {
         chatId: int;
         call: Api.TypeGroupCall;
     }> {
-        className: "UpdateGroupCall";
+        className: "updateGroupCall";
         static fromReader(reader: Reader): UpdateGroupCall;
         chatId: int;
         call: Api.TypeGroupCall;
@@ -2817,7 +2817,7 @@ export namespace Api {
         peer: Api.TypePeer;
         ttlPeriod?: int;
     }> {
-        className: "UpdatePeerHistoryTTL";
+        className: "updatePeerHistoryTTL";
         static fromReader(reader: Reader): UpdatePeerHistoryTTL;
         // flags: null;
         peer: Api.TypePeer;
@@ -2834,7 +2834,7 @@ export namespace Api {
         invite?: Api.TypeExportedChatInvite;
         qts: int;
     }> {
-        className: "UpdateChatParticipant";
+        className: "updateChatParticipant";
         static fromReader(reader: Reader): UpdateChatParticipant;
         // flags: null;
         chatId: int;
@@ -2857,7 +2857,7 @@ export namespace Api {
         invite?: Api.TypeExportedChatInvite;
         qts: int;
     }> {
-        className: "UpdateChannelParticipant";
+        className: "updateChannelParticipant";
         static fromReader(reader: Reader): UpdateChannelParticipant;
         // flags: null;
         channelId: int;
@@ -2875,7 +2875,7 @@ export namespace Api {
         stopped: Bool;
         qts: int;
     }> {
-        className: "UpdateBotStopped";
+        className: "updateBotStopped";
         static fromReader(reader: Reader): UpdateBotStopped;
         userId: int;
         date: int;
@@ -2887,7 +2887,7 @@ export namespace Api {
         presentation?: boolean;
         params: Api.TypeDataJSON;
     }> {
-        className: "UpdateGroupCallConnection";
+        className: "updateGroupCallConnection";
         static fromReader(reader: Reader): UpdateGroupCallConnection;
         // flags: null;
         presentation?: boolean;
@@ -2898,14 +2898,14 @@ export namespace Api {
         botId: int;
         commands: Api.TypeBotCommand[];
     }> {
-        className: "UpdateBotCommands";
+        className: "updateBotCommands";
         static fromReader(reader: Reader): UpdateBotCommands;
         peer: Api.TypePeer;
         botId: int;
         commands: Api.TypeBotCommand[];
     }
     export class UpdatesTooLong extends VirtualClass<void> {
-        className: "UpdatesTooLong";
+        className: "updatesTooLong";
         static fromReader(reader: Reader): UpdatesTooLong;
     }
     export class UpdateShortMessage extends VirtualClass<{
@@ -2926,7 +2926,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         ttlPeriod?: int;
     }> {
-        className: "UpdateShortMessage";
+        className: "updateShortMessage";
         static fromReader(reader: Reader): UpdateShortMessage;
         // flags: null;
         out?: boolean;
@@ -2964,7 +2964,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         ttlPeriod?: int;
     }> {
-        className: "UpdateShortChatMessage";
+        className: "updateShortChatMessage";
         static fromReader(reader: Reader): UpdateShortChatMessage;
         // flags: null;
         out?: boolean;
@@ -2988,7 +2988,7 @@ export namespace Api {
         update: Api.TypeUpdate;
         date: int;
     }> {
-        className: "UpdateShort";
+        className: "updateShort";
         static fromReader(reader: Reader): UpdateShort;
         update: Api.TypeUpdate;
         date: int;
@@ -3001,7 +3001,7 @@ export namespace Api {
         seqStart: int;
         seq: int;
     }> {
-        className: "UpdatesCombined";
+        className: "updatesCombined";
         static fromReader(reader: Reader): UpdatesCombined;
         updates: Api.TypeUpdate[];
         users: Api.TypeUser[];
@@ -3017,7 +3017,7 @@ export namespace Api {
         date: int;
         seq: int;
     }> {
-        className: "Updates";
+        className: "updates";
         static fromReader(reader: Reader): Updates;
         updates: Api.TypeUpdate[];
         users: Api.TypeUser[];
@@ -3036,7 +3036,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         ttlPeriod?: int;
     }> {
-        className: "UpdateShortSentMessage";
+        className: "updateShortSentMessage";
         static fromReader(reader: Reader): UpdateShortSentMessage;
         // flags: null;
         out?: boolean;
@@ -3060,7 +3060,7 @@ export namespace Api {
         port: int;
         secret?: bytes;
     }> {
-        className: "DcOption";
+        className: "dcOption";
         static fromReader(reader: Reader): DcOption;
         // flags: null;
         ipv6?: boolean;
@@ -3127,7 +3127,7 @@ export namespace Api {
         langPackVersion?: int;
         baseLangPackVersion?: int;
     }> {
-        className: "Config";
+        className: "config";
         static fromReader(reader: Reader): Config;
         // flags: null;
         phonecallsEnabled?: boolean;
@@ -3187,7 +3187,7 @@ export namespace Api {
         thisDc: int;
         nearestDc: int;
     }> {
-        className: "NearestDc";
+        className: "nearestDc";
         static fromReader(reader: Reader): NearestDc;
         country: string;
         thisDc: int;
@@ -3196,7 +3196,7 @@ export namespace Api {
     export class EncryptedChatEmpty extends VirtualClass<{
         id: int;
     }> {
-        className: "EncryptedChatEmpty";
+        className: "encryptedChatEmpty";
         static fromReader(reader: Reader): EncryptedChatEmpty;
         id: int;
     }
@@ -3207,7 +3207,7 @@ export namespace Api {
         adminId: int;
         participantId: int;
     }> {
-        className: "EncryptedChatWaiting";
+        className: "encryptedChatWaiting";
         static fromReader(reader: Reader): EncryptedChatWaiting;
         id: int;
         accessHash: long;
@@ -3225,7 +3225,7 @@ export namespace Api {
         participantId: int;
         gA: bytes;
     }> {
-        className: "EncryptedChatRequested";
+        className: "encryptedChatRequested";
         static fromReader(reader: Reader): EncryptedChatRequested;
         // flags: null;
         folderId?: int;
@@ -3245,7 +3245,7 @@ export namespace Api {
         gAOrB: bytes;
         keyFingerprint: long;
     }> {
-        className: "EncryptedChat";
+        className: "encryptedChat";
         static fromReader(reader: Reader): EncryptedChat;
         id: int;
         accessHash: long;
@@ -3260,7 +3260,7 @@ export namespace Api {
         historyDeleted?: boolean;
         id: int;
     }> {
-        className: "EncryptedChatDiscarded";
+        className: "encryptedChatDiscarded";
         static fromReader(reader: Reader): EncryptedChatDiscarded;
         // flags: null;
         historyDeleted?: boolean;
@@ -3270,13 +3270,13 @@ export namespace Api {
         chatId: int;
         accessHash: long;
     }> {
-        className: "InputEncryptedChat";
+        className: "inputEncryptedChat";
         static fromReader(reader: Reader): InputEncryptedChat;
         chatId: int;
         accessHash: long;
     }
     export class EncryptedFileEmpty extends VirtualClass<void> {
-        className: "EncryptedFileEmpty";
+        className: "encryptedFileEmpty";
         static fromReader(reader: Reader): EncryptedFileEmpty;
     }
     export class EncryptedFile extends VirtualClass<{
@@ -3286,7 +3286,7 @@ export namespace Api {
         dcId: int;
         keyFingerprint: int;
     }> {
-        className: "EncryptedFile";
+        className: "encryptedFile";
         static fromReader(reader: Reader): EncryptedFile;
         id: long;
         accessHash: long;
@@ -3295,7 +3295,7 @@ export namespace Api {
         keyFingerprint: int;
     }
     export class InputEncryptedFileEmpty extends VirtualClass<void> {
-        className: "InputEncryptedFileEmpty";
+        className: "inputEncryptedFileEmpty";
         static fromReader(reader: Reader): InputEncryptedFileEmpty;
     }
     export class InputEncryptedFileUploaded extends VirtualClass<{
@@ -3304,7 +3304,7 @@ export namespace Api {
         md5Checksum: string;
         keyFingerprint: int;
     }> {
-        className: "InputEncryptedFileUploaded";
+        className: "inputEncryptedFileUploaded";
         static fromReader(reader: Reader): InputEncryptedFileUploaded;
         id: long;
         parts: int;
@@ -3315,7 +3315,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputEncryptedFile";
+        className: "inputEncryptedFile";
         static fromReader(reader: Reader): InputEncryptedFile;
         id: long;
         accessHash: long;
@@ -3325,7 +3325,7 @@ export namespace Api {
         parts: int;
         keyFingerprint: int;
     }> {
-        className: "InputEncryptedFileBigUploaded";
+        className: "inputEncryptedFileBigUploaded";
         static fromReader(reader: Reader): InputEncryptedFileBigUploaded;
         id: long;
         parts: int;
@@ -3338,7 +3338,7 @@ export namespace Api {
         bytes: bytes;
         file: Api.TypeEncryptedFile;
     }> {
-        className: "EncryptedMessage";
+        className: "encryptedMessage";
         static fromReader(reader: Reader): EncryptedMessage;
         randomId: long;
         chatId: int;
@@ -3352,7 +3352,7 @@ export namespace Api {
         date: int;
         bytes: bytes;
     }> {
-        className: "EncryptedMessageService";
+        className: "encryptedMessageService";
         static fromReader(reader: Reader): EncryptedMessageService;
         randomId: long;
         chatId: int;
@@ -3360,7 +3360,7 @@ export namespace Api {
         bytes: bytes;
     }
     export class InputDocumentEmpty extends VirtualClass<void> {
-        className: "InputDocumentEmpty";
+        className: "inputDocumentEmpty";
         static fromReader(reader: Reader): InputDocumentEmpty;
     }
     export class InputDocument extends VirtualClass<{
@@ -3368,7 +3368,7 @@ export namespace Api {
         accessHash: long;
         fileReference: bytes;
     }> {
-        className: "InputDocument";
+        className: "inputDocument";
         static fromReader(reader: Reader): InputDocument;
         id: long;
         accessHash: long;
@@ -3377,7 +3377,7 @@ export namespace Api {
     export class DocumentEmpty extends VirtualClass<{
         id: long;
     }> {
-        className: "DocumentEmpty";
+        className: "documentEmpty";
         static fromReader(reader: Reader): DocumentEmpty;
         id: long;
     }
@@ -3394,7 +3394,7 @@ export namespace Api {
         dcId: int;
         attributes: Api.TypeDocumentAttribute[];
     }> {
-        className: "Document";
+        className: "document";
         static fromReader(reader: Reader): Document;
         // flags: null;
         id: long;
@@ -3411,198 +3411,198 @@ export namespace Api {
     export class NotifyPeer extends VirtualClass<{
         peer: Api.TypePeer;
     }> {
-        className: "NotifyPeer";
+        className: "notifyPeer";
         static fromReader(reader: Reader): NotifyPeer;
         peer: Api.TypePeer;
     }
     export class NotifyUsers extends VirtualClass<void> {
-        className: "NotifyUsers";
+        className: "notifyUsers";
         static fromReader(reader: Reader): NotifyUsers;
     }
     export class NotifyChats extends VirtualClass<void> {
-        className: "NotifyChats";
+        className: "notifyChats";
         static fromReader(reader: Reader): NotifyChats;
     }
     export class NotifyBroadcasts extends VirtualClass<void> {
-        className: "NotifyBroadcasts";
+        className: "notifyBroadcasts";
         static fromReader(reader: Reader): NotifyBroadcasts;
     }
     export class SendMessageTypingAction extends VirtualClass<void> {
-        className: "SendMessageTypingAction";
+        className: "sendMessageTypingAction";
         static fromReader(reader: Reader): SendMessageTypingAction;
     }
     export class SendMessageCancelAction extends VirtualClass<void> {
-        className: "SendMessageCancelAction";
+        className: "sendMessageCancelAction";
         static fromReader(reader: Reader): SendMessageCancelAction;
     }
     export class SendMessageRecordVideoAction extends VirtualClass<void> {
-        className: "SendMessageRecordVideoAction";
+        className: "sendMessageRecordVideoAction";
         static fromReader(reader: Reader): SendMessageRecordVideoAction;
     }
     export class SendMessageUploadVideoAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageUploadVideoAction";
+        className: "sendMessageUploadVideoAction";
         static fromReader(reader: Reader): SendMessageUploadVideoAction;
         progress: int;
     }
     export class SendMessageRecordAudioAction extends VirtualClass<void> {
-        className: "SendMessageRecordAudioAction";
+        className: "sendMessageRecordAudioAction";
         static fromReader(reader: Reader): SendMessageRecordAudioAction;
     }
     export class SendMessageUploadAudioAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageUploadAudioAction";
+        className: "sendMessageUploadAudioAction";
         static fromReader(reader: Reader): SendMessageUploadAudioAction;
         progress: int;
     }
     export class SendMessageUploadPhotoAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageUploadPhotoAction";
+        className: "sendMessageUploadPhotoAction";
         static fromReader(reader: Reader): SendMessageUploadPhotoAction;
         progress: int;
     }
     export class SendMessageUploadDocumentAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageUploadDocumentAction";
+        className: "sendMessageUploadDocumentAction";
         static fromReader(reader: Reader): SendMessageUploadDocumentAction;
         progress: int;
     }
     export class SendMessageGeoLocationAction extends VirtualClass<void> {
-        className: "SendMessageGeoLocationAction";
+        className: "sendMessageGeoLocationAction";
         static fromReader(reader: Reader): SendMessageGeoLocationAction;
     }
     export class SendMessageChooseContactAction extends VirtualClass<void> {
-        className: "SendMessageChooseContactAction";
+        className: "sendMessageChooseContactAction";
         static fromReader(reader: Reader): SendMessageChooseContactAction;
     }
     export class SendMessageGamePlayAction extends VirtualClass<void> {
-        className: "SendMessageGamePlayAction";
+        className: "sendMessageGamePlayAction";
         static fromReader(reader: Reader): SendMessageGamePlayAction;
     }
     export class SendMessageRecordRoundAction extends VirtualClass<void> {
-        className: "SendMessageRecordRoundAction";
+        className: "sendMessageRecordRoundAction";
         static fromReader(reader: Reader): SendMessageRecordRoundAction;
     }
     export class SendMessageUploadRoundAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageUploadRoundAction";
+        className: "sendMessageUploadRoundAction";
         static fromReader(reader: Reader): SendMessageUploadRoundAction;
         progress: int;
     }
     export class SpeakingInGroupCallAction extends VirtualClass<void> {
-        className: "SpeakingInGroupCallAction";
+        className: "speakingInGroupCallAction";
         static fromReader(reader: Reader): SpeakingInGroupCallAction;
     }
     export class SendMessageHistoryImportAction extends VirtualClass<{
         progress: int;
     }> {
-        className: "SendMessageHistoryImportAction";
+        className: "sendMessageHistoryImportAction";
         static fromReader(reader: Reader): SendMessageHistoryImportAction;
         progress: int;
     }
     export class InputPrivacyKeyStatusTimestamp extends VirtualClass<void> {
-        className: "InputPrivacyKeyStatusTimestamp";
+        className: "inputPrivacyKeyStatusTimestamp";
         static fromReader(reader: Reader): InputPrivacyKeyStatusTimestamp;
     }
     export class InputPrivacyKeyChatInvite extends VirtualClass<void> {
-        className: "InputPrivacyKeyChatInvite";
+        className: "inputPrivacyKeyChatInvite";
         static fromReader(reader: Reader): InputPrivacyKeyChatInvite;
     }
     export class InputPrivacyKeyPhoneCall extends VirtualClass<void> {
-        className: "InputPrivacyKeyPhoneCall";
+        className: "inputPrivacyKeyPhoneCall";
         static fromReader(reader: Reader): InputPrivacyKeyPhoneCall;
     }
     export class InputPrivacyKeyPhoneP2P extends VirtualClass<void> {
-        className: "InputPrivacyKeyPhoneP2P";
+        className: "inputPrivacyKeyPhoneP2P";
         static fromReader(reader: Reader): InputPrivacyKeyPhoneP2P;
     }
     export class InputPrivacyKeyForwards extends VirtualClass<void> {
-        className: "InputPrivacyKeyForwards";
+        className: "inputPrivacyKeyForwards";
         static fromReader(reader: Reader): InputPrivacyKeyForwards;
     }
     export class InputPrivacyKeyProfilePhoto extends VirtualClass<void> {
-        className: "InputPrivacyKeyProfilePhoto";
+        className: "inputPrivacyKeyProfilePhoto";
         static fromReader(reader: Reader): InputPrivacyKeyProfilePhoto;
     }
     export class InputPrivacyKeyPhoneNumber extends VirtualClass<void> {
-        className: "InputPrivacyKeyPhoneNumber";
+        className: "inputPrivacyKeyPhoneNumber";
         static fromReader(reader: Reader): InputPrivacyKeyPhoneNumber;
     }
     export class InputPrivacyKeyAddedByPhone extends VirtualClass<void> {
-        className: "InputPrivacyKeyAddedByPhone";
+        className: "inputPrivacyKeyAddedByPhone";
         static fromReader(reader: Reader): InputPrivacyKeyAddedByPhone;
     }
     export class PrivacyKeyStatusTimestamp extends VirtualClass<void> {
-        className: "PrivacyKeyStatusTimestamp";
+        className: "privacyKeyStatusTimestamp";
         static fromReader(reader: Reader): PrivacyKeyStatusTimestamp;
     }
     export class PrivacyKeyChatInvite extends VirtualClass<void> {
-        className: "PrivacyKeyChatInvite";
+        className: "privacyKeyChatInvite";
         static fromReader(reader: Reader): PrivacyKeyChatInvite;
     }
     export class PrivacyKeyPhoneCall extends VirtualClass<void> {
-        className: "PrivacyKeyPhoneCall";
+        className: "privacyKeyPhoneCall";
         static fromReader(reader: Reader): PrivacyKeyPhoneCall;
     }
     export class PrivacyKeyPhoneP2P extends VirtualClass<void> {
-        className: "PrivacyKeyPhoneP2P";
+        className: "privacyKeyPhoneP2P";
         static fromReader(reader: Reader): PrivacyKeyPhoneP2P;
     }
     export class PrivacyKeyForwards extends VirtualClass<void> {
-        className: "PrivacyKeyForwards";
+        className: "privacyKeyForwards";
         static fromReader(reader: Reader): PrivacyKeyForwards;
     }
     export class PrivacyKeyProfilePhoto extends VirtualClass<void> {
-        className: "PrivacyKeyProfilePhoto";
+        className: "privacyKeyProfilePhoto";
         static fromReader(reader: Reader): PrivacyKeyProfilePhoto;
     }
     export class PrivacyKeyPhoneNumber extends VirtualClass<void> {
-        className: "PrivacyKeyPhoneNumber";
+        className: "privacyKeyPhoneNumber";
         static fromReader(reader: Reader): PrivacyKeyPhoneNumber;
     }
     export class PrivacyKeyAddedByPhone extends VirtualClass<void> {
-        className: "PrivacyKeyAddedByPhone";
+        className: "privacyKeyAddedByPhone";
         static fromReader(reader: Reader): PrivacyKeyAddedByPhone;
     }
     export class InputPrivacyValueAllowContacts extends VirtualClass<void> {
-        className: "InputPrivacyValueAllowContacts";
+        className: "inputPrivacyValueAllowContacts";
         static fromReader(reader: Reader): InputPrivacyValueAllowContacts;
     }
     export class InputPrivacyValueAllowAll extends VirtualClass<void> {
-        className: "InputPrivacyValueAllowAll";
+        className: "inputPrivacyValueAllowAll";
         static fromReader(reader: Reader): InputPrivacyValueAllowAll;
     }
     export class InputPrivacyValueAllowUsers extends VirtualClass<{
         users: Api.TypeInputUser[];
     }> {
-        className: "InputPrivacyValueAllowUsers";
+        className: "inputPrivacyValueAllowUsers";
         static fromReader(reader: Reader): InputPrivacyValueAllowUsers;
         users: Api.TypeInputUser[];
     }
     export class InputPrivacyValueDisallowContacts extends VirtualClass<void> {
-        className: "InputPrivacyValueDisallowContacts";
+        className: "inputPrivacyValueDisallowContacts";
         static fromReader(reader: Reader): InputPrivacyValueDisallowContacts;
     }
     export class InputPrivacyValueDisallowAll extends VirtualClass<void> {
-        className: "InputPrivacyValueDisallowAll";
+        className: "inputPrivacyValueDisallowAll";
         static fromReader(reader: Reader): InputPrivacyValueDisallowAll;
     }
     export class InputPrivacyValueDisallowUsers extends VirtualClass<{
         users: Api.TypeInputUser[];
     }> {
-        className: "InputPrivacyValueDisallowUsers";
+        className: "inputPrivacyValueDisallowUsers";
         static fromReader(reader: Reader): InputPrivacyValueDisallowUsers;
         users: Api.TypeInputUser[];
     }
     export class InputPrivacyValueAllowChatParticipants extends VirtualClass<{
         chats: int[];
     }> {
-        className: "InputPrivacyValueAllowChatParticipants";
+        className: "inputPrivacyValueAllowChatParticipants";
         static fromReader(
             reader: Reader
         ): InputPrivacyValueAllowChatParticipants;
@@ -3611,60 +3611,60 @@ export namespace Api {
     export class InputPrivacyValueDisallowChatParticipants extends VirtualClass<{
         chats: int[];
     }> {
-        className: "InputPrivacyValueDisallowChatParticipants";
+        className: "inputPrivacyValueDisallowChatParticipants";
         static fromReader(
             reader: Reader
         ): InputPrivacyValueDisallowChatParticipants;
         chats: int[];
     }
     export class PrivacyValueAllowContacts extends VirtualClass<void> {
-        className: "PrivacyValueAllowContacts";
+        className: "privacyValueAllowContacts";
         static fromReader(reader: Reader): PrivacyValueAllowContacts;
     }
     export class PrivacyValueAllowAll extends VirtualClass<void> {
-        className: "PrivacyValueAllowAll";
+        className: "privacyValueAllowAll";
         static fromReader(reader: Reader): PrivacyValueAllowAll;
     }
     export class PrivacyValueAllowUsers extends VirtualClass<{
         users: int[];
     }> {
-        className: "PrivacyValueAllowUsers";
+        className: "privacyValueAllowUsers";
         static fromReader(reader: Reader): PrivacyValueAllowUsers;
         users: int[];
     }
     export class PrivacyValueDisallowContacts extends VirtualClass<void> {
-        className: "PrivacyValueDisallowContacts";
+        className: "privacyValueDisallowContacts";
         static fromReader(reader: Reader): PrivacyValueDisallowContacts;
     }
     export class PrivacyValueDisallowAll extends VirtualClass<void> {
-        className: "PrivacyValueDisallowAll";
+        className: "privacyValueDisallowAll";
         static fromReader(reader: Reader): PrivacyValueDisallowAll;
     }
     export class PrivacyValueDisallowUsers extends VirtualClass<{
         users: int[];
     }> {
-        className: "PrivacyValueDisallowUsers";
+        className: "privacyValueDisallowUsers";
         static fromReader(reader: Reader): PrivacyValueDisallowUsers;
         users: int[];
     }
     export class PrivacyValueAllowChatParticipants extends VirtualClass<{
         chats: int[];
     }> {
-        className: "PrivacyValueAllowChatParticipants";
+        className: "privacyValueAllowChatParticipants";
         static fromReader(reader: Reader): PrivacyValueAllowChatParticipants;
         chats: int[];
     }
     export class PrivacyValueDisallowChatParticipants extends VirtualClass<{
         chats: int[];
     }> {
-        className: "PrivacyValueDisallowChatParticipants";
+        className: "privacyValueDisallowChatParticipants";
         static fromReader(reader: Reader): PrivacyValueDisallowChatParticipants;
         chats: int[];
     }
     export class AccountDaysTTL extends VirtualClass<{
         days: int;
     }> {
-        className: "AccountDaysTTL";
+        className: "accountDaysTTL";
         static fromReader(reader: Reader): AccountDaysTTL;
         days: int;
     }
@@ -3672,13 +3672,13 @@ export namespace Api {
         w: int;
         h: int;
     }> {
-        className: "DocumentAttributeImageSize";
+        className: "documentAttributeImageSize";
         static fromReader(reader: Reader): DocumentAttributeImageSize;
         w: int;
         h: int;
     }
     export class DocumentAttributeAnimated extends VirtualClass<void> {
-        className: "DocumentAttributeAnimated";
+        className: "documentAttributeAnimated";
         static fromReader(reader: Reader): DocumentAttributeAnimated;
     }
     export class DocumentAttributeSticker extends VirtualClass<{
@@ -3688,7 +3688,7 @@ export namespace Api {
         stickerset: Api.TypeInputStickerSet;
         maskCoords?: Api.TypeMaskCoords;
     }> {
-        className: "DocumentAttributeSticker";
+        className: "documentAttributeSticker";
         static fromReader(reader: Reader): DocumentAttributeSticker;
         // flags: null;
         mask?: boolean;
@@ -3704,7 +3704,7 @@ export namespace Api {
         w: int;
         h: int;
     }> {
-        className: "DocumentAttributeVideo";
+        className: "documentAttributeVideo";
         static fromReader(reader: Reader): DocumentAttributeVideo;
         // flags: null;
         roundMessage?: boolean;
@@ -3721,7 +3721,7 @@ export namespace Api {
         performer?: string;
         waveform?: bytes;
     }> {
-        className: "DocumentAttributeAudio";
+        className: "documentAttributeAudio";
         static fromReader(reader: Reader): DocumentAttributeAudio;
         // flags: null;
         voice?: boolean;
@@ -3733,19 +3733,19 @@ export namespace Api {
     export class DocumentAttributeFilename extends VirtualClass<{
         fileName: string;
     }> {
-        className: "DocumentAttributeFilename";
+        className: "documentAttributeFilename";
         static fromReader(reader: Reader): DocumentAttributeFilename;
         fileName: string;
     }
     export class DocumentAttributeHasStickers extends VirtualClass<void> {
-        className: "DocumentAttributeHasStickers";
+        className: "documentAttributeHasStickers";
         static fromReader(reader: Reader): DocumentAttributeHasStickers;
     }
     export class StickerPack extends VirtualClass<{
         emoticon: string;
         documents: long[];
     }> {
-        className: "StickerPack";
+        className: "stickerPack";
         static fromReader(reader: Reader): StickerPack;
         emoticon: string;
         documents: long[];
@@ -3753,7 +3753,7 @@ export namespace Api {
     export class WebPageEmpty extends VirtualClass<{
         id: long;
     }> {
-        className: "WebPageEmpty";
+        className: "webPageEmpty";
         static fromReader(reader: Reader): WebPageEmpty;
         id: long;
     }
@@ -3761,7 +3761,7 @@ export namespace Api {
         id: long;
         date: int;
     }> {
-        className: "WebPagePending";
+        className: "webPagePending";
         static fromReader(reader: Reader): WebPagePending;
         id: long;
         date: int;
@@ -3787,7 +3787,7 @@ export namespace Api {
         cachedPage?: Api.TypePage;
         attributes?: Api.TypeWebPageAttribute[];
     }> {
-        className: "WebPage";
+        className: "webPage";
         static fromReader(reader: Reader): WebPage;
         // flags: null;
         id: long;
@@ -3813,7 +3813,7 @@ export namespace Api {
         // flags: null;
         cachedPageViews?: int;
     }> {
-        className: "WebPageNotModified";
+        className: "webPageNotModified";
         static fromReader(reader: Reader): WebPageNotModified;
         // flags: null;
         cachedPageViews?: int;
@@ -3836,7 +3836,7 @@ export namespace Api {
         country: string;
         region: string;
     }> {
-        className: "Authorization";
+        className: "authorization";
         static fromReader(reader: Reader): Authorization;
         // flags: null;
         current?: boolean;
@@ -3859,7 +3859,7 @@ export namespace Api {
         id: int;
         // flags: int;
     }> {
-        className: "ReceivedNotifyMessage";
+        className: "receivedNotifyMessage";
         static fromReader(reader: Reader): ReceivedNotifyMessage;
         id: int;
         // flags: int;
@@ -3876,7 +3876,7 @@ export namespace Api {
         usageLimit?: int;
         usage?: int;
     }> {
-        className: "ChatInviteExported";
+        className: "chatInviteExported";
         static fromReader(reader: Reader): ChatInviteExported;
         // flags: null;
         revoked?: boolean;
@@ -3892,7 +3892,7 @@ export namespace Api {
     export class ChatInviteAlready extends VirtualClass<{
         chat: Api.TypeChat;
     }> {
-        className: "ChatInviteAlready";
+        className: "chatInviteAlready";
         static fromReader(reader: Reader): ChatInviteAlready;
         chat: Api.TypeChat;
     }
@@ -3907,7 +3907,7 @@ export namespace Api {
         participantsCount: int;
         participants?: Api.TypeUser[];
     }> {
-        className: "ChatInvite";
+        className: "chatInvite";
         static fromReader(reader: Reader): ChatInvite;
         // flags: null;
         channel?: boolean;
@@ -3923,20 +3923,20 @@ export namespace Api {
         chat: Api.TypeChat;
         expires: int;
     }> {
-        className: "ChatInvitePeek";
+        className: "chatInvitePeek";
         static fromReader(reader: Reader): ChatInvitePeek;
         chat: Api.TypeChat;
         expires: int;
     }
     export class InputStickerSetEmpty extends VirtualClass<void> {
-        className: "InputStickerSetEmpty";
+        className: "inputStickerSetEmpty";
         static fromReader(reader: Reader): InputStickerSetEmpty;
     }
     export class InputStickerSetID extends VirtualClass<{
         id: long;
         accessHash: long;
     }> {
-        className: "InputStickerSetID";
+        className: "inputStickerSetID";
         static fromReader(reader: Reader): InputStickerSetID;
         id: long;
         accessHash: long;
@@ -3944,18 +3944,18 @@ export namespace Api {
     export class InputStickerSetShortName extends VirtualClass<{
         shortName: string;
     }> {
-        className: "InputStickerSetShortName";
+        className: "inputStickerSetShortName";
         static fromReader(reader: Reader): InputStickerSetShortName;
         shortName: string;
     }
     export class InputStickerSetAnimatedEmoji extends VirtualClass<void> {
-        className: "InputStickerSetAnimatedEmoji";
+        className: "inputStickerSetAnimatedEmoji";
         static fromReader(reader: Reader): InputStickerSetAnimatedEmoji;
     }
     export class InputStickerSetDice extends VirtualClass<{
         emoticon: string;
     }> {
-        className: "InputStickerSetDice";
+        className: "inputStickerSetDice";
         static fromReader(reader: Reader): InputStickerSetDice;
         emoticon: string;
     }
@@ -3976,7 +3976,7 @@ export namespace Api {
         count: int;
         hash: int;
     }> {
-        className: "StickerSet";
+        className: "stickerSet";
         static fromReader(reader: Reader): StickerSet;
         // flags: null;
         archived?: boolean;
@@ -3998,7 +3998,7 @@ export namespace Api {
         command: string;
         description: string;
     }> {
-        className: "BotCommand";
+        className: "botCommand";
         static fromReader(reader: Reader): BotCommand;
         command: string;
         description: string;
@@ -4008,7 +4008,7 @@ export namespace Api {
         description: string;
         commands: Api.TypeBotCommand[];
     }> {
-        className: "BotInfo";
+        className: "botInfo";
         static fromReader(reader: Reader): BotInfo;
         userId: int;
         description: string;
@@ -4017,7 +4017,7 @@ export namespace Api {
     export class KeyboardButton extends VirtualClass<{
         text: string;
     }> {
-        className: "KeyboardButton";
+        className: "keyboardButton";
         static fromReader(reader: Reader): KeyboardButton;
         text: string;
     }
@@ -4025,7 +4025,7 @@ export namespace Api {
         text: string;
         url: string;
     }> {
-        className: "KeyboardButtonUrl";
+        className: "keyboardButtonUrl";
         static fromReader(reader: Reader): KeyboardButtonUrl;
         text: string;
         url: string;
@@ -4036,7 +4036,7 @@ export namespace Api {
         text: string;
         data: bytes;
     }> {
-        className: "KeyboardButtonCallback";
+        className: "keyboardButtonCallback";
         static fromReader(reader: Reader): KeyboardButtonCallback;
         // flags: null;
         requiresPassword?: boolean;
@@ -4046,14 +4046,14 @@ export namespace Api {
     export class KeyboardButtonRequestPhone extends VirtualClass<{
         text: string;
     }> {
-        className: "KeyboardButtonRequestPhone";
+        className: "keyboardButtonRequestPhone";
         static fromReader(reader: Reader): KeyboardButtonRequestPhone;
         text: string;
     }
     export class KeyboardButtonRequestGeoLocation extends VirtualClass<{
         text: string;
     }> {
-        className: "KeyboardButtonRequestGeoLocation";
+        className: "keyboardButtonRequestGeoLocation";
         static fromReader(reader: Reader): KeyboardButtonRequestGeoLocation;
         text: string;
     }
@@ -4063,7 +4063,7 @@ export namespace Api {
         text: string;
         query: string;
     }> {
-        className: "KeyboardButtonSwitchInline";
+        className: "keyboardButtonSwitchInline";
         static fromReader(reader: Reader): KeyboardButtonSwitchInline;
         // flags: null;
         samePeer?: boolean;
@@ -4073,14 +4073,14 @@ export namespace Api {
     export class KeyboardButtonGame extends VirtualClass<{
         text: string;
     }> {
-        className: "KeyboardButtonGame";
+        className: "keyboardButtonGame";
         static fromReader(reader: Reader): KeyboardButtonGame;
         text: string;
     }
     export class KeyboardButtonBuy extends VirtualClass<{
         text: string;
     }> {
-        className: "KeyboardButtonBuy";
+        className: "keyboardButtonBuy";
         static fromReader(reader: Reader): KeyboardButtonBuy;
         text: string;
     }
@@ -4091,7 +4091,7 @@ export namespace Api {
         url: string;
         buttonId: int;
     }> {
-        className: "KeyboardButtonUrlAuth";
+        className: "keyboardButtonUrlAuth";
         static fromReader(reader: Reader): KeyboardButtonUrlAuth;
         // flags: null;
         text: string;
@@ -4107,7 +4107,7 @@ export namespace Api {
         url: string;
         bot: Api.TypeInputUser;
     }> {
-        className: "InputKeyboardButtonUrlAuth";
+        className: "inputKeyboardButtonUrlAuth";
         static fromReader(reader: Reader): InputKeyboardButtonUrlAuth;
         // flags: null;
         requestWriteAccess?: boolean;
@@ -4121,7 +4121,7 @@ export namespace Api {
         quiz?: Bool;
         text: string;
     }> {
-        className: "KeyboardButtonRequestPoll";
+        className: "keyboardButtonRequestPoll";
         static fromReader(reader: Reader): KeyboardButtonRequestPoll;
         // flags: null;
         quiz?: Bool;
@@ -4130,7 +4130,7 @@ export namespace Api {
     export class KeyboardButtonRow extends VirtualClass<{
         buttons: Api.TypeKeyboardButton[];
     }> {
-        className: "KeyboardButtonRow";
+        className: "keyboardButtonRow";
         static fromReader(reader: Reader): KeyboardButtonRow;
         buttons: Api.TypeKeyboardButton[];
     }
@@ -4138,7 +4138,7 @@ export namespace Api {
         // flags: null;
         selective?: boolean;
     }> {
-        className: "ReplyKeyboardHide";
+        className: "replyKeyboardHide";
         static fromReader(reader: Reader): ReplyKeyboardHide;
         // flags: null;
         selective?: boolean;
@@ -4149,7 +4149,7 @@ export namespace Api {
         selective?: boolean;
         placeholder?: string;
     }> {
-        className: "ReplyKeyboardForceReply";
+        className: "replyKeyboardForceReply";
         static fromReader(reader: Reader): ReplyKeyboardForceReply;
         // flags: null;
         singleUse?: boolean;
@@ -4164,7 +4164,7 @@ export namespace Api {
         rows: Api.TypeKeyboardButtonRow[];
         placeholder?: string;
     }> {
-        className: "ReplyKeyboardMarkup";
+        className: "replyKeyboardMarkup";
         static fromReader(reader: Reader): ReplyKeyboardMarkup;
         // flags: null;
         resize?: boolean;
@@ -4176,7 +4176,7 @@ export namespace Api {
     export class ReplyInlineMarkup extends VirtualClass<{
         rows: Api.TypeKeyboardButtonRow[];
     }> {
-        className: "ReplyInlineMarkup";
+        className: "replyInlineMarkup";
         static fromReader(reader: Reader): ReplyInlineMarkup;
         rows: Api.TypeKeyboardButtonRow[];
     }
@@ -4184,7 +4184,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityUnknown";
+        className: "messageEntityUnknown";
         static fromReader(reader: Reader): MessageEntityUnknown;
         offset: int;
         length: int;
@@ -4193,7 +4193,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityMention";
+        className: "messageEntityMention";
         static fromReader(reader: Reader): MessageEntityMention;
         offset: int;
         length: int;
@@ -4202,7 +4202,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityHashtag";
+        className: "messageEntityHashtag";
         static fromReader(reader: Reader): MessageEntityHashtag;
         offset: int;
         length: int;
@@ -4211,7 +4211,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityBotCommand";
+        className: "messageEntityBotCommand";
         static fromReader(reader: Reader): MessageEntityBotCommand;
         offset: int;
         length: int;
@@ -4220,7 +4220,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityUrl";
+        className: "messageEntityUrl";
         static fromReader(reader: Reader): MessageEntityUrl;
         offset: int;
         length: int;
@@ -4229,7 +4229,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityEmail";
+        className: "messageEntityEmail";
         static fromReader(reader: Reader): MessageEntityEmail;
         offset: int;
         length: int;
@@ -4238,7 +4238,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityBold";
+        className: "messageEntityBold";
         static fromReader(reader: Reader): MessageEntityBold;
         offset: int;
         length: int;
@@ -4247,7 +4247,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityItalic";
+        className: "messageEntityItalic";
         static fromReader(reader: Reader): MessageEntityItalic;
         offset: int;
         length: int;
@@ -4256,7 +4256,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityCode";
+        className: "messageEntityCode";
         static fromReader(reader: Reader): MessageEntityCode;
         offset: int;
         length: int;
@@ -4266,7 +4266,7 @@ export namespace Api {
         length: int;
         language: string;
     }> {
-        className: "MessageEntityPre";
+        className: "messageEntityPre";
         static fromReader(reader: Reader): MessageEntityPre;
         offset: int;
         length: int;
@@ -4277,7 +4277,7 @@ export namespace Api {
         length: int;
         url: string;
     }> {
-        className: "MessageEntityTextUrl";
+        className: "messageEntityTextUrl";
         static fromReader(reader: Reader): MessageEntityTextUrl;
         offset: int;
         length: int;
@@ -4288,7 +4288,7 @@ export namespace Api {
         length: int;
         userId: int;
     }> {
-        className: "MessageEntityMentionName";
+        className: "messageEntityMentionName";
         static fromReader(reader: Reader): MessageEntityMentionName;
         offset: int;
         length: int;
@@ -4299,7 +4299,7 @@ export namespace Api {
         length: int;
         userId: Api.TypeInputUser;
     }> {
-        className: "InputMessageEntityMentionName";
+        className: "inputMessageEntityMentionName";
         static fromReader(reader: Reader): InputMessageEntityMentionName;
         offset: int;
         length: int;
@@ -4309,7 +4309,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityPhone";
+        className: "messageEntityPhone";
         static fromReader(reader: Reader): MessageEntityPhone;
         offset: int;
         length: int;
@@ -4318,7 +4318,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityCashtag";
+        className: "messageEntityCashtag";
         static fromReader(reader: Reader): MessageEntityCashtag;
         offset: int;
         length: int;
@@ -4327,7 +4327,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityUnderline";
+        className: "messageEntityUnderline";
         static fromReader(reader: Reader): MessageEntityUnderline;
         offset: int;
         length: int;
@@ -4336,7 +4336,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityStrike";
+        className: "messageEntityStrike";
         static fromReader(reader: Reader): MessageEntityStrike;
         offset: int;
         length: int;
@@ -4345,7 +4345,7 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityBlockquote";
+        className: "messageEntityBlockquote";
         static fromReader(reader: Reader): MessageEntityBlockquote;
         offset: int;
         length: int;
@@ -4354,20 +4354,20 @@ export namespace Api {
         offset: int;
         length: int;
     }> {
-        className: "MessageEntityBankCard";
+        className: "messageEntityBankCard";
         static fromReader(reader: Reader): MessageEntityBankCard;
         offset: int;
         length: int;
     }
     export class InputChannelEmpty extends VirtualClass<void> {
-        className: "InputChannelEmpty";
+        className: "inputChannelEmpty";
         static fromReader(reader: Reader): InputChannelEmpty;
     }
     export class InputChannel extends VirtualClass<{
         channelId: int;
         accessHash: long;
     }> {
-        className: "InputChannel";
+        className: "inputChannel";
         static fromReader(reader: Reader): InputChannel;
         channelId: int;
         accessHash: long;
@@ -4377,7 +4377,7 @@ export namespace Api {
         msgId: int;
         channelId: int;
     }> {
-        className: "InputChannelFromMessage";
+        className: "inputChannelFromMessage";
         static fromReader(reader: Reader): InputChannelFromMessage;
         peer: Api.TypeInputPeer;
         msgId: int;
@@ -4387,13 +4387,13 @@ export namespace Api {
         minId: int;
         maxId: int;
     }> {
-        className: "MessageRange";
+        className: "messageRange";
         static fromReader(reader: Reader): MessageRange;
         minId: int;
         maxId: int;
     }
     export class ChannelMessagesFilterEmpty extends VirtualClass<void> {
-        className: "ChannelMessagesFilterEmpty";
+        className: "channelMessagesFilterEmpty";
         static fromReader(reader: Reader): ChannelMessagesFilterEmpty;
     }
     export class ChannelMessagesFilter extends VirtualClass<{
@@ -4401,7 +4401,7 @@ export namespace Api {
         excludeNewMessages?: boolean;
         ranges: Api.TypeMessageRange[];
     }> {
-        className: "ChannelMessagesFilter";
+        className: "channelMessagesFilter";
         static fromReader(reader: Reader): ChannelMessagesFilter;
         // flags: null;
         excludeNewMessages?: boolean;
@@ -4411,7 +4411,7 @@ export namespace Api {
         userId: int;
         date: int;
     }> {
-        className: "ChannelParticipant";
+        className: "channelParticipant";
         static fromReader(reader: Reader): ChannelParticipant;
         userId: int;
         date: int;
@@ -4421,7 +4421,7 @@ export namespace Api {
         inviterId: int;
         date: int;
     }> {
-        className: "ChannelParticipantSelf";
+        className: "channelParticipantSelf";
         static fromReader(reader: Reader): ChannelParticipantSelf;
         userId: int;
         inviterId: int;
@@ -4433,7 +4433,7 @@ export namespace Api {
         adminRights: Api.TypeChatAdminRights;
         rank?: string;
     }> {
-        className: "ChannelParticipantCreator";
+        className: "channelParticipantCreator";
         static fromReader(reader: Reader): ChannelParticipantCreator;
         // flags: null;
         userId: int;
@@ -4451,7 +4451,7 @@ export namespace Api {
         adminRights: Api.TypeChatAdminRights;
         rank?: string;
     }> {
-        className: "ChannelParticipantAdmin";
+        className: "channelParticipantAdmin";
         static fromReader(reader: Reader): ChannelParticipantAdmin;
         // flags: null;
         canEdit?: boolean;
@@ -4471,7 +4471,7 @@ export namespace Api {
         date: int;
         bannedRights: Api.TypeChatBannedRights;
     }> {
-        className: "ChannelParticipantBanned";
+        className: "channelParticipantBanned";
         static fromReader(reader: Reader): ChannelParticipantBanned;
         // flags: null;
         left?: boolean;
@@ -4483,47 +4483,47 @@ export namespace Api {
     export class ChannelParticipantLeft extends VirtualClass<{
         peer: Api.TypePeer;
     }> {
-        className: "ChannelParticipantLeft";
+        className: "channelParticipantLeft";
         static fromReader(reader: Reader): ChannelParticipantLeft;
         peer: Api.TypePeer;
     }
     export class ChannelParticipantsRecent extends VirtualClass<void> {
-        className: "ChannelParticipantsRecent";
+        className: "channelParticipantsRecent";
         static fromReader(reader: Reader): ChannelParticipantsRecent;
     }
     export class ChannelParticipantsAdmins extends VirtualClass<void> {
-        className: "ChannelParticipantsAdmins";
+        className: "channelParticipantsAdmins";
         static fromReader(reader: Reader): ChannelParticipantsAdmins;
     }
     export class ChannelParticipantsKicked extends VirtualClass<{
         q: string;
     }> {
-        className: "ChannelParticipantsKicked";
+        className: "channelParticipantsKicked";
         static fromReader(reader: Reader): ChannelParticipantsKicked;
         q: string;
     }
     export class ChannelParticipantsBots extends VirtualClass<void> {
-        className: "ChannelParticipantsBots";
+        className: "channelParticipantsBots";
         static fromReader(reader: Reader): ChannelParticipantsBots;
     }
     export class ChannelParticipantsBanned extends VirtualClass<{
         q: string;
     }> {
-        className: "ChannelParticipantsBanned";
+        className: "channelParticipantsBanned";
         static fromReader(reader: Reader): ChannelParticipantsBanned;
         q: string;
     }
     export class ChannelParticipantsSearch extends VirtualClass<{
         q: string;
     }> {
-        className: "ChannelParticipantsSearch";
+        className: "channelParticipantsSearch";
         static fromReader(reader: Reader): ChannelParticipantsSearch;
         q: string;
     }
     export class ChannelParticipantsContacts extends VirtualClass<{
         q: string;
     }> {
-        className: "ChannelParticipantsContacts";
+        className: "channelParticipantsContacts";
         static fromReader(reader: Reader): ChannelParticipantsContacts;
         q: string;
     }
@@ -4532,7 +4532,7 @@ export namespace Api {
         q?: string;
         topMsgId?: int;
     }> {
-        className: "ChannelParticipantsMentions";
+        className: "channelParticipantsMentions";
         static fromReader(reader: Reader): ChannelParticipantsMentions;
         // flags: null;
         q?: string;
@@ -4544,7 +4544,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageMediaAuto";
+        className: "inputBotInlineMessageMediaAuto";
         static fromReader(reader: Reader): InputBotInlineMessageMediaAuto;
         // flags: null;
         message: string;
@@ -4558,7 +4558,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageText";
+        className: "inputBotInlineMessageText";
         static fromReader(reader: Reader): InputBotInlineMessageText;
         // flags: null;
         noWebpage?: boolean;
@@ -4574,7 +4574,7 @@ export namespace Api {
         proximityNotificationRadius?: int;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageMediaGeo";
+        className: "inputBotInlineMessageMediaGeo";
         static fromReader(reader: Reader): InputBotInlineMessageMediaGeo;
         // flags: null;
         geoPoint: Api.TypeInputGeoPoint;
@@ -4593,7 +4593,7 @@ export namespace Api {
         venueType: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageMediaVenue";
+        className: "inputBotInlineMessageMediaVenue";
         static fromReader(reader: Reader): InputBotInlineMessageMediaVenue;
         // flags: null;
         geoPoint: Api.TypeInputGeoPoint;
@@ -4612,7 +4612,7 @@ export namespace Api {
         vcard: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageMediaContact";
+        className: "inputBotInlineMessageMediaContact";
         static fromReader(reader: Reader): InputBotInlineMessageMediaContact;
         // flags: null;
         phoneNumber: string;
@@ -4625,7 +4625,7 @@ export namespace Api {
         // flags: null;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageGame";
+        className: "inputBotInlineMessageGame";
         static fromReader(reader: Reader): InputBotInlineMessageGame;
         // flags: null;
         replyMarkup?: Api.TypeReplyMarkup;
@@ -4641,7 +4641,7 @@ export namespace Api {
         providerData: Api.TypeDataJSON;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "InputBotInlineMessageMediaInvoice";
+        className: "inputBotInlineMessageMediaInvoice";
         static fromReader(reader: Reader): InputBotInlineMessageMediaInvoice;
         // flags: null;
         title: string;
@@ -4664,7 +4664,7 @@ export namespace Api {
         content?: Api.TypeInputWebDocument;
         sendMessage: Api.TypeInputBotInlineMessage;
     }> {
-        className: "InputBotInlineResult";
+        className: "inputBotInlineResult";
         static fromReader(reader: Reader): InputBotInlineResult;
         // flags: null;
         id: string;
@@ -4682,7 +4682,7 @@ export namespace Api {
         photo: Api.TypeInputPhoto;
         sendMessage: Api.TypeInputBotInlineMessage;
     }> {
-        className: "InputBotInlineResultPhoto";
+        className: "inputBotInlineResultPhoto";
         static fromReader(reader: Reader): InputBotInlineResultPhoto;
         id: string;
         type: string;
@@ -4698,7 +4698,7 @@ export namespace Api {
         document: Api.TypeInputDocument;
         sendMessage: Api.TypeInputBotInlineMessage;
     }> {
-        className: "InputBotInlineResultDocument";
+        className: "inputBotInlineResultDocument";
         static fromReader(reader: Reader): InputBotInlineResultDocument;
         // flags: null;
         id: string;
@@ -4713,7 +4713,7 @@ export namespace Api {
         shortName: string;
         sendMessage: Api.TypeInputBotInlineMessage;
     }> {
-        className: "InputBotInlineResultGame";
+        className: "inputBotInlineResultGame";
         static fromReader(reader: Reader): InputBotInlineResultGame;
         id: string;
         shortName: string;
@@ -4725,7 +4725,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageMediaAuto";
+        className: "botInlineMessageMediaAuto";
         static fromReader(reader: Reader): BotInlineMessageMediaAuto;
         // flags: null;
         message: string;
@@ -4739,7 +4739,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageText";
+        className: "botInlineMessageText";
         static fromReader(reader: Reader): BotInlineMessageText;
         // flags: null;
         noWebpage?: boolean;
@@ -4755,7 +4755,7 @@ export namespace Api {
         proximityNotificationRadius?: int;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageMediaGeo";
+        className: "botInlineMessageMediaGeo";
         static fromReader(reader: Reader): BotInlineMessageMediaGeo;
         // flags: null;
         geo: Api.TypeGeoPoint;
@@ -4774,7 +4774,7 @@ export namespace Api {
         venueType: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageMediaVenue";
+        className: "botInlineMessageMediaVenue";
         static fromReader(reader: Reader): BotInlineMessageMediaVenue;
         // flags: null;
         geo: Api.TypeGeoPoint;
@@ -4793,7 +4793,7 @@ export namespace Api {
         vcard: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageMediaContact";
+        className: "botInlineMessageMediaContact";
         static fromReader(reader: Reader): BotInlineMessageMediaContact;
         // flags: null;
         phoneNumber: string;
@@ -4813,7 +4813,7 @@ export namespace Api {
         totalAmount: long;
         replyMarkup?: Api.TypeReplyMarkup;
     }> {
-        className: "BotInlineMessageMediaInvoice";
+        className: "botInlineMessageMediaInvoice";
         static fromReader(reader: Reader): BotInlineMessageMediaInvoice;
         // flags: null;
         shippingAddressRequested?: boolean;
@@ -4836,7 +4836,7 @@ export namespace Api {
         content?: Api.TypeWebDocument;
         sendMessage: Api.TypeBotInlineMessage;
     }> {
-        className: "BotInlineResult";
+        className: "botInlineResult";
         static fromReader(reader: Reader): BotInlineResult;
         // flags: null;
         id: string;
@@ -4858,7 +4858,7 @@ export namespace Api {
         description?: string;
         sendMessage: Api.TypeBotInlineMessage;
     }> {
-        className: "BotInlineMediaResult";
+        className: "botInlineMediaResult";
         static fromReader(reader: Reader): BotInlineMediaResult;
         // flags: null;
         id: string;
@@ -4873,7 +4873,7 @@ export namespace Api {
         link: string;
         html: string;
     }> {
-        className: "ExportedMessageLink";
+        className: "exportedMessageLink";
         static fromReader(reader: Reader): ExportedMessageLink;
         link: string;
         html: string;
@@ -4890,7 +4890,7 @@ export namespace Api {
         savedFromMsgId?: int;
         psaType?: string;
     }> {
-        className: "MessageFwdHeader";
+        className: "messageFwdHeader";
         static fromReader(reader: Reader): MessageFwdHeader;
         // flags: null;
         imported?: boolean;
@@ -4908,7 +4908,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputBotInlineMessageID";
+        className: "inputBotInlineMessageID";
         static fromReader(reader: Reader): InputBotInlineMessageID;
         dcId: int;
         id: long;
@@ -4918,7 +4918,7 @@ export namespace Api {
         text: string;
         startParam: string;
     }> {
-        className: "InlineBotSwitchPM";
+        className: "inlineBotSwitchPM";
         static fromReader(reader: Reader): InlineBotSwitchPM;
         text: string;
         startParam: string;
@@ -4927,41 +4927,41 @@ export namespace Api {
         peer: Api.TypePeer;
         rating: double;
     }> {
-        className: "TopPeer";
+        className: "topPeer";
         static fromReader(reader: Reader): TopPeer;
         peer: Api.TypePeer;
         rating: double;
     }
     export class TopPeerCategoryBotsPM extends VirtualClass<void> {
-        className: "TopPeerCategoryBotsPM";
+        className: "topPeerCategoryBotsPM";
         static fromReader(reader: Reader): TopPeerCategoryBotsPM;
     }
     export class TopPeerCategoryBotsInline extends VirtualClass<void> {
-        className: "TopPeerCategoryBotsInline";
+        className: "topPeerCategoryBotsInline";
         static fromReader(reader: Reader): TopPeerCategoryBotsInline;
     }
     export class TopPeerCategoryCorrespondents extends VirtualClass<void> {
-        className: "TopPeerCategoryCorrespondents";
+        className: "topPeerCategoryCorrespondents";
         static fromReader(reader: Reader): TopPeerCategoryCorrespondents;
     }
     export class TopPeerCategoryGroups extends VirtualClass<void> {
-        className: "TopPeerCategoryGroups";
+        className: "topPeerCategoryGroups";
         static fromReader(reader: Reader): TopPeerCategoryGroups;
     }
     export class TopPeerCategoryChannels extends VirtualClass<void> {
-        className: "TopPeerCategoryChannels";
+        className: "topPeerCategoryChannels";
         static fromReader(reader: Reader): TopPeerCategoryChannels;
     }
     export class TopPeerCategoryPhoneCalls extends VirtualClass<void> {
-        className: "TopPeerCategoryPhoneCalls";
+        className: "topPeerCategoryPhoneCalls";
         static fromReader(reader: Reader): TopPeerCategoryPhoneCalls;
     }
     export class TopPeerCategoryForwardUsers extends VirtualClass<void> {
-        className: "TopPeerCategoryForwardUsers";
+        className: "topPeerCategoryForwardUsers";
         static fromReader(reader: Reader): TopPeerCategoryForwardUsers;
     }
     export class TopPeerCategoryForwardChats extends VirtualClass<void> {
-        className: "TopPeerCategoryForwardChats";
+        className: "topPeerCategoryForwardChats";
         static fromReader(reader: Reader): TopPeerCategoryForwardChats;
     }
     export class TopPeerCategoryPeers extends VirtualClass<{
@@ -4969,7 +4969,7 @@ export namespace Api {
         count: int;
         peers: Api.TypeTopPeer[];
     }> {
-        className: "TopPeerCategoryPeers";
+        className: "topPeerCategoryPeers";
         static fromReader(reader: Reader): TopPeerCategoryPeers;
         category: Api.TypeTopPeerCategory;
         count: int;
@@ -4979,7 +4979,7 @@ export namespace Api {
         // flags: null;
         date?: int;
     }> {
-        className: "DraftMessageEmpty";
+        className: "draftMessageEmpty";
         static fromReader(reader: Reader): DraftMessageEmpty;
         // flags: null;
         date?: int;
@@ -4992,7 +4992,7 @@ export namespace Api {
         entities?: Api.TypeMessageEntity[];
         date: int;
     }> {
-        className: "DraftMessage";
+        className: "draftMessage";
         static fromReader(reader: Reader): DraftMessage;
         // flags: null;
         noWebpage?: boolean;
@@ -5005,7 +5005,7 @@ export namespace Api {
         set: Api.TypeStickerSet;
         cover: Api.TypeDocument;
     }> {
-        className: "StickerSetCovered";
+        className: "stickerSetCovered";
         static fromReader(reader: Reader): StickerSetCovered;
         set: Api.TypeStickerSet;
         cover: Api.TypeDocument;
@@ -5014,7 +5014,7 @@ export namespace Api {
         set: Api.TypeStickerSet;
         covers: Api.TypeDocument[];
     }> {
-        className: "StickerSetMultiCovered";
+        className: "stickerSetMultiCovered";
         static fromReader(reader: Reader): StickerSetMultiCovered;
         set: Api.TypeStickerSet;
         covers: Api.TypeDocument[];
@@ -5025,7 +5025,7 @@ export namespace Api {
         y: double;
         zoom: double;
     }> {
-        className: "MaskCoords";
+        className: "maskCoords";
         static fromReader(reader: Reader): MaskCoords;
         n: int;
         x: double;
@@ -5035,14 +5035,14 @@ export namespace Api {
     export class InputStickeredMediaPhoto extends VirtualClass<{
         id: Api.TypeInputPhoto;
     }> {
-        className: "InputStickeredMediaPhoto";
+        className: "inputStickeredMediaPhoto";
         static fromReader(reader: Reader): InputStickeredMediaPhoto;
         id: Api.TypeInputPhoto;
     }
     export class InputStickeredMediaDocument extends VirtualClass<{
         id: Api.TypeInputDocument;
     }> {
-        className: "InputStickeredMediaDocument";
+        className: "inputStickeredMediaDocument";
         static fromReader(reader: Reader): InputStickeredMediaDocument;
         id: Api.TypeInputDocument;
     }
@@ -5056,7 +5056,7 @@ export namespace Api {
         photo: Api.TypePhoto;
         document?: Api.TypeDocument;
     }> {
-        className: "Game";
+        className: "game";
         static fromReader(reader: Reader): Game;
         // flags: null;
         id: long;
@@ -5071,7 +5071,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputGameID";
+        className: "inputGameID";
         static fromReader(reader: Reader): InputGameID;
         id: long;
         accessHash: long;
@@ -5080,7 +5080,7 @@ export namespace Api {
         botId: Api.TypeInputUser;
         shortName: string;
     }> {
-        className: "InputGameShortName";
+        className: "inputGameShortName";
         static fromReader(reader: Reader): InputGameShortName;
         botId: Api.TypeInputUser;
         shortName: string;
@@ -5090,55 +5090,55 @@ export namespace Api {
         userId: int;
         score: int;
     }> {
-        className: "HighScore";
+        className: "highScore";
         static fromReader(reader: Reader): HighScore;
         pos: int;
         userId: int;
         score: int;
     }
     export class TextEmpty extends VirtualClass<void> {
-        className: "TextEmpty";
+        className: "textEmpty";
         static fromReader(reader: Reader): TextEmpty;
     }
     export class TextPlain extends VirtualClass<{
         text: string;
     }> {
-        className: "TextPlain";
+        className: "textPlain";
         static fromReader(reader: Reader): TextPlain;
         text: string;
     }
     export class TextBold extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextBold";
+        className: "textBold";
         static fromReader(reader: Reader): TextBold;
         text: Api.TypeRichText;
     }
     export class TextItalic extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextItalic";
+        className: "textItalic";
         static fromReader(reader: Reader): TextItalic;
         text: Api.TypeRichText;
     }
     export class TextUnderline extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextUnderline";
+        className: "textUnderline";
         static fromReader(reader: Reader): TextUnderline;
         text: Api.TypeRichText;
     }
     export class TextStrike extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextStrike";
+        className: "textStrike";
         static fromReader(reader: Reader): TextStrike;
         text: Api.TypeRichText;
     }
     export class TextFixed extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextFixed";
+        className: "textFixed";
         static fromReader(reader: Reader): TextFixed;
         text: Api.TypeRichText;
     }
@@ -5147,7 +5147,7 @@ export namespace Api {
         url: string;
         webpageId: long;
     }> {
-        className: "TextUrl";
+        className: "textUrl";
         static fromReader(reader: Reader): TextUrl;
         text: Api.TypeRichText;
         url: string;
@@ -5157,7 +5157,7 @@ export namespace Api {
         text: Api.TypeRichText;
         email: string;
     }> {
-        className: "TextEmail";
+        className: "textEmail";
         static fromReader(reader: Reader): TextEmail;
         text: Api.TypeRichText;
         email: string;
@@ -5165,28 +5165,28 @@ export namespace Api {
     export class TextConcat extends VirtualClass<{
         texts: Api.TypeRichText[];
     }> {
-        className: "TextConcat";
+        className: "textConcat";
         static fromReader(reader: Reader): TextConcat;
         texts: Api.TypeRichText[];
     }
     export class TextSubscript extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextSubscript";
+        className: "textSubscript";
         static fromReader(reader: Reader): TextSubscript;
         text: Api.TypeRichText;
     }
     export class TextSuperscript extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextSuperscript";
+        className: "textSuperscript";
         static fromReader(reader: Reader): TextSuperscript;
         text: Api.TypeRichText;
     }
     export class TextMarked extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "TextMarked";
+        className: "textMarked";
         static fromReader(reader: Reader): TextMarked;
         text: Api.TypeRichText;
     }
@@ -5194,7 +5194,7 @@ export namespace Api {
         text: Api.TypeRichText;
         phone: string;
     }> {
-        className: "TextPhone";
+        className: "textPhone";
         static fromReader(reader: Reader): TextPhone;
         text: Api.TypeRichText;
         phone: string;
@@ -5204,7 +5204,7 @@ export namespace Api {
         w: int;
         h: int;
     }> {
-        className: "TextImage";
+        className: "textImage";
         static fromReader(reader: Reader): TextImage;
         documentId: long;
         w: int;
@@ -5214,26 +5214,26 @@ export namespace Api {
         text: Api.TypeRichText;
         name: string;
     }> {
-        className: "TextAnchor";
+        className: "textAnchor";
         static fromReader(reader: Reader): TextAnchor;
         text: Api.TypeRichText;
         name: string;
     }
     export class PageBlockUnsupported extends VirtualClass<void> {
-        className: "PageBlockUnsupported";
+        className: "pageBlockUnsupported";
         static fromReader(reader: Reader): PageBlockUnsupported;
     }
     export class PageBlockTitle extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockTitle";
+        className: "pageBlockTitle";
         static fromReader(reader: Reader): PageBlockTitle;
         text: Api.TypeRichText;
     }
     export class PageBlockSubtitle extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockSubtitle";
+        className: "pageBlockSubtitle";
         static fromReader(reader: Reader): PageBlockSubtitle;
         text: Api.TypeRichText;
     }
@@ -5241,7 +5241,7 @@ export namespace Api {
         author: Api.TypeRichText;
         publishedDate: int;
     }> {
-        className: "PageBlockAuthorDate";
+        className: "pageBlockAuthorDate";
         static fromReader(reader: Reader): PageBlockAuthorDate;
         author: Api.TypeRichText;
         publishedDate: int;
@@ -5249,21 +5249,21 @@ export namespace Api {
     export class PageBlockHeader extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockHeader";
+        className: "pageBlockHeader";
         static fromReader(reader: Reader): PageBlockHeader;
         text: Api.TypeRichText;
     }
     export class PageBlockSubheader extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockSubheader";
+        className: "pageBlockSubheader";
         static fromReader(reader: Reader): PageBlockSubheader;
         text: Api.TypeRichText;
     }
     export class PageBlockParagraph extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockParagraph";
+        className: "pageBlockParagraph";
         static fromReader(reader: Reader): PageBlockParagraph;
         text: Api.TypeRichText;
     }
@@ -5271,7 +5271,7 @@ export namespace Api {
         text: Api.TypeRichText;
         language: string;
     }> {
-        className: "PageBlockPreformatted";
+        className: "pageBlockPreformatted";
         static fromReader(reader: Reader): PageBlockPreformatted;
         text: Api.TypeRichText;
         language: string;
@@ -5279,25 +5279,25 @@ export namespace Api {
     export class PageBlockFooter extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockFooter";
+        className: "pageBlockFooter";
         static fromReader(reader: Reader): PageBlockFooter;
         text: Api.TypeRichText;
     }
     export class PageBlockDivider extends VirtualClass<void> {
-        className: "PageBlockDivider";
+        className: "pageBlockDivider";
         static fromReader(reader: Reader): PageBlockDivider;
     }
     export class PageBlockAnchor extends VirtualClass<{
         name: string;
     }> {
-        className: "PageBlockAnchor";
+        className: "pageBlockAnchor";
         static fromReader(reader: Reader): PageBlockAnchor;
         name: string;
     }
     export class PageBlockList extends VirtualClass<{
         items: Api.TypePageListItem[];
     }> {
-        className: "PageBlockList";
+        className: "pageBlockList";
         static fromReader(reader: Reader): PageBlockList;
         items: Api.TypePageListItem[];
     }
@@ -5305,7 +5305,7 @@ export namespace Api {
         text: Api.TypeRichText;
         caption: Api.TypeRichText;
     }> {
-        className: "PageBlockBlockquote";
+        className: "pageBlockBlockquote";
         static fromReader(reader: Reader): PageBlockBlockquote;
         text: Api.TypeRichText;
         caption: Api.TypeRichText;
@@ -5314,7 +5314,7 @@ export namespace Api {
         text: Api.TypeRichText;
         caption: Api.TypeRichText;
     }> {
-        className: "PageBlockPullquote";
+        className: "pageBlockPullquote";
         static fromReader(reader: Reader): PageBlockPullquote;
         text: Api.TypeRichText;
         caption: Api.TypeRichText;
@@ -5326,7 +5326,7 @@ export namespace Api {
         url?: string;
         webpageId?: long;
     }> {
-        className: "PageBlockPhoto";
+        className: "pageBlockPhoto";
         static fromReader(reader: Reader): PageBlockPhoto;
         // flags: null;
         photoId: long;
@@ -5341,7 +5341,7 @@ export namespace Api {
         videoId: long;
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockVideo";
+        className: "pageBlockVideo";
         static fromReader(reader: Reader): PageBlockVideo;
         // flags: null;
         autoplay?: boolean;
@@ -5352,7 +5352,7 @@ export namespace Api {
     export class PageBlockCover extends VirtualClass<{
         cover: Api.TypePageBlock;
     }> {
-        className: "PageBlockCover";
+        className: "pageBlockCover";
         static fromReader(reader: Reader): PageBlockCover;
         cover: Api.TypePageBlock;
     }
@@ -5367,7 +5367,7 @@ export namespace Api {
         h?: int;
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockEmbed";
+        className: "pageBlockEmbed";
         static fromReader(reader: Reader): PageBlockEmbed;
         // flags: null;
         fullWidth?: boolean;
@@ -5388,7 +5388,7 @@ export namespace Api {
         blocks: Api.TypePageBlock[];
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockEmbedPost";
+        className: "pageBlockEmbedPost";
         static fromReader(reader: Reader): PageBlockEmbedPost;
         url: string;
         webpageId: long;
@@ -5402,7 +5402,7 @@ export namespace Api {
         items: Api.TypePageBlock[];
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockCollage";
+        className: "pageBlockCollage";
         static fromReader(reader: Reader): PageBlockCollage;
         items: Api.TypePageBlock[];
         caption: Api.TypePageCaption;
@@ -5411,7 +5411,7 @@ export namespace Api {
         items: Api.TypePageBlock[];
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockSlideshow";
+        className: "pageBlockSlideshow";
         static fromReader(reader: Reader): PageBlockSlideshow;
         items: Api.TypePageBlock[];
         caption: Api.TypePageCaption;
@@ -5419,7 +5419,7 @@ export namespace Api {
     export class PageBlockChannel extends VirtualClass<{
         channel: Api.TypeChat;
     }> {
-        className: "PageBlockChannel";
+        className: "pageBlockChannel";
         static fromReader(reader: Reader): PageBlockChannel;
         channel: Api.TypeChat;
     }
@@ -5427,7 +5427,7 @@ export namespace Api {
         audioId: long;
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockAudio";
+        className: "pageBlockAudio";
         static fromReader(reader: Reader): PageBlockAudio;
         audioId: long;
         caption: Api.TypePageCaption;
@@ -5435,7 +5435,7 @@ export namespace Api {
     export class PageBlockKicker extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageBlockKicker";
+        className: "pageBlockKicker";
         static fromReader(reader: Reader): PageBlockKicker;
         text: Api.TypeRichText;
     }
@@ -5446,7 +5446,7 @@ export namespace Api {
         title: Api.TypeRichText;
         rows: Api.TypePageTableRow[];
     }> {
-        className: "PageBlockTable";
+        className: "pageBlockTable";
         static fromReader(reader: Reader): PageBlockTable;
         // flags: null;
         bordered?: boolean;
@@ -5457,7 +5457,7 @@ export namespace Api {
     export class PageBlockOrderedList extends VirtualClass<{
         items: Api.TypePageListOrderedItem[];
     }> {
-        className: "PageBlockOrderedList";
+        className: "pageBlockOrderedList";
         static fromReader(reader: Reader): PageBlockOrderedList;
         items: Api.TypePageListOrderedItem[];
     }
@@ -5467,7 +5467,7 @@ export namespace Api {
         blocks: Api.TypePageBlock[];
         title: Api.TypeRichText;
     }> {
-        className: "PageBlockDetails";
+        className: "pageBlockDetails";
         static fromReader(reader: Reader): PageBlockDetails;
         // flags: null;
         open?: boolean;
@@ -5478,7 +5478,7 @@ export namespace Api {
         title: Api.TypeRichText;
         articles: Api.TypePageRelatedArticle[];
     }> {
-        className: "PageBlockRelatedArticles";
+        className: "pageBlockRelatedArticles";
         static fromReader(reader: Reader): PageBlockRelatedArticles;
         title: Api.TypeRichText;
         articles: Api.TypePageRelatedArticle[];
@@ -5490,7 +5490,7 @@ export namespace Api {
         h: int;
         caption: Api.TypePageCaption;
     }> {
-        className: "PageBlockMap";
+        className: "pageBlockMap";
         static fromReader(reader: Reader): PageBlockMap;
         geo: Api.TypeGeoPoint;
         zoom: int;
@@ -5499,25 +5499,25 @@ export namespace Api {
         caption: Api.TypePageCaption;
     }
     export class PhoneCallDiscardReasonMissed extends VirtualClass<void> {
-        className: "PhoneCallDiscardReasonMissed";
+        className: "phoneCallDiscardReasonMissed";
         static fromReader(reader: Reader): PhoneCallDiscardReasonMissed;
     }
     export class PhoneCallDiscardReasonDisconnect extends VirtualClass<void> {
-        className: "PhoneCallDiscardReasonDisconnect";
+        className: "phoneCallDiscardReasonDisconnect";
         static fromReader(reader: Reader): PhoneCallDiscardReasonDisconnect;
     }
     export class PhoneCallDiscardReasonHangup extends VirtualClass<void> {
-        className: "PhoneCallDiscardReasonHangup";
+        className: "phoneCallDiscardReasonHangup";
         static fromReader(reader: Reader): PhoneCallDiscardReasonHangup;
     }
     export class PhoneCallDiscardReasonBusy extends VirtualClass<void> {
-        className: "PhoneCallDiscardReasonBusy";
+        className: "phoneCallDiscardReasonBusy";
         static fromReader(reader: Reader): PhoneCallDiscardReasonBusy;
     }
     export class DataJSON extends VirtualClass<{
         data: string;
     }> {
-        className: "DataJSON";
+        className: "dataJSON";
         static fromReader(reader: Reader): DataJSON;
         data: string;
     }
@@ -5525,7 +5525,7 @@ export namespace Api {
         label: string;
         amount: long;
     }> {
-        className: "LabeledPrice";
+        className: "labeledPrice";
         static fromReader(reader: Reader): LabeledPrice;
         label: string;
         amount: long;
@@ -5545,7 +5545,7 @@ export namespace Api {
         maxTipAmount?: long;
         suggestedTipAmounts?: long[];
     }> {
-        className: "Invoice";
+        className: "invoice";
         static fromReader(reader: Reader): Invoice;
         // flags: null;
         test?: boolean;
@@ -5565,7 +5565,7 @@ export namespace Api {
         id: string;
         providerChargeId: string;
     }> {
-        className: "PaymentCharge";
+        className: "paymentCharge";
         static fromReader(reader: Reader): PaymentCharge;
         id: string;
         providerChargeId: string;
@@ -5578,7 +5578,7 @@ export namespace Api {
         countryIso2: string;
         postCode: string;
     }> {
-        className: "PostAddress";
+        className: "postAddress";
         static fromReader(reader: Reader): PostAddress;
         streetLine1: string;
         streetLine2: string;
@@ -5594,7 +5594,7 @@ export namespace Api {
         email?: string;
         shippingAddress?: Api.TypePostAddress;
     }> {
-        className: "PaymentRequestedInfo";
+        className: "paymentRequestedInfo";
         static fromReader(reader: Reader): PaymentRequestedInfo;
         // flags: null;
         name?: string;
@@ -5606,7 +5606,7 @@ export namespace Api {
         id: string;
         title: string;
     }> {
-        className: "PaymentSavedCredentialsCard";
+        className: "paymentSavedCredentialsCard";
         static fromReader(reader: Reader): PaymentSavedCredentialsCard;
         id: string;
         title: string;
@@ -5618,7 +5618,7 @@ export namespace Api {
         mimeType: string;
         attributes: Api.TypeDocumentAttribute[];
     }> {
-        className: "WebDocument";
+        className: "webDocument";
         static fromReader(reader: Reader): WebDocument;
         url: string;
         accessHash: long;
@@ -5632,7 +5632,7 @@ export namespace Api {
         mimeType: string;
         attributes: Api.TypeDocumentAttribute[];
     }> {
-        className: "WebDocumentNoProxy";
+        className: "webDocumentNoProxy";
         static fromReader(reader: Reader): WebDocumentNoProxy;
         url: string;
         size: int;
@@ -5645,7 +5645,7 @@ export namespace Api {
         mimeType: string;
         attributes: Api.TypeDocumentAttribute[];
     }> {
-        className: "InputWebDocument";
+        className: "inputWebDocument";
         static fromReader(reader: Reader): InputWebDocument;
         url: string;
         size: int;
@@ -5656,7 +5656,7 @@ export namespace Api {
         url: string;
         accessHash: long;
     }> {
-        className: "InputWebFileLocation";
+        className: "inputWebFileLocation";
         static fromReader(reader: Reader): InputWebFileLocation;
         url: string;
         accessHash: long;
@@ -5669,7 +5669,7 @@ export namespace Api {
         zoom: int;
         scale: int;
     }> {
-        className: "InputWebFileGeoPointLocation";
+        className: "inputWebFileGeoPointLocation";
         static fromReader(reader: Reader): InputWebFileGeoPointLocation;
         geoPoint: Api.TypeInputGeoPoint;
         accessHash: long;
@@ -5682,7 +5682,7 @@ export namespace Api {
         id: string;
         tmpPassword: bytes;
     }> {
-        className: "InputPaymentCredentialsSaved";
+        className: "inputPaymentCredentialsSaved";
         static fromReader(reader: Reader): InputPaymentCredentialsSaved;
         id: string;
         tmpPassword: bytes;
@@ -5692,7 +5692,7 @@ export namespace Api {
         save?: boolean;
         data: Api.TypeDataJSON;
     }> {
-        className: "InputPaymentCredentials";
+        className: "inputPaymentCredentials";
         static fromReader(reader: Reader): InputPaymentCredentials;
         // flags: null;
         save?: boolean;
@@ -5701,14 +5701,14 @@ export namespace Api {
     export class InputPaymentCredentialsApplePay extends VirtualClass<{
         paymentData: Api.TypeDataJSON;
     }> {
-        className: "InputPaymentCredentialsApplePay";
+        className: "inputPaymentCredentialsApplePay";
         static fromReader(reader: Reader): InputPaymentCredentialsApplePay;
         paymentData: Api.TypeDataJSON;
     }
     export class InputPaymentCredentialsGooglePay extends VirtualClass<{
         paymentToken: Api.TypeDataJSON;
     }> {
-        className: "InputPaymentCredentialsGooglePay";
+        className: "inputPaymentCredentialsGooglePay";
         static fromReader(reader: Reader): InputPaymentCredentialsGooglePay;
         paymentToken: Api.TypeDataJSON;
     }
@@ -5717,7 +5717,7 @@ export namespace Api {
         title: string;
         prices: Api.TypeLabeledPrice[];
     }> {
-        className: "ShippingOption";
+        className: "shippingOption";
         static fromReader(reader: Reader): ShippingOption;
         id: string;
         title: string;
@@ -5729,7 +5729,7 @@ export namespace Api {
         emoji: string;
         maskCoords?: Api.TypeMaskCoords;
     }> {
-        className: "InputStickerSetItem";
+        className: "inputStickerSetItem";
         static fromReader(reader: Reader): InputStickerSetItem;
         // flags: null;
         document: Api.TypeInputDocument;
@@ -5740,7 +5740,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputPhoneCall";
+        className: "inputPhoneCall";
         static fromReader(reader: Reader): InputPhoneCall;
         id: long;
         accessHash: long;
@@ -5748,7 +5748,7 @@ export namespace Api {
     export class PhoneCallEmpty extends VirtualClass<{
         id: long;
     }> {
-        className: "PhoneCallEmpty";
+        className: "phoneCallEmpty";
         static fromReader(reader: Reader): PhoneCallEmpty;
         id: long;
     }
@@ -5763,7 +5763,7 @@ export namespace Api {
         protocol: Api.TypePhoneCallProtocol;
         receiveDate?: int;
     }> {
-        className: "PhoneCallWaiting";
+        className: "phoneCallWaiting";
         static fromReader(reader: Reader): PhoneCallWaiting;
         // flags: null;
         video?: boolean;
@@ -5786,7 +5786,7 @@ export namespace Api {
         gAHash: bytes;
         protocol: Api.TypePhoneCallProtocol;
     }> {
-        className: "PhoneCallRequested";
+        className: "phoneCallRequested";
         static fromReader(reader: Reader): PhoneCallRequested;
         // flags: null;
         video?: boolean;
@@ -5809,7 +5809,7 @@ export namespace Api {
         gB: bytes;
         protocol: Api.TypePhoneCallProtocol;
     }> {
-        className: "PhoneCallAccepted";
+        className: "phoneCallAccepted";
         static fromReader(reader: Reader): PhoneCallAccepted;
         // flags: null;
         video?: boolean;
@@ -5836,7 +5836,7 @@ export namespace Api {
         connections: Api.TypePhoneConnection[];
         startDate: int;
     }> {
-        className: "PhoneCall";
+        className: "phoneCall";
         static fromReader(reader: Reader): PhoneCall;
         // flags: null;
         p2pAllowed?: boolean;
@@ -5861,7 +5861,7 @@ export namespace Api {
         reason?: Api.TypePhoneCallDiscardReason;
         duration?: int;
     }> {
-        className: "PhoneCallDiscarded";
+        className: "phoneCallDiscarded";
         static fromReader(reader: Reader): PhoneCallDiscarded;
         // flags: null;
         needRating?: boolean;
@@ -5878,7 +5878,7 @@ export namespace Api {
         port: int;
         peerTag: bytes;
     }> {
-        className: "PhoneConnection";
+        className: "phoneConnection";
         static fromReader(reader: Reader): PhoneConnection;
         id: long;
         ip: string;
@@ -5897,7 +5897,7 @@ export namespace Api {
         username: string;
         password: string;
     }> {
-        className: "PhoneConnectionWebrtc";
+        className: "phoneConnectionWebrtc";
         static fromReader(reader: Reader): PhoneConnectionWebrtc;
         // flags: null;
         turn?: boolean;
@@ -5917,7 +5917,7 @@ export namespace Api {
         maxLayer: int;
         libraryVersions: string[];
     }> {
-        className: "PhoneCallProtocol";
+        className: "phoneCallProtocol";
         static fromReader(reader: Reader): PhoneCallProtocol;
         // flags: null;
         udpP2p?: boolean;
@@ -5930,7 +5930,7 @@ export namespace Api {
         dcId: int;
         publicKey: string;
     }> {
-        className: "CdnPublicKey";
+        className: "cdnPublicKey";
         static fromReader(reader: Reader): CdnPublicKey;
         dcId: int;
         publicKey: string;
@@ -5938,7 +5938,7 @@ export namespace Api {
     export class CdnConfig extends VirtualClass<{
         publicKeys: Api.TypeCdnPublicKey[];
     }> {
-        className: "CdnConfig";
+        className: "cdnConfig";
         static fromReader(reader: Reader): CdnConfig;
         publicKeys: Api.TypeCdnPublicKey[];
     }
@@ -5946,7 +5946,7 @@ export namespace Api {
         key: string;
         value: string;
     }> {
-        className: "LangPackString";
+        className: "langPackString";
         static fromReader(reader: Reader): LangPackString;
         key: string;
         value: string;
@@ -5961,7 +5961,7 @@ export namespace Api {
         manyValue?: string;
         otherValue: string;
     }> {
-        className: "LangPackStringPluralized";
+        className: "langPackStringPluralized";
         static fromReader(reader: Reader): LangPackStringPluralized;
         // flags: null;
         key: string;
@@ -5975,7 +5975,7 @@ export namespace Api {
     export class LangPackStringDeleted extends VirtualClass<{
         key: string;
     }> {
-        className: "LangPackStringDeleted";
+        className: "langPackStringDeleted";
         static fromReader(reader: Reader): LangPackStringDeleted;
         key: string;
     }
@@ -5985,7 +5985,7 @@ export namespace Api {
         version: int;
         strings: Api.TypeLangPackString[];
     }> {
-        className: "LangPackDifference";
+        className: "langPackDifference";
         static fromReader(reader: Reader): LangPackDifference;
         langCode: string;
         fromVersion: int;
@@ -6006,7 +6006,7 @@ export namespace Api {
         translatedCount: int;
         translationsUrl: string;
     }> {
-        className: "LangPackLanguage";
+        className: "langPackLanguage";
         static fromReader(reader: Reader): LangPackLanguage;
         // flags: null;
         official?: boolean;
@@ -6025,7 +6025,7 @@ export namespace Api {
         prevValue: string;
         newValue: string;
     }> {
-        className: "ChannelAdminLogEventActionChangeTitle";
+        className: "channelAdminLogEventActionChangeTitle";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeTitle;
@@ -6036,7 +6036,7 @@ export namespace Api {
         prevValue: string;
         newValue: string;
     }> {
-        className: "ChannelAdminLogEventActionChangeAbout";
+        className: "channelAdminLogEventActionChangeAbout";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeAbout;
@@ -6047,7 +6047,7 @@ export namespace Api {
         prevValue: string;
         newValue: string;
     }> {
-        className: "ChannelAdminLogEventActionChangeUsername";
+        className: "channelAdminLogEventActionChangeUsername";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeUsername;
@@ -6058,7 +6058,7 @@ export namespace Api {
         prevPhoto: Api.TypePhoto;
         newPhoto: Api.TypePhoto;
     }> {
-        className: "ChannelAdminLogEventActionChangePhoto";
+        className: "channelAdminLogEventActionChangePhoto";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangePhoto;
@@ -6068,7 +6068,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionToggleInvites extends VirtualClass<{
         newValue: Bool;
     }> {
-        className: "ChannelAdminLogEventActionToggleInvites";
+        className: "channelAdminLogEventActionToggleInvites";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionToggleInvites;
@@ -6077,7 +6077,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionToggleSignatures extends VirtualClass<{
         newValue: Bool;
     }> {
-        className: "ChannelAdminLogEventActionToggleSignatures";
+        className: "channelAdminLogEventActionToggleSignatures";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionToggleSignatures;
@@ -6086,7 +6086,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionUpdatePinned extends VirtualClass<{
         message: Api.TypeMessage;
     }> {
-        className: "ChannelAdminLogEventActionUpdatePinned";
+        className: "channelAdminLogEventActionUpdatePinned";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionUpdatePinned;
@@ -6096,7 +6096,7 @@ export namespace Api {
         prevMessage: Api.TypeMessage;
         newMessage: Api.TypeMessage;
     }> {
-        className: "ChannelAdminLogEventActionEditMessage";
+        className: "channelAdminLogEventActionEditMessage";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionEditMessage;
@@ -6106,20 +6106,20 @@ export namespace Api {
     export class ChannelAdminLogEventActionDeleteMessage extends VirtualClass<{
         message: Api.TypeMessage;
     }> {
-        className: "ChannelAdminLogEventActionDeleteMessage";
+        className: "channelAdminLogEventActionDeleteMessage";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionDeleteMessage;
         message: Api.TypeMessage;
     }
     export class ChannelAdminLogEventActionParticipantJoin extends VirtualClass<void> {
-        className: "ChannelAdminLogEventActionParticipantJoin";
+        className: "channelAdminLogEventActionParticipantJoin";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantJoin;
     }
     export class ChannelAdminLogEventActionParticipantLeave extends VirtualClass<void> {
-        className: "ChannelAdminLogEventActionParticipantLeave";
+        className: "channelAdminLogEventActionParticipantLeave";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantLeave;
@@ -6127,7 +6127,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionParticipantInvite extends VirtualClass<{
         participant: Api.TypeChannelParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantInvite";
+        className: "channelAdminLogEventActionParticipantInvite";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantInvite;
@@ -6137,7 +6137,7 @@ export namespace Api {
         prevParticipant: Api.TypeChannelParticipant;
         newParticipant: Api.TypeChannelParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantToggleBan";
+        className: "channelAdminLogEventActionParticipantToggleBan";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantToggleBan;
@@ -6148,7 +6148,7 @@ export namespace Api {
         prevParticipant: Api.TypeChannelParticipant;
         newParticipant: Api.TypeChannelParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantToggleAdmin";
+        className: "channelAdminLogEventActionParticipantToggleAdmin";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantToggleAdmin;
@@ -6159,7 +6159,7 @@ export namespace Api {
         prevStickerset: Api.TypeInputStickerSet;
         newStickerset: Api.TypeInputStickerSet;
     }> {
-        className: "ChannelAdminLogEventActionChangeStickerSet";
+        className: "channelAdminLogEventActionChangeStickerSet";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeStickerSet;
@@ -6169,7 +6169,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionTogglePreHistoryHidden extends VirtualClass<{
         newValue: Bool;
     }> {
-        className: "ChannelAdminLogEventActionTogglePreHistoryHidden";
+        className: "channelAdminLogEventActionTogglePreHistoryHidden";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionTogglePreHistoryHidden;
@@ -6179,7 +6179,7 @@ export namespace Api {
         prevBannedRights: Api.TypeChatBannedRights;
         newBannedRights: Api.TypeChatBannedRights;
     }> {
-        className: "ChannelAdminLogEventActionDefaultBannedRights";
+        className: "channelAdminLogEventActionDefaultBannedRights";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionDefaultBannedRights;
@@ -6189,7 +6189,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionStopPoll extends VirtualClass<{
         message: Api.TypeMessage;
     }> {
-        className: "ChannelAdminLogEventActionStopPoll";
+        className: "channelAdminLogEventActionStopPoll";
         static fromReader(reader: Reader): ChannelAdminLogEventActionStopPoll;
         message: Api.TypeMessage;
     }
@@ -6197,7 +6197,7 @@ export namespace Api {
         prevValue: int;
         newValue: int;
     }> {
-        className: "ChannelAdminLogEventActionChangeLinkedChat";
+        className: "channelAdminLogEventActionChangeLinkedChat";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeLinkedChat;
@@ -6208,7 +6208,7 @@ export namespace Api {
         prevValue: Api.TypeChannelLocation;
         newValue: Api.TypeChannelLocation;
     }> {
-        className: "ChannelAdminLogEventActionChangeLocation";
+        className: "channelAdminLogEventActionChangeLocation";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeLocation;
@@ -6219,7 +6219,7 @@ export namespace Api {
         prevValue: int;
         newValue: int;
     }> {
-        className: "ChannelAdminLogEventActionToggleSlowMode";
+        className: "channelAdminLogEventActionToggleSlowMode";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionToggleSlowMode;
@@ -6229,7 +6229,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionStartGroupCall extends VirtualClass<{
         call: Api.TypeInputGroupCall;
     }> {
-        className: "ChannelAdminLogEventActionStartGroupCall";
+        className: "channelAdminLogEventActionStartGroupCall";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionStartGroupCall;
@@ -6238,7 +6238,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionDiscardGroupCall extends VirtualClass<{
         call: Api.TypeInputGroupCall;
     }> {
-        className: "ChannelAdminLogEventActionDiscardGroupCall";
+        className: "channelAdminLogEventActionDiscardGroupCall";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionDiscardGroupCall;
@@ -6247,7 +6247,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionParticipantMute extends VirtualClass<{
         participant: Api.TypeGroupCallParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantMute";
+        className: "channelAdminLogEventActionParticipantMute";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantMute;
@@ -6256,7 +6256,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionParticipantUnmute extends VirtualClass<{
         participant: Api.TypeGroupCallParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantUnmute";
+        className: "channelAdminLogEventActionParticipantUnmute";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantUnmute;
@@ -6265,7 +6265,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionToggleGroupCallSetting extends VirtualClass<{
         joinMuted: Bool;
     }> {
-        className: "ChannelAdminLogEventActionToggleGroupCallSetting";
+        className: "channelAdminLogEventActionToggleGroupCallSetting";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionToggleGroupCallSetting;
@@ -6274,7 +6274,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionParticipantJoinByInvite extends VirtualClass<{
         invite: Api.TypeExportedChatInvite;
     }> {
-        className: "ChannelAdminLogEventActionParticipantJoinByInvite";
+        className: "channelAdminLogEventActionParticipantJoinByInvite";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantJoinByInvite;
@@ -6283,7 +6283,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionExportedInviteDelete extends VirtualClass<{
         invite: Api.TypeExportedChatInvite;
     }> {
-        className: "ChannelAdminLogEventActionExportedInviteDelete";
+        className: "channelAdminLogEventActionExportedInviteDelete";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionExportedInviteDelete;
@@ -6292,7 +6292,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionExportedInviteRevoke extends VirtualClass<{
         invite: Api.TypeExportedChatInvite;
     }> {
-        className: "ChannelAdminLogEventActionExportedInviteRevoke";
+        className: "channelAdminLogEventActionExportedInviteRevoke";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionExportedInviteRevoke;
@@ -6302,7 +6302,7 @@ export namespace Api {
         prevInvite: Api.TypeExportedChatInvite;
         newInvite: Api.TypeExportedChatInvite;
     }> {
-        className: "ChannelAdminLogEventActionExportedInviteEdit";
+        className: "channelAdminLogEventActionExportedInviteEdit";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionExportedInviteEdit;
@@ -6312,7 +6312,7 @@ export namespace Api {
     export class ChannelAdminLogEventActionParticipantVolume extends VirtualClass<{
         participant: Api.TypeGroupCallParticipant;
     }> {
-        className: "ChannelAdminLogEventActionParticipantVolume";
+        className: "channelAdminLogEventActionParticipantVolume";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionParticipantVolume;
@@ -6322,7 +6322,7 @@ export namespace Api {
         prevValue: int;
         newValue: int;
     }> {
-        className: "ChannelAdminLogEventActionChangeHistoryTTL";
+        className: "channelAdminLogEventActionChangeHistoryTTL";
         static fromReader(
             reader: Reader
         ): ChannelAdminLogEventActionChangeHistoryTTL;
@@ -6335,7 +6335,7 @@ export namespace Api {
         userId: int;
         action: Api.TypeChannelAdminLogEventAction;
     }> {
-        className: "ChannelAdminLogEvent";
+        className: "channelAdminLogEvent";
         static fromReader(reader: Reader): ChannelAdminLogEvent;
         id: long;
         date: int;
@@ -6361,7 +6361,7 @@ export namespace Api {
         groupCall?: boolean;
         invites?: boolean;
     }> {
-        className: "ChannelAdminLogEventsFilter";
+        className: "channelAdminLogEventsFilter";
         static fromReader(reader: Reader): ChannelAdminLogEventsFilter;
         // flags: null;
         join?: boolean;
@@ -6385,7 +6385,7 @@ export namespace Api {
         clientId: long;
         importers: int;
     }> {
-        className: "PopularContact";
+        className: "popularContact";
         static fromReader(reader: Reader): PopularContact;
         clientId: long;
         importers: int;
@@ -6393,7 +6393,7 @@ export namespace Api {
     export class RecentMeUrlUnknown extends VirtualClass<{
         url: string;
     }> {
-        className: "RecentMeUrlUnknown";
+        className: "recentMeUrlUnknown";
         static fromReader(reader: Reader): RecentMeUrlUnknown;
         url: string;
     }
@@ -6401,7 +6401,7 @@ export namespace Api {
         url: string;
         userId: int;
     }> {
-        className: "RecentMeUrlUser";
+        className: "recentMeUrlUser";
         static fromReader(reader: Reader): RecentMeUrlUser;
         url: string;
         userId: int;
@@ -6410,7 +6410,7 @@ export namespace Api {
         url: string;
         chatId: int;
     }> {
-        className: "RecentMeUrlChat";
+        className: "recentMeUrlChat";
         static fromReader(reader: Reader): RecentMeUrlChat;
         url: string;
         chatId: int;
@@ -6419,7 +6419,7 @@ export namespace Api {
         url: string;
         chatInvite: Api.TypeChatInvite;
     }> {
-        className: "RecentMeUrlChatInvite";
+        className: "recentMeUrlChatInvite";
         static fromReader(reader: Reader): RecentMeUrlChatInvite;
         url: string;
         chatInvite: Api.TypeChatInvite;
@@ -6428,7 +6428,7 @@ export namespace Api {
         url: string;
         set: Api.TypeStickerSetCovered;
     }> {
-        className: "RecentMeUrlStickerSet";
+        className: "recentMeUrlStickerSet";
         static fromReader(reader: Reader): RecentMeUrlStickerSet;
         url: string;
         set: Api.TypeStickerSetCovered;
@@ -6440,7 +6440,7 @@ export namespace Api {
         message: string;
         entities?: Api.TypeMessageEntity[];
     }> {
-        className: "InputSingleMedia";
+        className: "inputSingleMedia";
         static fromReader(reader: Reader): InputSingleMedia;
         // flags: null;
         media: Api.TypeInputMedia;
@@ -6459,7 +6459,7 @@ export namespace Api {
         ip: string;
         region: string;
     }> {
-        className: "WebAuthorization";
+        className: "webAuthorization";
         static fromReader(reader: Reader): WebAuthorization;
         hash: long;
         botId: int;
@@ -6474,26 +6474,26 @@ export namespace Api {
     export class InputMessageID extends VirtualClass<{
         id: int;
     }> {
-        className: "InputMessageID";
+        className: "inputMessageID";
         static fromReader(reader: Reader): InputMessageID;
         id: int;
     }
     export class InputMessageReplyTo extends VirtualClass<{
         id: int;
     }> {
-        className: "InputMessageReplyTo";
+        className: "inputMessageReplyTo";
         static fromReader(reader: Reader): InputMessageReplyTo;
         id: int;
     }
     export class InputMessagePinned extends VirtualClass<void> {
-        className: "InputMessagePinned";
+        className: "inputMessagePinned";
         static fromReader(reader: Reader): InputMessagePinned;
     }
     export class InputMessageCallbackQuery extends VirtualClass<{
         id: int;
         queryId: long;
     }> {
-        className: "InputMessageCallbackQuery";
+        className: "inputMessageCallbackQuery";
         static fromReader(reader: Reader): InputMessageCallbackQuery;
         id: int;
         queryId: long;
@@ -6501,28 +6501,28 @@ export namespace Api {
     export class InputDialogPeer extends VirtualClass<{
         peer: Api.TypeInputPeer;
     }> {
-        className: "InputDialogPeer";
+        className: "inputDialogPeer";
         static fromReader(reader: Reader): InputDialogPeer;
         peer: Api.TypeInputPeer;
     }
     export class InputDialogPeerFolder extends VirtualClass<{
         folderId: int;
     }> {
-        className: "InputDialogPeerFolder";
+        className: "inputDialogPeerFolder";
         static fromReader(reader: Reader): InputDialogPeerFolder;
         folderId: int;
     }
     export class DialogPeer extends VirtualClass<{
         peer: Api.TypePeer;
     }> {
-        className: "DialogPeer";
+        className: "dialogPeer";
         static fromReader(reader: Reader): DialogPeer;
         peer: Api.TypePeer;
     }
     export class DialogPeerFolder extends VirtualClass<{
         folderId: int;
     }> {
-        className: "DialogPeerFolder";
+        className: "dialogPeerFolder";
         static fromReader(reader: Reader): DialogPeerFolder;
         folderId: int;
     }
@@ -6531,7 +6531,7 @@ export namespace Api {
         limit: int;
         hash: bytes;
     }> {
-        className: "FileHash";
+        className: "fileHash";
         static fromReader(reader: Reader): FileHash;
         offset: int;
         limit: int;
@@ -6541,7 +6541,7 @@ export namespace Api {
         address: string;
         port: int;
     }> {
-        className: "InputClientProxy";
+        className: "inputClientProxy";
         static fromReader(reader: Reader): InputClientProxy;
         address: string;
         port: int;
@@ -6553,7 +6553,7 @@ export namespace Api {
         fileHash: bytes;
         secret: bytes;
     }> {
-        className: "InputSecureFileUploaded";
+        className: "inputSecureFileUploaded";
         static fromReader(reader: Reader): InputSecureFileUploaded;
         id: long;
         parts: int;
@@ -6565,13 +6565,13 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputSecureFile";
+        className: "inputSecureFile";
         static fromReader(reader: Reader): InputSecureFile;
         id: long;
         accessHash: long;
     }
     export class SecureFileEmpty extends VirtualClass<void> {
-        className: "SecureFileEmpty";
+        className: "secureFileEmpty";
         static fromReader(reader: Reader): SecureFileEmpty;
     }
     export class SecureFile extends VirtualClass<{
@@ -6583,7 +6583,7 @@ export namespace Api {
         fileHash: bytes;
         secret: bytes;
     }> {
-        className: "SecureFile";
+        className: "secureFile";
         static fromReader(reader: Reader): SecureFile;
         id: long;
         accessHash: long;
@@ -6598,7 +6598,7 @@ export namespace Api {
         dataHash: bytes;
         secret: bytes;
     }> {
-        className: "SecureData";
+        className: "secureData";
         static fromReader(reader: Reader): SecureData;
         data: bytes;
         dataHash: bytes;
@@ -6607,67 +6607,67 @@ export namespace Api {
     export class SecurePlainPhone extends VirtualClass<{
         phone: string;
     }> {
-        className: "SecurePlainPhone";
+        className: "securePlainPhone";
         static fromReader(reader: Reader): SecurePlainPhone;
         phone: string;
     }
     export class SecurePlainEmail extends VirtualClass<{
         email: string;
     }> {
-        className: "SecurePlainEmail";
+        className: "securePlainEmail";
         static fromReader(reader: Reader): SecurePlainEmail;
         email: string;
     }
     export class SecureValueTypePersonalDetails extends VirtualClass<void> {
-        className: "SecureValueTypePersonalDetails";
+        className: "secureValueTypePersonalDetails";
         static fromReader(reader: Reader): SecureValueTypePersonalDetails;
     }
     export class SecureValueTypePassport extends VirtualClass<void> {
-        className: "SecureValueTypePassport";
+        className: "secureValueTypePassport";
         static fromReader(reader: Reader): SecureValueTypePassport;
     }
     export class SecureValueTypeDriverLicense extends VirtualClass<void> {
-        className: "SecureValueTypeDriverLicense";
+        className: "secureValueTypeDriverLicense";
         static fromReader(reader: Reader): SecureValueTypeDriverLicense;
     }
     export class SecureValueTypeIdentityCard extends VirtualClass<void> {
-        className: "SecureValueTypeIdentityCard";
+        className: "secureValueTypeIdentityCard";
         static fromReader(reader: Reader): SecureValueTypeIdentityCard;
     }
     export class SecureValueTypeInternalPassport extends VirtualClass<void> {
-        className: "SecureValueTypeInternalPassport";
+        className: "secureValueTypeInternalPassport";
         static fromReader(reader: Reader): SecureValueTypeInternalPassport;
     }
     export class SecureValueTypeAddress extends VirtualClass<void> {
-        className: "SecureValueTypeAddress";
+        className: "secureValueTypeAddress";
         static fromReader(reader: Reader): SecureValueTypeAddress;
     }
     export class SecureValueTypeUtilityBill extends VirtualClass<void> {
-        className: "SecureValueTypeUtilityBill";
+        className: "secureValueTypeUtilityBill";
         static fromReader(reader: Reader): SecureValueTypeUtilityBill;
     }
     export class SecureValueTypeBankStatement extends VirtualClass<void> {
-        className: "SecureValueTypeBankStatement";
+        className: "secureValueTypeBankStatement";
         static fromReader(reader: Reader): SecureValueTypeBankStatement;
     }
     export class SecureValueTypeRentalAgreement extends VirtualClass<void> {
-        className: "SecureValueTypeRentalAgreement";
+        className: "secureValueTypeRentalAgreement";
         static fromReader(reader: Reader): SecureValueTypeRentalAgreement;
     }
     export class SecureValueTypePassportRegistration extends VirtualClass<void> {
-        className: "SecureValueTypePassportRegistration";
+        className: "secureValueTypePassportRegistration";
         static fromReader(reader: Reader): SecureValueTypePassportRegistration;
     }
     export class SecureValueTypeTemporaryRegistration extends VirtualClass<void> {
-        className: "SecureValueTypeTemporaryRegistration";
+        className: "secureValueTypeTemporaryRegistration";
         static fromReader(reader: Reader): SecureValueTypeTemporaryRegistration;
     }
     export class SecureValueTypePhone extends VirtualClass<void> {
-        className: "SecureValueTypePhone";
+        className: "secureValueTypePhone";
         static fromReader(reader: Reader): SecureValueTypePhone;
     }
     export class SecureValueTypeEmail extends VirtualClass<void> {
-        className: "SecureValueTypeEmail";
+        className: "secureValueTypeEmail";
         static fromReader(reader: Reader): SecureValueTypeEmail;
     }
     export class SecureValue extends VirtualClass<{
@@ -6682,7 +6682,7 @@ export namespace Api {
         plainData?: Api.TypeSecurePlainData;
         hash: bytes;
     }> {
-        className: "SecureValue";
+        className: "secureValue";
         static fromReader(reader: Reader): SecureValue;
         // flags: null;
         type: Api.TypeSecureValueType;
@@ -6706,7 +6706,7 @@ export namespace Api {
         files?: Api.TypeInputSecureFile[];
         plainData?: Api.TypeSecurePlainData;
     }> {
-        className: "InputSecureValue";
+        className: "inputSecureValue";
         static fromReader(reader: Reader): InputSecureValue;
         // flags: null;
         type: Api.TypeSecureValueType;
@@ -6722,7 +6722,7 @@ export namespace Api {
         type: Api.TypeSecureValueType;
         hash: bytes;
     }> {
-        className: "SecureValueHash";
+        className: "secureValueHash";
         static fromReader(reader: Reader): SecureValueHash;
         type: Api.TypeSecureValueType;
         hash: bytes;
@@ -6733,7 +6733,7 @@ export namespace Api {
         field: string;
         text: string;
     }> {
-        className: "SecureValueErrorData";
+        className: "secureValueErrorData";
         static fromReader(reader: Reader): SecureValueErrorData;
         type: Api.TypeSecureValueType;
         dataHash: bytes;
@@ -6745,7 +6745,7 @@ export namespace Api {
         fileHash: bytes;
         text: string;
     }> {
-        className: "SecureValueErrorFrontSide";
+        className: "secureValueErrorFrontSide";
         static fromReader(reader: Reader): SecureValueErrorFrontSide;
         type: Api.TypeSecureValueType;
         fileHash: bytes;
@@ -6756,7 +6756,7 @@ export namespace Api {
         fileHash: bytes;
         text: string;
     }> {
-        className: "SecureValueErrorReverseSide";
+        className: "secureValueErrorReverseSide";
         static fromReader(reader: Reader): SecureValueErrorReverseSide;
         type: Api.TypeSecureValueType;
         fileHash: bytes;
@@ -6767,7 +6767,7 @@ export namespace Api {
         fileHash: bytes;
         text: string;
     }> {
-        className: "SecureValueErrorSelfie";
+        className: "secureValueErrorSelfie";
         static fromReader(reader: Reader): SecureValueErrorSelfie;
         type: Api.TypeSecureValueType;
         fileHash: bytes;
@@ -6778,7 +6778,7 @@ export namespace Api {
         fileHash: bytes;
         text: string;
     }> {
-        className: "SecureValueErrorFile";
+        className: "secureValueErrorFile";
         static fromReader(reader: Reader): SecureValueErrorFile;
         type: Api.TypeSecureValueType;
         fileHash: bytes;
@@ -6789,7 +6789,7 @@ export namespace Api {
         fileHash: bytes[];
         text: string;
     }> {
-        className: "SecureValueErrorFiles";
+        className: "secureValueErrorFiles";
         static fromReader(reader: Reader): SecureValueErrorFiles;
         type: Api.TypeSecureValueType;
         fileHash: bytes[];
@@ -6800,7 +6800,7 @@ export namespace Api {
         hash: bytes;
         text: string;
     }> {
-        className: "SecureValueError";
+        className: "secureValueError";
         static fromReader(reader: Reader): SecureValueError;
         type: Api.TypeSecureValueType;
         hash: bytes;
@@ -6811,7 +6811,7 @@ export namespace Api {
         fileHash: bytes;
         text: string;
     }> {
-        className: "SecureValueErrorTranslationFile";
+        className: "secureValueErrorTranslationFile";
         static fromReader(reader: Reader): SecureValueErrorTranslationFile;
         type: Api.TypeSecureValueType;
         fileHash: bytes;
@@ -6822,7 +6822,7 @@ export namespace Api {
         fileHash: bytes[];
         text: string;
     }> {
-        className: "SecureValueErrorTranslationFiles";
+        className: "secureValueErrorTranslationFiles";
         static fromReader(reader: Reader): SecureValueErrorTranslationFiles;
         type: Api.TypeSecureValueType;
         fileHash: bytes[];
@@ -6833,7 +6833,7 @@ export namespace Api {
         hash: bytes;
         secret: bytes;
     }> {
-        className: "SecureCredentialsEncrypted";
+        className: "secureCredentialsEncrypted";
         static fromReader(reader: Reader): SecureCredentialsEncrypted;
         data: bytes;
         hash: bytes;
@@ -6845,7 +6845,7 @@ export namespace Api {
         lastName: string;
         date: int;
     }> {
-        className: "SavedPhoneContact";
+        className: "savedPhoneContact";
         static fromReader(reader: Reader): SavedPhoneContact;
         phone: string;
         firstName: string;
@@ -6853,7 +6853,7 @@ export namespace Api {
         date: int;
     }
     export class PasswordKdfAlgoUnknown extends VirtualClass<void> {
-        className: "PasswordKdfAlgoUnknown";
+        className: "passwordKdfAlgoUnknown";
         static fromReader(reader: Reader): PasswordKdfAlgoUnknown;
     }
     export class PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow extends VirtualClass<{
@@ -6862,7 +6862,7 @@ export namespace Api {
         g: int;
         p: bytes;
     }> {
-        className: "PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow";
+        className: "passwordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow";
         static fromReader(
             reader: Reader
         ): PasswordKdfAlgoSHA256SHA256PBKDF2HMACSHA512iter100000SHA256ModPow;
@@ -6872,13 +6872,13 @@ export namespace Api {
         p: bytes;
     }
     export class SecurePasswordKdfAlgoUnknown extends VirtualClass<void> {
-        className: "SecurePasswordKdfAlgoUnknown";
+        className: "securePasswordKdfAlgoUnknown";
         static fromReader(reader: Reader): SecurePasswordKdfAlgoUnknown;
     }
     export class SecurePasswordKdfAlgoPBKDF2HMACSHA512iter100000 extends VirtualClass<{
         salt: bytes;
     }> {
-        className: "SecurePasswordKdfAlgoPBKDF2HMACSHA512iter100000";
+        className: "securePasswordKdfAlgoPBKDF2HMACSHA512iter100000";
         static fromReader(
             reader: Reader
         ): SecurePasswordKdfAlgoPBKDF2HMACSHA512iter100000;
@@ -6887,7 +6887,7 @@ export namespace Api {
     export class SecurePasswordKdfAlgoSHA512 extends VirtualClass<{
         salt: bytes;
     }> {
-        className: "SecurePasswordKdfAlgoSHA512";
+        className: "securePasswordKdfAlgoSHA512";
         static fromReader(reader: Reader): SecurePasswordKdfAlgoSHA512;
         salt: bytes;
     }
@@ -6896,14 +6896,14 @@ export namespace Api {
         secureSecret: bytes;
         secureSecretId: long;
     }> {
-        className: "SecureSecretSettings";
+        className: "secureSecretSettings";
         static fromReader(reader: Reader): SecureSecretSettings;
         secureAlgo: Api.TypeSecurePasswordKdfAlgo;
         secureSecret: bytes;
         secureSecretId: long;
     }
     export class InputCheckPasswordEmpty extends VirtualClass<void> {
-        className: "InputCheckPasswordEmpty";
+        className: "inputCheckPasswordEmpty";
         static fromReader(reader: Reader): InputCheckPasswordEmpty;
     }
     export class InputCheckPasswordSRP extends VirtualClass<{
@@ -6911,7 +6911,7 @@ export namespace Api {
         A: bytes;
         M1: bytes;
     }> {
-        className: "InputCheckPasswordSRP";
+        className: "inputCheckPasswordSRP";
         static fromReader(reader: Reader): InputCheckPasswordSRP;
         srpId: long;
         A: bytes;
@@ -6924,7 +6924,7 @@ export namespace Api {
         translationRequired?: boolean;
         type: Api.TypeSecureValueType;
     }> {
-        className: "SecureRequiredType";
+        className: "secureRequiredType";
         static fromReader(reader: Reader): SecureRequiredType;
         // flags: null;
         nativeNames?: boolean;
@@ -6935,7 +6935,7 @@ export namespace Api {
     export class SecureRequiredTypeOneOf extends VirtualClass<{
         types: Api.TypeSecureRequiredType[];
     }> {
-        className: "SecureRequiredTypeOneOf";
+        className: "secureRequiredTypeOneOf";
         static fromReader(reader: Reader): SecureRequiredTypeOneOf;
         types: Api.TypeSecureRequiredType[];
     }
@@ -6945,7 +6945,7 @@ export namespace Api {
         peer: long;
         data: Api.TypeJSONValue;
     }> {
-        className: "InputAppEvent";
+        className: "inputAppEvent";
         static fromReader(reader: Reader): InputAppEvent;
         time: double;
         type: string;
@@ -6956,47 +6956,47 @@ export namespace Api {
         key: string;
         value: Api.TypeJSONValue;
     }> {
-        className: "JsonObjectValue";
+        className: "jsonObjectValue";
         static fromReader(reader: Reader): JsonObjectValue;
         key: string;
         value: Api.TypeJSONValue;
     }
     export class JsonNull extends VirtualClass<void> {
-        className: "JsonNull";
+        className: "jsonNull";
         static fromReader(reader: Reader): JsonNull;
     }
     export class JsonBool extends VirtualClass<{
         value: Bool;
     }> {
-        className: "JsonBool";
+        className: "jsonBool";
         static fromReader(reader: Reader): JsonBool;
         value: Bool;
     }
     export class JsonNumber extends VirtualClass<{
         value: double;
     }> {
-        className: "JsonNumber";
+        className: "jsonNumber";
         static fromReader(reader: Reader): JsonNumber;
         value: double;
     }
     export class JsonString extends VirtualClass<{
         value: string;
     }> {
-        className: "JsonString";
+        className: "jsonString";
         static fromReader(reader: Reader): JsonString;
         value: string;
     }
     export class JsonArray extends VirtualClass<{
         value: Api.TypeJSONValue[];
     }> {
-        className: "JsonArray";
+        className: "jsonArray";
         static fromReader(reader: Reader): JsonArray;
         value: Api.TypeJSONValue[];
     }
     export class JsonObject extends VirtualClass<{
         value: Api.TypeJSONObjectValue[];
     }> {
-        className: "JsonObject";
+        className: "jsonObject";
         static fromReader(reader: Reader): JsonObject;
         value: Api.TypeJSONObjectValue[];
     }
@@ -7011,7 +7011,7 @@ export namespace Api {
         colspan?: int;
         rowspan?: int;
     }> {
-        className: "PageTableCell";
+        className: "pageTableCell";
         static fromReader(reader: Reader): PageTableCell;
         // flags: null;
         header?: boolean;
@@ -7026,7 +7026,7 @@ export namespace Api {
     export class PageTableRow extends VirtualClass<{
         cells: Api.TypePageTableCell[];
     }> {
-        className: "PageTableRow";
+        className: "pageTableRow";
         static fromReader(reader: Reader): PageTableRow;
         cells: Api.TypePageTableCell[];
     }
@@ -7034,7 +7034,7 @@ export namespace Api {
         text: Api.TypeRichText;
         credit: Api.TypeRichText;
     }> {
-        className: "PageCaption";
+        className: "pageCaption";
         static fromReader(reader: Reader): PageCaption;
         text: Api.TypeRichText;
         credit: Api.TypeRichText;
@@ -7042,14 +7042,14 @@ export namespace Api {
     export class PageListItemText extends VirtualClass<{
         text: Api.TypeRichText;
     }> {
-        className: "PageListItemText";
+        className: "pageListItemText";
         static fromReader(reader: Reader): PageListItemText;
         text: Api.TypeRichText;
     }
     export class PageListItemBlocks extends VirtualClass<{
         blocks: Api.TypePageBlock[];
     }> {
-        className: "PageListItemBlocks";
+        className: "pageListItemBlocks";
         static fromReader(reader: Reader): PageListItemBlocks;
         blocks: Api.TypePageBlock[];
     }
@@ -7057,7 +7057,7 @@ export namespace Api {
         num: string;
         text: Api.TypeRichText;
     }> {
-        className: "PageListOrderedItemText";
+        className: "pageListOrderedItemText";
         static fromReader(reader: Reader): PageListOrderedItemText;
         num: string;
         text: Api.TypeRichText;
@@ -7066,7 +7066,7 @@ export namespace Api {
         num: string;
         blocks: Api.TypePageBlock[];
     }> {
-        className: "PageListOrderedItemBlocks";
+        className: "pageListOrderedItemBlocks";
         static fromReader(reader: Reader): PageListOrderedItemBlocks;
         num: string;
         blocks: Api.TypePageBlock[];
@@ -7081,7 +7081,7 @@ export namespace Api {
         author?: string;
         publishedDate?: int;
     }> {
-        className: "PageRelatedArticle";
+        className: "pageRelatedArticle";
         static fromReader(reader: Reader): PageRelatedArticle;
         // flags: null;
         url: string;
@@ -7103,7 +7103,7 @@ export namespace Api {
         documents: Api.TypeDocument[];
         views?: int;
     }> {
-        className: "Page";
+        className: "page";
         static fromReader(reader: Reader): Page;
         // flags: null;
         part?: boolean;
@@ -7119,7 +7119,7 @@ export namespace Api {
         text: string;
         option: bytes;
     }> {
-        className: "PollAnswer";
+        className: "pollAnswer";
         static fromReader(reader: Reader): PollAnswer;
         text: string;
         option: bytes;
@@ -7136,7 +7136,7 @@ export namespace Api {
         closePeriod?: int;
         closeDate?: int;
     }> {
-        className: "Poll";
+        className: "poll";
         static fromReader(reader: Reader): Poll;
         id: long;
         // flags: null;
@@ -7156,7 +7156,7 @@ export namespace Api {
         option: bytes;
         voters: int;
     }> {
-        className: "PollAnswerVoters";
+        className: "pollAnswerVoters";
         static fromReader(reader: Reader): PollAnswerVoters;
         // flags: null;
         chosen?: boolean;
@@ -7173,7 +7173,7 @@ export namespace Api {
         solution?: string;
         solutionEntities?: Api.TypeMessageEntity[];
     }> {
-        className: "PollResults";
+        className: "pollResults";
         static fromReader(reader: Reader): PollResults;
         // flags: null;
         min?: boolean;
@@ -7186,14 +7186,14 @@ export namespace Api {
     export class ChatOnlines extends VirtualClass<{
         onlines: int;
     }> {
-        className: "ChatOnlines";
+        className: "chatOnlines";
         static fromReader(reader: Reader): ChatOnlines;
         onlines: int;
     }
     export class StatsURL extends VirtualClass<{
         url: string;
     }> {
-        className: "StatsURL";
+        className: "statsURL";
         static fromReader(reader: Reader): StatsURL;
         url: string;
     }
@@ -7211,7 +7211,7 @@ export namespace Api {
         manageCall?: boolean;
         other?: boolean;
     }> {
-        className: "ChatAdminRights";
+        className: "chatAdminRights";
         static fromReader(reader: Reader): ChatAdminRights;
         // flags: null;
         changeInfo?: boolean;
@@ -7242,7 +7242,7 @@ export namespace Api {
         pinMessages?: boolean;
         untilDate: int;
     }> {
-        className: "ChatBannedRights";
+        className: "chatBannedRights";
         static fromReader(reader: Reader): ChatBannedRights;
         // flags: null;
         viewMessages?: boolean;
@@ -7263,7 +7263,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputWallPaper";
+        className: "inputWallPaper";
         static fromReader(reader: Reader): InputWallPaper;
         id: long;
         accessHash: long;
@@ -7271,14 +7271,14 @@ export namespace Api {
     export class InputWallPaperSlug extends VirtualClass<{
         slug: string;
     }> {
-        className: "InputWallPaperSlug";
+        className: "inputWallPaperSlug";
         static fromReader(reader: Reader): InputWallPaperSlug;
         slug: string;
     }
     export class InputWallPaperNoFile extends VirtualClass<{
         id: long;
     }> {
-        className: "InputWallPaperNoFile";
+        className: "inputWallPaperNoFile";
         static fromReader(reader: Reader): InputWallPaperNoFile;
         id: long;
     }
@@ -7288,7 +7288,7 @@ export namespace Api {
         currentNumber?: boolean;
         allowAppHash?: boolean;
     }> {
-        className: "CodeSettings";
+        className: "codeSettings";
         static fromReader(reader: Reader): CodeSettings;
         // flags: null;
         allowFlashcall?: boolean;
@@ -7306,7 +7306,7 @@ export namespace Api {
         intensity?: int;
         rotation?: int;
     }> {
-        className: "WallPaperSettings";
+        className: "wallPaperSettings";
         static fromReader(reader: Reader): WallPaperSettings;
         // flags: null;
         blur?: boolean;
@@ -7329,7 +7329,7 @@ export namespace Api {
         fileSizeMax: int;
         videoUploadMaxbitrate: int;
     }> {
-        className: "AutoDownloadSettings";
+        className: "autoDownloadSettings";
         static fromReader(reader: Reader): AutoDownloadSettings;
         // flags: null;
         disabled?: boolean;
@@ -7345,7 +7345,7 @@ export namespace Api {
         keyword: string;
         emoticons: string[];
     }> {
-        className: "EmojiKeyword";
+        className: "emojiKeyword";
         static fromReader(reader: Reader): EmojiKeyword;
         keyword: string;
         emoticons: string[];
@@ -7354,7 +7354,7 @@ export namespace Api {
         keyword: string;
         emoticons: string[];
     }> {
-        className: "EmojiKeywordDeleted";
+        className: "emojiKeywordDeleted";
         static fromReader(reader: Reader): EmojiKeywordDeleted;
         keyword: string;
         emoticons: string[];
@@ -7365,7 +7365,7 @@ export namespace Api {
         version: int;
         keywords: Api.TypeEmojiKeyword[];
     }> {
-        className: "EmojiKeywordsDifference";
+        className: "emojiKeywordsDifference";
         static fromReader(reader: Reader): EmojiKeywordsDifference;
         langCode: string;
         fromVersion: int;
@@ -7375,14 +7375,14 @@ export namespace Api {
     export class EmojiURL extends VirtualClass<{
         url: string;
     }> {
-        className: "EmojiURL";
+        className: "emojiURL";
         static fromReader(reader: Reader): EmojiURL;
         url: string;
     }
     export class EmojiLanguage extends VirtualClass<{
         langCode: string;
     }> {
-        className: "EmojiLanguage";
+        className: "emojiLanguage";
         static fromReader(reader: Reader): EmojiLanguage;
         langCode: string;
     }
@@ -7395,7 +7395,7 @@ export namespace Api {
         title: string;
         photo?: Api.TypeChatPhoto;
     }> {
-        className: "Folder";
+        className: "folder";
         static fromReader(reader: Reader): Folder;
         // flags: null;
         autofillNewBroadcasts?: boolean;
@@ -7409,7 +7409,7 @@ export namespace Api {
         peer: Api.TypeInputPeer;
         folderId: int;
     }> {
-        className: "InputFolderPeer";
+        className: "inputFolderPeer";
         static fromReader(reader: Reader): InputFolderPeer;
         peer: Api.TypeInputPeer;
         folderId: int;
@@ -7418,7 +7418,7 @@ export namespace Api {
         peer: Api.TypePeer;
         folderId: int;
     }> {
-        className: "FolderPeer";
+        className: "folderPeer";
         static fromReader(reader: Reader): FolderPeer;
         peer: Api.TypePeer;
         folderId: int;
@@ -7429,7 +7429,7 @@ export namespace Api {
         bot: Api.TypeUser;
         domain: string;
     }> {
-        className: "UrlAuthResultRequest";
+        className: "urlAuthResultRequest";
         static fromReader(reader: Reader): UrlAuthResultRequest;
         // flags: null;
         requestWriteAccess?: boolean;
@@ -7439,23 +7439,23 @@ export namespace Api {
     export class UrlAuthResultAccepted extends VirtualClass<{
         url: string;
     }> {
-        className: "UrlAuthResultAccepted";
+        className: "urlAuthResultAccepted";
         static fromReader(reader: Reader): UrlAuthResultAccepted;
         url: string;
     }
     export class UrlAuthResultDefault extends VirtualClass<void> {
-        className: "UrlAuthResultDefault";
+        className: "urlAuthResultDefault";
         static fromReader(reader: Reader): UrlAuthResultDefault;
     }
     export class ChannelLocationEmpty extends VirtualClass<void> {
-        className: "ChannelLocationEmpty";
+        className: "channelLocationEmpty";
         static fromReader(reader: Reader): ChannelLocationEmpty;
     }
     export class ChannelLocation extends VirtualClass<{
         geoPoint: Api.TypeGeoPoint;
         address: string;
     }> {
-        className: "ChannelLocation";
+        className: "channelLocation";
         static fromReader(reader: Reader): ChannelLocation;
         geoPoint: Api.TypeGeoPoint;
         address: string;
@@ -7465,7 +7465,7 @@ export namespace Api {
         expires: int;
         distance: int;
     }> {
-        className: "PeerLocated";
+        className: "peerLocated";
         static fromReader(reader: Reader): PeerLocated;
         peer: Api.TypePeer;
         expires: int;
@@ -7474,7 +7474,7 @@ export namespace Api {
     export class PeerSelfLocated extends VirtualClass<{
         expires: int;
     }> {
-        className: "PeerSelfLocated";
+        className: "peerSelfLocated";
         static fromReader(reader: Reader): PeerSelfLocated;
         expires: int;
     }
@@ -7483,7 +7483,7 @@ export namespace Api {
         reason: string;
         text: string;
     }> {
-        className: "RestrictionReason";
+        className: "restrictionReason";
         static fromReader(reader: Reader): RestrictionReason;
         platform: string;
         reason: string;
@@ -7493,7 +7493,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputTheme";
+        className: "inputTheme";
         static fromReader(reader: Reader): InputTheme;
         id: long;
         accessHash: long;
@@ -7501,7 +7501,7 @@ export namespace Api {
     export class InputThemeSlug extends VirtualClass<{
         slug: string;
     }> {
-        className: "InputThemeSlug";
+        className: "inputThemeSlug";
         static fromReader(reader: Reader): InputThemeSlug;
         slug: string;
     }
@@ -7517,7 +7517,7 @@ export namespace Api {
         settings?: Api.TypeThemeSettings;
         installsCount: int;
     }> {
-        className: "Theme";
+        className: "theme";
         static fromReader(reader: Reader): Theme;
         // flags: null;
         creator?: boolean;
@@ -7531,23 +7531,23 @@ export namespace Api {
         installsCount: int;
     }
     export class BaseThemeClassic extends VirtualClass<void> {
-        className: "BaseThemeClassic";
+        className: "baseThemeClassic";
         static fromReader(reader: Reader): BaseThemeClassic;
     }
     export class BaseThemeDay extends VirtualClass<void> {
-        className: "BaseThemeDay";
+        className: "baseThemeDay";
         static fromReader(reader: Reader): BaseThemeDay;
     }
     export class BaseThemeNight extends VirtualClass<void> {
-        className: "BaseThemeNight";
+        className: "baseThemeNight";
         static fromReader(reader: Reader): BaseThemeNight;
     }
     export class BaseThemeTinted extends VirtualClass<void> {
-        className: "BaseThemeTinted";
+        className: "baseThemeTinted";
         static fromReader(reader: Reader): BaseThemeTinted;
     }
     export class BaseThemeArctic extends VirtualClass<void> {
-        className: "BaseThemeArctic";
+        className: "baseThemeArctic";
         static fromReader(reader: Reader): BaseThemeArctic;
     }
     export class InputThemeSettings extends VirtualClass<{
@@ -7559,7 +7559,7 @@ export namespace Api {
         wallpaper?: Api.TypeInputWallPaper;
         wallpaperSettings?: Api.TypeWallPaperSettings;
     }> {
-        className: "InputThemeSettings";
+        className: "inputThemeSettings";
         static fromReader(reader: Reader): InputThemeSettings;
         // flags: null;
         baseTheme: Api.TypeBaseTheme;
@@ -7577,7 +7577,7 @@ export namespace Api {
         messageBottomColor?: int;
         wallpaper?: Api.TypeWallPaper;
     }> {
-        className: "ThemeSettings";
+        className: "themeSettings";
         static fromReader(reader: Reader): ThemeSettings;
         // flags: null;
         baseTheme: Api.TypeBaseTheme;
@@ -7591,7 +7591,7 @@ export namespace Api {
         documents?: Api.TypeDocument[];
         settings?: Api.TypeThemeSettings;
     }> {
-        className: "WebPageAttributeTheme";
+        className: "webPageAttributeTheme";
         static fromReader(reader: Reader): WebPageAttributeTheme;
         // flags: null;
         documents?: Api.TypeDocument[];
@@ -7602,7 +7602,7 @@ export namespace Api {
         option: bytes;
         date: int;
     }> {
-        className: "MessageUserVote";
+        className: "messageUserVote";
         static fromReader(reader: Reader): MessageUserVote;
         userId: int;
         option: bytes;
@@ -7612,7 +7612,7 @@ export namespace Api {
         userId: int;
         date: int;
     }> {
-        className: "MessageUserVoteInputOption";
+        className: "messageUserVoteInputOption";
         static fromReader(reader: Reader): MessageUserVoteInputOption;
         userId: int;
         date: int;
@@ -7622,7 +7622,7 @@ export namespace Api {
         options: bytes[];
         date: int;
     }> {
-        className: "MessageUserVoteMultiple";
+        className: "messageUserVoteMultiple";
         static fromReader(reader: Reader): MessageUserVoteMultiple;
         userId: int;
         options: bytes[];
@@ -7632,7 +7632,7 @@ export namespace Api {
         url: string;
         name: string;
     }> {
-        className: "BankCardOpenUrl";
+        className: "bankCardOpenUrl";
         static fromReader(reader: Reader): BankCardOpenUrl;
         url: string;
         name: string;
@@ -7654,7 +7654,7 @@ export namespace Api {
         includePeers: Api.TypeInputPeer[];
         excludePeers: Api.TypeInputPeer[];
     }> {
-        className: "DialogFilter";
+        className: "dialogFilter";
         static fromReader(reader: Reader): DialogFilter;
         // flags: null;
         contacts?: boolean;
@@ -7676,7 +7676,7 @@ export namespace Api {
         filter: Api.TypeDialogFilter;
         description: string;
     }> {
-        className: "DialogFilterSuggested";
+        className: "dialogFilterSuggested";
         static fromReader(reader: Reader): DialogFilterSuggested;
         filter: Api.TypeDialogFilter;
         description: string;
@@ -7685,7 +7685,7 @@ export namespace Api {
         minDate: int;
         maxDate: int;
     }> {
-        className: "StatsDateRangeDays";
+        className: "statsDateRangeDays";
         static fromReader(reader: Reader): StatsDateRangeDays;
         minDate: int;
         maxDate: int;
@@ -7694,7 +7694,7 @@ export namespace Api {
         current: double;
         previous: double;
     }> {
-        className: "StatsAbsValueAndPrev";
+        className: "statsAbsValueAndPrev";
         static fromReader(reader: Reader): StatsAbsValueAndPrev;
         current: double;
         previous: double;
@@ -7703,7 +7703,7 @@ export namespace Api {
         part: double;
         total: double;
     }> {
-        className: "StatsPercentValue";
+        className: "statsPercentValue";
         static fromReader(reader: Reader): StatsPercentValue;
         part: double;
         total: double;
@@ -7711,14 +7711,14 @@ export namespace Api {
     export class StatsGraphAsync extends VirtualClass<{
         token: string;
     }> {
-        className: "StatsGraphAsync";
+        className: "statsGraphAsync";
         static fromReader(reader: Reader): StatsGraphAsync;
         token: string;
     }
     export class StatsGraphError extends VirtualClass<{
         error: string;
     }> {
-        className: "StatsGraphError";
+        className: "statsGraphError";
         static fromReader(reader: Reader): StatsGraphError;
         error: string;
     }
@@ -7727,7 +7727,7 @@ export namespace Api {
         json: Api.TypeDataJSON;
         zoomToken?: string;
     }> {
-        className: "StatsGraph";
+        className: "statsGraph";
         static fromReader(reader: Reader): StatsGraph;
         // flags: null;
         json: Api.TypeDataJSON;
@@ -7738,7 +7738,7 @@ export namespace Api {
         views: int;
         forwards: int;
     }> {
-        className: "MessageInteractionCounters";
+        className: "messageInteractionCounters";
         static fromReader(reader: Reader): MessageInteractionCounters;
         msgId: int;
         views: int;
@@ -7752,7 +7752,7 @@ export namespace Api {
         size: int;
         videoStartTs?: double;
     }> {
-        className: "VideoSize";
+        className: "videoSize";
         static fromReader(reader: Reader): VideoSize;
         // flags: null;
         type: string;
@@ -7766,7 +7766,7 @@ export namespace Api {
         messages: int;
         avgChars: int;
     }> {
-        className: "StatsGroupTopPoster";
+        className: "statsGroupTopPoster";
         static fromReader(reader: Reader): StatsGroupTopPoster;
         userId: int;
         messages: int;
@@ -7778,7 +7778,7 @@ export namespace Api {
         kicked: int;
         banned: int;
     }> {
-        className: "StatsGroupTopAdmin";
+        className: "statsGroupTopAdmin";
         static fromReader(reader: Reader): StatsGroupTopAdmin;
         userId: int;
         deleted: int;
@@ -7789,7 +7789,7 @@ export namespace Api {
         userId: int;
         invitations: int;
     }> {
-        className: "StatsGroupTopInviter";
+        className: "statsGroupTopInviter";
         static fromReader(reader: Reader): StatsGroupTopInviter;
         userId: int;
         invitations: int;
@@ -7798,7 +7798,7 @@ export namespace Api {
         // flags: null;
         archiveAndMuteNewNoncontactPeers?: Bool;
     }> {
-        className: "GlobalPrivacySettings";
+        className: "globalPrivacySettings";
         static fromReader(reader: Reader): GlobalPrivacySettings;
         // flags: null;
         archiveAndMuteNewNoncontactPeers?: Bool;
@@ -7809,7 +7809,7 @@ export namespace Api {
         forwards?: int;
         replies?: Api.TypeMessageReplies;
     }> {
-        className: "MessageViews";
+        className: "messageViews";
         static fromReader(reader: Reader): MessageViews;
         // flags: null;
         views?: int;
@@ -7822,7 +7822,7 @@ export namespace Api {
         replyToPeerId?: Api.TypePeer;
         replyToTopId?: int;
     }> {
-        className: "MessageReplyHeader";
+        className: "messageReplyHeader";
         static fromReader(reader: Reader): MessageReplyHeader;
         // flags: null;
         replyToMsgId: int;
@@ -7839,7 +7839,7 @@ export namespace Api {
         maxId?: int;
         readMaxId?: int;
     }> {
-        className: "MessageReplies";
+        className: "messageReplies";
         static fromReader(reader: Reader): MessageReplies;
         // flags: null;
         comments?: boolean;
@@ -7854,7 +7854,7 @@ export namespace Api {
         peerId: Api.TypePeer;
         date: int;
     }> {
-        className: "PeerBlocked";
+        className: "peerBlocked";
         static fromReader(reader: Reader): PeerBlocked;
         peerId: Api.TypePeer;
         date: int;
@@ -7864,7 +7864,7 @@ export namespace Api {
         accessHash: long;
         duration: int;
     }> {
-        className: "GroupCallDiscarded";
+        className: "groupCallDiscarded";
         static fromReader(reader: Reader): GroupCallDiscarded;
         id: long;
         accessHash: long;
@@ -7888,7 +7888,7 @@ export namespace Api {
         unmutedVideoLimit: int;
         version: int;
     }> {
-        className: "GroupCall";
+        className: "groupCall";
         static fromReader(reader: Reader): GroupCall;
         // flags: null;
         joinMuted?: boolean;
@@ -7911,7 +7911,7 @@ export namespace Api {
         id: long;
         accessHash: long;
     }> {
-        className: "InputGroupCall";
+        className: "inputGroupCall";
         static fromReader(reader: Reader): InputGroupCall;
         id: long;
         accessHash: long;
@@ -7938,7 +7938,7 @@ export namespace Api {
         video?: Api.TypeGroupCallParticipantVideo;
         presentation?: Api.TypeGroupCallParticipantVideo;
     }> {
-        className: "GroupCallParticipant";
+        className: "groupCallParticipant";
         static fromReader(reader: Reader): GroupCallParticipant;
         // flags: null;
         muted?: boolean;
@@ -7962,30 +7962,30 @@ export namespace Api {
         presentation?: Api.TypeGroupCallParticipantVideo;
     }
     export class InlineQueryPeerTypeSameBotPM extends VirtualClass<void> {
-        className: "InlineQueryPeerTypeSameBotPM";
+        className: "inlineQueryPeerTypeSameBotPM";
         static fromReader(reader: Reader): InlineQueryPeerTypeSameBotPM;
     }
     export class InlineQueryPeerTypePM extends VirtualClass<void> {
-        className: "InlineQueryPeerTypePM";
+        className: "inlineQueryPeerTypePM";
         static fromReader(reader: Reader): InlineQueryPeerTypePM;
     }
     export class InlineQueryPeerTypeChat extends VirtualClass<void> {
-        className: "InlineQueryPeerTypeChat";
+        className: "inlineQueryPeerTypeChat";
         static fromReader(reader: Reader): InlineQueryPeerTypeChat;
     }
     export class InlineQueryPeerTypeMegagroup extends VirtualClass<void> {
-        className: "InlineQueryPeerTypeMegagroup";
+        className: "inlineQueryPeerTypeMegagroup";
         static fromReader(reader: Reader): InlineQueryPeerTypeMegagroup;
     }
     export class InlineQueryPeerTypeBroadcast extends VirtualClass<void> {
-        className: "InlineQueryPeerTypeBroadcast";
+        className: "inlineQueryPeerTypeBroadcast";
         static fromReader(reader: Reader): InlineQueryPeerTypeBroadcast;
     }
     export class ChatInviteImporter extends VirtualClass<{
         userId: int;
         date: int;
     }> {
-        className: "ChatInviteImporter";
+        className: "chatInviteImporter";
         static fromReader(reader: Reader): ChatInviteImporter;
         userId: int;
         date: int;
@@ -7995,7 +7995,7 @@ export namespace Api {
         invitesCount: int;
         revokedInvitesCount: int;
     }> {
-        className: "ChatAdminWithInvites";
+        className: "chatAdminWithInvites";
         static fromReader(reader: Reader): ChatAdminWithInvites;
         adminId: int;
         invitesCount: int;
@@ -8005,7 +8005,7 @@ export namespace Api {
         semantics: string;
         sources: int[];
     }> {
-        className: "GroupCallParticipantVideoSourceGroup";
+        className: "groupCallParticipantVideoSourceGroup";
         static fromReader(reader: Reader): GroupCallParticipantVideoSourceGroup;
         semantics: string;
         sources: int[];
@@ -8017,7 +8017,7 @@ export namespace Api {
         sourceGroups: Api.TypeGroupCallParticipantVideoSourceGroup[];
         audioSource?: int;
     }> {
-        className: "GroupCallParticipantVideo";
+        className: "groupCallParticipantVideo";
         static fromReader(reader: Reader): GroupCallParticipantVideo;
         // flags: null;
         paused?: boolean;
@@ -8026,32 +8026,32 @@ export namespace Api {
         audioSource?: int;
     }
     export class BotCommandScopeDefault extends VirtualClass<void> {
-        className: "BotCommandScopeDefault";
+        className: "botCommandScopeDefault";
         static fromReader(reader: Reader): BotCommandScopeDefault;
     }
     export class BotCommandScopeUsers extends VirtualClass<void> {
-        className: "BotCommandScopeUsers";
+        className: "botCommandScopeUsers";
         static fromReader(reader: Reader): BotCommandScopeUsers;
     }
     export class BotCommandScopeChats extends VirtualClass<void> {
-        className: "BotCommandScopeChats";
+        className: "botCommandScopeChats";
         static fromReader(reader: Reader): BotCommandScopeChats;
     }
     export class BotCommandScopeChatAdmins extends VirtualClass<void> {
-        className: "BotCommandScopeChatAdmins";
+        className: "botCommandScopeChatAdmins";
         static fromReader(reader: Reader): BotCommandScopeChatAdmins;
     }
     export class BotCommandScopePeer extends VirtualClass<{
         peer: Api.TypeInputPeer;
     }> {
-        className: "BotCommandScopePeer";
+        className: "botCommandScopePeer";
         static fromReader(reader: Reader): BotCommandScopePeer;
         peer: Api.TypeInputPeer;
     }
     export class BotCommandScopePeerAdmins extends VirtualClass<{
         peer: Api.TypeInputPeer;
     }> {
-        className: "BotCommandScopePeerAdmins";
+        className: "botCommandScopePeerAdmins";
         static fromReader(reader: Reader): BotCommandScopePeerAdmins;
         peer: Api.TypeInputPeer;
     }
@@ -8059,7 +8059,7 @@ export namespace Api {
         peer: Api.TypeInputPeer;
         userId: Api.TypeInputUser;
     }> {
-        className: "BotCommandScopePeerUser";
+        className: "botCommandScopePeerUser";
         static fromReader(reader: Reader): BotCommandScopePeerUser;
         peer: Api.TypeInputPeer;
         userId: Api.TypeInputUser;
@@ -8070,7 +8070,7 @@ export namespace Api {
         pq: bytes;
         serverPublicKeyFingerprints: long[];
     }> {
-        className: "ResPQ";
+        className: "resPQ";
         static fromReader(reader: Reader): ResPQ;
         nonce: int128;
         serverNonce: int128;
@@ -8085,7 +8085,7 @@ export namespace Api {
         serverNonce: int128;
         newNonce: int256;
     }> {
-        className: "PQInnerData";
+        className: "pQInnerData";
         static fromReader(reader: Reader): PQInnerData;
         pq: bytes;
         p: bytes;
@@ -8103,7 +8103,7 @@ export namespace Api {
         newNonce: int256;
         dc: int;
     }> {
-        className: "PQInnerDataDc";
+        className: "pQInnerDataDc";
         static fromReader(reader: Reader): PQInnerDataDc;
         pq: bytes;
         p: bytes;
@@ -8122,7 +8122,7 @@ export namespace Api {
         newNonce: int256;
         expiresIn: int;
     }> {
-        className: "PQInnerDataTemp";
+        className: "pQInnerDataTemp";
         static fromReader(reader: Reader): PQInnerDataTemp;
         pq: bytes;
         p: bytes;
@@ -8142,7 +8142,7 @@ export namespace Api {
         dc: int;
         expiresIn: int;
     }> {
-        className: "PQInnerDataTempDc";
+        className: "pQInnerDataTempDc";
         static fromReader(reader: Reader): PQInnerDataTempDc;
         pq: bytes;
         p: bytes;
@@ -8160,7 +8160,7 @@ export namespace Api {
         tempSessionId: long;
         expiresAt: int;
     }> {
-        className: "BindAuthKeyInner";
+        className: "bindAuthKeyInner";
         static fromReader(reader: Reader): BindAuthKeyInner;
         nonce: long;
         tempAuthKeyId: long;
@@ -8173,7 +8173,7 @@ export namespace Api {
         serverNonce: int128;
         newNonceHash: int128;
     }> {
-        className: "ServerDHParamsFail";
+        className: "serverDHParamsFail";
         static fromReader(reader: Reader): ServerDHParamsFail;
         nonce: int128;
         serverNonce: int128;
@@ -8184,7 +8184,7 @@ export namespace Api {
         serverNonce: int128;
         encryptedAnswer: bytes;
     }> {
-        className: "ServerDHParamsOk";
+        className: "serverDHParamsOk";
         static fromReader(reader: Reader): ServerDHParamsOk;
         nonce: int128;
         serverNonce: int128;
@@ -8198,7 +8198,7 @@ export namespace Api {
         gA: bytes;
         serverTime: int;
     }> {
-        className: "ServerDHInnerData";
+        className: "serverDHInnerData";
         static fromReader(reader: Reader): ServerDHInnerData;
         nonce: int128;
         serverNonce: int128;
@@ -8213,7 +8213,7 @@ export namespace Api {
         retryId: long;
         gB: bytes;
     }> {
-        className: "ClientDHInnerData";
+        className: "clientDHInnerData";
         static fromReader(reader: Reader): ClientDHInnerData;
         nonce: int128;
         serverNonce: int128;
@@ -8225,7 +8225,7 @@ export namespace Api {
         serverNonce: int128;
         newNonceHash1: int128;
     }> {
-        className: "DhGenOk";
+        className: "dhGenOk";
         static fromReader(reader: Reader): DhGenOk;
         nonce: int128;
         serverNonce: int128;
@@ -8236,7 +8236,7 @@ export namespace Api {
         serverNonce: int128;
         newNonceHash2: int128;
     }> {
-        className: "DhGenRetry";
+        className: "dhGenRetry";
         static fromReader(reader: Reader): DhGenRetry;
         nonce: int128;
         serverNonce: int128;
@@ -8247,28 +8247,28 @@ export namespace Api {
         serverNonce: int128;
         newNonceHash3: int128;
     }> {
-        className: "DhGenFail";
+        className: "dhGenFail";
         static fromReader(reader: Reader): DhGenFail;
         nonce: int128;
         serverNonce: int128;
         newNonceHash3: int128;
     }
     export class DestroyAuthKeyOk extends VirtualClass<void> {
-        className: "DestroyAuthKeyOk";
+        className: "destroyAuthKeyOk";
         static fromReader(reader: Reader): DestroyAuthKeyOk;
     }
     export class DestroyAuthKeyNone extends VirtualClass<void> {
-        className: "DestroyAuthKeyNone";
+        className: "destroyAuthKeyNone";
         static fromReader(reader: Reader): DestroyAuthKeyNone;
     }
     export class DestroyAuthKeyFail extends VirtualClass<void> {
-        className: "DestroyAuthKeyFail";
+        className: "destroyAuthKeyFail";
         static fromReader(reader: Reader): DestroyAuthKeyFail;
     }
     export class MsgsAck extends VirtualClass<{
         msgIds: long[];
     }> {
-        className: "MsgsAck";
+        className: "msgsAck";
         static fromReader(reader: Reader): MsgsAck;
         msgIds: long[];
     }
@@ -8277,7 +8277,7 @@ export namespace Api {
         badMsgSeqno: int;
         errorCode: int;
     }> {
-        className: "BadMsgNotification";
+        className: "badMsgNotification";
         static fromReader(reader: Reader): BadMsgNotification;
         badMsgId: long;
         badMsgSeqno: int;
@@ -8289,7 +8289,7 @@ export namespace Api {
         errorCode: int;
         newServerSalt: long;
     }> {
-        className: "BadServerSalt";
+        className: "badServerSalt";
         static fromReader(reader: Reader): BadServerSalt;
         badMsgId: long;
         badMsgSeqno: int;
@@ -8299,7 +8299,7 @@ export namespace Api {
     export class MsgsStateReq extends VirtualClass<{
         msgIds: long[];
     }> {
-        className: "MsgsStateReq";
+        className: "msgsStateReq";
         static fromReader(reader: Reader): MsgsStateReq;
         msgIds: long[];
     }
@@ -8307,7 +8307,7 @@ export namespace Api {
         reqMsgId: long;
         info: string;
     }> {
-        className: "MsgsStateInfo";
+        className: "msgsStateInfo";
         static fromReader(reader: Reader): MsgsStateInfo;
         reqMsgId: long;
         info: string;
@@ -8316,7 +8316,7 @@ export namespace Api {
         msgIds: long[];
         info: string;
     }> {
-        className: "MsgsAllInfo";
+        className: "msgsAllInfo";
         static fromReader(reader: Reader): MsgsAllInfo;
         msgIds: long[];
         info: string;
@@ -8327,7 +8327,7 @@ export namespace Api {
         bytes: int;
         status: int;
     }> {
-        className: "MsgDetailedInfo";
+        className: "msgDetailedInfo";
         static fromReader(reader: Reader): MsgDetailedInfo;
         msgId: long;
         answerMsgId: long;
@@ -8339,7 +8339,7 @@ export namespace Api {
         bytes: int;
         status: int;
     }> {
-        className: "MsgNewDetailedInfo";
+        className: "msgNewDetailedInfo";
         static fromReader(reader: Reader): MsgNewDetailedInfo;
         answerMsgId: long;
         bytes: int;
@@ -8348,7 +8348,7 @@ export namespace Api {
     export class MsgResendReq extends VirtualClass<{
         msgIds: long[];
     }> {
-        className: "MsgResendReq";
+        className: "msgResendReq";
         static fromReader(reader: Reader): MsgResendReq;
         msgIds: long[];
     }
@@ -8356,17 +8356,17 @@ export namespace Api {
         errorCode: int;
         errorMessage: string;
     }> {
-        className: "RpcError";
+        className: "rpcError";
         static fromReader(reader: Reader): RpcError;
         errorCode: int;
         errorMessage: string;
     }
     export class RpcAnswerUnknown extends VirtualClass<void> {
-        className: "RpcAnswerUnknown";
+        className: "rpcAnswerUnknown";
         static fromReader(reader: Reader): RpcAnswerUnknown;
     }
     export class RpcAnswerDroppedRunning extends VirtualClass<void> {
-        className: "RpcAnswerDroppedRunning";
+        className: "rpcAnswerDroppedRunning";
         static fromReader(reader: Reader): RpcAnswerDroppedRunning;
     }
     export class RpcAnswerDropped extends VirtualClass<{
@@ -8374,7 +8374,7 @@ export namespace Api {
         seqNo: int;
         bytes: int;
     }> {
-        className: "RpcAnswerDropped";
+        className: "rpcAnswerDropped";
         static fromReader(reader: Reader): RpcAnswerDropped;
         msgId: long;
         seqNo: int;
@@ -8385,7 +8385,7 @@ export namespace Api {
         validUntil: int;
         salt: long;
     }> {
-        className: "FutureSalt";
+        className: "futureSalt";
         static fromReader(reader: Reader): FutureSalt;
         validSince: int;
         validUntil: int;
@@ -8394,19 +8394,19 @@ export namespace Api {
     export class FutureSalts extends VirtualClass<{
         reqMsgId: long;
         now: int;
-        salts: future_salt[];
+        salts: FutureSalt[];
     }> {
-        className: "FutureSalts";
+        className: "futureSalts";
         static fromReader(reader: Reader): FutureSalts;
         reqMsgId: long;
         now: int;
-        salts: future_salt[];
+        salts: FutureSalt[];
     }
     export class Pong extends VirtualClass<{
         msgId: long;
         pingId: long;
     }> {
-        className: "Pong";
+        className: "pong";
         static fromReader(reader: Reader): Pong;
         msgId: long;
         pingId: long;
@@ -8414,14 +8414,14 @@ export namespace Api {
     export class DestroySessionOk extends VirtualClass<{
         sessionId: long;
     }> {
-        className: "DestroySessionOk";
+        className: "destroySessionOk";
         static fromReader(reader: Reader): DestroySessionOk;
         sessionId: long;
     }
     export class DestroySessionNone extends VirtualClass<{
         sessionId: long;
     }> {
-        className: "DestroySessionNone";
+        className: "destroySessionNone";
         static fromReader(reader: Reader): DestroySessionNone;
         sessionId: long;
     }
@@ -8430,7 +8430,7 @@ export namespace Api {
         uniqueId: long;
         serverSalt: long;
     }> {
-        className: "NewSessionCreated";
+        className: "newSessionCreated";
         static fromReader(reader: Reader): NewSessionCreated;
         firstMsgId: long;
         uniqueId: long;
@@ -8441,7 +8441,7 @@ export namespace Api {
         waitAfter: int;
         maxWait: int;
     }> {
-        className: "HttpWait";
+        className: "httpWait";
         static fromReader(reader: Reader): HttpWait;
         maxDelay: int;
         waitAfter: int;
@@ -8451,7 +8451,7 @@ export namespace Api {
         ipv4: int;
         port: int;
     }> {
-        className: "IpPort";
+        className: "ipPort";
         static fromReader(reader: Reader): IpPort;
         ipv4: int;
         port: int;
@@ -8461,7 +8461,7 @@ export namespace Api {
         port: int;
         secret: bytes;
     }> {
-        className: "IpPortSecret";
+        className: "ipPortSecret";
         static fromReader(reader: Reader): IpPortSecret;
         ipv4: int;
         port: int;
@@ -8472,7 +8472,7 @@ export namespace Api {
         dcId: int;
         ips: Api.TypeIpPort[];
     }> {
-        className: "AccessPointRule";
+        className: "accessPointRule";
         static fromReader(reader: Reader): AccessPointRule;
         phonePrefixRules: string;
         dcId: int;
@@ -8481,50 +8481,50 @@ export namespace Api {
     export class TlsClientHello extends VirtualClass<{
         blocks: Api.TypeTlsBlock[];
     }> {
-        className: "TlsClientHello";
+        className: "tlsClientHello";
         static fromReader(reader: Reader): TlsClientHello;
         blocks: Api.TypeTlsBlock[];
     }
     export class TlsBlockString extends VirtualClass<{
         data: string;
     }> {
-        className: "TlsBlockString";
+        className: "tlsBlockString";
         static fromReader(reader: Reader): TlsBlockString;
         data: string;
     }
     export class TlsBlockRandom extends VirtualClass<{
         length: int;
     }> {
-        className: "TlsBlockRandom";
+        className: "tlsBlockRandom";
         static fromReader(reader: Reader): TlsBlockRandom;
         length: int;
     }
     export class TlsBlockZero extends VirtualClass<{
         length: int;
     }> {
-        className: "TlsBlockZero";
+        className: "tlsBlockZero";
         static fromReader(reader: Reader): TlsBlockZero;
         length: int;
     }
     export class TlsBlockDomain extends VirtualClass<void> {
-        className: "TlsBlockDomain";
+        className: "tlsBlockDomain";
         static fromReader(reader: Reader): TlsBlockDomain;
     }
     export class TlsBlockGrease extends VirtualClass<{
         seed: int;
     }> {
-        className: "TlsBlockGrease";
+        className: "tlsBlockGrease";
         static fromReader(reader: Reader): TlsBlockGrease;
         seed: int;
     }
     export class TlsBlockPublicKey extends VirtualClass<void> {
-        className: "TlsBlockPublicKey";
+        className: "tlsBlockPublicKey";
         static fromReader(reader: Reader): TlsBlockPublicKey;
     }
     export class TlsBlockScope extends VirtualClass<{
         entries: Api.TypeTlsBlock[];
     }> {
-        className: "TlsBlockScope";
+        className: "tlsBlockScope";
         static fromReader(reader: Reader): TlsBlockScope;
         entries: Api.TypeTlsBlock[];
     }
@@ -8729,43 +8729,43 @@ export namespace Api {
 
     export namespace storage {
         export class FileUnknown extends VirtualClass<void> {
-            className: "FileUnknown";
+            className: "fileUnknown";
             static fromReader(reader: Reader): FileUnknown;
         }
         export class FilePartial extends VirtualClass<void> {
-            className: "FilePartial";
+            className: "filePartial";
             static fromReader(reader: Reader): FilePartial;
         }
         export class FileJpeg extends VirtualClass<void> {
-            className: "FileJpeg";
+            className: "fileJpeg";
             static fromReader(reader: Reader): FileJpeg;
         }
         export class FileGif extends VirtualClass<void> {
-            className: "FileGif";
+            className: "fileGif";
             static fromReader(reader: Reader): FileGif;
         }
         export class FilePng extends VirtualClass<void> {
-            className: "FilePng";
+            className: "filePng";
             static fromReader(reader: Reader): FilePng;
         }
         export class FilePdf extends VirtualClass<void> {
-            className: "FilePdf";
+            className: "filePdf";
             static fromReader(reader: Reader): FilePdf;
         }
         export class FileMp3 extends VirtualClass<void> {
-            className: "FileMp3";
+            className: "fileMp3";
             static fromReader(reader: Reader): FileMp3;
         }
         export class FileMov extends VirtualClass<void> {
-            className: "FileMov";
+            className: "fileMov";
             static fromReader(reader: Reader): FileMov;
         }
         export class FileMp4 extends VirtualClass<void> {
-            className: "FileMp4";
+            className: "fileMp4";
             static fromReader(reader: Reader): FileMp4;
         }
         export class FileWebp extends VirtualClass<void> {
-            className: "FileWebp";
+            className: "fileWebp";
             static fromReader(reader: Reader): FileWebp;
         }
     }
@@ -8778,7 +8778,7 @@ export namespace Api {
             nextType?: auth.TypeCodeType;
             timeout?: int;
         }> {
-            className: "SentCode";
+            className: "sentCode";
             static fromReader(reader: Reader): SentCode;
             // flags: null;
             type: auth.TypeSentCodeType;
@@ -8791,7 +8791,7 @@ export namespace Api {
             tmpSessions?: int;
             user: Api.TypeUser;
         }> {
-            className: "Authorization";
+            className: "authorization";
             static fromReader(reader: Reader): Authorization;
             // flags: null;
             tmpSessions?: int;
@@ -8801,7 +8801,7 @@ export namespace Api {
             // flags: null;
             termsOfService?: help.TypeTermsOfService;
         }> {
-            className: "AuthorizationSignUpRequired";
+            className: "authorizationSignUpRequired";
             static fromReader(reader: Reader): AuthorizationSignUpRequired;
             // flags: null;
             termsOfService?: help.TypeTermsOfService;
@@ -8810,7 +8810,7 @@ export namespace Api {
             id: int;
             bytes: bytes;
         }> {
-            className: "ExportedAuthorization";
+            className: "exportedAuthorization";
             static fromReader(reader: Reader): ExportedAuthorization;
             id: int;
             bytes: bytes;
@@ -8818,47 +8818,47 @@ export namespace Api {
         export class PasswordRecovery extends VirtualClass<{
             emailPattern: string;
         }> {
-            className: "PasswordRecovery";
+            className: "passwordRecovery";
             static fromReader(reader: Reader): PasswordRecovery;
             emailPattern: string;
         }
         export class CodeTypeSms extends VirtualClass<void> {
-            className: "CodeTypeSms";
+            className: "codeTypeSms";
             static fromReader(reader: Reader): CodeTypeSms;
         }
         export class CodeTypeCall extends VirtualClass<void> {
-            className: "CodeTypeCall";
+            className: "codeTypeCall";
             static fromReader(reader: Reader): CodeTypeCall;
         }
         export class CodeTypeFlashCall extends VirtualClass<void> {
-            className: "CodeTypeFlashCall";
+            className: "codeTypeFlashCall";
             static fromReader(reader: Reader): CodeTypeFlashCall;
         }
         export class SentCodeTypeApp extends VirtualClass<{
             length: int;
         }> {
-            className: "SentCodeTypeApp";
+            className: "sentCodeTypeApp";
             static fromReader(reader: Reader): SentCodeTypeApp;
             length: int;
         }
         export class SentCodeTypeSms extends VirtualClass<{
             length: int;
         }> {
-            className: "SentCodeTypeSms";
+            className: "sentCodeTypeSms";
             static fromReader(reader: Reader): SentCodeTypeSms;
             length: int;
         }
         export class SentCodeTypeCall extends VirtualClass<{
             length: int;
         }> {
-            className: "SentCodeTypeCall";
+            className: "sentCodeTypeCall";
             static fromReader(reader: Reader): SentCodeTypeCall;
             length: int;
         }
         export class SentCodeTypeFlashCall extends VirtualClass<{
             pattern: string;
         }> {
-            className: "SentCodeTypeFlashCall";
+            className: "sentCodeTypeFlashCall";
             static fromReader(reader: Reader): SentCodeTypeFlashCall;
             pattern: string;
         }
@@ -8866,7 +8866,7 @@ export namespace Api {
             expires: int;
             token: bytes;
         }> {
-            className: "LoginToken";
+            className: "loginToken";
             static fromReader(reader: Reader): LoginToken;
             expires: int;
             token: bytes;
@@ -8875,7 +8875,7 @@ export namespace Api {
             dcId: int;
             token: bytes;
         }> {
-            className: "LoginTokenMigrateTo";
+            className: "loginTokenMigrateTo";
             static fromReader(reader: Reader): LoginTokenMigrateTo;
             dcId: int;
             token: bytes;
@@ -8883,7 +8883,7 @@ export namespace Api {
         export class LoginTokenSuccess extends VirtualClass<{
             authorization: auth.TypeAuthorization;
         }> {
-            className: "LoginTokenSuccess";
+            className: "loginTokenSuccess";
             static fromReader(reader: Reader): LoginTokenSuccess;
             authorization: auth.TypeAuthorization;
         }
@@ -8891,7 +8891,7 @@ export namespace Api {
 
     export namespace contacts {
         export class ContactsNotModified extends VirtualClass<void> {
-            className: "ContactsNotModified";
+            className: "contactsNotModified";
             static fromReader(reader: Reader): ContactsNotModified;
         }
         export class Contacts extends VirtualClass<{
@@ -8899,7 +8899,7 @@ export namespace Api {
             savedCount: int;
             users: Api.TypeUser[];
         }> {
-            className: "Contacts";
+            className: "contacts";
             static fromReader(reader: Reader): Contacts;
             contacts: Api.TypeContact[];
             savedCount: int;
@@ -8911,7 +8911,7 @@ export namespace Api {
             retryContacts: long[];
             users: Api.TypeUser[];
         }> {
-            className: "ImportedContacts";
+            className: "importedContacts";
             static fromReader(reader: Reader): ImportedContacts;
             imported: Api.TypeImportedContact[];
             popularInvites: Api.TypePopularContact[];
@@ -8923,7 +8923,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "Blocked";
+            className: "blocked";
             static fromReader(reader: Reader): Blocked;
             blocked: Api.TypePeerBlocked[];
             chats: Api.TypeChat[];
@@ -8935,7 +8935,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "BlockedSlice";
+            className: "blockedSlice";
             static fromReader(reader: Reader): BlockedSlice;
             count: int;
             blocked: Api.TypePeerBlocked[];
@@ -8948,7 +8948,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "Found";
+            className: "found";
             static fromReader(reader: Reader): Found;
             myResults: Api.TypePeer[];
             results: Api.TypePeer[];
@@ -8960,14 +8960,14 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ResolvedPeer";
+            className: "resolvedPeer";
             static fromReader(reader: Reader): ResolvedPeer;
             peer: Api.TypePeer;
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }
         export class TopPeersNotModified extends VirtualClass<void> {
-            className: "TopPeersNotModified";
+            className: "topPeersNotModified";
             static fromReader(reader: Reader): TopPeersNotModified;
         }
         export class TopPeers extends VirtualClass<{
@@ -8975,14 +8975,14 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "TopPeers";
+            className: "topPeers";
             static fromReader(reader: Reader): TopPeers;
             categories: Api.TypeTopPeerCategoryPeers[];
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }
         export class TopPeersDisabled extends VirtualClass<void> {
-            className: "TopPeersDisabled";
+            className: "topPeersDisabled";
             static fromReader(reader: Reader): TopPeersDisabled;
         }
     }
@@ -8994,7 +8994,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "Dialogs";
+            className: "dialogs";
             static fromReader(reader: Reader): Dialogs;
             dialogs: Api.TypeDialog[];
             messages: Api.TypeMessage[];
@@ -9008,7 +9008,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "DialogsSlice";
+            className: "dialogsSlice";
             static fromReader(reader: Reader): DialogsSlice;
             count: int;
             dialogs: Api.TypeDialog[];
@@ -9019,7 +9019,7 @@ export namespace Api {
         export class DialogsNotModified extends VirtualClass<{
             count: int;
         }> {
-            className: "DialogsNotModified";
+            className: "dialogsNotModified";
             static fromReader(reader: Reader): DialogsNotModified;
             count: int;
         }
@@ -9028,7 +9028,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "Messages";
+            className: "messages";
             static fromReader(reader: Reader): Messages;
             messages: Api.TypeMessage[];
             chats: Api.TypeChat[];
@@ -9044,7 +9044,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "MessagesSlice";
+            className: "messagesSlice";
             static fromReader(reader: Reader): MessagesSlice;
             // flags: null;
             inexact?: boolean;
@@ -9065,7 +9065,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChannelMessages";
+            className: "channelMessages";
             static fromReader(reader: Reader): ChannelMessages;
             // flags: null;
             inexact?: boolean;
@@ -9079,14 +9079,14 @@ export namespace Api {
         export class MessagesNotModified extends VirtualClass<{
             count: int;
         }> {
-            className: "MessagesNotModified";
+            className: "messagesNotModified";
             static fromReader(reader: Reader): MessagesNotModified;
             count: int;
         }
         export class Chats extends VirtualClass<{
             chats: Api.TypeChat[];
         }> {
-            className: "Chats";
+            className: "chats";
             static fromReader(reader: Reader): Chats;
             chats: Api.TypeChat[];
         }
@@ -9094,7 +9094,7 @@ export namespace Api {
             count: int;
             chats: Api.TypeChat[];
         }> {
-            className: "ChatsSlice";
+            className: "chatsSlice";
             static fromReader(reader: Reader): ChatsSlice;
             count: int;
             chats: Api.TypeChat[];
@@ -9104,7 +9104,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChatFull";
+            className: "chatFull";
             static fromReader(reader: Reader): ChatFull;
             fullChat: Api.TypeChatFull;
             chats: Api.TypeChat[];
@@ -9115,7 +9115,7 @@ export namespace Api {
             ptsCount: int;
             offset: int;
         }> {
-            className: "AffectedHistory";
+            className: "affectedHistory";
             static fromReader(reader: Reader): AffectedHistory;
             pts: int;
             ptsCount: int;
@@ -9124,7 +9124,7 @@ export namespace Api {
         export class DhConfigNotModified extends VirtualClass<{
             random: bytes;
         }> {
-            className: "DhConfigNotModified";
+            className: "dhConfigNotModified";
             static fromReader(reader: Reader): DhConfigNotModified;
             random: bytes;
         }
@@ -9134,7 +9134,7 @@ export namespace Api {
             version: int;
             random: bytes;
         }> {
-            className: "DhConfig";
+            className: "dhConfig";
             static fromReader(reader: Reader): DhConfig;
             g: int;
             p: bytes;
@@ -9144,7 +9144,7 @@ export namespace Api {
         export class SentEncryptedMessage extends VirtualClass<{
             date: int;
         }> {
-            className: "SentEncryptedMessage";
+            className: "sentEncryptedMessage";
             static fromReader(reader: Reader): SentEncryptedMessage;
             date: int;
         }
@@ -9152,33 +9152,33 @@ export namespace Api {
             date: int;
             file: Api.TypeEncryptedFile;
         }> {
-            className: "SentEncryptedFile";
+            className: "sentEncryptedFile";
             static fromReader(reader: Reader): SentEncryptedFile;
             date: int;
             file: Api.TypeEncryptedFile;
         }
         export class StickersNotModified extends VirtualClass<void> {
-            className: "StickersNotModified";
+            className: "stickersNotModified";
             static fromReader(reader: Reader): StickersNotModified;
         }
         export class Stickers extends VirtualClass<{
             hash: int;
             stickers: Api.TypeDocument[];
         }> {
-            className: "Stickers";
+            className: "stickers";
             static fromReader(reader: Reader): Stickers;
             hash: int;
             stickers: Api.TypeDocument[];
         }
         export class AllStickersNotModified extends VirtualClass<void> {
-            className: "AllStickersNotModified";
+            className: "allStickersNotModified";
             static fromReader(reader: Reader): AllStickersNotModified;
         }
         export class AllStickers extends VirtualClass<{
             hash: int;
             sets: Api.TypeStickerSet[];
         }> {
-            className: "AllStickers";
+            className: "allStickers";
             static fromReader(reader: Reader): AllStickers;
             hash: int;
             sets: Api.TypeStickerSet[];
@@ -9187,7 +9187,7 @@ export namespace Api {
             pts: int;
             ptsCount: int;
         }> {
-            className: "AffectedMessages";
+            className: "affectedMessages";
             static fromReader(reader: Reader): AffectedMessages;
             pts: int;
             ptsCount: int;
@@ -9197,21 +9197,21 @@ export namespace Api {
             packs: Api.TypeStickerPack[];
             documents: Api.TypeDocument[];
         }> {
-            className: "StickerSet";
+            className: "stickerSet";
             static fromReader(reader: Reader): StickerSet;
             set: Api.TypeStickerSet;
             packs: Api.TypeStickerPack[];
             documents: Api.TypeDocument[];
         }
         export class SavedGifsNotModified extends VirtualClass<void> {
-            className: "SavedGifsNotModified";
+            className: "savedGifsNotModified";
             static fromReader(reader: Reader): SavedGifsNotModified;
         }
         export class SavedGifs extends VirtualClass<{
             hash: int;
             gifs: Api.TypeDocument[];
         }> {
-            className: "SavedGifs";
+            className: "savedGifs";
             static fromReader(reader: Reader): SavedGifs;
             hash: int;
             gifs: Api.TypeDocument[];
@@ -9226,7 +9226,7 @@ export namespace Api {
             cacheTime: int;
             users: Api.TypeUser[];
         }> {
-            className: "BotResults";
+            className: "botResults";
             static fromReader(reader: Reader): BotResults;
             // flags: null;
             gallery?: boolean;
@@ -9246,7 +9246,7 @@ export namespace Api {
             url?: string;
             cacheTime: int;
         }> {
-            className: "BotCallbackAnswer";
+            className: "botCallbackAnswer";
             static fromReader(reader: Reader): BotCallbackAnswer;
             // flags: null;
             alert?: boolean;
@@ -9260,7 +9260,7 @@ export namespace Api {
             // flags: null;
             caption?: boolean;
         }> {
-            className: "MessageEditData";
+            className: "messageEditData";
             static fromReader(reader: Reader): MessageEditData;
             // flags: null;
             caption?: boolean;
@@ -9272,7 +9272,7 @@ export namespace Api {
             users: Api.TypeUser[];
             state: updates.TypeState;
         }> {
-            className: "PeerDialogs";
+            className: "peerDialogs";
             static fromReader(reader: Reader): PeerDialogs;
             dialogs: Api.TypeDialog[];
             messages: Api.TypeMessage[];
@@ -9283,7 +9283,7 @@ export namespace Api {
         export class FeaturedStickersNotModified extends VirtualClass<{
             count: int;
         }> {
-            className: "FeaturedStickersNotModified";
+            className: "featuredStickersNotModified";
             static fromReader(reader: Reader): FeaturedStickersNotModified;
             count: int;
         }
@@ -9293,7 +9293,7 @@ export namespace Api {
             sets: Api.TypeStickerSetCovered[];
             unread: long[];
         }> {
-            className: "FeaturedStickers";
+            className: "featuredStickers";
             static fromReader(reader: Reader): FeaturedStickers;
             hash: int;
             count: int;
@@ -9301,7 +9301,7 @@ export namespace Api {
             unread: long[];
         }
         export class RecentStickersNotModified extends VirtualClass<void> {
-            className: "RecentStickersNotModified";
+            className: "recentStickersNotModified";
             static fromReader(reader: Reader): RecentStickersNotModified;
         }
         export class RecentStickers extends VirtualClass<{
@@ -9310,7 +9310,7 @@ export namespace Api {
             stickers: Api.TypeDocument[];
             dates: int[];
         }> {
-            className: "RecentStickers";
+            className: "recentStickers";
             static fromReader(reader: Reader): RecentStickers;
             hash: int;
             packs: Api.TypeStickerPack[];
@@ -9321,19 +9321,19 @@ export namespace Api {
             count: int;
             sets: Api.TypeStickerSetCovered[];
         }> {
-            className: "ArchivedStickers";
+            className: "archivedStickers";
             static fromReader(reader: Reader): ArchivedStickers;
             count: int;
             sets: Api.TypeStickerSetCovered[];
         }
         export class StickerSetInstallResultSuccess extends VirtualClass<void> {
-            className: "StickerSetInstallResultSuccess";
+            className: "stickerSetInstallResultSuccess";
             static fromReader(reader: Reader): StickerSetInstallResultSuccess;
         }
         export class StickerSetInstallResultArchive extends VirtualClass<{
             sets: Api.TypeStickerSetCovered[];
         }> {
-            className: "StickerSetInstallResultArchive";
+            className: "stickerSetInstallResultArchive";
             static fromReader(reader: Reader): StickerSetInstallResultArchive;
             sets: Api.TypeStickerSetCovered[];
         }
@@ -9341,13 +9341,13 @@ export namespace Api {
             scores: Api.TypeHighScore[];
             users: Api.TypeUser[];
         }> {
-            className: "HighScores";
+            className: "highScores";
             static fromReader(reader: Reader): HighScores;
             scores: Api.TypeHighScore[];
             users: Api.TypeUser[];
         }
         export class FavedStickersNotModified extends VirtualClass<void> {
-            className: "FavedStickersNotModified";
+            className: "favedStickersNotModified";
             static fromReader(reader: Reader): FavedStickersNotModified;
         }
         export class FavedStickers extends VirtualClass<{
@@ -9355,21 +9355,21 @@ export namespace Api {
             packs: Api.TypeStickerPack[];
             stickers: Api.TypeDocument[];
         }> {
-            className: "FavedStickers";
+            className: "favedStickers";
             static fromReader(reader: Reader): FavedStickers;
             hash: int;
             packs: Api.TypeStickerPack[];
             stickers: Api.TypeDocument[];
         }
         export class FoundStickerSetsNotModified extends VirtualClass<void> {
-            className: "FoundStickerSetsNotModified";
+            className: "foundStickerSetsNotModified";
             static fromReader(reader: Reader): FoundStickerSetsNotModified;
         }
         export class FoundStickerSets extends VirtualClass<{
             hash: int;
             sets: Api.TypeStickerSetCovered[];
         }> {
-            className: "FoundStickerSets";
+            className: "foundStickerSets";
             static fromReader(reader: Reader): FoundStickerSets;
             hash: int;
             sets: Api.TypeStickerSetCovered[];
@@ -9380,7 +9380,7 @@ export namespace Api {
             filter: Api.TypeMessagesFilter;
             count: int;
         }> {
-            className: "SearchCounter";
+            className: "searchCounter";
             static fromReader(reader: Reader): SearchCounter;
             // flags: null;
             inexact?: boolean;
@@ -9392,7 +9392,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "InactiveChats";
+            className: "inactiveChats";
             static fromReader(reader: Reader): InactiveChats;
             dates: int[];
             chats: Api.TypeChat[];
@@ -9405,7 +9405,7 @@ export namespace Api {
             users: Api.TypeUser[];
             nextOffset?: string;
         }> {
-            className: "VotesList";
+            className: "votesList";
             static fromReader(reader: Reader): VotesList;
             // flags: null;
             count: int;
@@ -9418,7 +9418,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "MessageViews";
+            className: "messageViews";
             static fromReader(reader: Reader): MessageViews;
             views: Api.TypeMessageViews[];
             chats: Api.TypeChat[];
@@ -9433,7 +9433,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "DiscussionMessage";
+            className: "discussionMessage";
             static fromReader(reader: Reader): DiscussionMessage;
             // flags: null;
             messages: Api.TypeMessage[];
@@ -9446,7 +9446,7 @@ export namespace Api {
         export class HistoryImport extends VirtualClass<{
             id: long;
         }> {
-            className: "HistoryImport";
+            className: "historyImport";
             static fromReader(reader: Reader): HistoryImport;
             id: long;
         }
@@ -9456,7 +9456,7 @@ export namespace Api {
             group?: boolean;
             title?: string;
         }> {
-            className: "HistoryImportParsed";
+            className: "historyImportParsed";
             static fromReader(reader: Reader): HistoryImportParsed;
             // flags: null;
             pm?: boolean;
@@ -9469,7 +9469,7 @@ export namespace Api {
             offset: int;
             messages: int[];
         }> {
-            className: "AffectedFoundMessages";
+            className: "affectedFoundMessages";
             static fromReader(reader: Reader): AffectedFoundMessages;
             pts: int;
             ptsCount: int;
@@ -9481,7 +9481,7 @@ export namespace Api {
             invites: Api.TypeExportedChatInvite[];
             users: Api.TypeUser[];
         }> {
-            className: "ExportedChatInvites";
+            className: "exportedChatInvites";
             static fromReader(reader: Reader): ExportedChatInvites;
             count: int;
             invites: Api.TypeExportedChatInvite[];
@@ -9491,7 +9491,7 @@ export namespace Api {
             invite: Api.TypeExportedChatInvite;
             users: Api.TypeUser[];
         }> {
-            className: "ExportedChatInvite";
+            className: "exportedChatInvite";
             static fromReader(reader: Reader): ExportedChatInvite;
             invite: Api.TypeExportedChatInvite;
             users: Api.TypeUser[];
@@ -9501,7 +9501,7 @@ export namespace Api {
             newInvite: Api.TypeExportedChatInvite;
             users: Api.TypeUser[];
         }> {
-            className: "ExportedChatInviteReplaced";
+            className: "exportedChatInviteReplaced";
             static fromReader(reader: Reader): ExportedChatInviteReplaced;
             invite: Api.TypeExportedChatInvite;
             newInvite: Api.TypeExportedChatInvite;
@@ -9512,7 +9512,7 @@ export namespace Api {
             importers: Api.TypeChatInviteImporter[];
             users: Api.TypeUser[];
         }> {
-            className: "ChatInviteImporters";
+            className: "chatInviteImporters";
             static fromReader(reader: Reader): ChatInviteImporters;
             count: int;
             importers: Api.TypeChatInviteImporter[];
@@ -9522,7 +9522,7 @@ export namespace Api {
             admins: Api.TypeChatAdminWithInvites[];
             users: Api.TypeUser[];
         }> {
-            className: "ChatAdminsWithInvites";
+            className: "chatAdminsWithInvites";
             static fromReader(reader: Reader): ChatAdminsWithInvites;
             admins: Api.TypeChatAdminWithInvites[];
             users: Api.TypeUser[];
@@ -9530,7 +9530,7 @@ export namespace Api {
         export class CheckedHistoryImportPeer extends VirtualClass<{
             confirmText: string;
         }> {
-            className: "CheckedHistoryImportPeer";
+            className: "checkedHistoryImportPeer";
             static fromReader(reader: Reader): CheckedHistoryImportPeer;
             confirmText: string;
         }
@@ -9544,7 +9544,7 @@ export namespace Api {
             seq: int;
             unreadCount: int;
         }> {
-            className: "State";
+            className: "state";
             static fromReader(reader: Reader): State;
             pts: int;
             qts: int;
@@ -9556,7 +9556,7 @@ export namespace Api {
             date: int;
             seq: int;
         }> {
-            className: "DifferenceEmpty";
+            className: "differenceEmpty";
             static fromReader(reader: Reader): DifferenceEmpty;
             date: int;
             seq: int;
@@ -9569,7 +9569,7 @@ export namespace Api {
             users: Api.TypeUser[];
             state: updates.TypeState;
         }> {
-            className: "Difference";
+            className: "difference";
             static fromReader(reader: Reader): Difference;
             newMessages: Api.TypeMessage[];
             newEncryptedMessages: Api.TypeEncryptedMessage[];
@@ -9586,7 +9586,7 @@ export namespace Api {
             users: Api.TypeUser[];
             intermediateState: updates.TypeState;
         }> {
-            className: "DifferenceSlice";
+            className: "differenceSlice";
             static fromReader(reader: Reader): DifferenceSlice;
             newMessages: Api.TypeMessage[];
             newEncryptedMessages: Api.TypeEncryptedMessage[];
@@ -9598,7 +9598,7 @@ export namespace Api {
         export class DifferenceTooLong extends VirtualClass<{
             pts: int;
         }> {
-            className: "DifferenceTooLong";
+            className: "differenceTooLong";
             static fromReader(reader: Reader): DifferenceTooLong;
             pts: int;
         }
@@ -9608,7 +9608,7 @@ export namespace Api {
             pts: int;
             timeout?: int;
         }> {
-            className: "ChannelDifferenceEmpty";
+            className: "channelDifferenceEmpty";
             static fromReader(reader: Reader): ChannelDifferenceEmpty;
             // flags: null;
             final?: boolean;
@@ -9624,7 +9624,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChannelDifferenceTooLong";
+            className: "channelDifferenceTooLong";
             static fromReader(reader: Reader): ChannelDifferenceTooLong;
             // flags: null;
             final?: boolean;
@@ -9644,7 +9644,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChannelDifference";
+            className: "channelDifference";
             static fromReader(reader: Reader): ChannelDifference;
             // flags: null;
             final?: boolean;
@@ -9662,7 +9662,7 @@ export namespace Api {
             photos: Api.TypePhoto[];
             users: Api.TypeUser[];
         }> {
-            className: "Photos";
+            className: "photos";
             static fromReader(reader: Reader): Photos;
             photos: Api.TypePhoto[];
             users: Api.TypeUser[];
@@ -9672,7 +9672,7 @@ export namespace Api {
             photos: Api.TypePhoto[];
             users: Api.TypeUser[];
         }> {
-            className: "PhotosSlice";
+            className: "photosSlice";
             static fromReader(reader: Reader): PhotosSlice;
             count: int;
             photos: Api.TypePhoto[];
@@ -9682,7 +9682,7 @@ export namespace Api {
             photo: Api.TypePhoto;
             users: Api.TypeUser[];
         }> {
-            className: "Photo";
+            className: "photo";
             static fromReader(reader: Reader): Photo;
             photo: Api.TypePhoto;
             users: Api.TypeUser[];
@@ -9695,7 +9695,7 @@ export namespace Api {
             mtime: int;
             bytes: bytes;
         }> {
-            className: "File";
+            className: "file";
             static fromReader(reader: Reader): File;
             type: storage.TypeFileType;
             mtime: int;
@@ -9708,7 +9708,7 @@ export namespace Api {
             encryptionIv: bytes;
             fileHashes: Api.TypeFileHash[];
         }> {
-            className: "FileCdnRedirect";
+            className: "fileCdnRedirect";
             static fromReader(reader: Reader): FileCdnRedirect;
             dcId: int;
             fileToken: bytes;
@@ -9723,7 +9723,7 @@ export namespace Api {
             mtime: int;
             bytes: bytes;
         }> {
-            className: "WebFile";
+            className: "webFile";
             static fromReader(reader: Reader): WebFile;
             size: int;
             mimeType: string;
@@ -9734,14 +9734,14 @@ export namespace Api {
         export class CdnFileReuploadNeeded extends VirtualClass<{
             requestToken: bytes;
         }> {
-            className: "CdnFileReuploadNeeded";
+            className: "cdnFileReuploadNeeded";
             static fromReader(reader: Reader): CdnFileReuploadNeeded;
             requestToken: bytes;
         }
         export class CdnFile extends VirtualClass<{
             bytes: bytes;
         }> {
-            className: "CdnFile";
+            className: "cdnFile";
             static fromReader(reader: Reader): CdnFile;
             bytes: bytes;
         }
@@ -9759,7 +9759,7 @@ export namespace Api {
             url?: string;
             sticker?: Api.TypeDocument;
         }> {
-            className: "AppUpdate";
+            className: "appUpdate";
             static fromReader(reader: Reader): AppUpdate;
             // flags: null;
             canNotSkip?: boolean;
@@ -9772,13 +9772,13 @@ export namespace Api {
             sticker?: Api.TypeDocument;
         }
         export class NoAppUpdate extends VirtualClass<void> {
-            className: "NoAppUpdate";
+            className: "noAppUpdate";
             static fromReader(reader: Reader): NoAppUpdate;
         }
         export class InviteText extends VirtualClass<{
             message: string;
         }> {
-            className: "InviteText";
+            className: "inviteText";
             static fromReader(reader: Reader): InviteText;
             message: string;
         }
@@ -9786,7 +9786,7 @@ export namespace Api {
             phoneNumber: string;
             user: Api.TypeUser;
         }> {
-            className: "Support";
+            className: "support";
             static fromReader(reader: Reader): Support;
             phoneNumber: string;
             user: Api.TypeUser;
@@ -9799,7 +9799,7 @@ export namespace Api {
             entities: Api.TypeMessageEntity[];
             minAgeConfirm?: int;
         }> {
-            className: "TermsOfService";
+            className: "termsOfService";
             static fromReader(reader: Reader): TermsOfService;
             // flags: null;
             popup?: boolean;
@@ -9813,7 +9813,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "RecentMeUrls";
+            className: "recentMeUrls";
             static fromReader(reader: Reader): RecentMeUrls;
             urls: Api.TypeRecentMeUrl[];
             chats: Api.TypeChat[];
@@ -9822,7 +9822,7 @@ export namespace Api {
         export class TermsOfServiceUpdateEmpty extends VirtualClass<{
             expires: int;
         }> {
-            className: "TermsOfServiceUpdateEmpty";
+            className: "termsOfServiceUpdateEmpty";
             static fromReader(reader: Reader): TermsOfServiceUpdateEmpty;
             expires: int;
         }
@@ -9830,13 +9830,13 @@ export namespace Api {
             expires: int;
             termsOfService: help.TypeTermsOfService;
         }> {
-            className: "TermsOfServiceUpdate";
+            className: "termsOfServiceUpdate";
             static fromReader(reader: Reader): TermsOfServiceUpdate;
             expires: int;
             termsOfService: help.TypeTermsOfService;
         }
         export class DeepLinkInfoEmpty extends VirtualClass<void> {
-            className: "DeepLinkInfoEmpty";
+            className: "deepLinkInfoEmpty";
             static fromReader(reader: Reader): DeepLinkInfoEmpty;
         }
         export class DeepLinkInfo extends VirtualClass<{
@@ -9845,7 +9845,7 @@ export namespace Api {
             message: string;
             entities?: Api.TypeMessageEntity[];
         }> {
-            className: "DeepLinkInfo";
+            className: "deepLinkInfo";
             static fromReader(reader: Reader): DeepLinkInfo;
             // flags: null;
             updateApp?: boolean;
@@ -9853,14 +9853,14 @@ export namespace Api {
             entities?: Api.TypeMessageEntity[];
         }
         export class PassportConfigNotModified extends VirtualClass<void> {
-            className: "PassportConfigNotModified";
+            className: "passportConfigNotModified";
             static fromReader(reader: Reader): PassportConfigNotModified;
         }
         export class PassportConfig extends VirtualClass<{
             hash: int;
             countriesLangs: Api.TypeDataJSON;
         }> {
-            className: "PassportConfig";
+            className: "passportConfig";
             static fromReader(reader: Reader): PassportConfig;
             hash: int;
             countriesLangs: Api.TypeDataJSON;
@@ -9868,12 +9868,12 @@ export namespace Api {
         export class SupportName extends VirtualClass<{
             name: string;
         }> {
-            className: "SupportName";
+            className: "supportName";
             static fromReader(reader: Reader): SupportName;
             name: string;
         }
         export class UserInfoEmpty extends VirtualClass<void> {
-            className: "UserInfoEmpty";
+            className: "userInfoEmpty";
             static fromReader(reader: Reader): UserInfoEmpty;
         }
         export class UserInfo extends VirtualClass<{
@@ -9882,7 +9882,7 @@ export namespace Api {
             author: string;
             date: int;
         }> {
-            className: "UserInfo";
+            className: "userInfo";
             static fromReader(reader: Reader): UserInfo;
             message: string;
             entities: Api.TypeMessageEntity[];
@@ -9892,7 +9892,7 @@ export namespace Api {
         export class PromoDataEmpty extends VirtualClass<{
             expires: int;
         }> {
-            className: "PromoDataEmpty";
+            className: "promoDataEmpty";
             static fromReader(reader: Reader): PromoDataEmpty;
             expires: int;
         }
@@ -9906,7 +9906,7 @@ export namespace Api {
             psaType?: string;
             psaMessage?: string;
         }> {
-            className: "PromoData";
+            className: "promoData";
             static fromReader(reader: Reader): PromoData;
             // flags: null;
             proxy?: boolean;
@@ -9923,7 +9923,7 @@ export namespace Api {
             prefixes?: string[];
             patterns?: string[];
         }> {
-            className: "CountryCode";
+            className: "countryCode";
             static fromReader(reader: Reader): CountryCode;
             // flags: null;
             countryCode: string;
@@ -9938,7 +9938,7 @@ export namespace Api {
             name?: string;
             countryCodes: help.TypeCountryCode[];
         }> {
-            className: "Country";
+            className: "country";
             static fromReader(reader: Reader): Country;
             // flags: null;
             hidden?: boolean;
@@ -9948,14 +9948,14 @@ export namespace Api {
             countryCodes: help.TypeCountryCode[];
         }
         export class CountriesListNotModified extends VirtualClass<void> {
-            className: "CountriesListNotModified";
+            className: "countriesListNotModified";
             static fromReader(reader: Reader): CountriesListNotModified;
         }
         export class CountriesList extends VirtualClass<{
             countries: help.TypeCountry[];
             hash: int;
         }> {
-            className: "CountriesList";
+            className: "countriesList";
             static fromReader(reader: Reader): CountriesList;
             countries: help.TypeCountry[];
             hash: int;
@@ -9965,7 +9965,7 @@ export namespace Api {
             expires: int;
             rules: Api.TypeAccessPointRule[];
         }> {
-            className: "ConfigSimple";
+            className: "configSimple";
             static fromReader(reader: Reader): ConfigSimple;
             date: int;
             expires: int;
@@ -9979,7 +9979,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "PrivacyRules";
+            className: "privacyRules";
             static fromReader(reader: Reader): PrivacyRules;
             rules: Api.TypePrivacyRule[];
             chats: Api.TypeChat[];
@@ -9988,7 +9988,7 @@ export namespace Api {
         export class Authorizations extends VirtualClass<{
             authorizations: Api.TypeAuthorization[];
         }> {
-            className: "Authorizations";
+            className: "authorizations";
             static fromReader(reader: Reader): Authorizations;
             authorizations: Api.TypeAuthorization[];
         }
@@ -10007,7 +10007,7 @@ export namespace Api {
             secureRandom: bytes;
             pendingResetDate?: int;
         }> {
-            className: "Password";
+            className: "password";
             static fromReader(reader: Reader): Password;
             // flags: null;
             hasRecovery?: boolean;
@@ -10028,7 +10028,7 @@ export namespace Api {
             email?: string;
             secureSettings?: Api.TypeSecureSecretSettings;
         }> {
-            className: "PasswordSettings";
+            className: "passwordSettings";
             static fromReader(reader: Reader): PasswordSettings;
             // flags: null;
             email?: string;
@@ -10042,7 +10042,7 @@ export namespace Api {
             email?: string;
             newSecureSettings?: Api.TypeSecureSecretSettings;
         }> {
-            className: "PasswordInputSettings";
+            className: "passwordInputSettings";
             static fromReader(reader: Reader): PasswordInputSettings;
             // flags: null;
             newAlgo?: Api.TypePasswordKdfAlgo;
@@ -10055,7 +10055,7 @@ export namespace Api {
             tmpPassword: bytes;
             validUntil: int;
         }> {
-            className: "TmpPassword";
+            className: "tmpPassword";
             static fromReader(reader: Reader): TmpPassword;
             tmpPassword: bytes;
             validUntil: int;
@@ -10064,7 +10064,7 @@ export namespace Api {
             authorizations: Api.TypeWebAuthorization[];
             users: Api.TypeUser[];
         }> {
-            className: "WebAuthorizations";
+            className: "webAuthorizations";
             static fromReader(reader: Reader): WebAuthorizations;
             authorizations: Api.TypeWebAuthorization[];
             users: Api.TypeUser[];
@@ -10077,7 +10077,7 @@ export namespace Api {
             users: Api.TypeUser[];
             privacyPolicyUrl?: string;
         }> {
-            className: "AuthorizationForm";
+            className: "authorizationForm";
             static fromReader(reader: Reader): AuthorizationForm;
             // flags: null;
             requiredTypes: Api.TypeSecureRequiredType[];
@@ -10090,7 +10090,7 @@ export namespace Api {
             emailPattern: string;
             length: int;
         }> {
-            className: "SentEmailCode";
+            className: "sentEmailCode";
             static fromReader(reader: Reader): SentEmailCode;
             emailPattern: string;
             length: int;
@@ -10098,19 +10098,19 @@ export namespace Api {
         export class Takeout extends VirtualClass<{
             id: long;
         }> {
-            className: "Takeout";
+            className: "takeout";
             static fromReader(reader: Reader): Takeout;
             id: long;
         }
         export class WallPapersNotModified extends VirtualClass<void> {
-            className: "WallPapersNotModified";
+            className: "wallPapersNotModified";
             static fromReader(reader: Reader): WallPapersNotModified;
         }
         export class WallPapers extends VirtualClass<{
             hash: int;
             wallpapers: Api.TypeWallPaper[];
         }> {
-            className: "WallPapers";
+            className: "wallPapers";
             static fromReader(reader: Reader): WallPapers;
             hash: int;
             wallpapers: Api.TypeWallPaper[];
@@ -10120,21 +10120,21 @@ export namespace Api {
             medium: Api.TypeAutoDownloadSettings;
             high: Api.TypeAutoDownloadSettings;
         }> {
-            className: "AutoDownloadSettings";
+            className: "autoDownloadSettings";
             static fromReader(reader: Reader): AutoDownloadSettings;
             low: Api.TypeAutoDownloadSettings;
             medium: Api.TypeAutoDownloadSettings;
             high: Api.TypeAutoDownloadSettings;
         }
         export class ThemesNotModified extends VirtualClass<void> {
-            className: "ThemesNotModified";
+            className: "themesNotModified";
             static fromReader(reader: Reader): ThemesNotModified;
         }
         export class Themes extends VirtualClass<{
             hash: int;
             themes: Api.TypeTheme[];
         }> {
-            className: "Themes";
+            className: "themes";
             static fromReader(reader: Reader): Themes;
             hash: int;
             themes: Api.TypeTheme[];
@@ -10144,7 +10144,7 @@ export namespace Api {
             sensitiveEnabled?: boolean;
             sensitiveCanChange?: boolean;
         }> {
-            className: "ContentSettings";
+            className: "contentSettings";
             static fromReader(reader: Reader): ContentSettings;
             // flags: null;
             sensitiveEnabled?: boolean;
@@ -10153,19 +10153,19 @@ export namespace Api {
         export class ResetPasswordFailedWait extends VirtualClass<{
             retryDate: int;
         }> {
-            className: "ResetPasswordFailedWait";
+            className: "resetPasswordFailedWait";
             static fromReader(reader: Reader): ResetPasswordFailedWait;
             retryDate: int;
         }
         export class ResetPasswordRequestedWait extends VirtualClass<{
             untilDate: int;
         }> {
-            className: "ResetPasswordRequestedWait";
+            className: "resetPasswordRequestedWait";
             static fromReader(reader: Reader): ResetPasswordRequestedWait;
             untilDate: int;
         }
         export class ResetPasswordOk extends VirtualClass<void> {
-            className: "ResetPasswordOk";
+            className: "resetPasswordOk";
             static fromReader(reader: Reader): ResetPasswordOk;
         }
     }
@@ -10177,7 +10177,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChannelParticipants";
+            className: "channelParticipants";
             static fromReader(reader: Reader): ChannelParticipants;
             count: int;
             participants: Api.TypeChannelParticipant[];
@@ -10185,7 +10185,7 @@ export namespace Api {
             users: Api.TypeUser[];
         }
         export class ChannelParticipantsNotModified extends VirtualClass<void> {
-            className: "ChannelParticipantsNotModified";
+            className: "channelParticipantsNotModified";
             static fromReader(reader: Reader): ChannelParticipantsNotModified;
         }
         export class ChannelParticipant extends VirtualClass<{
@@ -10193,7 +10193,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "ChannelParticipant";
+            className: "channelParticipant";
             static fromReader(reader: Reader): ChannelParticipant;
             participant: Api.TypeChannelParticipant;
             chats: Api.TypeChat[];
@@ -10204,7 +10204,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "AdminLogResults";
+            className: "adminLogResults";
             static fromReader(reader: Reader): AdminLogResults;
             events: Api.TypeChannelAdminLogEvent[];
             chats: Api.TypeChat[];
@@ -10228,7 +10228,7 @@ export namespace Api {
             savedCredentials?: Api.TypePaymentSavedCredentials;
             users: Api.TypeUser[];
         }> {
-            className: "PaymentForm";
+            className: "paymentForm";
             static fromReader(reader: Reader): PaymentForm;
             // flags: null;
             canSaveCredentials?: boolean;
@@ -10249,7 +10249,7 @@ export namespace Api {
             id?: string;
             shippingOptions?: Api.TypeShippingOption[];
         }> {
-            className: "ValidatedRequestedInfo";
+            className: "validatedRequestedInfo";
             static fromReader(reader: Reader): ValidatedRequestedInfo;
             // flags: null;
             id?: string;
@@ -10258,14 +10258,14 @@ export namespace Api {
         export class PaymentResult extends VirtualClass<{
             updates: Api.TypeUpdates;
         }> {
-            className: "PaymentResult";
+            className: "paymentResult";
             static fromReader(reader: Reader): PaymentResult;
             updates: Api.TypeUpdates;
         }
         export class PaymentVerificationNeeded extends VirtualClass<{
             url: string;
         }> {
-            className: "PaymentVerificationNeeded";
+            className: "paymentVerificationNeeded";
             static fromReader(reader: Reader): PaymentVerificationNeeded;
             url: string;
         }
@@ -10286,7 +10286,7 @@ export namespace Api {
             credentialsTitle: string;
             users: Api.TypeUser[];
         }> {
-            className: "PaymentReceipt";
+            className: "paymentReceipt";
             static fromReader(reader: Reader): PaymentReceipt;
             // flags: null;
             date: int;
@@ -10309,7 +10309,7 @@ export namespace Api {
             hasSavedCredentials?: boolean;
             savedInfo?: Api.TypePaymentRequestedInfo;
         }> {
-            className: "SavedInfo";
+            className: "savedInfo";
             static fromReader(reader: Reader): SavedInfo;
             // flags: null;
             hasSavedCredentials?: boolean;
@@ -10319,7 +10319,7 @@ export namespace Api {
             title: string;
             openUrls: Api.TypeBankCardOpenUrl[];
         }> {
-            className: "BankCardData";
+            className: "bankCardData";
             static fromReader(reader: Reader): BankCardData;
             title: string;
             openUrls: Api.TypeBankCardOpenUrl[];
@@ -10331,7 +10331,7 @@ export namespace Api {
             phoneCall: Api.TypePhoneCall;
             users: Api.TypeUser[];
         }> {
-            className: "PhoneCall";
+            className: "phoneCall";
             static fromReader(reader: Reader): PhoneCall;
             phoneCall: Api.TypePhoneCall;
             users: Api.TypeUser[];
@@ -10343,7 +10343,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "GroupCall";
+            className: "groupCall";
             static fromReader(reader: Reader): GroupCall;
             call: Api.TypeGroupCall;
             participants: Api.TypeGroupCallParticipant[];
@@ -10359,7 +10359,7 @@ export namespace Api {
             users: Api.TypeUser[];
             version: int;
         }> {
-            className: "GroupParticipants";
+            className: "groupParticipants";
             static fromReader(reader: Reader): GroupParticipants;
             count: int;
             participants: Api.TypeGroupCallParticipant[];
@@ -10373,7 +10373,7 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            className: "JoinAsPeers";
+            className: "joinAsPeers";
             static fromReader(reader: Reader): JoinAsPeers;
             peers: Api.TypePeer[];
             chats: Api.TypeChat[];
@@ -10382,7 +10382,7 @@ export namespace Api {
         export class ExportedGroupCallInvite extends VirtualClass<{
             link: string;
         }> {
-            className: "ExportedGroupCallInvite";
+            className: "exportedGroupCallInvite";
             static fromReader(reader: Reader): ExportedGroupCallInvite;
             link: string;
         }
@@ -10406,7 +10406,7 @@ export namespace Api {
             languagesGraph: Api.TypeStatsGraph;
             recentMessageInteractions: Api.TypeMessageInteractionCounters[];
         }> {
-            className: "BroadcastStats";
+            className: "broadcastStats";
             static fromReader(reader: Reader): BroadcastStats;
             period: Api.TypeStatsDateRangeDays;
             followers: Api.TypeStatsAbsValueAndPrev;
@@ -10443,7 +10443,7 @@ export namespace Api {
             topInviters: Api.TypeStatsGroupTopInviter[];
             users: Api.TypeUser[];
         }> {
-            className: "MegagroupStats";
+            className: "megagroupStats";
             static fromReader(reader: Reader): MegagroupStats;
             period: Api.TypeStatsDateRangeDays;
             members: Api.TypeStatsAbsValueAndPrev;
@@ -10466,7 +10466,7 @@ export namespace Api {
         export class MessageStats extends VirtualClass<{
             viewsGraph: Api.TypeStatsGraph;
         }> {
-            className: "MessageStats";
+            className: "messageStats";
             static fromReader(reader: Reader): MessageStats;
             viewsGraph: Api.TypeStatsGraph;
         }
@@ -10476,7 +10476,7 @@ export namespace Api {
         export class SuggestedShortName extends VirtualClass<{
             shortName: string;
         }> {
-            className: "SuggestedShortName";
+            className: "suggestedShortName";
             static fromReader(reader: Reader): SuggestedShortName;
             shortName: string;
         }
