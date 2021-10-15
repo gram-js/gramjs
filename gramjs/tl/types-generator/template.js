@@ -1,4 +1,3 @@
-const { namespace } = require("store2");
 
 // Not sure what they are for.
 const WEIRD_TYPES = new Set(["Bool", "X", "Type"]);
