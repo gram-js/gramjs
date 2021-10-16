@@ -1,6 +1,5 @@
 import { DefaultEventInterface, EventBuilder, EventCommon } from "./common";
 import { Entity, EntityLike } from "../define";
-import { Message as CustomMessage } from "../tl/custom/message";
 import { Api } from "../tl";
 import { TelegramClient } from "..";
 
@@ -37,20 +36,17 @@ export class Album extends EventBuilder {
         others: any = null,
         dispatch?: CallableFunction
     ): any {
-        if (
-            !("message" in update) ||
-            typeof update.message == "string" ||
-            !("groupedId" in update.message)
-        ) {
+        if (!("message" in update && update.message instanceof Api.Message)) {
             return;
         }
+
         const groupedId = update.message.groupedId;
         if (!groupedId) {
             return;
         }
         const albums = this.client!._ALBUMS;
         const oldTimeout = albums.get(groupedId.toString());
-        let oldValues = [];
+        let oldValues: Api.TypeUpdate[] = [];
         if (oldTimeout) {
             clearTimeout(oldTimeout[0]);
             oldValues.push(...oldTimeout[1]);
@@ -62,26 +58,36 @@ export class Album extends EventBuilder {
                 if (!values) {
                     return;
                 }
-                const messages = values[1] as unknown as CustomMessage[];
+                const updates = values[1];
 
-                if (!messages) {
+                if (!updates) {
                     return;
+                }
+                const messages: Api.Message[] = [];
+                for (const update of updates) {
+                    // there is probably an easier way
+                    if (
+                        "message" in update &&
+                        update.message instanceof Api.Message
+                    ) {
+                        messages.push(update.message);
+                    }
                 }
                 const event = new AlbumEvent(messages, values[1]);
                 event._setClient(this.client!);
                 event._entities = messages[0]._entities!;
                 dispatch!(event);
             }, _ALBUM_DELAY),
-            [...oldValues, update.message],
+            [...oldValues, update],
         ]);
     }
 }
 
 export class AlbumEvent extends EventCommon {
-    messages: CustomMessage[];
+    messages: Api.Message[];
     originalUpdates: (Api.TypeUpdate & { _entities?: Map<number, Entity> })[];
 
-    constructor(messages: CustomMessage[], originalUpdates: Api.TypeUpdate[]) {
+    constructor(messages: Api.Message[], originalUpdates: Api.TypeUpdate[]) {
         super({
             msgId: messages[0].id,
             chatPeer: messages[0].peerId,

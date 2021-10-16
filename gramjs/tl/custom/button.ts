@@ -73,7 +73,7 @@ export class Button {
         return new Api.InputKeyboardButtonUrlAuth({
             text,
             url: url || text,
-            bot: utils.getInputPeer(bot || new Api.InputUserSelf()),
+            bot: utils.getInputUser(bot || new Api.InputUserSelf()),
             requestWriteAccess: writeAccess,
             fwdText: fwdText,
         });

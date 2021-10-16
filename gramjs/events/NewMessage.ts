@@ -7,8 +7,6 @@ import {
 import type { Entity, EntityLike } from "../define";
 import type { TelegramClient } from "..";
 import { Api } from "../tl";
-import { Message } from "../tl/patched";
-import type { Message as CustomMessage } from "../tl/custom/message";
 
 export interface NewMessageInterface extends DefaultEventInterface {
     func?: { (event: NewMessageEvent): boolean };
@@ -124,26 +122,20 @@ export class NewMessage extends EventBuilder {
         this.fromUsers = await _intoIdSet(client, this.fromUsers);
     }
 
-    build(update: Api.TypeUpdate, others: any = null) {
+    build(update: Api.TypeUpdate | Api.TypeUpdates, others: any = null) {
         if (
             update instanceof Api.UpdateNewMessage ||
             update instanceof Api.UpdateNewChannelMessage
         ) {
-            if (
-                !(update.message instanceof Api.Message) &&
-                !(update.message instanceof Message)
-            ) {
+            if (!(update.message instanceof Api.Message)) {
                 return undefined;
             }
-            const event = new NewMessageEvent(
-                update.message as Message,
-                update
-            );
+            const event = new NewMessageEvent(update.message, update);
             this.addAttributes(event);
             return event;
         } else if (update instanceof Api.UpdateShortMessage) {
             return new NewMessageEvent(
-                new Message({
+                new Api.Message({
                     out: update.out,
                     mentioned: update.mentioned,
                     mediaUnread: update.mediaUnread,
@@ -163,7 +155,7 @@ export class NewMessage extends EventBuilder {
             );
         } else if (update instanceof Api.UpdateShortChatMessage) {
             return new NewMessageEvent(
-                new Message({
+                new Api.Message({
                     out: update.out,
                     mentioned: update.mentioned,
                     mediaUnread: update.mediaUnread,
@@ -222,10 +214,15 @@ export class NewMessage extends EventBuilder {
 }
 
 export class NewMessageEvent extends EventCommon {
-    message: CustomMessage;
-    originalUpdate: Api.TypeUpdate & { _entities?: Map<number, Entity> };
+    message: Api.Message;
+    originalUpdate: (Api.TypeUpdate | Api.TypeUpdates) & {
+        _entities?: Map<number, Entity>;
+    };
 
-    constructor(message: CustomMessage, originalUpdate: Api.TypeUpdate) {
+    constructor(
+        message: Api.Message,
+        originalUpdate: Api.TypeUpdate | Api.TypeUpdates
+    ) {
         super({
             msgId: message.id,
             chatPeer: message.peerId,

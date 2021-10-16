@@ -3,7 +3,6 @@ import * as utils from "../Utils";
 import { sleep } from "../Helpers";
 import { computeCheck as computePasswordSrpCheck } from "../Password";
 import type { TelegramClient } from "./TelegramClient";
-import { RPCError } from "../errors";
 
 /**
  * For when you want to login as a {@link Api.User}<br/>

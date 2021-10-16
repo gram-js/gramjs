@@ -4,7 +4,6 @@ import type { EntityLike } from "../define";
 import type { TelegramClient } from "./TelegramClient";
 import { utils } from "../index";
 import { _EntityType, _entityType, isArrayLike } from "../Helpers";
-import { Message } from "../tl/custom/message";
 import bigInt from "big-integer";
 
 export type messageEntities =
@@ -39,7 +38,9 @@ export async function _replaceWithMention(
         entities[i] = new Api.InputMessageEntityMentionName({
             offset: entities[i].offset,
             length: entities[i].length,
-            userId: await client.getInputEntity(user),
+            userId: (await client.getInputEntity(
+                user
+            )) as unknown as Api.TypeInputUser,
         });
         return true;
     } catch (e) {
@@ -110,8 +111,8 @@ export function _getResponseMessage(
         return;
     }
     const randomToId = new Map<string, number>();
-    const idToMessage = new Map<number, Message>();
-    const schedToMessage = new Map<number, Message>();
+    const idToMessage = new Map<number, Api.Message>();
+    const schedToMessage = new Map<number, Api.Message>();
     for (const update of updates) {
         if (update instanceof Api.UpdateMessageID) {
             randomToId.set(update.randomId.toString(), update.id);
@@ -119,7 +120,7 @@ export function _getResponseMessage(
             update instanceof Api.UpdateNewChannelMessage ||
             update instanceof Api.UpdateNewMessage
         ) {
-            (update.message as unknown as Message)._finishInit(
+            (update.message as unknown as Api.Message)._finishInit(
                 client,
                 entities,
                 inputChat
@@ -127,17 +128,17 @@ export function _getResponseMessage(
             if ("randomId" in request || isArrayLike(request)) {
                 idToMessage.set(
                     update.message.id,
-                    update.message as unknown as Message
+                    update.message as unknown as Api.Message
                 );
             } else {
-                return update.message as unknown as Message;
+                return update.message as unknown as Api.Message;
             }
         } else if (
             update instanceof Api.UpdateEditMessage &&
             "peer" in request &&
             _entityType(request.peer) != _EntityType.CHANNEL
         ) {
-            (update.message as unknown as Message)._finishInit(
+            (update.message as unknown as Api.Message)._finishInit(
                 client,
                 entities,
                 inputChat
@@ -145,7 +146,7 @@ export function _getResponseMessage(
             if ("randomId" in request) {
                 idToMessage.set(
                     update.message.id,
-                    update.message as unknown as Message
+                    update.message as unknown as Api.Message
                 );
             } else if ("id" in request && request.id === update.message.id) {
                 return update.message;
@@ -154,10 +155,10 @@ export function _getResponseMessage(
             update instanceof Api.UpdateEditChannelMessage &&
             "peer" in request &&
             getPeerId(request.peer) ==
-                getPeerId((update.message as unknown as Message).peerId!)
+                getPeerId((update.message as unknown as Api.Message).peerId!)
         ) {
             if (request.id == update.message.id) {
-                (update.message as unknown as Message)._finishInit(
+                (update.message as unknown as Api.Message)._finishInit(
                     client,
                     entities,
                     inputChat
@@ -165,18 +166,18 @@ export function _getResponseMessage(
                 return update.message;
             }
         } else if (update instanceof Api.UpdateNewScheduledMessage) {
-            (update.message as unknown as Message)._finishInit(
+            (update.message as unknown as Api.Message)._finishInit(
                 client,
                 entities,
                 inputChat
             );
             schedToMessage.set(
                 update.message.id,
-                update.message as unknown as Message
+                update.message as unknown as Api.Message
             );
         } else if (update instanceof Api.UpdateMessagePoll) {
             if (request.media.poll.id == update.pollId) {
-                const m = new Message({
+                const m = new Api.Message({
                     id: request.id,
                     peerId: utils.getPeerId(request.peer),
                     media: new Api.MessageMediaPoll({
@@ -194,8 +195,8 @@ export function _getResponseMessage(
     if (request == undefined) {
         return idToMessage;
     }
-    let mapping: Map<number, Message>;
-    let opposite = new Map<number, Message>();
+    let mapping: Map<number, Api.Message>;
+    let opposite = new Map<number, Api.Message>();
     if ("scheduleDate" in request && request.scheduleDate != undefined) {
         mapping = schedToMessage;
         opposite = idToMessage;

@@ -155,7 +155,8 @@ export class EventCommon extends ChatGetter {
         msgId = undefined,
         broadcast = undefined,
     }: EventCommonInterface) {
-        super({ chatPeer, broadcast });
+        super();
+        ChatGetter.initChatClass(this, { chatPeer, broadcast });
         this._entities = new Map();
         this._client = undefined;
         this._messageId = msgId;

@@ -1,7 +1,6 @@
 import { Api } from "../tl";
 import { RequestIter } from "../requestIter";
 import { TelegramClient, utils } from "../index";
-import { Message } from "../tl/custom/message";
 import { Dialog } from "../tl/custom/dialog";
 import { DateLike, EntityLike } from "../define";
 import { TotalList } from "../Helpers";
@@ -93,7 +92,7 @@ export class _DialogsIter extends RequestIter {
             this.total = r.dialogs.length;
         }
         const entities = new Map<number, Api.TypeUser | Api.TypeChat>();
-        const messages = new Map<string, Message>();
+        const messages = new Map<string, Api.Message>();
 
         for (const entity of [...r.users, ...r.chats]) {
             if (
@@ -105,7 +104,7 @@ export class _DialogsIter extends RequestIter {
             entities.set(utils.getPeerId(entity), entity);
         }
         for (const m of r.messages) {
-            let message = m as unknown as Message;
+            let message = m as unknown as Api.Message;
             try {
                 // todo make sure this never fails
                 message._finishInit(this.client, entities, undefined);

@@ -176,6 +176,10 @@ function buildArgConfig(name: string, argType: string) {
         //     this.type = 'date';
         // }
     }
+    // workaround
+    if (currentConfig.type == "future_salt") {
+        currentConfig.type = "FutureSalt";
+    }
     return currentConfig;
 }
 

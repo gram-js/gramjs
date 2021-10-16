@@ -12,10 +12,10 @@ export async function inlineQuery(
     query: string,
     entity?: Api.InputPeerSelf,
     offset?: string,
-    geoPoint?: Api.GeoPoint
+    geoPoint?: Api.TypeInputGeoPoint
 ): Promise<InlineResults> {
     bot = await client.getInputEntity(bot);
-    let peer = new Api.InputPeerSelf();
+    let peer: Api.TypeInputPeer = new Api.InputPeerSelf();
     if (entity) {
         peer = await client.getInputEntity(entity);
     }

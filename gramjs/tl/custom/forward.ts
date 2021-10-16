@@ -6,9 +6,8 @@ import type { Entity } from "../../define";
 import { _EntityType, _entityType, betterConsoleLog } from "../../Helpers";
 import { _getEntityPair, getPeerId } from "../../Utils";
 import { inspect } from "util";
-import { Mixin } from "ts-mixer";
 
-export class Forward extends Mixin(SenderGetter, ChatGetter) {
+export class Forward extends SenderGetter {
     private originalFwd: Api.MessageFwdHeader;
     [inspect.custom]() {
         return betterConsoleLog(this);
@@ -19,7 +18,7 @@ export class Forward extends Mixin(SenderGetter, ChatGetter) {
         original: Api.MessageFwdHeader,
         entities: Map<number, Entity>
     ) {
-        super({});
+        super();
         // contains info for the original header sent by telegram.
         this.originalFwd = original;
 
@@ -47,11 +46,11 @@ export class Forward extends Mixin(SenderGetter, ChatGetter) {
                 );
             }
         }
-        ChatGetter.initClass(this, {
+        ChatGetter.initChatClass(this, {
             chatPeer: peer,
             inputChat: inputChat,
         });
-        SenderGetter.initClass(this, {
+        SenderGetter.initSenderClass(this, {
             senderId: senderId,
             sender: sender,
             inputSender: inputSender,

@@ -23,16 +23,7 @@ export class ChatGetter {
         return betterConsoleLog(this);
     }
 
-    constructor({
-        chatPeer,
-        inputChat,
-        chat,
-        broadcast,
-    }: ChatGetterConstructorParams) {
-        ChatGetter.initClass(this, { chatPeer, inputChat, chat, broadcast });
-    }
-
-    static initClass(
+    static initChatClass(
         c: any,
         { chatPeer, inputChat, chat, broadcast }: ChatGetterConstructorParams
     ) {

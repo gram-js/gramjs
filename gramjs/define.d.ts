@@ -1,12 +1,16 @@
 import type { Button } from "./tl/custom/button";
 import { Api } from "./tl";
 import type { CustomFile } from "./client/uploads";
+import TypeUser = Api.TypeUser;
+import TypeChat = Api.TypeChat;
+import TypeInputUser = Api.TypeInputUser;
+import TypeInputChannel = Api.TypeInputChannel;
 
 type ValueOf<T> = T[keyof T];
 type Phone = string;
 type Username = string;
 type PeerID = number;
-type Entity = Api.User | Api.Chat | Api.Channel;
+type Entity = Api.User | Api.Chat | Api.Channel | TypeUser | TypeChat;
 type FullEntity =
     | Api.UserFull
     | Api.messages.ChatFull
@@ -20,10 +24,18 @@ type EntityLike =
     | Api.TypePeer
     | Api.TypeInputPeer
     | Entity
-    | FullEntity;
+    | FullEntity
+    | TypeUser
+    | TypeChat
+    | TypeInputChannel
+    | TypeInputUser;
 
 type EntitiesLike = EntityLike[];
-type MessageIDLike = number | Api.Message | Api.TypeInputMessage;
+type MessageIDLike =
+    | number
+    | Api.Message
+    | Api.MessageService
+    | Api.TypeInputMessage;
 type MessageLike = string | Api.Message;
 
 type LocalPath = string;
@@ -39,6 +51,8 @@ type FileLike =
     | Api.TypeInputFile
     | Api.TypeInputFileLocation
     | File
+    | Api.TypePhoto
+    | Api.TypeDocument
     | CustomFile;
 
 type ProgressCallback = (total: number, downloaded: number) => void;

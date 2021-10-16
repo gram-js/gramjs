@@ -3,6 +3,7 @@ import type { TelegramClient } from "../..";
 import { Api } from "../api";
 import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
+import { ChatGetter } from "./chatGetter";
 
 interface SenderGetterConstructorInterface {
     senderId?: number;
@@ -10,7 +11,7 @@ interface SenderGetterConstructorInterface {
     inputSender?: Api.TypeInputPeer;
 }
 
-export class SenderGetter {
+export class SenderGetter extends ChatGetter {
     _senderId?: number;
     _sender?: Entity;
     _inputSender?: Api.TypeInputPeer;
@@ -19,15 +20,7 @@ export class SenderGetter {
         return betterConsoleLog(this);
     }
 
-    constructor({
-        senderId,
-        sender,
-        inputSender,
-    }: SenderGetterConstructorInterface) {
-        SenderGetter.initClass(this, { senderId, sender, inputSender });
-    }
-
-    static initClass(
+    static initSenderClass(
         c: any,
         { senderId, sender, inputSender }: SenderGetterConstructorInterface
     ) {

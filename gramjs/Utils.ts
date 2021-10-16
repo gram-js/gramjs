@@ -161,7 +161,7 @@ export function getInputPeer(
     _raiseCastFail(entity, "InputPeer");
 }
 
-export function _photoSizeByteCount(size: FileLike) {
+export function _photoSizeByteCount(size: Api.TypePhotoSize) {
     if (size instanceof Api.PhotoSize) {
         return size.size;
     } else if (size instanceof Api.PhotoStrippedSize) {
@@ -250,7 +250,7 @@ export function getInputChannel(entity: EntityLike) {
 }
 
 /**
- Similar to :meth:`get_input_peer`, but for :tl:`InputUser`'s alone.
+ Similar to :meth:`getInputPeer`, but for :tl:`InputUser`'s alone.
 
  .. important::
 
@@ -260,7 +260,7 @@ export function getInputChannel(entity: EntityLike) {
 
  * @param entity
  */
-export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
+export function getInputUser(entity: EntityLike): Api.TypeInputUser {
     if (typeof entity === "string" || typeof entity == "number") {
         _raiseCastFail(entity, "InputUser");
     }
@@ -275,7 +275,7 @@ export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
 
     if (entity instanceof Api.User) {
         if (entity.self) {
-            return new Api.InputPeerSelf();
+            return new Api.InputUserSelf();
         } else {
             return new Api.InputUser({
                 userId: entity.id,
@@ -284,7 +284,7 @@ export function getInputUser(entity: EntityLike): Api.InputPeerSelf {
         }
     }
     if (entity instanceof Api.InputPeerSelf) {
-        return new Api.InputPeerSelf();
+        return new Api.InputUserSelf();
     }
     if (
         entity instanceof Api.UserEmpty ||
@@ -457,7 +457,7 @@ function getInputLocation(location) {
 /**
  *  Similar to :meth:`get_input_peer`, but for photos
  */
-export function getInputPhoto(photo: any): Api.TypePhoto | Api.InputPhotoEmpty {
+export function getInputPhoto(photo: any): Api.TypeInputPhoto {
     if (photo.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(photo, "InputPhoto");
     }
@@ -985,7 +985,7 @@ export function getAppropriatedPartSize(fileSize: number) {
     throw new Error("File size too large");
 }
 
-export function getPeer(peer: EntityLike) {
+export function getPeer(peer: EntityLike | any) {
     if (!peer) {
         _raiseCastFail(peer, "undefined");
     }

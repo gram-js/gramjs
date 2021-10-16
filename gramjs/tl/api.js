@@ -288,6 +288,7 @@ function createClasses(classesType, params) {
 
             constructor(args) {
                 args = args || {};
+                this.init(args);
                 for (const argName in argsConfig) {
                     if (argName === "randomId" && !args[argName]) {
                         if (argsConfig[argName].isVector) {
@@ -304,6 +305,8 @@ function createClasses(classesType, params) {
                     }
                 }
             }
+
+            init(args) {}
 
             static fromReader(reader) {
                 const args = {};

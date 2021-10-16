@@ -1,5 +1,4 @@
 import { Api } from "../tl";
-import { Message } from "../tl/custom/message";
 
 import { TelegramClient } from "./TelegramClient";
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from "../Helpers";
@@ -496,7 +495,7 @@ export async function sendFile(
         clearDraft: clearDraft,
     });
     const result = await client.invoke(request);
-    return client._getResponseMessage(request, result, entity) as Message;
+    return client._getResponseMessage(request, result, entity) as Api.Message;
 }
 
 function fileToBuffer(file: File | CustomFile) {

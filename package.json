@@ -1,6 +1,6 @@
 {
   "name": "telegram",
-  "version": "1.9.6",
+  "version": "1.10.0",
   "description": "NodeJS/Browser MTProto API Telegram client library,",
   "main": "index.js",
   "types": "index.d.ts",
@@ -40,7 +40,7 @@
     "@types/pako": "^1.0.1",
     "@types/websocket": "^1.0.4",
     "babel-loader": "^8.2.2",
-    "jest": "^26.6.3",
+    "jest": "^27.2.5",
     "prettier": "2.3.1",
     "raw-loader": "^4.0.2",
     "ts-loader": "^8.0.16",
@@ -66,7 +66,6 @@
     "socks": "^2.6.1",
     "store2": "^2.12.0",
     "ts-custom-error": "^3.2.0",
-    "ts-mixer": "^6.0.0",
     "util": "^0.12.4",
     "websocket": "^1.0.34"
   }

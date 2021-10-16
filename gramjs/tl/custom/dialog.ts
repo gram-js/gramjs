@@ -3,7 +3,6 @@ import { Api } from "../api";
 import type { Entity } from "../../define";
 import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
 import { Draft } from "./draft";
-import { Message } from "./message";
 import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
 
@@ -13,7 +12,7 @@ export class Dialog {
     pinned: boolean;
     folderId?: number;
     archived: boolean;
-    message?: Api.Message | Message;
+    message?: Api.Message;
     date: number;
     entity?: Entity;
     inputEntity: Api.TypeInputPeer;
@@ -34,7 +33,7 @@ export class Dialog {
         client: TelegramClient,
         dialog: Api.Dialog,
         entities: Map<number, Entity>,
-        message?: Api.Message | Message
+        message?: Api.Message
     ) {
         this._client = client;
         this.dialog = dialog;

@@ -2,7 +2,6 @@ import { Api } from "../tl";
 import type { TelegramClient } from "./TelegramClient";
 import { getAppropriatedPartSize, strippedPhotoToJpg } from "../Utils";
 import { sleep } from "../Helpers";
-import { Message } from "../tl/patched";
 import { EntityLike } from "../define";
 import { errors, utils } from "../";
 
@@ -249,16 +248,13 @@ export interface DownloadMediaInterface {
 /** @hidden */
 export async function downloadMedia(
     client: TelegramClient,
-    messageOrMedia: Api.Message | Api.TypeMessageMedia | Message,
+    messageOrMedia: Api.Message | Api.TypeMessageMedia,
     downloadParams: DownloadMediaInterface
 ): Promise<Buffer> {
     let date;
     let media;
 
-    if (
-        messageOrMedia instanceof Message ||
-        messageOrMedia instanceof Api.Message
-    ) {
+    if (messageOrMedia instanceof Api.Message) {
         media = messageOrMedia.media;
     } else {
         media = messageOrMedia;
@@ -293,7 +289,7 @@ export async function downloadMedia(
 /** @hidden */
 export async function _downloadDocument(
     client: TelegramClient,
-    doc: Api.MessageMediaDocument | Api.Document,
+    doc: Api.MessageMediaDocument | Api.TypeDocument,
     args: DownloadMediaInterface
 ): Promise<Buffer> {
     if (doc instanceof Api.MessageMediaDocument) {

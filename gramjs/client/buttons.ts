@@ -24,7 +24,6 @@ export function buildReplyMarkup(
         }
     }
     if (!isArrayLike(buttons)) {
-        // @ts-ignore
         buttons = [[buttons]];
     } else if (!buttons || !isArrayLike(buttons[0])) {
         // @ts-ignore

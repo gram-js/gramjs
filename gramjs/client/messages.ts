@@ -1,5 +1,4 @@
 import { Api } from "../tl";
-import { Message } from "../tl/custom/message";
 import type {
     DateLike,
     EntityLike,
@@ -235,9 +234,9 @@ export class _MessagesIter extends RequestIter {
         for (const x of [...r.users, ...r.chats]) {
             entities.set(getPeerId(x), x);
         }
-        const messages: Message[] = this.reverse
-            ? (r.messages.reverse() as unknown as Message[])
-            : (r.messages as unknown as Message[]);
+        const messages: Api.Message[] = this.reverse
+            ? (r.messages.reverse() as unknown as Api.Message[])
+            : (r.messages as unknown as Api.Message[]);
         for (const message of messages) {
             if (this.fromId && message.senderId != this.fromId) {
                 continue;
@@ -264,7 +263,7 @@ export class _MessagesIter extends RequestIter {
         }
     }
 
-    _messageInRange(message: Message) {
+    _messageInRange(message: Api.Message) {
         if (this.entity) {
             if (this.reverse) {
                 if (message.id <= this.lastId! || message.id >= this.maxId!) {
@@ -279,11 +278,11 @@ export class _MessagesIter extends RequestIter {
         return true;
     }
 
-    [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
+    [Symbol.asyncIterator](): AsyncIterator<Api.Message, any, undefined> {
         return super[Symbol.asyncIterator]();
     }
 
-    _updateOffset(lastMessage: Message, response: any) {
+    _updateOffset(lastMessage: Api.Message, response: any) {
         if (!this.request) {
             throw new Error("Request not set yet");
         }
@@ -334,7 +333,7 @@ export class _IDsIter extends RequestIter {
         }
     }
 
-    [Symbol.asyncIterator](): AsyncIterator<Message, any, undefined> {
+    [Symbol.asyncIterator](): AsyncIterator<Api.Message, any, undefined> {
         return super[Symbol.asyncIterator]();
     }
 
@@ -393,7 +392,7 @@ export class _IDsIter extends RequestIter {
             ) {
                 this.buffer?.push(undefined);
             } else {
-                const temp: Message = message as unknown as Message;
+                const temp: Api.Message = message as unknown as Api.Message;
                 temp._finishInit(this.client, entities, this._entity);
                 temp._entities = entities;
                 this.buffer?.push(temp);
@@ -614,7 +613,7 @@ export async function getMessages(
     client: TelegramClient,
     entity: EntityLike | undefined,
     params: IterMessagesParams
-): Promise<TotalList<Message>> {
+): Promise<TotalList<Api.Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
             params.limit = undefined;
@@ -631,7 +630,7 @@ export async function getMessages(
         }
         return [];
     }
-    return (await it.collect()) as TotalList<Message>;
+    return (await it.collect()) as TotalList<Api.Message>;
 }
 
 // region Message
@@ -744,7 +743,7 @@ export async function sendMessage(
     }
     const result = await client.invoke(request);
     if (result instanceof Api.UpdateShortSentMessage) {
-        const msg = new Message({
+        const msg = new Api.Message({
             id: result.id,
             peerId: await _getPeer(client, entity),
             message: message,
@@ -758,7 +757,7 @@ export async function sendMessage(
         msg._finishInit(client, new Map(), entity);
         return msg;
     }
-    return client._getResponseMessage(request, result, entity) as Message;
+    return client._getResponseMessage(request, result, entity) as Api.Message;
 }
 
 /** @hidden */
@@ -773,7 +772,7 @@ export async function forwardMessages(
         fromPeer = await client.getInputEntity(fromPeer);
         fromPeerId = await client.getPeerId(fromPeer);
     }
-    const getKey = (m: number | Message) => {
+    const getKey = (m: number | Api.Message) => {
         if (typeof m == "number") {
             if (fromPeerId !== undefined) {
                 return fromPeerId;
@@ -785,10 +784,10 @@ export async function forwardMessages(
             throw new Error(`Cannot forward ${m}`);
         }
     };
-    const sent: Message[] = [];
+    const sent: Api.Message[] = [];
     for (let [chatId, chunk] of groupBy(messages, getKey) as Map<
         number,
-        Message[] | number[]
+        Api.Message[] | number[]
     >) {
         let chat;
         let numbers: number[] = [];
@@ -797,7 +796,7 @@ export async function forwardMessages(
             numbers = chunk as number[];
         } else {
             chat = await chunk[0].getInputChat();
-            numbers = (chunk as Message[]).map((m: Message) => m.id);
+            numbers = (chunk as Api.Message[]).map((m: Api.Message) => m.id);
         }
         chunk.push();
         const request = new Api.messages.ForwardMessages({
@@ -809,7 +808,7 @@ export async function forwardMessages(
         });
         const result = await client.invoke(request);
         sent.push(
-            client._getResponseMessage(request, result, entity) as Message
+            client._getResponseMessage(request, result, entity) as Api.Message
         );
     }
     return sent;
@@ -850,7 +849,7 @@ export async function editMessage(
         scheduleDate: schedule,
     });
     const result = await client.invoke(request);
-    return client._getResponseMessage(request, result, entity) as Message;
+    return client._getResponseMessage(request, result, entity) as Api.Message;
 }
 
 /** @hidden */

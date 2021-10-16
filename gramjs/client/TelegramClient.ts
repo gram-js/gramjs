@@ -21,7 +21,6 @@ import { MTProtoSender, UpdateConnectionState } from "../network";
 import { LAYER } from "../tl/AllTLObjects";
 import { betterConsoleLog, IS_NODE } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
-import type { Message } from "../tl/patched";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
@@ -337,7 +336,7 @@ export class TelegramClient extends TelegramBaseClient {
         query: string,
         entity?: Api.InputPeerSelf,
         offset?: string,
-        geoPoint?: Api.GeoPoint
+        geoPoint?: Api.TypeInputGeoPoint
     ) {
         return botMethods.inlineQuery(
             this,
@@ -476,7 +475,7 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     downloadMedia(
-        messageOrMedia: Api.Message | Api.TypeMessageMedia | Message,
+        messageOrMedia: Api.Message | Api.TypeMessageMedia,
         downloadParams: DownloadMediaInterface
     ) {
         return downloadMethods.downloadMedia(
