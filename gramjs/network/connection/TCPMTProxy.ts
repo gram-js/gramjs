@@ -138,7 +138,13 @@ export class TCPMTProxy extends ObfuscatedConnection {
         if (!proxy.secret) {
             throw new Error("You need to provide the secret for the MTProxy");
         }
-        this._secret = Buffer.from(proxy.secret, "hex");
+        if (proxy.secret && proxy.secret.match(/^[0-9a-f]+$/i)) {
+            // probably hex
+            this._secret = Buffer.from(proxy.secret, "hex");
+        } else {
+            // probably b64
+            this._secret = Buffer.from(proxy.secret, "base64");
+        }
     }
 }
 

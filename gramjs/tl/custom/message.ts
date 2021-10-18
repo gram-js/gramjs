@@ -243,41 +243,41 @@ export class CustomMessage extends SenderGetter {
     }
 
     init({
-             id,
-             peerId = undefined,
-             date = undefined,
+        id,
+        peerId = undefined,
+        date = undefined,
 
-             out = undefined,
-             mentioned = undefined,
-             mediaUnread = undefined,
-             silent = undefined,
-             post = undefined,
-             fromId = undefined,
-             replyTo = undefined,
+        out = undefined,
+        mentioned = undefined,
+        mediaUnread = undefined,
+        silent = undefined,
+        post = undefined,
+        fromId = undefined,
+        replyTo = undefined,
 
-             message = undefined,
+        message = undefined,
 
-             fwdFrom = undefined,
-             viaBotId = undefined,
-             media = undefined,
-             replyMarkup = undefined,
-             entities = undefined,
-             views = undefined,
-             editDate = undefined,
-             postAuthor = undefined,
-             groupedId = undefined,
-             fromScheduled = undefined,
-             legacy = undefined,
-             editHide = undefined,
-             pinned = undefined,
-             restrictionReason = undefined,
-             forwards = undefined,
-             replies = undefined,
+        fwdFrom = undefined,
+        viaBotId = undefined,
+        media = undefined,
+        replyMarkup = undefined,
+        entities = undefined,
+        views = undefined,
+        editDate = undefined,
+        postAuthor = undefined,
+        groupedId = undefined,
+        fromScheduled = undefined,
+        legacy = undefined,
+        editHide = undefined,
+        pinned = undefined,
+        restrictionReason = undefined,
+        forwards = undefined,
+        replies = undefined,
 
-             action = undefined,
-             ttlPeriod = undefined,
-             _entities = new Map<number, Entity>()
-         }: MessageBaseInterface) {
+        action = undefined,
+        ttlPeriod = undefined,
+        _entities = new Map<number, Entity>(),
+    }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
         if (fromId) {
@@ -399,10 +399,10 @@ export class CustomMessage extends SenderGetter {
                     entities.get(
                         utils.getPeerId(
                             new Api.PeerChannel({
-                                channelId: this.action.inviterId
+                                channelId: this.action.inviterId,
                             })
                         )
-                    )
+                    ),
                 ];
             } else if (
                 this.action instanceof Api.MessageActionChannelMigrateFrom
@@ -412,7 +412,7 @@ export class CustomMessage extends SenderGetter {
                         utils.getPeerId(
                             new Api.PeerChat({ chatId: this.action.chatId })
                         )
-                    )
+                    ),
                 ];
             }
         }
@@ -488,7 +488,7 @@ export class CustomMessage extends SenderGetter {
         } catch (e) {
             this._client._log.error(
                 "Got error while trying to finish init message with id " +
-                this.id
+                    this.id
             );
             if (this._client._log.canSend("error")) {
                 console.error(e);
@@ -690,7 +690,7 @@ export class CustomMessage extends SenderGetter {
     get toId() {
         if (this._client && !this.out && this.isPrivate) {
             return new Api.PeerUser({
-                userId: _selfId(this._client)!
+                userId: _selfId(this._client)!,
             });
         }
         return this.peerId;
@@ -723,7 +723,7 @@ export class CustomMessage extends SenderGetter {
                 await this._client.getMessages(
                     this.isChannel ? await this.getInputChat() : undefined,
                     {
-                        ids: new Api.InputMessageReplyTo({ id: this.id })
+                        ids: new Api.InputMessageReplyTo({ id: this.id }),
                     }
                 )
             )[0];
@@ -737,7 +737,7 @@ export class CustomMessage extends SenderGetter {
                     await this._client.getMessages(
                         this.isChannel ? this._inputChat : undefined,
                         {
-                            ids: this.replyToMsgId
+                            ids: this.replyToMsgId,
                         }
                     )
                 )[0];
@@ -770,7 +770,7 @@ export class CustomMessage extends SenderGetter {
             entity = await this._client.getInputEntity(entity);
             const params = {
                 messages: [this.id],
-                fromPeer: (await this.getInputChat())!
+                fromPeer: (await this.getInputChat())!,
             };
 
             return this._client.forwardMessages(entity, params);
@@ -796,7 +796,7 @@ export class CustomMessage extends SenderGetter {
                 await this.getInputChat(),
                 [this.id],
                 {
-                    revoke
+                    revoke,
                 }
             );
         }
