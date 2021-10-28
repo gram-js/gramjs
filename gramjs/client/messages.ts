@@ -412,13 +412,13 @@ export interface IterMessagesParams {
     /** Offset date (messages previous to this date will be retrieved). Exclusive. */
     offsetDate?: DateLike;
     /** Offset message ID (only messages previous to the given ID will be retrieved). Exclusive. */
-    offsetId?: number;
+    offsetId: number;
     /** All the messages with a higher (newer) ID or equal to this will be excluded. */
-    maxId?: number;
+    maxId: number;
     /** All the messages with a lower (older) ID or equal to this will be excluded. */
-    minId?: number;
+    minId: number;
     /** Additional message offset (all of the specified offsets + this offset = older messages). */
-    addOffset?: number;
+    addOffset: number;
     /** The string to be used as a search query. */
     search?: string;
     /** The filter to use when returning messages.<br/>
@@ -444,23 +444,40 @@ export interface IterMessagesParams {
      * `minId` becomes equivalent to `offsetId` instead of being `maxId` as well since messages are returned in ascending order.<br/>
      * You cannot use this if both entity and ids are undefined.
      */
-    reverse?: boolean;
+    reverse: boolean;
     /** If set to a message ID, the messages that reply to this ID will be returned.<br/>
      * This feature is also known as comments in posts of broadcast channels, or viewing threads in groups.<br/>
      * This feature can only be used in broadcast channels and their linked supergroups. Using it in a chat or private conversation will result in PEER_ID_INVALID error.<br/>
      * When using this parameter, the filter and search parameters have no effect, since Telegram's API doesn't support searching messages in replies.
      */
     replyTo?: number;
+    /** If set to `true`, messages which are scheduled will be returned.
+     *  All other parameters will be ignored for this, except `entity`.
+     */
+    scheduled: boolean;
+}
+
+const IterMessagesDefaults: IterMessagesParams = {
+    limit: undefined,
+    offsetDate: undefined,
+    offsetId: 0,
+    maxId: 0,
+    minId: 0,
+    addOffset: 0,
+    search: undefined,
+    filter: undefined,
+    fromUser: undefined,
+    waitTime: undefined,
+    ids: undefined,
+    reverse: false,
+    replyTo: undefined,
+    scheduled: false,
 }
 
 /**
  * Interface for sending a message. only message is required
  */
 export interface SendMessageParams {
-    /**  The message to be sent, or another message object to resend as a copy.<br/>
-     * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
-     * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
-    message: MessageLike;
     /** Whether to reply to a message or not. If an integer is provided, it should be the ID of the message that it should reply to. */
     replyTo?: number | Api.Message;
     /** Optional attributes that override the inferred ones, like DocumentAttributeFilename and so on. */
@@ -505,8 +522,6 @@ export interface SendMessageParams {
 
 /** interface used for forwarding messages */
 export interface ForwardMessagesParams {
-    /** The message(s) to forward, or their integer IDs. */
-    messages: MessageIDLike[];
     /** If the given messages are integer IDs and not instances of the Message class, this must be specified in order for the forward to work.<br/> */
     fromPeer: EntityLike;
     /** Whether the message should notify people with sound or not.<br/>
@@ -518,8 +533,6 @@ export interface ForwardMessagesParams {
 
 /** Interface for editing messages */
 export interface EditMessageParams {
-    /** The ID of the message (or Message itself) to be edited. If the entity was a Message, then this message will be treated as the new text. */
-    message: Api.Message | number;
     /** The new text of the message. Does nothing if the entity was a Message. */
     text: string;
     /** See the {@link TelegramClient.parseMode} property for allowed values. Markdown parsing will be used by default. */
@@ -550,22 +563,12 @@ export interface EditMessageParams {
 export function iterMessages(
     client: TelegramClient,
     entity: EntityLike | undefined,
-    {
-        limit,
-        offsetDate,
-        offsetId,
-        maxId,
-        minId,
-        addOffset,
-        search,
-        filter,
-        fromUser,
-        waitTime,
-        ids,
-        reverse = false,
-        replyTo,
-    }: IterMessagesParams
+    options: Partial<IterMessagesParams>
 ) {
+    const {
+        limit, offsetDate, offsetId, maxId, minId, addOffset, search,
+        filter, fromUser, waitTime, ids, reverse, replyTo,
+    } = { ...IterMessagesDefaults, ...options };
     if (ids) {
         let idsArray;
         if (!isArrayLike(ids)) {
@@ -588,7 +591,7 @@ export function iterMessages(
     }
     return new _MessagesIter(
         client,
-        limit || 1,
+        limit,
         {
             waitTime: waitTime,
             reverse: reverse,
@@ -612,7 +615,7 @@ export function iterMessages(
 export async function getMessages(
     client: TelegramClient,
     entity: EntityLike | undefined,
-    params: IterMessagesParams
+    params: Partial<IterMessagesParams>
 ): Promise<TotalList<Api.Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
         if (params.minId === undefined && params.maxId === undefined) {
@@ -637,9 +640,13 @@ export async function getMessages(
 /** @hidden */
 export async function sendMessage(
     client: TelegramClient,
+    /** To who will it be sent. */
     entity: EntityLike,
+    /**  The message to be sent, or another message object to resend as a copy.<br/>
+     * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
+     * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
+    message: MessageLike = "",
     {
-        message,
         replyTo,
         attributes,
         parseMode,
@@ -653,7 +660,7 @@ export async function sendMessage(
         silent,
         supportStreaming,
         schedule,
-    }: SendMessageParams
+    }: SendMessageParams = {}
 ) {
     if (file) {
         return client.sendFile(entity, {
@@ -678,7 +685,7 @@ export async function sendMessage(
     }
     entity = await client.getInputEntity(entity);
     let markup, request;
-    if (message instanceof Api.Message) {
+    if (message && message instanceof Api.Message) {
         if (buttons == undefined) {
             markup = message.replyMarkup;
         } else {
@@ -764,8 +771,12 @@ export async function sendMessage(
 export async function forwardMessages(
     client: TelegramClient,
     entity: EntityLike,
-    { messages, fromPeer, silent, schedule }: ForwardMessagesParams
+    messages: MessageIDLike | MessageIDLike[],
+    { fromPeer, silent, schedule }: ForwardMessagesParams
 ) {
+    if (!isArrayLike(messages)) {
+        messages = [messages]
+    }
     entity = await client.getInputEntity(entity);
     let fromPeerId: number | undefined;
     if (fromPeer) {
@@ -818,8 +829,8 @@ export async function forwardMessages(
 export async function editMessage(
     client: TelegramClient,
     entity: EntityLike,
+    message: Api.Message | number,
     {
-        message,
         text,
         parseMode,
         formattingEntities,

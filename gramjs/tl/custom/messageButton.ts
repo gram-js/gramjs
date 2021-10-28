@@ -57,8 +57,7 @@ export class MessageButton {
 
     async click({ sharePhone = false, shareGeo = [0, 0] }) {
         if (this.button instanceof Api.KeyboardButton) {
-            return this._client.sendMessage(this._chat, {
-                message: this.button.text,
+            return this._client.sendMessage(this._chat, this.button.text, {
                 parseMode: undefined,
             });
         } else if (this.button instanceof Api.KeyboardButtonCallback) {

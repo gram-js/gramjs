@@ -12,7 +12,7 @@ import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
 import * as twoFA from "./2fa";
-import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
+import type { ButtonLike, Entity, EntityLike, MessageIDLike, MessageLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
@@ -589,7 +589,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     iterMessages(
         entity: EntityLike | undefined,
-        iterParams: messageMethods.IterMessagesParams
+        iterParams: Partial<messageMethods.IterMessagesParams>
     ) {
         return messageMethods.iterMessages(this, entity, iterParams);
     }
@@ -618,7 +618,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     getMessages(
         entity: EntityLike | undefined,
-        getMessagesParams: messageMethods.IterMessagesParams
+        getMessagesParams: Partial<messageMethods.IterMessagesParams>
     ) {
         return messageMethods.getMessages(this, entity, getMessagesParams);
     }
@@ -666,9 +666,10 @@ export class TelegramClient extends TelegramBaseClient {
      */
     sendMessage(
         entity: EntityLike,
+        message: MessageLike,
         sendMessageParams: messageMethods.SendMessageParams
     ) {
-        return messageMethods.sendMessage(this, entity, sendMessageParams);
+        return messageMethods.sendMessage(this, entity, message, sendMessageParams);
     }
 
     /**
@@ -702,11 +703,13 @@ export class TelegramClient extends TelegramBaseClient {
      */
     forwardMessages(
         entity: EntityLike,
+        messages: MessageIDLike | MessageIDLike[],
         forwardMessagesParams: messageMethods.ForwardMessagesParams
     ) {
         return messageMethods.forwardMessages(
             this,
             entity,
+            messages,
             forwardMessagesParams
         );
     }
@@ -737,9 +740,10 @@ export class TelegramClient extends TelegramBaseClient {
      */
     editMessage(
         entity: EntityLike,
+        message: Api.Message | number,
         editMessageParams: messageMethods.EditMessageParams
     ) {
-        return messageMethods.editMessage(this, entity, editMessageParams);
+        return messageMethods.editMessage(this, entity, message, editMessageParams);
     }
 
     /**

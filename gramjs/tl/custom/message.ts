@@ -1,5 +1,5 @@
 import { SenderGetter } from "./senderGetter";
-import type { Entity, EntityLike } from "../../define";
+import type { Entity, EntityLike, MessageLike } from "../../define";
 import { Api } from "../api";
 import type { TelegramClient } from "../..";
 import { ChatGetter } from "./chatGetter";
@@ -746,20 +746,22 @@ export class CustomMessage extends SenderGetter {
         return this._replyMessage;
     }
 
-    async respond(params: SendMessageParams) {
+    async respond(message: MessageLike, params: SendMessageParams = {}) {
         if (this._client) {
             return this._client.sendMessage(
                 (await this.getInputChat())!,
+                message,
                 params
             );
         }
     }
 
-    async reply(params: SendMessageParams) {
+    async reply(message: MessageLike, params: SendMessageParams = {}) {
         if (this._client) {
             params.replyTo = this.id;
             return this._client.sendMessage(
                 (await this.getInputChat())!,
+                message,
                 params
             );
         }
@@ -768,26 +770,19 @@ export class CustomMessage extends SenderGetter {
     async forwardTo(entity: EntityLike) {
         if (this._client) {
             entity = await this._client.getInputEntity(entity);
-            const params = {
-                messages: [this.id],
-                fromPeer: (await this.getInputChat())!,
-            };
-
-            return this._client.forwardMessages(entity, params);
+            return this._client.forwardMessages(entity, [this.id], { fromPeer: (await this.getInputChat())! });
         }
     }
 
-    async edit(params: Omit<EditMessageParams, "message">) {
-        const param = params as EditMessageParams;
+    async edit(params: EditMessageParams) {
         if (this.fwdFrom || !this.out || !this._client) return undefined;
-        if (param.linkPreview == undefined) {
-            param.linkPreview = !!this.webPreview;
+        if (params.linkPreview == undefined) {
+            params.linkPreview = !!this.webPreview;
         }
-        if (param.buttons == undefined) {
-            param.buttons = this.replyMarkup;
+        if (params.buttons == undefined) {
+            params.buttons = this.replyMarkup;
         }
-        param.message = this.id;
-        return this._client.editMessage((await this.getInputChat())!, param);
+        return this._client.editMessage((await this.getInputChat())!, this.id, params);
     }
 
     async delete({ revoke = false }) {
