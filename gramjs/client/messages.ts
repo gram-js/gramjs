@@ -444,7 +444,7 @@ export interface IterMessagesParams {
      * `minId` becomes equivalent to `offsetId` instead of being `maxId` as well since messages are returned in ascending order.<br/>
      * You cannot use this if both entity and ids are undefined.
      */
-    reverse: boolean;
+    reverse?: boolean;
     /** If set to a message ID, the messages that reply to this ID will be returned.<br/>
      * This feature is also known as comments in posts of broadcast channels, or viewing threads in groups.<br/>
      * This feature can only be used in broadcast channels and their linked supergroups. Using it in a chat or private conversation will result in PEER_ID_INVALID error.<br/>
