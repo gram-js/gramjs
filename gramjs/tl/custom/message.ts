@@ -746,22 +746,20 @@ export class CustomMessage extends SenderGetter {
         return this._replyMessage;
     }
 
-    async respond(message: MessageLike, params: SendMessageParams = {}) {
+    async respond(params: SendMessageParams) {
         if (this._client) {
             return this._client.sendMessage(
                 (await this.getInputChat())!,
-                message,
                 params
             );
         }
     }
 
-    async reply(message: MessageLike, params: SendMessageParams = {}) {
+    async reply(params: SendMessageParams) {
         if (this._client) {
             params.replyTo = this.id;
             return this._client.sendMessage(
                 (await this.getInputChat())!,
-                message,
                 params
             );
         }
@@ -770,19 +768,25 @@ export class CustomMessage extends SenderGetter {
     async forwardTo(entity: EntityLike) {
         if (this._client) {
             entity = await this._client.getInputEntity(entity);
-            return this._client.forwardMessages(entity, [this.id], { fromPeer: (await this.getInputChat())! });
+            const params = {
+                messages: [this.id],
+                fromPeer: (await this.getInputChat())!,
+            }
+            return this._client.forwardMessages(entity, params);
         }
     }
 
-    async edit(params: EditMessageParams) {
+    async edit(params: Omit<EditMessageParams, "message">) {
+        const param = params as EditMessageParams;
         if (this.fwdFrom || !this.out || !this._client) return undefined;
-        if (params.linkPreview == undefined) {
-            params.linkPreview = !!this.webPreview;
+        if (param.linkPreview == undefined) {
+            param.linkPreview = !!this.webPreview;
         }
-        if (params.buttons == undefined) {
-            params.buttons = this.replyMarkup;
+        if (param.buttons == undefined) {
+            param.buttons = this.replyMarkup;
         }
-        return this._client.editMessage((await this.getInputChat())!, this.id, params);
+        param.message = this.id;
+        return this._client.editMessage((await this.getInputChat())!, param);
     }
 
     async delete({ revoke = false }) {

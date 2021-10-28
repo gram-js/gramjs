@@ -666,10 +666,9 @@ export class TelegramClient extends TelegramBaseClient {
      */
     sendMessage(
         entity: EntityLike,
-        message: MessageLike,
         sendMessageParams: messageMethods.SendMessageParams
     ) {
-        return messageMethods.sendMessage(this, entity, message, sendMessageParams);
+        return messageMethods.sendMessage(this, entity, sendMessageParams);
     }
 
     /**
@@ -703,13 +702,11 @@ export class TelegramClient extends TelegramBaseClient {
      */
     forwardMessages(
         entity: EntityLike,
-        messages: MessageIDLike | MessageIDLike[],
         forwardMessagesParams: messageMethods.ForwardMessagesParams
     ) {
         return messageMethods.forwardMessages(
             this,
             entity,
-            messages,
             forwardMessagesParams
         );
     }
@@ -740,10 +737,9 @@ export class TelegramClient extends TelegramBaseClient {
      */
     editMessage(
         entity: EntityLike,
-        message: Api.Message | number,
         editMessageParams: messageMethods.EditMessageParams
     ) {
-        return messageMethods.editMessage(this, entity, message, editMessageParams);
+        return messageMethods.editMessage(this, entity, editMessageParams);
     }
 
     /**

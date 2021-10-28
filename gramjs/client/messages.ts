@@ -478,6 +478,10 @@ const IterMessagesDefaults: IterMessagesParams = {
  * Interface for sending a message. only message is required
  */
 export interface SendMessageParams {
+    /**  The message to be sent, or another message object to resend as a copy.<br/>
+     * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
+     * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
+    message?: MessageLike;
     /** Whether to reply to a message or not. If an integer is provided, it should be the ID of the message that it should reply to. */
     replyTo?: number | Api.Message;
     /** Optional attributes that override the inferred ones, like DocumentAttributeFilename and so on. */
@@ -522,6 +526,8 @@ export interface SendMessageParams {
 
 /** interface used for forwarding messages */
 export interface ForwardMessagesParams {
+    /** The message(s) to forward, or their integer IDs. */
+    messages: MessageIDLike | MessageIDLike[];
     /** If the given messages are integer IDs and not instances of the Message class, this must be specified in order for the forward to work.<br/> */
     fromPeer: EntityLike;
     /** Whether the message should notify people with sound or not.<br/>
@@ -533,6 +539,8 @@ export interface ForwardMessagesParams {
 
 /** Interface for editing messages */
 export interface EditMessageParams {
+    /** The ID of the message (or Message itself) to be edited. If the entity was a Message, then this message will be treated as the new text. */
+    message: Api.Message | number;
     /** The new text of the message. Does nothing if the entity was a Message. */
     text: string;
     /** See the {@link TelegramClient.parseMode} property for allowed values. Markdown parsing will be used by default. */
@@ -645,8 +653,8 @@ export async function sendMessage(
     /**  The message to be sent, or another message object to resend as a copy.<br/>
      * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
      * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
-    message: MessageLike = "",
     {
+        message,
         replyTo,
         attributes,
         parseMode,
@@ -727,7 +735,7 @@ export async function sendMessage(
         if (formattingEntities == undefined) {
             [message, formattingEntities] = await _parseMessageText(
                 client,
-                message,
+                message || '',
                 parseMode
             );
         }
@@ -771,8 +779,7 @@ export async function sendMessage(
 export async function forwardMessages(
     client: TelegramClient,
     entity: EntityLike,
-    messages: MessageIDLike | MessageIDLike[],
-    { fromPeer, silent, schedule }: ForwardMessagesParams
+    { messages, fromPeer, silent, schedule }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
         messages = [messages]
@@ -829,8 +836,8 @@ export async function forwardMessages(
 export async function editMessage(
     client: TelegramClient,
     entity: EntityLike,
-    message: Api.Message | number,
     {
+        message,
         text,
         parseMode,
         formattingEntities,
