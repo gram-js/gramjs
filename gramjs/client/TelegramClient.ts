@@ -12,11 +12,11 @@ import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
 import * as twoFA from "./2fa";
-import type { ButtonLike, Entity, EntityLike, MessageIDLike, MessageLike } from "../define";
+import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
-import { MTProtoSender, UpdateConnectionState } from "../network";
+import { MTProtoSender } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
 import { betterConsoleLog, IS_NODE } from "../Helpers";
