@@ -241,7 +241,7 @@ interface FileToMediaInterface {
 }
 
 /** @hidden */
-async function _fileToMedia(
+export async function _fileToMedia(
     client: TelegramClient,
     {
         file,

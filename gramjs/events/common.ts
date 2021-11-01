@@ -120,11 +120,14 @@ export class EventBuilder {
         this.chats = await _intoIdSet(client, this.chats);
     }
 
-    filter(event: any): undefined | EventBuilder {
+    filter(event: EventCommon): undefined | EventCommon {
         if (!this.resolved) {
             return;
         }
-        if (this.chats != undefined && event.chatId != undefined) {
+        if (this.chats != undefined) {
+            if (event.chatId == undefined) {
+                return;
+            }
             const inside = this.chats.includes(event.chatId);
             if (inside == this.blacklistChats) {
                 // If this chat matches but it's a blacklist ignore.

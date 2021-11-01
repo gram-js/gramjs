@@ -31,6 +31,8 @@ export namespace Api {
         className: string;
         classType: "constructor" | "request";
         constructor(args: Args);
+        originalArgs: Args;
+        toJSON(): Args;
     }
     class Request<Args, Response> extends VirtualClass<Partial<Args>> {
         static readResult(reader: Reader): Buffer;

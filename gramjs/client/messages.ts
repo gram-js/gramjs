@@ -472,7 +472,7 @@ const IterMessagesDefaults: IterMessagesParams = {
     reverse: false,
     replyTo: undefined,
     scheduled: false,
-}
+};
 
 /**
  * Interface for sending a message. only message is required
@@ -574,8 +574,19 @@ export function iterMessages(
     options: Partial<IterMessagesParams>
 ) {
     const {
-        limit, offsetDate, offsetId, maxId, minId, addOffset, search,
-        filter, fromUser, waitTime, ids, reverse, replyTo,
+        limit,
+        offsetDate,
+        offsetId,
+        maxId,
+        minId,
+        addOffset,
+        search,
+        filter,
+        fromUser,
+        waitTime,
+        ids,
+        reverse,
+        replyTo,
     } = { ...IterMessagesDefaults, ...options };
     if (ids) {
         let idsArray;
@@ -735,7 +746,7 @@ export async function sendMessage(
         if (formattingEntities == undefined) {
             [message, formattingEntities] = await _parseMessageText(
                 client,
-                message || '',
+                message || "",
                 parseMode
             );
         }
@@ -782,7 +793,7 @@ export async function forwardMessages(
     { messages, fromPeer, silent, schedule }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
-        messages = [messages]
+        messages = [messages];
     }
     entity = await client.getInputEntity(entity);
     let fromPeerId: number | undefined;

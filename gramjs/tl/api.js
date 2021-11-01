@@ -288,6 +288,7 @@ function createClasses(classesType, params) {
 
             constructor(args) {
                 args = args || {};
+                this.originalArgs = args;
                 this.init(args);
                 for (const argName in argsConfig) {
                     if (argName === "randomId" && !args[argName]) {
@@ -577,6 +578,10 @@ function createClasses(classesType, params) {
                         }
                     }
                 }
+            }
+
+            toJSON() {
+                return this.originalArgs;
             }
         }
 

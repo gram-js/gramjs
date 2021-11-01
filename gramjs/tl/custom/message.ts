@@ -236,6 +236,11 @@ export class CustomMessage extends SenderGetter {
     _sender?: any;
     /** @hidden */
     _entities?: Map<number, Entity>;
+    /** @hidden */
+    /* @ts-ignore */
+    getBytes(): Buffer;
+    originalArgs: any;
+
     patternMatch?: RegExpMatchArray;
 
     [inspect.custom]() {
@@ -771,7 +776,7 @@ export class CustomMessage extends SenderGetter {
             const params = {
                 messages: [this.id],
                 fromPeer: (await this.getInputChat())!,
-            }
+            };
             return this._client.forwardMessages(entity, params);
         }
     }

@@ -565,11 +565,7 @@ export function isAudio(file: any): boolean {
     const ext = _getExtension(file);
     if (!ext) {
         const metadata = _getMetadata(file);
-        if (metadata) {
-            return (metadata.get("mimeType") || "").startsWith("audio/");
-        } else {
-            return false;
-        }
+        return (metadata.get("mimeType") || "").startsWith("audio/");
     } else {
         file = "a" + ext;
         return (mime.lookup(file) || "").startsWith("audio/");
@@ -634,16 +630,16 @@ function _getExtension(file: any): string {
     }
 }
 
-function _getMetadata(file: any): Map<string, string> | undefined {
+function _getMetadata(file: any): Map<string, string> {
     //TODO Return nothing for now until we find a better way
-    return undefined;
+    return new Map<string, string>();
 }
 
 function isVideo(file: any): boolean {
     const ext = _getExtension(file);
     if (!ext) {
         const metadata = _getMetadata(file);
-        if (metadata && metadata.has("mimeType")) {
+        if (metadata.has("mimeType")) {
             return metadata.get("mimeType")?.startsWith("video/") || false;
         } else {
             return false;
@@ -684,51 +680,40 @@ export function getAttributes(
     );
     if (isAudio(file)) {
         const m = _getMetadata(file);
-        if (m) {
-            attrObj.set(
-                Api.DocumentAttributeAudio,
-                new Api.DocumentAttributeAudio({
-                    voice: voiceNote,
-                    title: m.has("title") ? m.get("title") : undefined,
-                    performer: m.has("author") ? m.get("author") : undefined,
-                    duration: Number.parseInt(m.get("duration") ?? "0"),
-                })
-            );
-        }
+        attrObj.set(
+            Api.DocumentAttributeAudio,
+            new Api.DocumentAttributeAudio({
+                voice: voiceNote,
+                title: m.has("title") ? m.get("title") : undefined,
+                performer: m.has("author") ? m.get("author") : undefined,
+                duration: Number.parseInt(m.get("duration") ?? "0"),
+            })
+        );
     }
     if (!forceDocument && isVideo(file)) {
         let doc;
-        const m = _getMetadata(file);
-        if (m) {
+        if (thumb) {
+            const t_m = _getMetadata(thumb);
+            const width = Number.parseInt(t_m?.get("width") || "1");
+            const height = Number.parseInt(t_m?.get("height") || "1");
             doc = new Api.DocumentAttributeVideo({
+                duration: 0,
+                h: height,
+                w: width,
                 roundMessage: videoNote,
-                w: Number.parseInt(m.get("width") ?? "0"),
-                h: Number.parseInt(m.get("height") ?? "0"),
-                duration: Number.parseInt(m.get("duration") ?? "0"),
                 supportsStreaming: supportsStreaming,
             });
         } else {
-            if (thumb) {
-                const t_m = _getMetadata(thumb);
-                const width = Number.parseInt(t_m?.get("width") || "1");
-                const height = Number.parseInt(t_m?.get("height") || "1");
-                doc = new Api.DocumentAttributeVideo({
-                    duration: 0,
-                    h: height,
-                    w: width,
-                    roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming,
-                });
-            } else {
-                doc = new Api.DocumentAttributeVideo({
-                    duration: 0,
-                    h: 1,
-                    w: 1,
-                    roundMessage: videoNote,
-                    supportsStreaming: supportsStreaming,
-                });
-            }
+            const m = _getMetadata(file);
+            doc = new Api.DocumentAttributeVideo({
+                roundMessage: videoNote,
+                w: Number.parseInt(m.get("width") ?? "1"),
+                h: Number.parseInt(m.get("height") ?? "1"),
+                duration: Number.parseInt(m.get("duration") ?? "0"),
+                supportsStreaming: supportsStreaming,
+            });
         }
+
         attrObj.set(Api.DocumentAttributeVideo, doc);
     }
     if (videoNote) {

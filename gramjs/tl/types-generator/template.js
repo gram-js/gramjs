@@ -45,7 +45,7 @@ module.exports = ({ types, constructors, functions }) => {
                     constructorId,
                     subclassOfId,
                 } = args;
-                if (name == "Message") {
+                if (name === "Message") {
                     return `export class Message extends CustomMessage {
 ${indent}CONSTRUCTOR_ID: ${constructorId};
 ${indent}SUBCLASS_OF_ID: ${subclassOfId};
@@ -53,7 +53,7 @@ ${indent}classType: "request";
 ${indent}className: "${getClassNameWithNameSpace(name, namespace)}";
 ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
     }`;
-                } else if (name == "MessageService") {
+                } else if (name === "MessageService") {
                     return `export class MessageService extends CustomMessage {
 ${indent}CONSTRUCTOR_ID: ${constructorId};
 ${indent}SUBCLASS_OF_ID: ${subclassOfId};
@@ -262,6 +262,8 @@ export namespace Api {
     className: string;
     classType: 'constructor' | 'request';
     constructor(args: Args);
+    originalArgs: Args;
+    toJSON(): Args;
   }
   class Request<Args, Response> extends VirtualClass<Partial<Args>> {
     static readResult(reader: Reader): Buffer;
