@@ -771,8 +771,7 @@ export class CustomMessage extends SenderGetter {
             const params = {
                 messages: [this.id],
                 fromPeer: (await this.getInputChat())!,
-            };
-
+            }
             return this._client.forwardMessages(entity, params);
         }
     }

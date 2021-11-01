@@ -16,7 +16,7 @@ import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
-import { MTProtoSender, UpdateConnectionState } from "../network";
+import { MTProtoSender } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
 import { betterConsoleLog, IS_NODE } from "../Helpers";
@@ -589,7 +589,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     iterMessages(
         entity: EntityLike | undefined,
-        iterParams: messageMethods.IterMessagesParams
+        iterParams: Partial<messageMethods.IterMessagesParams>
     ) {
         return messageMethods.iterMessages(this, entity, iterParams);
     }
@@ -618,7 +618,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     getMessages(
         entity: EntityLike | undefined,
-        getMessagesParams: messageMethods.IterMessagesParams
+        getMessagesParams: Partial<messageMethods.IterMessagesParams>
     ) {
         return messageMethods.getMessages(this, entity, getMessagesParams);
     }
