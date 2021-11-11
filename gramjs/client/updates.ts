@@ -7,8 +7,8 @@ import type { Raw } from "../events";
 import { utils } from "../index";
 import { getRandomInt, sleep } from "../Helpers";
 
-const PING_INTERVAL = 3000; // 3 sec
-const PING_TIMEOUT = 5000; // 5 sec
+const PING_INTERVAL = 9000; // 9 sec
+const PING_TIMEOUT = 10000; // 10 sec
 const PING_FAIL_ATTEMPTS = 3;
 const PING_FAIL_INTERVAL = 100; // ms
 const PING_DISCONNECT_DELAY = 60000; // 1 min

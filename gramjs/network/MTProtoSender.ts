@@ -403,6 +403,9 @@ export class MTProtoSender {
                 );
                 this._sendQueue.append(ack);
                 this._lastAcks.push(ack);
+                if (this._lastAcks.length >= 10){
+                    this._lastAcks.shift();
+                }
                 this._pendingAck.clear();
             }
             this._log.debug(

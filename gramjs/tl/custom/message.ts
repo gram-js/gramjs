@@ -794,7 +794,7 @@ export class CustomMessage extends SenderGetter {
         return this._client.editMessage((await this.getInputChat())!, param);
     }
 
-    async delete({ revoke = false }) {
+    async delete({ revoke } = { revoke: false }) {
         if (this._client) {
             return this._client.deleteMessages(
                 await this.getInputChat(),

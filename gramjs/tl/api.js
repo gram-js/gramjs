@@ -1,9 +1,11 @@
+const { inspect } = require("util");
 const bigInt = require("big-integer");
 
 const {
     generateRandomBytes,
     readBigIntFromBuffer,
     isArrayLike,
+    betterConsoleLog,
 } = require("../Helpers");
 
 function generateRandomBigInt() {
@@ -578,6 +580,9 @@ function createClasses(classesType, params) {
                         }
                     }
                 }
+            }
+            [inspect.custom]() {
+                return betterConsoleLog(this);
             }
 
             toJSON() {
