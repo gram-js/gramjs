@@ -42,7 +42,8 @@ export class MessagePacker {
         if (this.setReady) {
             this.setReady(true);
         }
-        if (state) {
+        // we don't want msg acks here
+        if (state && state.request.CONSTRUCTOR_ID != 1658238041) {
             this._pendingStates.push(state);
             state.promise
                 // Using finally causes triggering `unhandledrejection` event

@@ -13,7 +13,7 @@ tsc.on("close", (code) => {
     fs.copyFileSync("gramjs/tl/static/schema.tl", "dist/tl/static/schema.tl");
     fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
     fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
-    const npm_publish = exec("npm publish", { cwd: "dist" });
+    const npm_publish = exec("npm publish --next", { cwd: "dist" });
     npm_publish.stdout.on("data", function (data) {
       console.log(data.toString());
     });
