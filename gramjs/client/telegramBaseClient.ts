@@ -26,7 +26,7 @@ const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
 
 const DEFAULT_DC_ID = 4;
-const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.91" : "vesta.web.telegram.org";
+const DEFAULT_IPV4_IP = IS_NODE ? "kws4.web.telegram.org" : "vesta.web.telegram.org";
 const DEFAULT_IPV6_IP = "2001:067c:04e8:f004:0000:0000:0000:000a";
 
 /**
