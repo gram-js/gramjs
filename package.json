@@ -5,6 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "generate-types":"deno run --allow-all --import-map=./gramjs/tl/types-generator/import_map.json ./gramjs/tl/types-generator/main.ts",
     "test": "jest"
   },
   "repository": {

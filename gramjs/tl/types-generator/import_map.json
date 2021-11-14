@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "dom_parser": "https://deno.land/x/deno_dom@v0.1.17-alpha/deno-dom-wasm.ts",
+    "progress": "https://deno.land/x/progress@v1.1.4/mod.ts",
+    "dataloader": "https://esm.sh/dataloader"
+  }
+}
