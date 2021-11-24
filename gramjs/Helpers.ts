@@ -61,7 +61,7 @@ export function betterConsoleLog(object: { [key: string]: any }) {
     const toPrint: { [key: string]: any } = {};
     for (const key in object) {
         if (object.hasOwnProperty(key)) {
-            if (!key.startsWith("_") && key!="originalArgs") {
+            if (!key.startsWith("_") && key != "originalArgs") {
                 toPrint[key] = object[key];
             }
         }

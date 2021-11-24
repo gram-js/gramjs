@@ -5,6 +5,7 @@ import type { TelegramClient } from "..";
 
 import { isArrayLike } from "../Helpers";
 import { utils } from "../";
+import { SenderGetter } from "../tl/custom/senderGetter";
 
 /** @hidden */
 export async function _intoIdSet(
@@ -160,6 +161,32 @@ export class EventCommon extends ChatGetter {
     }: EventCommonInterface) {
         super();
         ChatGetter.initChatClass(this, { chatPeer, broadcast });
+        this._entities = new Map();
+        this._client = undefined;
+        this._messageId = msgId;
+    }
+
+    _setClient(client: TelegramClient) {
+        this._client = client;
+    }
+
+    get client() {
+        return this._client;
+    }
+}
+export class EventCommonSender extends SenderGetter {
+    _eventName = "Event";
+    _entities: Map<number, Entity>;
+    _messageId?: number;
+
+    constructor({
+        chatPeer = undefined,
+        msgId = undefined,
+        broadcast = undefined,
+    }: EventCommonInterface) {
+        super();
+        ChatGetter.initChatClass(this, { chatPeer, broadcast });
+        SenderGetter.initChatClass(this, { chatPeer, broadcast });
         this._entities = new Map();
         this._client = undefined;
         this._messageId = msgId;

@@ -26,6 +26,7 @@ import { _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
 import { inspect } from "util";
 import { Album, AlbumEvent } from "../events/Album";
+import { CallbackQuery, CallbackQueryEvent } from "../events/CallbackQuery";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -906,6 +907,10 @@ export class TelegramClient extends TelegramBaseClient {
     addEventHandler(
         callback: { (event: NewMessageEvent): void },
         event: NewMessage
+    ): void;
+    addEventHandler(
+        callback: { (event: CallbackQueryEvent): void },
+        event: CallbackQuery
     ): void;
     addEventHandler(
         callback: { (event: AlbumEvent): void },
