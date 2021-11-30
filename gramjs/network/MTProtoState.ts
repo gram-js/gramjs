@@ -17,6 +17,7 @@ export class MTProtoState {
     private id: bigInt.BigInteger;
     _sequence: number;
     private _lastMsgId: bigInt.BigInteger;
+    private msgIds: Set<String>;
 
     /**
      *
@@ -50,6 +51,7 @@ export class MTProtoState {
         this.salt = bigInt.zero;
         this._sequence = 0;
         this.id = this._lastMsgId = bigInt.zero;
+        this.msgIds = new Set();
         this.reset();
     }
 
@@ -61,6 +63,7 @@ export class MTProtoState {
         this.id = helpers.generateRandomLong(true);
         this._sequence = 0;
         this._lastMsgId = bigInt.zero;
+        this.msgIds = new Set<String>();
     }
 
     /**
@@ -230,6 +233,13 @@ export class MTProtoState {
         }
 
         const remoteMsgId = reader.readLong();
+        if (this.msgIds.has(remoteMsgId.toString())) {
+            throw new SecurityError("Duplicate msgIds");
+        }
+        if (remoteMsgId.lesser(this._lastMsgId)) {
+            throw new SecurityError("Received old message from server");
+        }
+        this.msgIds.add(remoteMsgId.toString());
         const remoteSequence = reader.readInt();
         reader.readInt(); // msgLen for the inner object, padding ignored
 
