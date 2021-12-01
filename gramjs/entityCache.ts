@@ -5,7 +5,7 @@ import { isArrayLike } from "./Helpers";
 import { Api } from "./tl";
 
 export class EntityCache {
-    private cacheMap: Map<number, any>;
+    private cacheMap: Map<string, any>;
 
     constructor() {
         this.cacheMap = new Map();
@@ -36,8 +36,8 @@ export class EntityCache {
         for (const entity of entities) {
             try {
                 const pid = getPeerId(entity);
-                if (!this.cacheMap.has(pid)) {
-                    this.cacheMap.set(pid, getInputPeer(entity));
+                if (!this.cacheMap.has(pid.toString())) {
+                    this.cacheMap.set(pid.toString(), getInputPeer(entity));
                 }
             } catch (e) {}
         }
@@ -47,7 +47,7 @@ export class EntityCache {
         if (!(typeof item === "number") || item < 0) {
             let res;
             try {
-                res = this.cacheMap.get(getPeerId(item));
+                res = this.cacheMap.get(getPeerId(item).toString());
                 if (res) {
                     return res;
                 }
@@ -56,15 +56,14 @@ export class EntityCache {
             }
         }
         for (const cls of [Api.PeerUser, Api.PeerChat, Api.PeerChannel]) {
-            // TODO remove these "as"
             const result = this.cacheMap.get(
                 getPeerId(
                     new cls({
-                        userId: item as number,
-                        chatId: item as number,
-                        channelId: item as number,
+                        userId: item,
+                        chatId: item,
+                        channelId: item,
                     })
-                )
+                ).toString()
             );
             if (result) {
                 return result;

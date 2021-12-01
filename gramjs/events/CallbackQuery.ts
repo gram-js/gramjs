@@ -1,7 +1,7 @@
 import { EntityLike } from "../define";
-import { EventBuilder, EventCommonSender } from "./common";
+import { EventBuilder, EventCommon, EventCommonSender } from "./common";
 import { Api } from "../tl";
-import { toSignedLittleBuffer } from "../Helpers";
+import { returnBigInt, toSignedLittleBuffer } from "../Helpers";
 import { TelegramClient } from "..";
 import { _getEntityPair, getInputPeer } from "../Utils";
 import { EditMessageParams, SendMessageParams } from "../client/messages";
@@ -53,7 +53,6 @@ export class CallbackQuery extends EventBuilder {
 
     build(update: Api.TypeUpdate | Api.TypeUpdates, others: any = null) {
         if (update instanceof Api.UpdateBotCallbackQuery) {
-            console.log("returning her!");
             return new CallbackQueryEvent(update, update.peer, update.msgId);
         } else if (update instanceof Api.UpdateInlineBotCallbackQuery) {
             const b = toSignedLittleBuffer(update.msgId.id, 8);
@@ -61,8 +60,8 @@ export class CallbackQuery extends EventBuilder {
             const peerId = b.readInt32LE(4);
             const peer =
                 peerId < 0
-                    ? new Api.PeerChannel({ channelId: -peerId })
-                    : new Api.PeerUser({ userId: peerId });
+                    ? new Api.PeerChannel({ channelId: returnBigInt(-peerId) })
+                    : new Api.PeerUser({ userId: returnBigInt(peerId) });
             return new CallbackQueryEvent(update, peer, msgId);
         }
     }
@@ -135,7 +134,7 @@ export class CallbackQueryEvent extends EventCommonSender {
         });
         this.query = query;
         this.patternMatch = undefined;
-        this._senderId = query.userId;
+        this._senderId = returnBigInt(query.userId);
         this._message = undefined;
         this._answered = false;
     }
@@ -143,7 +142,7 @@ export class CallbackQueryEvent extends EventCommonSender {
     _setClient(client: TelegramClient) {
         super._setClient(client);
         const [sender, inputSender] = _getEntityPair(
-            this._senderId!,
+            this._senderId!.toString(),
             this._entities,
             client._entityCache
         );
@@ -184,8 +183,8 @@ export class CallbackQueryEvent extends EventCommonSender {
     }
 
     async _refetchSender() {
-        if (this._entities.has(this._senderId!)) {
-            this._sender = this._entities.get(this._senderId!);
+        if (this._entities.has(this._senderId!.toString())) {
+            this._sender = this._entities.get(this._senderId!.toString());
         }
 
         if (!this._sender) return;

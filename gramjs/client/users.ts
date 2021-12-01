@@ -1,7 +1,13 @@
 import { Api } from "../tl";
 import type { Entity, EntityLike } from "../define";
-import { getPeerId as peerUtils } from "../Utils";
-import { _entityType, _EntityType, sleep, isArrayLike } from "../Helpers";
+import { getPeerId as peerUtils, parseID } from "../Utils";
+import {
+    _entityType,
+    _EntityType,
+    sleep,
+    isArrayLike,
+    returnBigInt,
+} from "../Helpers";
 import { errors, utils } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
@@ -173,7 +179,7 @@ export async function getEntity(
             await client.invoke(new Api.channels.GetChannels({ id: channels }))
         ).chats;
     }
-    const idEntity = new Map<number, any>();
+    const idEntity = new Map<string, any>();
 
     for (const user of users) {
         idEntity.set(peerUtils(user), user);
@@ -218,10 +224,30 @@ export async function getInputEntity(
     } catch (e) {}
     // Next in priority is having a peer (or its ID) cached in-memory
     try {
+        if (typeof peer == "string") {
+            const valid = parseID(peer);
+            if (valid) {
+                const res = client._entityCache.get(peer);
+                if (res) {
+                    return res;
+                }
+            }
+        }
+        if (
+            typeof peer === "number" ||
+            typeof peer === "bigint" ||
+            bigInt.isInstance(peer)
+        ) {
+            const res = client._entityCache.get(peer);
+            if (res) {
+                return res;
+            }
+        }
         // 0x2d45687 == crc32(b'Peer')
         if (
-            typeof peer !== "string" &&
-            (typeof peer === "number" || peer.SUBCLASS_OF_ID === 0x2d45687)
+            typeof peer == "object" &&
+            !bigInt.isInstance(peer) &&
+            peer.SUBCLASS_OF_ID === 0x2d45687
         ) {
             const res = client._entityCache.get(peer);
             if (res) {
@@ -244,10 +270,6 @@ export async function getInputEntity(
         }
         // eslint-disable-next-line no-empty
     } catch (e) {}
-    // Only network left to try
-    if (typeof peer === "string") {
-        return utils.getInputPeer(await _getEntityFromString(client, peer));
-    }
     // If we're a bot and the user has messaged us privately users.getUsers
     // will work with accessHash = 0. Similar for channels.getChannels.
     // If we're not a bot but the user is in our contacts, it seems to work
@@ -311,30 +333,9 @@ export async function _getEntityFromString(
     client: TelegramClient,
     string: string
 ) {
-    const phone = utils.parsePhone(string);
-    if (phone) {
-        try {
-            const result = await client.invoke(
-                new Api.contacts.GetContacts({
-                    hash: 0,
-                })
-            );
-            if (!(result instanceof Api.contacts.ContactsNotModified)) {
-                for (const user of result.users) {
-                    if (!(user instanceof Api.User) || user.phone === phone) {
-                        return user;
-                    }
-                }
-            }
-        } catch (e: any) {
-            if (e.errorMessage === "BOT_METHOD_INVALID") {
-                throw new Error(
-                    "Cannot get entity by phone number as a " +
-                        "bot (try using integer IDs, not strings)"
-                );
-            }
-            throw e;
-        }
+    const id = utils.parseID(string);
+    if (id != undefined) {
+        return getInputEntity(client, id);
     } else if (["me", "this"].includes(string.toLowerCase())) {
         return client.getMe();
     } else {
@@ -389,13 +390,21 @@ export async function getPeerId(
     peer: EntityLike,
     addMark = true
 ) {
-    if (typeof peer == "number") {
+    if (typeof peer == "string") {
+        const valid = parseID(peer);
+        if (valid) {
+            return utils.getPeerId(peer, addMark);
+        } else {
+            peer = await client.getInputEntity(peer);
+        }
+    }
+    if (
+        typeof peer == "number" ||
+        typeof peer == "bigint" ||
+        bigInt.isInstance(peer)
+    ) {
         return utils.getPeerId(peer, addMark);
     }
-    if (typeof peer == "string") {
-        peer = await client.getInputEntity(peer);
-    }
-
     if (peer.SUBCLASS_OF_ID == 0x2d45687 || peer.SUBCLASS_OF_ID == 0xc91c90b6) {
         peer = await client.getInputEntity(peer);
     }
@@ -410,7 +419,9 @@ export async function _getPeer(client: TelegramClient, peer: EntityLike) {
     if (!peer) {
         return undefined;
     }
-    const [i, cls] = utils.resolveId(await client.getPeerId(peer));
+    const [i, cls] = utils.resolveId(
+        returnBigInt(await client.getPeerId(peer))
+    );
     return new cls({
         userId: i,
         channelId: i,

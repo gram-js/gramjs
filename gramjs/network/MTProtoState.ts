@@ -236,9 +236,6 @@ export class MTProtoState {
         if (this.msgIds.has(remoteMsgId.toString())) {
             throw new SecurityError("Duplicate msgIds");
         }
-        if (remoteMsgId.lesser(this._lastMsgId)) {
-            throw new SecurityError("Received old message from server");
-        }
         this.msgIds.add(remoteMsgId.toString());
         const remoteSequence = reader.readInt();
         reader.readInt(); // msgLen for the inner object, padding ignored

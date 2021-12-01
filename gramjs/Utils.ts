@@ -20,6 +20,7 @@ export function* chunks<T>(arr: T[], size = 100): Generator<T[]> {
 
 import TypeInputFile = Api.TypeInputFile;
 import { HTMLParser } from "./extensions/html";
+import { returnBigInt } from "./Helpers";
 
 const USERNAME_RE = new RegExp(
     "@|(?:https?:\\/\\/)?(?:www\\.)?" +
@@ -145,7 +146,7 @@ export function getInputPeer(
         return new Api.InputPeerEmpty();
     }
     if (entity instanceof Api.UserFull) {
-        return getInputPeer(entity.user);
+        return getInputPeer(entity.id);
     }
 
     if (entity instanceof Api.ChatFull) {
@@ -179,8 +180,8 @@ export function _photoSizeByteCount(size: Api.TypePhotoSize) {
 }
 
 export function _getEntityPair(
-    entityId: number,
-    entities: Map<number, Entity>,
+    entityId: string,
+    entities: Map<string, Entity>,
     cache: EntityCache,
     getInputPeerFunction: any = getInputPeer
 ): [Entity?, Api.TypeInputPeer?] {
@@ -219,7 +220,12 @@ export function getInnerText(text: string, entities: Api.TypeMessageEntity[]) {
  * @returns {InputChannel|*}
  */
 export function getInputChannel(entity: EntityLike) {
-    if (typeof entity === "string" || typeof entity == "number") {
+    if (
+        typeof entity === "string" ||
+        typeof entity == "number" ||
+        typeof entity == "bigint" ||
+        bigInt.isInstance(entity)
+    ) {
         _raiseCastFail(entity, "InputChannel");
     }
     if (entity.SUBCLASS_OF_ID === undefined) {
@@ -261,7 +267,12 @@ export function getInputChannel(entity: EntityLike) {
  * @param entity
  */
 export function getInputUser(entity: EntityLike): Api.TypeInputUser {
-    if (typeof entity === "string" || typeof entity == "number") {
+    if (
+        typeof entity === "string" ||
+        typeof entity == "number" ||
+        typeof entity == "bigint" ||
+        bigInt.isInstance(entity)
+    ) {
         _raiseCastFail(entity, "InputUser");
     }
 
@@ -292,9 +303,8 @@ export function getInputUser(entity: EntityLike): Api.TypeInputUser {
     ) {
         return new Api.InputUserEmpty();
     }
-
     if (entity instanceof Api.UserFull) {
-        return getInputUser(entity.user);
+        return getInputUser(entity);
     }
 
     if (entity instanceof Api.InputPeerUser) {
@@ -978,7 +988,7 @@ export function getPeer(peer: EntityLike | any) {
         _raiseCastFail(peer, "peer");
     }
     try {
-        if (typeof peer === "number") {
+        if (bigInt.isInstance(peer)) {
             const res = resolveId(peer);
             if (res[1] === Api.PeerChannel) {
                 return new Api.PeerChannel({ channelId: res[0] });
@@ -1059,10 +1069,13 @@ export function sanitizeParseMode(
  * @param peer
  * @param addMark
  */
-export function getPeerId(peer: EntityLike, addMark = true): number {
+export function getPeerId(peer: EntityLike, addMark = true): string {
+    if (typeof peer == "string" && parseID(peer)) {
+        peer = returnBigInt(peer);
+    }
     // First we assert it's a Peer TLObject, or early return for integers
-    if (typeof peer == "number") {
-        return addMark ? peer : resolveId(peer)[0];
+    if (bigInt.isInstance(peer)) {
+        return addMark ? peer.toString() : resolveId(peer)[0].toString();
     }
     // Tell the user to use their client to resolve InputPeerSelf if we got one
     if (peer instanceof Api.InputPeerSelf) {
@@ -1075,26 +1088,23 @@ export function getPeerId(peer: EntityLike, addMark = true): number {
         _raiseCastFail(peer, "int");
     }
     if (peer instanceof Api.PeerUser) {
-        return peer.userId;
+        return peer.userId.toString();
     } else if (peer instanceof Api.PeerChat) {
         // Check in case the user mixed things up to avoid blowing up
-        if (!(0 < peer.chatId && peer.chatId <= 0x7fffffff)) {
-            peer.chatId = resolveId(peer.chatId)[0];
-        }
-
-        return addMark ? -peer.chatId : peer.chatId;
+        peer.chatId = resolveId(returnBigInt(peer.chatId))[0];
+        return addMark
+            ? peer.chatId.negate().toString()
+            : peer.chatId.toString();
     } else if (typeof peer == "object" && "channelId" in peer) {
         // if (peer instanceof Api.PeerChannel)
         // Check in case the user mixed things up to avoid blowing up
-        if (!(0 < peer.channelId && peer.channelId <= 0x7fffffff)) {
-            peer.channelId = resolveId(peer.channelId)[0];
-        }
+        peer.channelId = resolveId(returnBigInt(peer.channelId))[0];
         if (!addMark) {
-            return peer.channelId;
+            return peer.channelId.toString();
         }
         // Concat -100 through math tricks, .to_supergroup() on
         // Madeline IDs will be strictly positive -> log works.
-        return -(1000000000000 + peer.channelId);
+        return "-100" + peer.channelId.toString();
     }
     _raiseCastFail(peer, "int");
 }
@@ -1104,12 +1114,12 @@ export function getPeerId(peer: EntityLike, addMark = true): number {
  * @param markedId
  */
 export function resolveId(
-    markedId: number
+    markedId: bigInt.BigInteger
 ): [
-    number,
+    bigInt.BigInteger,
     typeof Api.PeerUser | typeof Api.PeerChannel | typeof Api.PeerChat
 ] {
-    if (markedId >= 0) {
+    if (markedId.greaterOrEquals(bigInt.zero)) {
         return [markedId, Api.PeerUser];
     }
 
@@ -1119,9 +1129,9 @@ export function resolveId(
     // two zeroes.
     const m = markedId.toString().match(/-100([^0]\d*)/);
     if (m) {
-        return [parseInt(m[1]), Api.PeerChannel];
+        return [bigInt(m[1]), Api.PeerChannel];
     }
-    return [-markedId, Api.PeerChat];
+    return [markedId.negate(), Api.PeerChat];
 }
 
 /**
@@ -1176,6 +1186,16 @@ export function parsePhone(phone: string | number) {
     phone = phone.toString().replace(/[+()\s-]/gm, "");
 
     return !isNaN(parseInt(phone)) ? phone : undefined;
+}
+
+/**
+ * Parses a string ID into a big int
+ * @param id
+ */
+export function parseID(id: string) {
+    const isValid = /^([0-9][0-9]*)$/.test(id);
+
+    return isValid ? bigInt(id) : undefined;
 }
 
 export function resolveInviteLink(link: string): [number, number, number] {

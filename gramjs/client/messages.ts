@@ -15,11 +15,12 @@ import {
     isArrayLike,
     groupBy,
 } from "../Helpers";
-import { getMessageId, getPeerId } from "../Utils";
+import { getMessageId, getPeerId, parseID } from "../Utils";
 import type { TelegramClient } from "../";
 import { utils } from "../";
 import { _parseMessageText } from "./messageParse";
 import { _getPeer } from "./users";
+import bigInt from "big-integer";
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -43,7 +44,7 @@ export class _MessagesIter extends RequestIter {
         | Api.messages.GetReplies
         | Api.messages.GetHistory
         | Api.messages.Search;
-    fromId?: number;
+    fromId?: string | bigInt.BigInteger;
     addOffset?: number;
     maxId?: number;
     minId?: number;
@@ -129,7 +130,7 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: 0,
+                hash: bigInt.zero,
             });
         } else if (
             search !== undefined ||
@@ -153,7 +154,7 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: 0,
+                hash: bigInt.zero,
                 fromId: fromUser,
             });
             if (
@@ -178,7 +179,7 @@ export class _MessagesIter extends RequestIter {
                 minId: 0,
                 maxId: 0,
                 addOffset: addOffset,
-                hash: 0,
+                hash: bigInt.zero,
             });
         }
         if (this.limit <= 0) {
@@ -238,7 +239,7 @@ export class _MessagesIter extends RequestIter {
             ? (r.messages.reverse() as unknown as Api.Message[])
             : (r.messages as unknown as Api.Message[]);
         for (const message of messages) {
-            if (this.fromId && message.senderId != this.fromId) {
+            if (this.fromId && message.senderId?.notEquals(this.fromId)) {
                 continue;
             }
             if (!this._messageInRange(message)) {
@@ -796,19 +797,22 @@ export async function forwardMessages(
         messages = [messages];
     }
     entity = await client.getInputEntity(entity);
-    let fromPeerId: number | undefined;
+    let fromPeerId: string | undefined;
     if (fromPeer) {
         fromPeer = await client.getInputEntity(fromPeer);
         fromPeerId = await client.getPeerId(fromPeer);
     }
-    const getKey = (m: number | Api.Message) => {
-        if (typeof m == "number") {
+    const getKey = (m: string | Api.Message) => {
+        if (m instanceof Api.Message) {
+            return m.chatId;
+        }
+        let msgId = parseID(m);
+
+        if (msgId) {
             if (fromPeerId !== undefined) {
                 return fromPeerId;
             }
             throw new Error("fromPeer must be given if integer IDs are used");
-        } else if (m instanceof Api.Message) {
-            return m.chatId;
         } else {
             throw new Error(`Cannot forward ${m}`);
         }

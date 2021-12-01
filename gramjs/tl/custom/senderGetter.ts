@@ -4,15 +4,16 @@ import { Api } from "../api";
 import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
 import { ChatGetter } from "./chatGetter";
+import bigInt from "big-integer";
 
 interface SenderGetterConstructorInterface {
-    senderId?: number;
+    senderId?: bigInt.BigInteger;
     sender?: Entity;
     inputSender?: Api.TypeInputPeer;
 }
 
 export class SenderGetter extends ChatGetter {
-    _senderId?: number;
+    _senderId?: bigInt.BigInteger;
     _sender?: Entity;
     _inputSender?: Api.TypeInputPeer;
     public _client?: TelegramClient;

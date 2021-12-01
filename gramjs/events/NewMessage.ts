@@ -176,7 +176,7 @@ export class NewMessage extends EventBuilder {
         }
     }
 
-    filter(event: NewMessageEvent): EventCommon | undefined {
+    filter(event: NewMessageEvent) {
         if (this._noCheck) {
             return event;
         }

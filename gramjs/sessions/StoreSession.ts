@@ -1,6 +1,7 @@
 import { MemorySession } from "./Memory";
 import store from "store2";
 import { AuthKey } from "../crypto/AuthKey";
+import bigInt from "big-integer";
 
 export class StoreSession extends MemorySession {
     private readonly sessionName: string;
@@ -66,12 +67,15 @@ export class StoreSession extends MemorySession {
             return;
         }
         for (const row of rows) {
-            row.push(new Date().getTime());
+            row.push(new Date().getTime().toString());
             this.store.set(this.sessionName + row[0], row);
         }
     }
 
-    getEntityRowsById(id: number, exact: boolean = true): any {
-        return this.store.get(this.sessionName + id);
+    getEntityRowsById(
+        id: string | bigInt.BigInteger,
+        exact: boolean = true
+    ): any {
+        return this.store.get(this.sessionName + id.toString());
     }
 }

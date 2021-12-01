@@ -192,7 +192,7 @@ export class _ParticipantsIter extends RequestIter {
                         }),
                     offset: 0,
                     limit: _MAX_PARTICIPANTS_CHUNK_SIZE,
-                    hash: 0,
+                    hash: bigInt.zero,
                 })
             );
         } else if (ty == helpers._EntityType.CHAT) {

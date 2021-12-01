@@ -3,7 +3,8 @@ import type { TelegramClient } from "../../client/TelegramClient";
 import { utils } from "../../";
 import { Api } from "../api";
 import { inspect } from "util";
-import { betterConsoleLog } from "../../Helpers";
+import { betterConsoleLog, returnBigInt } from "../../Helpers";
+import bigInt from "big-integer";
 
 export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
@@ -85,7 +86,9 @@ export class ChatGetter {
     }
 
     get chatId() {
-        return this._chatPeer ? utils.getPeerId(this._chatPeer) : undefined;
+        return this._chatPeer
+            ? returnBigInt(utils.getPeerId(this._chatPeer))
+            : undefined;
     }
 
     get isPrivate() {

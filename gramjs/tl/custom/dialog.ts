@@ -4,7 +4,8 @@ import type { Entity } from "../../define";
 import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
 import { Draft } from "./draft";
 import { inspect } from "util";
-import { betterConsoleLog } from "../../Helpers";
+import { betterConsoleLog, returnBigInt } from "../../Helpers";
+import bigInt from "big-integer";
 
 export class Dialog {
     _client: TelegramClient;
@@ -16,7 +17,7 @@ export class Dialog {
     date: number;
     entity?: Entity;
     inputEntity: Api.TypeInputPeer;
-    id?: number;
+    id?: bigInt.BigInteger;
     name?: string;
     title?: string;
     unreadCount: number;
@@ -32,7 +33,7 @@ export class Dialog {
     constructor(
         client: TelegramClient,
         dialog: Api.Dialog,
-        entities: Map<number, Entity>,
+        entities: Map<string, Entity>,
         message?: Api.Message
     ) {
         this._client = client;
@@ -46,7 +47,7 @@ export class Dialog {
         this.entity = entities.get(getPeerId(dialog.peer));
         this.inputEntity = getInputPeer(this.entity);
         if (this.entity) {
-            this.id = getPeerId(this.entity); // ^ May be InputPeerSelf();
+            this.id = returnBigInt(getPeerId(this.entity)); // ^ May be InputPeerSelf();
             this.name = this.title = getDisplayName(this.entity);
         }
 

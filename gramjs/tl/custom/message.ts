@@ -9,9 +9,9 @@ import type { File } from "./file";
 import { EditMessageParams, SendMessageParams } from "../../client/messages";
 import { DownloadMediaInterface } from "../../client/downloads";
 import { inspect } from "util";
-import { betterConsoleLog } from "../../Helpers";
+import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import { _selfId } from "../../client/users";
-import { BigInteger } from "big-integer";
+import bigInt, { BigInteger } from "big-integer";
 
 interface MessageBaseInterface {
     id: any;
@@ -43,7 +43,7 @@ interface MessageBaseInterface {
     ttlPeriod?: number;
     replies?: any;
     action?: any;
-    _entities?: Map<number, Entity>;
+    _entities?: Map<string, Entity>;
 }
 
 /**
@@ -132,7 +132,7 @@ export class CustomMessage extends SenderGetter {
      * The ID of the bot used to send this message
      * through its inline mode (e.g. "via @like").
      */
-    viaBotId?: number;
+    viaBotId?: bigInt.BigInteger;
     /**
      * The original reply header if this message is replying to another.
      */
@@ -235,10 +235,12 @@ export class CustomMessage extends SenderGetter {
     /** @hidden */
     _sender?: any;
     /** @hidden */
-    _entities?: Map<number, Entity>;
+    _entities?: Map<string, Entity>;
     /** @hidden */
+
     /* @ts-ignore */
     getBytes(): Buffer;
+
     originalArgs: any;
 
     patternMatch?: RegExpMatchArray;
@@ -281,7 +283,7 @@ export class CustomMessage extends SenderGetter {
 
         action = undefined,
         ttlPeriod = undefined,
-        _entities = new Map<number, Entity>(),
+        _entities = new Map<string, Entity>(),
     }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
@@ -338,7 +340,9 @@ export class CustomMessage extends SenderGetter {
 
         // Note: these calls would reset the client
         ChatGetter.initChatClass(this, { chatPeer: peerId, broadcast: post });
-        SenderGetter.initSenderClass(this, { senderId: senderId });
+        SenderGetter.initSenderClass(this, {
+            senderId: senderId ? returnBigInt(senderId) : undefined,
+        });
 
         this._forward = undefined;
     }
@@ -350,21 +354,21 @@ export class CustomMessage extends SenderGetter {
 
     _finishInit(
         client: TelegramClient,
-        entities: Map<number, Entity>,
+        entities: Map<string, Entity>,
         inputChat?: EntityLike
     ) {
         this._client = client;
         const cache = client._entityCache;
         if (this.senderId) {
             [this._sender, this._inputSender] = utils._getEntityPair(
-                this.senderId,
+                this.senderId.toString(),
                 entities,
                 cache
             );
         }
         if (this.chatId) {
             [this._chat, this._inputChat] = utils._getEntityPair(
-                this.chatId,
+                this.chatId.toString(),
                 entities,
                 cache
             );
@@ -377,7 +381,7 @@ export class CustomMessage extends SenderGetter {
 
         if (this.viaBotId) {
             [this._viaBot, this._viaInputBot] = utils._getEntityPair(
-                this.viaBotId,
+                this.viaBotId.toString(),
                 entities,
                 cache
             );
@@ -393,10 +397,12 @@ export class CustomMessage extends SenderGetter {
                 this.action instanceof Api.MessageActionChatCreate
             ) {
                 this._actionEntities = this.action.users.map((i) =>
-                    entities.get(i)
+                    entities.get(i.toString())
                 );
             } else if (this.action instanceof Api.MessageActionChatDeleteUser) {
-                this._actionEntities = [entities.get(this.action.userId)];
+                this._actionEntities = [
+                    entities.get(this.action.userId.toString()),
+                ];
             } else if (
                 this.action instanceof Api.MessageActionChatJoinedByLink
             ) {

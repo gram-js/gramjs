@@ -4,7 +4,7 @@ import { Api } from "../tl";
 import bigInt from "big-integer";
 
 import { getDisplayName, getInputPeer, getPeerId } from "../Utils";
-import { isArrayLike } from "../Helpers";
+import { isArrayLike, returnBigInt } from "../Helpers";
 import { utils } from "../";
 import type { EntityLike } from "../define";
 
@@ -90,8 +90,8 @@ export class MemorySession extends Session {
     delete() {}
 
     _entityValuesToRow(
-        id: number,
-        hash: bigInt.BigInteger,
+        id: bigInt.BigInteger | string,
+        hash: bigInt.BigInteger | string,
         username: string,
         phone: string,
         name: string
@@ -203,7 +203,7 @@ export class MemorySession extends Session {
         }
     }
 
-    getEntityRowsById(id: number, exact = true) {
+    getEntityRowsById(id: string | bigInt.BigInteger, exact = true) {
         if (exact) {
             for (const e of this._entities) {
                 // id, hash, username, phone, name
@@ -213,9 +213,11 @@ export class MemorySession extends Session {
             }
         } else {
             const ids = [
-                utils.getPeerId(new Api.PeerUser({ userId: id })),
-                utils.getPeerId(new Api.PeerChat({ chatId: id })),
-                utils.getPeerId(new Api.PeerChannel({ channelId: id })),
+                utils.getPeerId(new Api.PeerUser({ userId: returnBigInt(id) })),
+                utils.getPeerId(new Api.PeerChat({ chatId: returnBigInt(id) })),
+                utils.getPeerId(
+                    new Api.PeerChannel({ channelId: returnBigInt(id) })
+                ),
             ];
             for (const e of this._entities) {
                 // id, hash, username, phone, name
@@ -228,7 +230,11 @@ export class MemorySession extends Session {
 
     getInputEntity(key: EntityLike): Api.TypeInputPeer {
         let exact;
-        if (typeof key === "object" && key.SUBCLASS_OF_ID) {
+        if (
+            typeof key === "object" &&
+            !bigInt.isInstance(key) &&
+            key.SUBCLASS_OF_ID
+        ) {
             if (key.SUBCLASS_OF_ID == 0xc91c90b6) {
                 return key;
             }
@@ -268,31 +274,27 @@ export class MemorySession extends Session {
                 key = utils.getPeerId(key);
                 exact = true;
             } else {
-                exact = !(typeof key == "number") || key < 0;
+                exact = false;
             }
         }
 
         let result = undefined;
+        if (typeof key == "number") {
+            key = key.toString();
+        }
         if (typeof key === "string") {
-            const phone = utils.parsePhone(key);
-            if (phone) {
-                result = this.getEntityRowsByPhone(phone);
+            const id = utils.parseID(key);
+            if (id) {
+                result = this.getEntityRowsById(id, exact);
             } else {
                 const { username, isInvite } = utils.parseUsername(key);
                 if (username && !isInvite) {
                     result = this.getEntityRowsByUsername(username);
-                } else {
-                    const tup = utils.resolveInviteLink(key)[1];
-                    if (tup) {
-                        result = this.getEntityRowsById(tup, false);
-                    }
                 }
             }
-        } else if (typeof key === "number") {
-            result = this.getEntityRowsById(key, exact);
-        }
-        if (!result && typeof key === "string") {
-            result = this.getEntityRowsByName(key);
+            if (!result) {
+                result = this.getEntityRowsByName(key);
+            }
         }
 
         if (result) {

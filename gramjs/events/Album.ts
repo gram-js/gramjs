@@ -85,7 +85,7 @@ export class Album extends EventBuilder {
 
 export class AlbumEvent extends EventCommon {
     messages: Api.Message[];
-    originalUpdates: (Api.TypeUpdate & { _entities?: Map<number, Entity> })[];
+    originalUpdates: (Api.TypeUpdate & { _entities?: Map<string, Entity> })[];
 
     constructor(messages: Api.Message[], originalUpdates: Api.TypeUpdate[]) {
         super({

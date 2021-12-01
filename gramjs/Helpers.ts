@@ -103,10 +103,10 @@ export function addSurrogate(text: string) {
  * @returns {Buffer}
  */
 export function toSignedLittleBuffer(
-    big: bigInt.BigInteger,
+    big: bigInt.BigInteger | string | number,
     number = 8
 ): Buffer {
-    const bigNumber = bigInt(big);
+    const bigNumber = returnBigInt(big);
     const byteArray = [];
     for (let i = 0; i < number; i++) {
         byteArray[i] = bigNumber.shiftRight(8 * i).and(255);
@@ -393,21 +393,33 @@ export function getByteArray(
     );
 }
 
+export function returnBigInt(num: bigInt.BigInteger | string | number) {
+    if (bigInt.isInstance(num)) {
+        return num;
+    }
+    if (typeof num == "number") {
+        return bigInt(num);
+    }
+    return bigInt(num);
+}
+
 /**
  * Helper function to return the smaller big int in an array
  * @param arrayOfBigInts
  */
-export function getMinBigInt(arrayOfBigInts: bigInt.BigInteger[]) {
+export function getMinBigInt(
+    arrayOfBigInts: (bigInt.BigInteger | string)[]
+): bigInt.BigInteger {
     if (arrayOfBigInts.length == 0) {
         return bigInt.zero;
     }
     if (arrayOfBigInts.length == 1) {
-        return arrayOfBigInts[0];
+        return returnBigInt(arrayOfBigInts[0]);
     }
-    let smallest = arrayOfBigInts[0];
+    let smallest = returnBigInt(arrayOfBigInts[0]);
     for (let i = 1; i < arrayOfBigInts.length; i++) {
-        if (arrayOfBigInts[i] < smallest) {
-            smallest = arrayOfBigInts[i];
+        if (returnBigInt(arrayOfBigInts[i]).lesser(smallest)) {
+            smallest = returnBigInt(arrayOfBigInts[i]);
         }
     }
     return smallest;

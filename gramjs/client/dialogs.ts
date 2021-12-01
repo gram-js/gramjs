@@ -4,6 +4,7 @@ import { TelegramClient, utils } from "../index";
 import { Dialog } from "../tl/custom/dialog";
 import { DateLike, EntityLike } from "../define";
 import { TotalList } from "../Helpers";
+import bigInt from "big-integer";
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -56,7 +57,7 @@ export class _DialogsIter extends RequestIter {
             offsetId,
             offsetPeer,
             limit: 1,
-            hash: 0,
+            hash: bigInt.zero,
             excludePinned: ignorePinned,
             folderId: folder,
         });
@@ -91,7 +92,7 @@ export class _DialogsIter extends RequestIter {
         } else {
             this.total = r.dialogs.length;
         }
-        const entities = new Map<number, Api.TypeUser | Api.TypeChat>();
+        const entities = new Map<string, Api.TypeUser | Api.TypeChat>();
         const messages = new Map<string, Api.Message>();
 
         for (const entity of [...r.users, ...r.chats]) {

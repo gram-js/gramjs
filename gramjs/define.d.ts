@@ -5,6 +5,7 @@ import TypeUser = Api.TypeUser;
 import TypeChat = Api.TypeChat;
 import TypeInputUser = Api.TypeInputUser;
 import TypeInputChannel = Api.TypeInputChannel;
+import bigInt from "big-integer";
 
 type ValueOf<T> = T[keyof T];
 type Phone = string;
@@ -18,6 +19,7 @@ type FullEntity =
     | Api.ChannelFull;
 type PeerLike = Api.TypePeer | Api.TypeInputPeer | Entity | FullEntity;
 type EntityLike =
+    | bigInt.BigInteger
     | Phone
     | Username
     | PeerID

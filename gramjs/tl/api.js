@@ -242,6 +242,8 @@ function compareType(value, type) {
             correct =
                 bigInt.isInstance(value) ||
                 typeof value === "bigint" ||
+                typeof value === "number" ||
+                typeof value === "string" ||
                 value === undefined;
             break;
         case "true":
