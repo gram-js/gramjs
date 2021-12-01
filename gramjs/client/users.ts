@@ -142,7 +142,12 @@ export async function getEntity(
     const inputs = [];
     for (const x of entityArray) {
         if (typeof x === "string") {
-            inputs.push(x);
+            const valid = parseID(x);
+            if (valid) {
+                inputs.push(await client.getInputEntity(valid));
+            } else {
+                inputs.push(x);
+            }
         } else {
             inputs.push(await client.getInputEntity(x));
         }
@@ -333,6 +338,31 @@ export async function _getEntityFromString(
     client: TelegramClient,
     string: string
 ) {
+    const phone = utils.parsePhone(string);
+    if (phone) {
+        try {
+            const result = await client.invoke(
+                new Api.contacts.GetContacts({
+                    hash: bigInt.zero,
+                })
+            );
+            if (!(result instanceof Api.contacts.ContactsNotModified)) {
+                for (const user of result.users) {
+                    if (user instanceof Api.User && user.phone === phone) {
+                        return user;
+                    }
+                }
+            }
+        } catch (e: any) {
+            if (e.errorMessage === "BOT_METHOD_INVALID") {
+                throw new Error(
+                    "Cannot get entity by phone number as a " +
+                        "bot (try using integer IDs, not strings)"
+                );
+            }
+            throw e;
+        }
+    }
     const id = utils.parseID(string);
     if (id != undefined) {
         return getInputEntity(client, id);
@@ -362,13 +392,13 @@ export async function _getEntityFromString(
                 const pid = utils.getPeerId(result.peer, false);
                 if (result.peer instanceof Api.PeerUser) {
                     for (const x of result.users) {
-                        if (x.id === pid) {
+                        if (returnBigInt(x.id).equals(returnBigInt(pid))) {
                             return x;
                         }
                     }
                 } else {
                     for (const x of result.chats) {
-                        if (x.id === pid) {
+                        if (returnBigInt(x.id).equals(returnBigInt(pid))) {
                             return x;
                         }
                     }

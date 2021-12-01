@@ -1182,10 +1182,11 @@ export function getMessageId(message: any): number | undefined {
  * Parses the given phone, or returns `undefined` if it's invalid.
  * @param phone
  */
-export function parsePhone(phone: string | number) {
-    phone = phone.toString().replace(/[+()\s-]/gm, "");
-
-    return !isNaN(parseInt(phone)) ? phone : undefined;
+export function parsePhone(phone: string) {
+    phone = phone.toString().replace(/[()\s-]/gm, "");
+    if (phone.startsWith("+") && phone.split("+").length - 1 == 1) {
+        return !isNaN(Number(phone)) ? phone : undefined;
+    }
 }
 
 /**
@@ -1193,7 +1194,7 @@ export function parsePhone(phone: string | number) {
  * @param id
  */
 export function parseID(id: string) {
-    const isValid = /^([0-9][0-9]*)$/.test(id);
+    const isValid = /^(-?[0-9][0-9]*)$/.test(id);
 
     return isValid ? bigInt(id) : undefined;
 }
