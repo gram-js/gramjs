@@ -275,6 +275,13 @@ export async function getInputEntity(
         }
         // eslint-disable-next-line no-empty
     } catch (e) {}
+    // Only network left to try
+    try {
+        if (typeof peer === "string") {
+            return utils.getInputPeer(await _getEntityFromString(client, peer));
+        }
+    }catch (e) {}
+
     // If we're a bot and the user has messaged us privately users.getUsers
     // will work with accessHash = 0. Similar for channels.getChannels.
     // If we're not a bot but the user is in our contacts, it seems to work
