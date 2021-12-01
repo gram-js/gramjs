@@ -987,6 +987,9 @@ export function getPeer(peer: EntityLike | any) {
     if (typeof peer === "string") {
         _raiseCastFail(peer, "peer");
     }
+    if (typeof peer=="number" ||typeof peer=="bigint"){
+        peer = returnBigInt(peer);
+    }
     try {
         if (bigInt.isInstance(peer)) {
             const res = resolveId(peer);

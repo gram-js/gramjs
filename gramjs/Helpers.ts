@@ -393,11 +393,14 @@ export function getByteArray(
     );
 }
 
-export function returnBigInt(num: bigInt.BigInteger | string | number) {
+export function returnBigInt(num: bigInt.BigInteger | string | number | bigint) {
     if (bigInt.isInstance(num)) {
         return num;
     }
     if (typeof num == "number") {
+        return bigInt(num);
+    }
+    if (typeof num == "bigint") {
         return bigInt(num);
     }
     return bigInt(num);
