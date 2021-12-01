@@ -279,13 +279,10 @@ export class MemorySession extends Session {
         }
 
         let result = undefined;
-        if (typeof key == "number") {
-            key = key.toString();
-        }
         if (typeof key === "string") {
-            const id = utils.parseID(key);
-            if (id) {
-                result = this.getEntityRowsById(id, exact);
+            const phone = utils.parsePhone(key);
+            if (phone) {
+                result = this.getEntityRowsByPhone(phone);
             } else {
                 const { username, isInvite } = utils.parseUsername(key);
                 if (username && !isInvite) {
@@ -293,14 +290,19 @@ export class MemorySession extends Session {
                 }
             }
             if (!result) {
+                const id = utils.parseID(key);
+                if (id) {
+                    result = this.getEntityRowsById(id, exact);
+                }
+            }
+            if (!result) {
                 result = this.getEntityRowsByName(key);
             }
         }
-
         if (result) {
             let entityId = result[0]; // unpack resulting tuple
             const entityHash = bigInt(result[1]);
-            const resolved = utils.resolveId(entityId);
+            const resolved = utils.resolveId(returnBigInt(entityId));
             entityId = resolved[0];
             const kind = resolved[1];
             // removes the mark and returns type of entity
