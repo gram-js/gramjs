@@ -95,14 +95,14 @@ export interface DefaultEventInterface {
  * All events inherit this.
  */
 export class EventBuilder {
-    chats?: EntityLike[];
+    chats?: string[];
     blacklistChats: boolean;
     resolved: boolean;
     func?: CallableFunction;
     client?: TelegramClient;
 
     constructor(eventParams: DefaultEventInterface) {
-        this.chats = eventParams.chats;
+        this.chats = eventParams.chats?.map((x)=>x.toString());
         this.blacklistChats = eventParams.blacklistChats || false;
         this.resolved = false;
         this.func = eventParams.func;
@@ -138,7 +138,7 @@ export class EventBuilder {
             if (event.chatId == undefined) {
                 return;
             }
-            const inside = this.chats.includes(event.chatId);
+            const inside = this.chats.includes(event.chatId.toString());
             if (inside == this.blacklistChats) {
                 // If this chat matches but it's a blacklist ignore.
                 // If it doesn't match but it's a whitelist ignore.

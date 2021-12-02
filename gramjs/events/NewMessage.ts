@@ -67,7 +67,6 @@ export interface NewMessageInterface extends DefaultEventInterface {
  * ```
  */
 export class NewMessage extends EventBuilder {
-    chats?: EntityLike[];
     func?: { (event: NewMessageEvent): boolean };
     incoming?: boolean;
     outgoing?: boolean;

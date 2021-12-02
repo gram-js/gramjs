@@ -71,10 +71,10 @@ export class CallbackQuery extends EventBuilder {
 
         if (this.chats) {
             let inside = this.chats.includes(
-                event.query.chatInstance as unknown as EntityLike
+                event.query.chatInstance.toString()
             );
             if (event.chatId) {
-                inside = inside || this.chats.includes(event.chatId);
+                inside = inside || this.chats.includes(event.chatId.toString());
             }
 
             if (inside === this.blacklistChats) {

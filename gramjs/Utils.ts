@@ -1188,7 +1188,7 @@ export function getMessageId(message: any): number | undefined {
 export function parsePhone(phone: string) {
     phone = phone.toString().replace(/[()\s-]/gm, "");
     if (phone.startsWith("+") && phone.split("+").length - 1 == 1) {
-        return !isNaN(Number(phone)) ? phone : undefined;
+        return !isNaN(Number(phone)) ? phone.replace("+","") : undefined;
     }
 }
 

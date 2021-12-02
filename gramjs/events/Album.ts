@@ -23,7 +23,6 @@ const _ALBUM_DELAY = 500; // 0.5 sec
  * ```
  */
 export class Album extends EventBuilder {
-    chats?: EntityLike[];
     func?: { (event: Album): boolean };
 
     constructor(albumParams: DefaultEventInterface) {
