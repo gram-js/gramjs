@@ -17,11 +17,6 @@ module.exports = {
         use: "babel-loader",
         exclude: /node_modules/,
       },
-
-      {
-        test: /\.tl$/i,
-        loader: "raw-loader",
-      },
     ],
   },
 

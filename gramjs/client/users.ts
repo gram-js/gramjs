@@ -280,13 +280,13 @@ export async function getInputEntity(
         if (typeof peer === "string") {
             return utils.getInputPeer(await _getEntityFromString(client, peer));
         }
-    }catch (e) {}
+    } catch (e) {}
 
     // If we're a bot and the user has messaged us privately users.getUsers
     // will work with accessHash = 0. Similar for channels.getChannels.
     // If we're not a bot but the user is in our contacts, it seems to work
     // regardless. These are the only two special-cased requests.
-    if (typeof peer === "number"){
+    if (typeof peer === "number") {
         peer = returnBigInt(peer);
     }
     peer = utils.getPeer(peer);

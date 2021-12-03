@@ -102,7 +102,7 @@ export class EventBuilder {
     client?: TelegramClient;
 
     constructor(eventParams: DefaultEventInterface) {
-        this.chats = eventParams.chats?.map((x)=>x.toString());
+        this.chats = eventParams.chats?.map((x) => x.toString());
         this.blacklistChats = eventParams.blacklistChats || false;
         this.resolved = false;
         this.func = eventParams.func;

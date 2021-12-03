@@ -6,14 +6,9 @@ tsc.on("close", (code) => {
     fs.copyFileSync("package.json", "dist/package.json");
     fs.copyFileSync("README.md", "dist/README.md");
     fs.copyFileSync("LICENSE", "dist/LICENSE");
-    if (!fs.existsSync("dist/tl/static")) {
-      fs.mkdirSync("dist/tl/static");
-    }
-    fs.copyFileSync("gramjs/tl/static/api.tl", "dist/tl/static/api.tl");
-    fs.copyFileSync("gramjs/tl/static/schema.tl", "dist/tl/static/schema.tl");
     fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
     fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
-    const npm_publish = exec("npm publish --tag next", { cwd: "dist" });
+    const npm_publish = exec("npm publish", { cwd: "dist" });
     npm_publish.stdout.on("data", function (data) {
       console.log(data.toString());
     });

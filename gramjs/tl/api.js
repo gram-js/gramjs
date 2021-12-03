@@ -7,6 +7,8 @@ const {
     isArrayLike,
     betterConsoleLog,
 } = require("../Helpers");
+const tlContent = require("./apiTl.js");
+const schemeContent = require("./schemaTl.js");
 
 function generateRandomBigInt() {
     return readBigIntFromBuffer(generateRandomBytes(8), false, true);
@@ -17,17 +19,8 @@ const {
     serializeBytes,
     serializeDate,
 } = require("./generationHelpers");
-const { IS_NODE, toSignedLittleBuffer } = require("../Helpers");
-let tlContent, schemeContent;
-if (IS_NODE) {
-    const fs = require("fs");
+const { toSignedLittleBuffer } = require("../Helpers");
 
-    tlContent = fs.readFileSync(__dirname + "/static/api.tl", "utf-8");
-    schemeContent = fs.readFileSync(__dirname + "/static/schema.tl", "utf-8");
-} else {
-    tlContent = require("!!raw-loader!./static/api.tl").default;
-    schemeContent = require("!!raw-loader!./static/schema.tl").default;
-}
 const NAMED_AUTO_CASTS = new Set(["chatId,int"]);
 const NAMED_BLACKLIST = new Set(["discardEncryption"]);
 const AUTO_CASTS = new Set([
