@@ -17,7 +17,7 @@ export class MTProtoState {
     private id: bigInt.BigInteger;
     _sequence: number;
     private _lastMsgId: bigInt.BigInteger;
-    private msgIds: Set<String>;
+    private msgIds: string[];
 
     /**
      *
@@ -51,7 +51,7 @@ export class MTProtoState {
         this.salt = bigInt.zero;
         this._sequence = 0;
         this.id = this._lastMsgId = bigInt.zero;
-        this.msgIds = new Set();
+        this.msgIds = [];
         this.reset();
     }
 
@@ -63,7 +63,7 @@ export class MTProtoState {
         this.id = helpers.generateRandomLong(true);
         this._sequence = 0;
         this._lastMsgId = bigInt.zero;
-        this.msgIds = new Set<String>();
+        this.msgIds = [];
     }
 
     /**
@@ -228,15 +228,18 @@ export class MTProtoState {
         const reader = new BinaryReader(body);
         reader.readLong(); // removeSalt
         const serverId = reader.readLong();
-        if (serverId !== this.id) {
+        if (serverId.neq(this.id)) {
             // throw new SecurityError('Server replied with a wrong session ID');
         }
 
         const remoteMsgId = reader.readLong();
-        if (this.msgIds.has(remoteMsgId.toString())) {
+        if (this.msgIds.includes(remoteMsgId.toString())) {
             throw new SecurityError("Duplicate msgIds");
         }
-        this.msgIds.add(remoteMsgId.toString());
+        if (this.msgIds.length > 500) {
+            this.msgIds.shift();
+        }
+        this.msgIds.push(remoteMsgId.toString());
         const remoteSequence = reader.readInt();
         reader.readInt(); // msgLen for the inner object, padding ignored
 

@@ -220,17 +220,17 @@ export class _ParticipantsIter extends RequestIter {
                     return false;
                 }
 
-                const users = new Map();
+                const users = new Map<string, Entity>();
                 for (const user of full.users) {
-                    users.set(user.id, user);
+                    users.set(user.id.toString(), user);
                 }
                 for (const participant of full.fullChat.participants
                     .participants) {
-                    const user = users.get(participant.userId);
+                    const user = users.get(participant.userId.toString())!;
                     if (!this.filterEntity(user)) {
                         continue;
                     }
-                    user.participant = participant;
+                    (user as any).participant = participant;
                     this.buffer?.push(user);
                 }
                 return true;
@@ -240,8 +240,7 @@ export class _ParticipantsIter extends RequestIter {
             if (this.limit != 0) {
                 const user = await this.client.getEntity(entity);
                 if (this.filterEntity(user)) {
-                    // @ts-ignore
-                    user.participant = null;
+                    (user as any).participant = undefined;
                     this.buffer?.push(user);
                 }
             }
@@ -277,19 +276,19 @@ export class _ParticipantsIter extends RequestIter {
             }
 
             this.requests[i].offset += participants.participants.length;
-            const users = new Map();
+            const users = new Map<string, Entity>();
             for (const user of participants.users) {
-                users.set(user.id, user);
+                users.set(user.id.toString(), user);
             }
             for (const participant of participants.participants) {
                 if (!("userId" in participant)) {
                     continue;
                 }
-                const user = users.get(participant.userId);
+                const user = users.get(participant.userId.toString())!;
                 if (this.filterEntity && !this.filterEntity(user)) {
                     continue;
                 }
-                user.participant = participant;
+                (user as any).participant = participant;
                 this.buffer?.push(user);
             }
         }
