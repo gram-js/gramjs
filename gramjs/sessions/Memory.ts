@@ -235,37 +235,14 @@ export class MemorySession extends Session {
             !bigInt.isInstance(key) &&
             key.SUBCLASS_OF_ID
         ) {
-            if (key.SUBCLASS_OF_ID == 0xc91c90b6) {
+            if (
+                key.SUBCLASS_OF_ID == 0xc91c90b6 ||
+                key.SUBCLASS_OF_ID == 0xe669bf46 ||
+                key.SUBCLASS_OF_ID == 0x40f202fd
+            ) {
+                // @ts-ignore
                 return key;
             }
-            if (key.SUBCLASS_OF_ID == 0xe669bf46) {
-                if (key instanceof Api.InputUserSelf) {
-                    return new Api.InputPeerSelf();
-                }
-                if (key instanceof Api.InputUserEmpty) {
-                    return new Api.InputPeerEmpty();
-                }
-                if (key instanceof Api.InputUserFromMessage) {
-                    return key.peer;
-                }
-                return new Api.InputPeerUser({
-                    userId: key.userId,
-                    accessHash: key.accessHash,
-                });
-            }
-            if (key.SUBCLASS_OF_ID == 0x40f202fd) {
-                if (key instanceof Api.InputChannelEmpty) {
-                    return new Api.InputPeerEmpty();
-                }
-                if (key instanceof Api.InputChannelFromMessage) {
-                    return key.peer;
-                }
-                return new Api.InputPeerChannel({
-                    channelId: key.channelId,
-                    accessHash: key.accessHash,
-                });
-            }
-
             // Try to early return if this key can be casted as input peer
             return utils.getInputPeer(key);
         } else {

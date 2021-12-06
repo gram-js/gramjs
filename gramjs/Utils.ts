@@ -231,7 +231,6 @@ export function getInputChannel(entity: EntityLike) {
     if (entity.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(entity, "InputChannel");
     }
-
     if (entity.SUBCLASS_OF_ID === 0x40f202fd) {
         // crc32(b'InputChannel')
         return entity;
@@ -313,7 +312,13 @@ export function getInputUser(entity: EntityLike): Api.TypeInputUser {
             accessHash: entity.accessHash,
         });
     }
-
+    if (entity instanceof Api.InputPeerUserFromMessage) {
+        return new Api.InputUserFromMessage({
+            userId: entity.userId,
+            peer: entity.peer,
+            msgId: entity.msgId,
+        });
+    }
     _raiseCastFail(entity, "InputUser");
 }
 
