@@ -110,8 +110,8 @@ export class EventBuilder {
 
     build(
         update: Api.TypeUpdate,
-        others?: any,
-        callback?: CallableFunction
+        callback?: CallableFunction,
+        selfId?: bigInt.BigInteger
     ): any {
         if (update) return update;
     }
@@ -183,6 +183,7 @@ export class EventCommon extends ChatGetter {
         return this._client;
     }
 }
+
 export class EventCommonSender extends SenderGetter {
     _eventName = "Event";
     _entities: Map<string, Entity>;

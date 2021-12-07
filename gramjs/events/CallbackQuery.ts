@@ -51,7 +51,11 @@ export class CallbackQuery extends EventBuilder {
         );
     }
 
-    build(update: Api.TypeUpdate | Api.TypeUpdates, others: any = null) {
+    build(
+        update: Api.TypeUpdate | Api.TypeUpdates,
+        callback: undefined,
+        selfId = undefined
+    ) {
         if (update instanceof Api.UpdateBotCallbackQuery) {
             return new CallbackQueryEvent(update, update.peer, update.msgId);
         } else if (update instanceof Api.UpdateInlineBotCallbackQuery) {

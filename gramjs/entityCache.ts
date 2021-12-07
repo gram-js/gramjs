@@ -1,8 +1,9 @@
 // Which updates have the following fields?
 
 import { getInputPeer, getPeerId } from "./Utils";
-import { isArrayLike } from "./Helpers";
+import { isArrayLike, returnBigInt } from "./Helpers";
 import { Api } from "./tl";
+import bigInt from "big-integer";
 
 export class EntityCache {
     private cacheMap: Map<string, any>;
@@ -43,8 +44,12 @@ export class EntityCache {
         }
     }
 
-    get(item: any) {
-        if (!(typeof item === "number") || item < 0) {
+    get(item: bigInt.BigInteger | string | undefined) {
+        if (item == undefined) {
+            throw new Error("No cached entity for the given key");
+        }
+        item = returnBigInt(item);
+        if (item.lesser(bigInt.zero)) {
             let res;
             try {
                 res = this.cacheMap.get(getPeerId(item).toString());

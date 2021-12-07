@@ -34,7 +34,7 @@ export class Raw extends EventBuilder {
         this.resolved = true;
     }
 
-    build(update: Api.TypeUpdate, others: any = null): Api.TypeUpdate {
+    build(update: Api.TypeUpdate): Api.TypeUpdate {
         return update;
     }
 

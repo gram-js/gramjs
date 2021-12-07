@@ -30,11 +30,7 @@ export class Album extends EventBuilder {
         super({ chats, blacklistChats, func });
     }
 
-    build(
-        update: Api.TypeUpdate,
-        others: any = null,
-        dispatch?: CallableFunction
-    ): any {
+    build(update: Api.TypeUpdate, dispatch?: CallableFunction): any {
         if (!("message" in update && update.message instanceof Api.Message)) {
             return;
         }

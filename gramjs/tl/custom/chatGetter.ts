@@ -4,7 +4,6 @@ import { utils } from "../../";
 import { Api } from "../api";
 import { inspect } from "util";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
-import bigInt from "big-integer";
 
 export interface ChatGetterConstructorParams {
     chatPeer?: EntityLike;
@@ -58,7 +57,9 @@ export class ChatGetter {
     get inputChat() {
         if (!this._inputChat && this._chatPeer && this._client) {
             try {
-                this._inputChat = this._client._entityCache.get(this._chatPeer);
+                this._inputChat = this._client._entityCache.get(
+                    utils.getPeerId(this._chatPeer)
+                );
             } catch (e) {}
         }
         return this._inputChat;
@@ -71,7 +72,7 @@ export class ChatGetter {
                 for await (const dialog of this._client.iterDialogs({
                     limit: 100,
                 })) {
-                    if (dialog.id === target) {
+                    if (dialog.id!.eq(target!)) {
                         this._chat = dialog.entity;
                         this._inputChat = dialog.inputEntity;
                         break;

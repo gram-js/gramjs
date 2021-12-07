@@ -243,7 +243,7 @@ export async function getInputEntity(
             typeof peer === "bigint" ||
             bigInt.isInstance(peer)
         ) {
-            const res = client._entityCache.get(peer);
+            const res = client._entityCache.get(peer.toString());
             if (res) {
                 return res;
             }
@@ -254,7 +254,7 @@ export async function getInputEntity(
             !bigInt.isInstance(peer) &&
             peer.SUBCLASS_OF_ID === 0x2d45687
         ) {
-            const res = client._entityCache.get(peer);
+            const res = client._entityCache.get(utils.getPeerId(peer));
             if (res) {
                 return res;
             }

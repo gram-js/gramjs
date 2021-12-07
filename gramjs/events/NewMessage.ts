@@ -7,6 +7,7 @@ import {
 import type { Entity, EntityLike } from "../define";
 import type { TelegramClient } from "..";
 import { Api } from "../tl";
+import bigInt from "big-integer";
 
 export interface NewMessageInterface extends DefaultEventInterface {
     func?: { (event: NewMessageEvent): boolean };
@@ -121,7 +122,11 @@ export class NewMessage extends EventBuilder {
         this.fromUsers = await _intoIdSet(client, this.fromUsers);
     }
 
-    build(update: Api.TypeUpdate | Api.TypeUpdates, others: any = null) {
+    build(
+        update: Api.TypeUpdate | Api.TypeUpdates,
+        callback: undefined,
+        selfId: bigInt.BigInteger
+    ) {
         if (
             update instanceof Api.UpdateNewMessage ||
             update instanceof Api.UpdateNewChannelMessage
@@ -141,14 +146,16 @@ export class NewMessage extends EventBuilder {
                     silent: update.silent,
                     id: update.id,
                     peerId: new Api.PeerUser({ userId: update.userId }),
-                    fromId: new Api.PeerUser({ userId: update.userId }),
+                    fromId: new Api.PeerUser({
+                        userId: update.out ? selfId : update.userId,
+                    }),
                     message: update.message,
                     date: update.date,
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
                     entities: update.entities,
-                    // ttlPeriod:update.ttlPeriod
+                    ttlPeriod: update.ttlPeriod,
                 }),
                 update
             );
@@ -161,14 +168,16 @@ export class NewMessage extends EventBuilder {
                     silent: update.silent,
                     id: update.id,
                     peerId: new Api.PeerChat({ chatId: update.chatId }),
-                    fromId: new Api.PeerUser({ userId: update.fromId }),
+                    fromId: new Api.PeerUser({
+                        userId: update.out ? selfId : update.fromId,
+                    }),
                     message: update.message,
                     date: update.date,
                     fwdFrom: update.fwdFrom,
                     viaBotId: update.viaBotId,
                     replyTo: update.replyTo,
                     entities: update.entities,
-                    // ttlPeriod:update.ttlPeriod
+                    ttlPeriod: update.ttlPeriod,
                 }),
                 update
             );

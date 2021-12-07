@@ -5,7 +5,7 @@ import bigInt from "big-integer";
 import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
-import { getRandomInt, sleep } from "../Helpers";
+import { getRandomInt, returnBigInt, sleep } from "../Helpers";
 
 const PING_INTERVAL = 9000; // 9 sec
 const PING_TIMEOUT = 10000; // 10 sec
@@ -132,7 +132,13 @@ export async function _dispatchUpdate(
                 // TODO fix me
             }
             // TODO fix others not being passed
-            event = builder.build(event, undefined, callback);
+            event = builder.build(
+                event,
+                callback,
+                client._selfInputPeer
+                    ? returnBigInt(client._selfInputPeer.userId)
+                    : undefined
+            );
             if (event) {
                 if ("_eventName" in event) {
                     event._setClient(client);

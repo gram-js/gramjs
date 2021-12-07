@@ -77,6 +77,9 @@ export class _DialogsIter extends RequestIter {
         this.offsetDate = offsetDate;
         this.ignoreMigrated = ignoreMigrated;
     }
+    [Symbol.asyncIterator](): AsyncIterator<Dialog, any, undefined> {
+        return super[Symbol.asyncIterator]();
+    }
 
     async _loadNextChunk(): Promise<boolean | undefined> {
         if (!this.request || !this.seen || !this.buffer) {
