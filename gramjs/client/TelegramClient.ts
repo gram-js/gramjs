@@ -1169,6 +1169,16 @@ export class TelegramClient extends TelegramBaseClient {
         return userMethods.getPeerId(this, peer, addMark);
     }
 
+    /** @hidden */
+    _getInputDialog(peer: any) {
+        return userMethods._getInputDialog(this, peer);
+    }
+
+    /** @hidden */
+    _getInputNotify(notify: any) {
+        return userMethods._getInputNotify(this, notify);
+    }
+
     //endregion
 
     //region base methods
