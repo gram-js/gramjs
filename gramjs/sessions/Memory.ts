@@ -254,7 +254,13 @@ export class MemorySession extends Session {
                 exact = false;
             }
         }
-
+        if (
+            bigInt.isInstance(key) ||
+            typeof key == "bigint" ||
+            typeof key == "number"
+        ) {
+            key = key.toString();
+        }
         let result = undefined;
         if (typeof key === "string") {
             const phone = utils.parsePhone(key);
