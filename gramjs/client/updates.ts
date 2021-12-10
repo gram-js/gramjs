@@ -122,11 +122,9 @@ export async function _dispatchUpdate(
         let event = args.update;
         if (event) {
             if (!client._selfInputPeer) {
-                try {
-                    await client.getMe(true);
-                } catch (e) {
-                    // we don't care about this.
-                }
+                client.getMe(true).catch(()=>{
+                    // do nothing
+                });
             }
             if (!(event instanceof UpdateConnectionState)) {
                 // TODO fix me

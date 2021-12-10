@@ -176,8 +176,6 @@ export class CallbackQueryEvent extends EventCommonSender {
         }
 
         const chat = this.isChannel ? await this.getInputChat() : undefined;
-        if (!chat) return;
-
         const messages = await this._client!.getMessages(chat, {
             ids: this._messageId,
         });
@@ -187,8 +185,8 @@ export class CallbackQueryEvent extends EventCommonSender {
     }
 
     async _refetchSender() {
-        if (this._entities.has(this._senderId!.toString())) {
-            this._sender = this._entities.get(this._senderId!.toString());
+        if (this._entities.has(this.senderId!.toString())) {
+            this._sender = this._entities.get(this.senderId!.toString());
         }
 
         if (!this._sender) return;

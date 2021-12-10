@@ -76,8 +76,8 @@ client
       "%c you can save it to login with it next time",
       "color:#B54128"
     );
-  }).catch((e)=>{
+  })
+  .catch((e) => {
     console.log("AN ERROR HAS HAPPENED");
     console.log(e.toString());
-
-});
+  });
