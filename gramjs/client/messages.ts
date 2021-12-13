@@ -536,6 +536,14 @@ export interface ForwardMessagesParams {
     silent?: boolean;
     /** If set, the message(s) won't forward immediately, and instead they will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
+    /** Whether to send the message in background */
+    background?: boolean,
+    /** When forwarding games, whether to include your score in the game */
+    withMyScore?: boolean,
+    /** Whether to forward messages without quoting the original author */
+    dropAuthor?: boolean,
+    /** Whether to strip captions from media */
+    dropMediaCaptions?: boolean,
 }
 
 /** Interface for editing messages */
@@ -791,7 +799,16 @@ export async function sendMessage(
 export async function forwardMessages(
     client: TelegramClient,
     entity: EntityLike,
-    { messages, fromPeer, silent, schedule }: ForwardMessagesParams
+    {
+        messages,
+        fromPeer,
+        silent,
+        schedule,
+        background,
+        dropAuthor,
+        dropMediaCaptions,
+        withMyScore
+    }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
         messages = [messages];
@@ -838,6 +855,10 @@ export async function forwardMessages(
             toPeer: entity,
             silent: silent,
             scheduleDate: schedule,
+            background: background,
+            withMyScore: withMyScore,
+            dropAuthor: dropAuthor,
+            dropMediaCaptions: dropMediaCaptions,
         });
         const result = await client.invoke(request);
         sent.push(
