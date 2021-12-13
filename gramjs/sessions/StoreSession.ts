@@ -7,7 +7,7 @@ export class StoreSession extends MemorySession {
     private readonly sessionName: string;
     private store: store.StoreAPI;
 
-    constructor(sessionName: string) {
+    constructor(sessionName: string, divider = ":") {
         super();
         if (typeof localStorage === "undefined" || localStorage === null) {
             const LocalStorage = require("node-localstorage").LocalStorage;
@@ -15,7 +15,10 @@ export class StoreSession extends MemorySession {
         } else {
             this.store = store.area("fs", localStorage);
         }
-        this.sessionName = sessionName + ":";
+        if (divider == undefined) {
+            divider = ":";
+        }
+        this.sessionName = sessionName + divider;
     }
 
     async load() {

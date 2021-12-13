@@ -122,7 +122,7 @@ export async function _dispatchUpdate(
         let event = args.update;
         if (event) {
             if (!client._selfInputPeer) {
-                client.getMe(true).catch(()=>{
+                client.getMe(true).catch(() => {
                     // do nothing
                 });
             }
