@@ -12,7 +12,12 @@ const PING_TIMEOUT = 10000; // 10 sec
 const PING_FAIL_ATTEMPTS = 3;
 const PING_FAIL_INTERVAL = 100; // ms
 const PING_DISCONNECT_DELAY = 60000; // 1 min
-
+/**
+ If this exception is raised in any of the handlers for a given event,
+ it will stop the execution of all other registered event handlers.
+ It can be seen as the ``StopIteration`` in a for loop but for events.
+ */
+export class StopPropagation extends Error {}
 /** @hidden */
 export function on(client: TelegramClient, event?: EventBuilder) {
     return (f: { (event: any): void }) => {
@@ -150,6 +155,9 @@ export async function _dispatchUpdate(
                 try {
                     await callback(event);
                 } catch (e) {
+                    if (e instanceof StopPropagation) {
+                        break;
+                    }
                     console.error(e);
                 }
             }
