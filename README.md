@@ -6,9 +6,9 @@ A Telegram client written in JavaScript for Node.js and browsers, with its core 
 ### Obtaining your app ID and hash
 
 1. Follow [this link](https://my.telegram.org), and login with your phone number.
-2. Click `API development tools`.
+2. Click "API development tools".
 3. Fill in your application details.
-   There is no need to enter any `URL`, and only the first two fields (app title and short name)
+   There is no need to enter any URL, and only the first two fields (app title and short name)
    can be modified later.
 4. Finally, click "Create application".
 
@@ -21,7 +21,7 @@ In browsers, GramJS will be using the `localStorage` to cache the layers.
 To get a browser bundle of GramJS, use the following command:
 
 ```bash
-NODE_ENV=development npx webpack
+NODE_ENV=production npx webpack
 ```
 
 ## Using the raw API
