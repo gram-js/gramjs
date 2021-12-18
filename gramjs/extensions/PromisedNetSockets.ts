@@ -90,7 +90,12 @@ export class PromisedNetSockets {
                 proxy: {
                     host: this.proxy.ip,
                     port: this.proxy.port,
-                    type: this.proxy.socksType!, // Proxy version (4 or 5)
+                    type:
+                        this.proxy.socksType != undefined
+                            ? this.proxy.socksType
+                            : 5, // Proxy version (4 or 5)
+                    userId: this.proxy.username,
+                    password: this.proxy.password,
                 },
 
                 command: "connect",

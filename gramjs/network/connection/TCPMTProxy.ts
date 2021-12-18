@@ -15,6 +15,8 @@ export interface ProxyInterface {
     secret?: string;
     MTProxy?: boolean;
     timeout?: number;
+    username?: string;
+    password?: string;
 }
 
 class MTProxyIO {
