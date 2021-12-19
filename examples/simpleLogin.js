@@ -51,8 +51,8 @@ function codeCallback() {
   });
 }
 
-const { TelegramClient } = gramjs;
-const { StringSession } = gramjs.sessions;
+const { TelegramClient } = telegram;
+const { StringSession } = telegram.sessions;
 const apiId = 1; // put your api id here [for example 123456789]
 const apiHash = "1  "; // put your api hash here [for example '123456abcfghe']
 

@@ -19,7 +19,6 @@ module.exports = {
       },
     ],
   },
-
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     fallback: {
@@ -34,7 +33,7 @@ module.exports = {
       constants: false,
     },
   },
-  mode: "development",
+  mode: process.env.NODE_ENV ?? "development",
   plugins: [
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
@@ -43,12 +42,10 @@ module.exports = {
       process: "process/browser",
     }),
   ],
-
   output: {
-    library: "gramjs",
+    library: "telegram",
     libraryTarget: "umd",
-    auxiliaryComment: "Test Comment",
-    filename: "gramjs.js",
+    filename: "telegram.js",
     path: path.resolve(__dirname, "browser"),
   },
 };
