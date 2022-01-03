@@ -16,7 +16,7 @@ export namespace Api {
     type float = number;
     type int128 = BigInteger;
     type int256 = BigInteger;
-    type long = BigInteger;
+    type long = BigInteger | string;
     type bytes = Buffer;
     class VirtualClass<Args extends AnyLiteral> {
         static CONSTRUCTOR_ID: number;

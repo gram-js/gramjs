@@ -276,6 +276,7 @@ export async function _fileToMedia(
         !Buffer.isBuffer(file) &&
         !(file instanceof Api.InputFile) &&
         !(file instanceof Api.InputFileBig) &&
+        !(file instanceof CustomFile) &&
         !("read" in file)
     ) {
         try {
@@ -321,7 +322,7 @@ export async function _fileToMedia(
                 (await fs.stat(file)).size,
                 file
             );
-        } else if (typeof File !== "undefined" && file instanceof File) {
+        } else if ((typeof File !== "undefined" && file instanceof File) || file instanceof CustomFile) {
             createdFile = file;
         } else {
             let name;
