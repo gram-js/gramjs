@@ -2,7 +2,7 @@ import { Api } from "../tl";
 
 import { TelegramClient } from "./TelegramClient";
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from "../Helpers";
-import { getAppropriatedPartSize } from "../Utils";
+import { getAppropriatedPartSize, getInputMedia } from "../Utils";
 import { EntityLike, FileLike, MarkupLike, MessageIDLike } from "../define";
 import path from "path";
 import { promises as fs } from "fs";
@@ -165,6 +165,7 @@ export async function uploadFile(
               md5Checksum: "", // This is not a "flag", so not sure if we can make it optional.
           });
 }
+
 /**
  * Interface for sending files to a chat.
  */
@@ -175,11 +176,12 @@ export interface SendFileInterface {
      *   - can be an external direct URL. Telegram will download the file and send it.
      *   - can be an existing media from another message.
      *   - can be a handle to a file that was received by using {@link uploadFile}
+     *   - can be a list when using an album
      *   - can be {@link Api.TypeInputMedia} instance. For example if you want to send a dice you would use {@link Api.InputMediaDice}
      */
-    file: FileLike;
-    /** Optional caption for the sent media message.*/
-    caption?: string;
+    file: FileLike | FileLike[];
+    /** Optional caption for the sent media message. can be a list for albums*/
+    caption?: string | string[];
     /** If left to false and the file is a path that ends with the extension of an image file or a video file, it will be sent as such. Otherwise always as a document. */
     forceDocument?: boolean;
     /** The size of the file to be uploaded if it needs to be uploaded, which will be determined automatically if not specified. */
@@ -322,7 +324,10 @@ export async function _fileToMedia(
                 (await fs.stat(file)).size,
                 file
             );
-        } else if ((typeof File !== "undefined" && file instanceof File) || file instanceof CustomFile) {
+        } else if (
+            (typeof File !== "undefined" && file instanceof File) ||
+            file instanceof CustomFile
+        ) {
             createdFile = file;
         } else {
             let name;
@@ -425,6 +430,114 @@ export async function _fileToMedia(
 }
 
 /** @hidden */
+export async function _sendAlbum(
+    client: TelegramClient,
+    entity: EntityLike,
+    {
+        file,
+        caption,
+        forceDocument = false,
+        fileSize,
+        clearDraft = false,
+        progressCallback,
+        replyTo,
+        attributes,
+        thumb,
+        parseMode,
+        voiceNote = false,
+        videoNote = false,
+        silent,
+        supportsStreaming = false,
+        scheduleDate,
+        workers = 1,
+        noforwards,
+    }: SendFileInterface
+) {
+    entity = await client.getInputEntity(entity);
+    let files = [];
+    if (!Array.isArray(file)) {
+        files = [file];
+    } else {
+        files = file;
+    }
+    if (!Array.isArray(caption)) {
+        if (!caption) {
+            caption = "";
+        }
+        caption = [caption];
+    }
+    const captions: [string, Api.TypeMessageEntity[]][] = [];
+    for (const c of caption) {
+        captions.push(await _parseMessageText(client, c, parseMode));
+    }
+    replyTo = utils.getMessageId(replyTo);
+    const albumFiles = [];
+    for (const file of files) {
+        let { fileHandle, media, image } = await _fileToMedia(client, {
+            file: file,
+            forceDocument: forceDocument,
+            fileSize: fileSize,
+            progressCallback: progressCallback,
+            attributes: attributes,
+            thumb: thumb,
+            voiceNote: voiceNote,
+            videoNote: videoNote,
+            supportsStreaming: supportsStreaming,
+            workers: workers,
+        });
+        if (
+            media instanceof Api.InputMediaUploadedPhoto ||
+            media instanceof Api.InputMediaPhotoExternal
+        ) {
+            const r = await client.invoke(
+                new Api.messages.UploadMedia({
+                    peer: entity,
+                    media,
+                })
+            );
+            if (r instanceof Api.MessageMediaPhoto) {
+                media = getInputMedia(r.photo);
+            }
+        } else if (media instanceof Api.InputMediaUploadedDocument) {
+            const r = await client.invoke(
+                new Api.messages.UploadMedia({
+                    peer: entity,
+                    media,
+                })
+            );
+            if (r instanceof Api.MessageMediaDocument) {
+                media = getInputMedia(r.document);
+            }
+        }
+        let text = "";
+        let msgEntities: Api.TypeMessageEntity[] = [];
+        if (captions.length) {
+            [text, msgEntities] = captions.shift()!;
+        }
+        albumFiles.push(
+            new Api.InputSingleMedia({
+                media: media!,
+                message: text,
+                entities: msgEntities,
+            })
+        );
+    }
+    const result = await client.invoke(
+        new Api.messages.SendMultiMedia({
+            peer: entity,
+            replyToMsgId: replyTo,
+            multiMedia: albumFiles,
+            silent: silent,
+            scheduleDate: scheduleDate,
+            clearDraft: clearDraft,
+            noforwards: noforwards,
+        })
+    );
+    const randomIds = albumFiles.map((m) => m.randomId);
+    return client._getResponseMessage(randomIds, result, entity) as Api.Message;
+}
+
+/** @hidden */
 export async function sendFile(
     client: TelegramClient,
     entity: EntityLike,
@@ -458,7 +571,21 @@ export async function sendFile(
     }
     entity = await client.getInputEntity(entity);
     replyTo = utils.getMessageId(replyTo);
-    // TODO support albums in the future
+    if (Array.isArray(file)) {
+        return await _sendAlbum(client, entity, {
+            file: file,
+            caption: caption,
+            parseMode: parseMode,
+            silent: silent,
+            scheduleDate: scheduleDate,
+            supportsStreaming: supportsStreaming,
+            clearDraft: clearDraft,
+            forceDocument: forceDocument,
+        });
+    }
+    if (Array.isArray(caption)) {
+        caption = caption[0] || "";
+    }
     let msgEntities;
     if (formattingEntities != undefined) {
         msgEntities = formattingEntities;

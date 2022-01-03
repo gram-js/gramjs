@@ -180,9 +180,10 @@ ${indent}}`.trim();
         const { isVector, isFlag, skipConstructorId, type } = argConfig;
 
         const valueType = renderValueType(type, isVector, !skipConstructorId);
-
         return `${argName === "flags" ? "// " : ""}${argName}${
-            isFlag ? "?" : ""
+            isFlag || (argName === "randomId" && type === "long" && !isVector)
+                ? "?"
+                : ""
         }: ${valueType}`;
     }
 

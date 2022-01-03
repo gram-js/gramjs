@@ -60,8 +60,8 @@ export class Dialog {
 
         this.isUser = this.entity instanceof Api.User;
         this.isGroup = !!(
-            (this.entity instanceof Api.Chat ||
-                this.entity instanceof Api.ChatForbidden) ||
+            this.entity instanceof Api.Chat ||
+            this.entity instanceof Api.ChatForbidden ||
             (this.entity instanceof Api.Channel && this.entity.megagroup)
         );
         this.isChannel = this.entity instanceof Api.Channel;

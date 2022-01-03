@@ -16,7 +16,7 @@ export namespace Api {
     type float = number;
     type int128 = BigInteger;
     type int256 = BigInteger;
-    type long = BigInteger | string;
+    type long = BigInteger;
     type bytes = Buffer;
     class VirtualClass<Args extends AnyLiteral> {
         static CONSTRUCTOR_ID: number;
@@ -2381,7 +2381,7 @@ export namespace Api {
     }
     export class UpdateMessageID extends VirtualClass<{
         id: int;
-        randomId: long;
+        randomId?: long;
     }> {
         CONSTRUCTOR_ID: 1318109142;
         SUBCLASS_OF_ID: 2676568142;
@@ -2389,7 +2389,7 @@ export namespace Api {
         className: "UpdateMessageID";
         static fromReader(reader: Reader): UpdateMessageID;
         id: int;
-        randomId: long;
+        randomId?: long;
     }
     export class UpdateDeleteMessages extends VirtualClass<{
         messages: int[];
@@ -4183,7 +4183,7 @@ export namespace Api {
         keyFingerprint: int;
     }
     export class EncryptedMessage extends VirtualClass<{
-        randomId: long;
+        randomId?: long;
         chatId: int;
         date: int;
         bytes: bytes;
@@ -4194,14 +4194,14 @@ export namespace Api {
         classType: "constructor";
         className: "EncryptedMessage";
         static fromReader(reader: Reader): EncryptedMessage;
-        randomId: long;
+        randomId?: long;
         chatId: int;
         date: int;
         bytes: bytes;
         file: Api.TypeEncryptedFile;
     }
     export class EncryptedMessageService extends VirtualClass<{
-        randomId: long;
+        randomId?: long;
         chatId: int;
         date: int;
         bytes: bytes;
@@ -4211,7 +4211,7 @@ export namespace Api {
         classType: "constructor";
         className: "EncryptedMessageService";
         static fromReader(reader: Reader): EncryptedMessageService;
-        randomId: long;
+        randomId?: long;
         chatId: int;
         date: int;
         bytes: bytes;
@@ -8372,7 +8372,7 @@ export namespace Api {
     export class InputSingleMedia extends VirtualClass<{
         // flags: null;
         media: Api.TypeInputMedia;
-        randomId: long;
+        randomId?: long;
         message: string;
         entities?: Api.TypeMessageEntity[];
     }> {
@@ -8383,7 +8383,7 @@ export namespace Api {
         static fromReader(reader: Reader): InputSingleMedia;
         // flags: null;
         media: Api.TypeInputMedia;
-        randomId: long;
+        randomId?: long;
         message: string;
         entities?: Api.TypeMessageEntity[];
     }
@@ -16042,7 +16042,7 @@ export namespace Api {
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
                 message: string;
-                randomId: long;
+                randomId?: long;
                 replyMarkup?: Api.TypeReplyMarkup;
                 entities?: Api.TypeMessageEntity[];
                 scheduleDate?: int;
@@ -16064,7 +16064,7 @@ export namespace Api {
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
             message: string;
-            randomId: long;
+            randomId?: long;
             replyMarkup?: Api.TypeReplyMarkup;
             entities?: Api.TypeMessageEntity[];
             scheduleDate?: int;
@@ -16081,7 +16081,7 @@ export namespace Api {
                 replyToMsgId?: MessageIDLike;
                 media: Api.TypeInputMedia;
                 message: string;
-                randomId: long;
+                randomId?: long;
                 replyMarkup?: Api.TypeReplyMarkup;
                 entities?: Api.TypeMessageEntity[];
                 scheduleDate?: int;
@@ -16103,7 +16103,7 @@ export namespace Api {
             replyToMsgId?: MessageIDLike;
             media: Api.TypeInputMedia;
             message: string;
-            randomId: long;
+            randomId?: long;
             replyMarkup?: Api.TypeReplyMarkup;
             entities?: Api.TypeMessageEntity[];
             scheduleDate?: int;
@@ -16399,7 +16399,7 @@ export namespace Api {
                 // flags: null;
                 silent?: boolean;
                 peer: Api.TypeInputEncryptedChat;
-                randomId: long;
+                randomId?: long;
                 data: bytes;
             }>,
             messages.TypeSentEncryptedMessage
@@ -16412,7 +16412,7 @@ export namespace Api {
             // flags: null;
             silent?: boolean;
             peer: Api.TypeInputEncryptedChat;
-            randomId: long;
+            randomId?: long;
             data: bytes;
         }
         export class SendEncryptedFile extends Request<
@@ -16420,7 +16420,7 @@ export namespace Api {
                 // flags: null;
                 silent?: boolean;
                 peer: Api.TypeInputEncryptedChat;
-                randomId: long;
+                randomId?: long;
                 data: bytes;
                 file: Api.TypeInputEncryptedFile;
             }>,
@@ -16434,14 +16434,14 @@ export namespace Api {
             // flags: null;
             silent?: boolean;
             peer: Api.TypeInputEncryptedChat;
-            randomId: long;
+            randomId?: long;
             data: bytes;
             file: Api.TypeInputEncryptedFile;
         }
         export class SendEncryptedService extends Request<
             Partial<{
                 peer: Api.TypeInputEncryptedChat;
-                randomId: long;
+                randomId?: long;
                 data: bytes;
             }>,
             messages.TypeSentEncryptedMessage
@@ -16452,7 +16452,7 @@ export namespace Api {
             className: "messages.SendEncryptedService";
             static fromReader(reader: Reader): SendEncryptedService;
             peer: Api.TypeInputEncryptedChat;
-            randomId: long;
+            randomId?: long;
             data: bytes;
         }
         export class ReceivedQueue extends Request<
@@ -16637,7 +16637,7 @@ export namespace Api {
             Partial<{
                 bot: Api.TypeEntityLike;
                 peer: Api.TypeEntityLike;
-                randomId: long;
+                randomId?: long;
                 startParam: string;
             }>,
             Api.TypeUpdates
@@ -16649,7 +16649,7 @@ export namespace Api {
             static fromReader(reader: Reader): StartBot;
             bot: Api.TypeEntityLike;
             peer: Api.TypeEntityLike;
-            randomId: long;
+            randomId?: long;
             startParam: string;
         }
         export class GetMessagesViews extends Request<
@@ -16851,7 +16851,7 @@ export namespace Api {
                 hideVia?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
-                randomId: long;
+                randomId?: long;
                 queryId: long;
                 id: string;
                 scheduleDate?: int;
@@ -16871,7 +16871,7 @@ export namespace Api {
             hideVia?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
-            randomId: long;
+            randomId?: long;
             queryId: long;
             id: string;
             scheduleDate?: int;
@@ -17388,7 +17388,7 @@ export namespace Api {
             Partial<{
                 peer: Api.TypeEntityLike;
                 replyToMsgId: MessageIDLike;
-                randomId: long;
+                randomId?: long;
             }>,
             Api.TypeUpdates
         > {
@@ -17399,7 +17399,7 @@ export namespace Api {
             static fromReader(reader: Reader): SendScreenshotNotification;
             peer: Api.TypeEntityLike;
             replyToMsgId: MessageIDLike;
-            randomId: long;
+            randomId?: long;
         }
         export class GetFavedStickers extends Request<
             Partial<{

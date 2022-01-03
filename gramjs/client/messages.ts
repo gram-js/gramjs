@@ -494,7 +494,7 @@ export interface SendMessageParams {
     /** Should the link preview be shown? */
     linkPreview?: boolean;
     /** Sends a message with a file attached (e.g. a photo, video, audio or document). The message may be empty. */
-    file?: FileLike;
+    file?: FileLike | FileLike[];
     /** Optional JPEG thumbnail (for documents). Telegram will ignore this parameter unless you pass a .jpg file!<br/>
      * The file must also be small in dimensions and in disk size. Successful thumbnails were files below 20kB and 320x320px.<br/>
      *  Width/height and dimensions/size ratios may be important.

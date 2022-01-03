@@ -115,7 +115,7 @@ export function _getResponseMessage(
     const schedToMessage = new Map<number, Api.Message>();
     for (const update of updates) {
         if (update instanceof Api.UpdateMessageID) {
-            randomToId.set(update.randomId.toString(), update.id);
+            randomToId.set(update.randomId!.toString(), update.id);
         } else if (
             update instanceof Api.UpdateNewChannelMessage ||
             update instanceof Api.UpdateNewMessage
@@ -228,11 +228,23 @@ export function _getResponseMessage(
         }
         return msg;
     } else {
+        let arrayRandomId: bigInt.BigInteger[] =
+            randomId as bigInt.BigInteger[];
         const mappingToReturn = [];
         let warned = false;
-        for (let i = 0; i < randomId.length; i++) {
-            const rnd = randomId[i] + "";
-            const msg = mapping.get(randomToId.get(rnd)!);
+        for (let i = 0; i < arrayRandomId.length; i++) {
+            const tempRandom = arrayRandomId[i];
+            if (tempRandom == undefined) {
+                warned = true;
+                break;
+            }
+            const rnd = tempRandom.toString();
+            const msgId = randomToId.get(rnd);
+            if (msgId == undefined) {
+                warned = true;
+                break;
+            }
+            const msg = mapping.get(msgId);
             if (!msg) {
                 warned = true;
                 break;
