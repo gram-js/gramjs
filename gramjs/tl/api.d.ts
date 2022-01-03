@@ -16,7 +16,7 @@ export namespace Api {
     type float = number;
     type int128 = BigInteger;
     type int256 = BigInteger;
-    type long = BigInteger | string;
+    type long = BigInteger;
     type bytes = Buffer;
     class VirtualClass<Args extends AnyLiteral> {
         static CONSTRUCTOR_ID: number;
@@ -1010,8 +1010,9 @@ export namespace Api {
         themeEmoticon?: string;
         requestsPending?: int;
         recentRequesters?: long[];
+        availableReactions?: string[];
     }> {
-        CONSTRUCTOR_ID: 1185349556;
+        CONSTRUCTOR_ID: 3515802150;
         SUBCLASS_OF_ID: 3566872215;
         classType: "constructor";
         className: "ChatFull";
@@ -1034,6 +1035,7 @@ export namespace Api {
         themeEmoticon?: string;
         requestsPending?: int;
         recentRequesters?: long[];
+        availableReactions?: string[];
     }
     export class ChannelFull extends VirtualClass<{
         // flags: null;
@@ -1079,8 +1081,9 @@ export namespace Api {
         requestsPending?: int;
         recentRequesters?: long[];
         defaultSendAs?: Api.TypePeer;
+        availableReactions?: string[];
     }> {
-        CONSTRUCTOR_ID: 1449537070;
+        CONSTRUCTOR_ID: 3778821408;
         SUBCLASS_OF_ID: 3566872215;
         classType: "constructor";
         className: "ChannelFull";
@@ -1128,6 +1131,7 @@ export namespace Api {
         requestsPending?: int;
         recentRequesters?: long[];
         defaultSendAs?: Api.TypePeer;
+        availableReactions?: string[];
     }
     export class ChatParticipant extends VirtualClass<{
         userId: long;
@@ -1235,7 +1239,7 @@ export namespace Api {
         peerId?: Api.TypePeer;
     }
     export class Message extends CustomMessage {
-        CONSTRUCTOR_ID: 2245446626;
+        CONSTRUCTOR_ID: 940666592;
         SUBCLASS_OF_ID: 2030045667;
         classType: "request";
         className: "Message";
@@ -3671,6 +3675,20 @@ export namespace Api {
         invite: Api.TypeExportedChatInvite;
         qts: int;
     }
+    export class UpdateMessageReactions extends VirtualClass<{
+        peer: Api.TypePeer;
+        msgId: int;
+        reactions: Api.TypeMessageReactions;
+    }> {
+        CONSTRUCTOR_ID: 357013699;
+        SUBCLASS_OF_ID: 2676568142;
+        classType: "constructor";
+        className: "UpdateMessageReactions";
+        static fromReader(reader: Reader): UpdateMessageReactions;
+        peer: Api.TypePeer;
+        msgId: int;
+        reactions: Api.TypeMessageReactions;
+    }
     export class UpdatesTooLong extends VirtualClass<void> {
         CONSTRUCTOR_ID: 3809980286;
         SUBCLASS_OF_ID: 2331323052;
@@ -5624,6 +5642,18 @@ export namespace Api {
         classType: "constructor";
         className: "MessageEntityBankCard";
         static fromReader(reader: Reader): MessageEntityBankCard;
+        offset: int;
+        length: int;
+    }
+    export class MessageEntitySpoiler extends VirtualClass<{
+        offset: int;
+        length: int;
+    }> {
+        CONSTRUCTOR_ID: 852137487;
+        SUBCLASS_OF_ID: 3479443932;
+        classType: "constructor";
+        className: "MessageEntitySpoiler";
+        static fromReader(reader: Reader): MessageEntitySpoiler;
         offset: int;
         length: int;
     }
@@ -8195,6 +8225,20 @@ export namespace Api {
         ): ChannelAdminLogEventActionSendMessage;
         message: Api.TypeMessage;
     }
+    export class ChannelAdminLogEventActionChangeAvailableReactions extends VirtualClass<{
+        prevValue: string[];
+        newValue: string[];
+    }> {
+        CONSTRUCTOR_ID: 2633496426;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionChangeAvailableReactions";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionChangeAvailableReactions;
+        prevValue: string[];
+        newValue: string[];
+    }
     export class ChannelAdminLogEvent extends VirtualClass<{
         id: long;
         date: int;
@@ -10449,20 +10493,24 @@ export namespace Api {
     export class SponsoredMessage extends VirtualClass<{
         // flags: null;
         randomId: bytes;
-        fromId: Api.TypePeer;
+        fromId?: Api.TypePeer;
+        chatInvite?: Api.TypeChatInvite;
+        chatInviteHash?: string;
         channelPost?: int;
         startParam?: string;
         message: string;
         entities?: Api.TypeMessageEntity[];
     }> {
-        CONSTRUCTOR_ID: 3511804314;
+        CONSTRUCTOR_ID: 981691896;
         SUBCLASS_OF_ID: 3780630582;
         classType: "constructor";
         className: "SponsoredMessage";
         static fromReader(reader: Reader): SponsoredMessage;
         // flags: null;
         randomId: bytes;
-        fromId: Api.TypePeer;
+        fromId?: Api.TypePeer;
+        chatInvite?: Api.TypeChatInvite;
+        chatInviteHash?: string;
         channelPost?: int;
         startParam?: string;
         message: string;
@@ -10497,6 +10545,82 @@ export namespace Api {
         msgId: int;
         date: int;
         offset: int;
+    }
+    export class ReactionCount extends VirtualClass<{
+        // flags: null;
+        chosen?: boolean;
+        reaction: string;
+        count: int;
+    }> {
+        CONSTRUCTOR_ID: 1873957073;
+        SUBCLASS_OF_ID: 3523792447;
+        classType: "constructor";
+        className: "ReactionCount";
+        static fromReader(reader: Reader): ReactionCount;
+        // flags: null;
+        chosen?: boolean;
+        reaction: string;
+        count: int;
+    }
+    export class MessageReactions extends VirtualClass<{
+        // flags: null;
+        min?: boolean;
+        canSeeList?: boolean;
+        results: Api.TypeReactionCount[];
+        recentReactons?: Api.TypeMessageUserReaction[];
+    }> {
+        CONSTRUCTOR_ID: 142306870;
+        SUBCLASS_OF_ID: 2321221404;
+        classType: "constructor";
+        className: "MessageReactions";
+        static fromReader(reader: Reader): MessageReactions;
+        // flags: null;
+        min?: boolean;
+        canSeeList?: boolean;
+        results: Api.TypeReactionCount[];
+        recentReactons?: Api.TypeMessageUserReaction[];
+    }
+    export class MessageUserReaction extends VirtualClass<{
+        userId: long;
+        reaction: string;
+    }> {
+        CONSTRUCTOR_ID: 2468889850;
+        SUBCLASS_OF_ID: 1905515325;
+        classType: "constructor";
+        className: "MessageUserReaction";
+        static fromReader(reader: Reader): MessageUserReaction;
+        userId: long;
+        reaction: string;
+    }
+    export class AvailableReaction extends VirtualClass<{
+        // flags: null;
+        inactive?: boolean;
+        reaction: string;
+        title: string;
+        staticIcon: Api.TypeDocument;
+        appearAnimation: Api.TypeDocument;
+        selectAnimation: Api.TypeDocument;
+        activateAnimation: Api.TypeDocument;
+        effectAnimation: Api.TypeDocument;
+        aroundAnimation?: Api.TypeDocument;
+        centerIcon?: Api.TypeDocument;
+    }> {
+        CONSTRUCTOR_ID: 3229084673;
+        SUBCLASS_OF_ID: 2350685555;
+        classType: "constructor";
+        className: "AvailableReaction";
+        static fromReader(reader: Reader): AvailableReaction;
+        // flags: null;
+        inactive?: boolean;
+        reaction: string;
+        title: string;
+        staticIcon: Api.TypeDocument;
+        appearAnimation: Api.TypeDocument;
+        selectAnimation: Api.TypeDocument;
+        activateAnimation: Api.TypeDocument;
+        effectAnimation: Api.TypeDocument;
+        aroundAnimation?: Api.TypeDocument;
+        centerIcon?: Api.TypeDocument;
     }
     export class ResPQ extends VirtualClass<{
         nonce: int128;
@@ -12552,6 +12676,43 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }
+        export class MessageReactionsList extends VirtualClass<{
+            // flags: null;
+            count: int;
+            reactions: Api.TypeMessageUserReaction[];
+            users: Api.TypeUser[];
+            nextOffset?: string;
+        }> {
+            CONSTRUCTOR_ID: 2741408316;
+            SUBCLASS_OF_ID: 1627186662;
+            classType: "constructor";
+            className: "messages.MessageReactionsList";
+            static fromReader(reader: Reader): MessageReactionsList;
+            // flags: null;
+            count: int;
+            reactions: Api.TypeMessageUserReaction[];
+            users: Api.TypeUser[];
+            nextOffset?: string;
+        }
+        export class AvailableReactionsNotModified extends VirtualClass<void> {
+            CONSTRUCTOR_ID: 2668042583;
+            SUBCLASS_OF_ID: 3827740034;
+            classType: "constructor";
+            className: "messages.AvailableReactionsNotModified";
+            static fromReader(reader: Reader): AvailableReactionsNotModified;
+        }
+        export class AvailableReactions extends VirtualClass<{
+            hash: int;
+            reactions: Api.TypeAvailableReaction[];
+        }> {
+            CONSTRUCTOR_ID: 1989032621;
+            SUBCLASS_OF_ID: 3827740034;
+            classType: "constructor";
+            className: "messages.AvailableReactions";
+            static fromReader(reader: Reader): AvailableReactions;
+            hash: int;
+            reactions: Api.TypeAvailableReaction[];
+        }
     }
 
     export namespace updates {
@@ -13891,6 +14052,10 @@ export namespace Api {
         export type TypeSearchResultsPositions =
             messages.SearchResultsPositions;
         export type TypePeerSettings = messages.PeerSettings;
+        export type TypeMessageReactionsList = messages.MessageReactionsList;
+        export type TypeAvailableReactions =
+            | messages.AvailableReactionsNotModified
+            | messages.AvailableReactions;
     }
 
     export namespace updates {
@@ -15873,6 +16038,7 @@ export namespace Api {
                 silent?: boolean;
                 background?: boolean;
                 clearDraft?: boolean;
+                noforwards?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
                 message: string;
@@ -15894,6 +16060,7 @@ export namespace Api {
             silent?: boolean;
             background?: boolean;
             clearDraft?: boolean;
+            noforwards?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
             message: string;
@@ -15909,6 +16076,7 @@ export namespace Api {
                 silent?: boolean;
                 background?: boolean;
                 clearDraft?: boolean;
+                noforwards?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
                 media: Api.TypeInputMedia;
@@ -15930,6 +16098,7 @@ export namespace Api {
             silent?: boolean;
             background?: boolean;
             clearDraft?: boolean;
+            noforwards?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
             media: Api.TypeInputMedia;
@@ -15948,6 +16117,7 @@ export namespace Api {
                 withMyScore?: boolean;
                 dropAuthor?: boolean;
                 dropMediaCaptions?: boolean;
+                noforwards?: boolean;
                 fromPeer: Api.TypeEntityLike;
                 id: int[];
                 randomId: long[];
@@ -15968,6 +16138,7 @@ export namespace Api {
             withMyScore?: boolean;
             dropAuthor?: boolean;
             dropMediaCaptions?: boolean;
+            noforwards?: boolean;
             fromPeer: Api.TypeEntityLike;
             id: int[];
             randomId: long[];
@@ -17317,6 +17488,7 @@ export namespace Api {
                 silent?: boolean;
                 background?: boolean;
                 clearDraft?: boolean;
+                noforwards?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
                 multiMedia: Api.TypeInputSingleMedia[];
@@ -17334,6 +17506,7 @@ export namespace Api {
             silent?: boolean;
             background?: boolean;
             clearDraft?: boolean;
+            noforwards?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
             multiMedia: Api.TypeInputSingleMedia[];
@@ -18279,6 +18452,104 @@ export namespace Api {
             static fromReader(reader: Reader): SaveDefaultSendAs;
             peer: Api.TypeEntityLike;
             sendAs: Api.TypeEntityLike;
+        }
+        export class SendReaction extends Request<
+            Partial<{
+                // flags: null;
+                peer: Api.TypeEntityLike;
+                msgId: MessageIDLike;
+                reaction?: string;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 627641572;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "messages.SendReaction";
+            static fromReader(reader: Reader): SendReaction;
+            // flags: null;
+            peer: Api.TypeEntityLike;
+            msgId: MessageIDLike;
+            reaction?: string;
+        }
+        export class GetMessagesReactions extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+                id: int[];
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 2344259814;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "messages.GetMessagesReactions";
+            static fromReader(reader: Reader): GetMessagesReactions;
+            peer: Api.TypeEntityLike;
+            id: int[];
+        }
+        export class GetMessageReactionsList extends Request<
+            Partial<{
+                // flags: null;
+                peer: Api.TypeEntityLike;
+                id: int;
+                reaction?: string;
+                offset?: string;
+                limit: int;
+            }>,
+            messages.TypeMessageReactionsList
+        > {
+            CONSTRUCTOR_ID: 3773721463;
+            SUBCLASS_OF_ID: 1627186662;
+            classType: "request";
+            className: "messages.GetMessageReactionsList";
+            static fromReader(reader: Reader): GetMessageReactionsList;
+            // flags: null;
+            peer: Api.TypeEntityLike;
+            id: int;
+            reaction?: string;
+            offset?: string;
+            limit: int;
+        }
+        export class SetChatAvailableReactions extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+                availableReactions: string[];
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 335875750;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "messages.SetChatAvailableReactions";
+            static fromReader(reader: Reader): SetChatAvailableReactions;
+            peer: Api.TypeEntityLike;
+            availableReactions: string[];
+        }
+        export class GetAvailableReactions extends Request<
+            Partial<{
+                hash: int;
+            }>,
+            messages.TypeAvailableReactions
+        > {
+            CONSTRUCTOR_ID: 417243308;
+            SUBCLASS_OF_ID: 3827740034;
+            classType: "request";
+            className: "messages.GetAvailableReactions";
+            static fromReader(reader: Reader): GetAvailableReactions;
+            hash: int;
+        }
+        export class SetDefaultReaction extends Request<
+            Partial<{
+                reaction: string;
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 3646997716;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "messages.SetDefaultReaction";
+            static fromReader(reader: Reader): SetDefaultReaction;
+            reaction: string;
         }
     }
 
@@ -20679,7 +20950,8 @@ export namespace Api {
         | UpdateGroupCallConnection
         | UpdateBotCommands
         | UpdatePendingJoinRequests
-        | UpdateBotChatInviteRequester;
+        | UpdateBotChatInviteRequester
+        | UpdateMessageReactions;
     export type TypeUpdates =
         | UpdatesTooLong
         | UpdateShortMessage
@@ -20840,7 +21112,8 @@ export namespace Api {
         | MessageEntityUnderline
         | MessageEntityStrike
         | MessageEntityBlockquote
-        | MessageEntityBankCard;
+        | MessageEntityBankCard
+        | MessageEntitySpoiler;
     export type TypeInputChannel =
         | InputChannelEmpty
         | InputChannel
@@ -21038,7 +21311,8 @@ export namespace Api {
         | ChannelAdminLogEventActionChangeHistoryTTL
         | ChannelAdminLogEventActionParticipantJoinByRequest
         | ChannelAdminLogEventActionToggleNoForwards
-        | ChannelAdminLogEventActionSendMessage;
+        | ChannelAdminLogEventActionSendMessage
+        | ChannelAdminLogEventActionChangeAvailableReactions;
     export type TypeChannelAdminLogEvent = ChannelAdminLogEvent;
     export type TypeChannelAdminLogEventsFilter = ChannelAdminLogEventsFilter;
     export type TypePopularContact = PopularContact;
@@ -21210,6 +21484,10 @@ export namespace Api {
     export type TypeSponsoredMessage = SponsoredMessage;
     export type TypeSearchResultsCalendarPeriod = SearchResultsCalendarPeriod;
     export type TypeSearchResultsPosition = SearchResultPosition;
+    export type TypeReactionCount = ReactionCount;
+    export type TypeMessageReactions = MessageReactions;
+    export type TypeMessageUserReaction = MessageUserReaction;
+    export type TypeAvailableReaction = AvailableReaction;
     export type TypeResPQ = ResPQ;
     export type TypeP_Q_inner_data =
         | PQInnerData
@@ -21540,6 +21818,12 @@ export namespace Api {
         | messages.HideAllChatJoinRequests
         | messages.ToggleNoForwards
         | messages.SaveDefaultSendAs
+        | messages.SendReaction
+        | messages.GetMessagesReactions
+        | messages.GetMessageReactionsList
+        | messages.SetChatAvailableReactions
+        | messages.GetAvailableReactions
+        | messages.SetDefaultReaction
         | updates.GetState
         | updates.GetDifference
         | updates.GetChannelDifference

@@ -223,6 +223,7 @@ export interface SendFileInterface {
     buttons?: MarkupLike;
     /** How many workers to use to upload the file. anything above 16 is unstable. */
     workers?: number;
+    noforwards?: boolean;
 }
 
 interface FileToMediaInterface {
@@ -445,6 +446,7 @@ export async function sendFile(
         supportsStreaming = false,
         scheduleDate,
         workers = 1,
+        noforwards,
     }: SendFileInterface
 ) {
     if (!file) {
@@ -493,6 +495,7 @@ export async function sendFile(
         silent: silent,
         scheduleDate: scheduleDate,
         clearDraft: clearDraft,
+        noforwards: noforwards,
     });
     const result = await client.invoke(request);
     return client._getResponseMessage(request, result, entity) as Api.Message;

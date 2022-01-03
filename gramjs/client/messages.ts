@@ -523,6 +523,7 @@ export interface SendMessageParams {
     supportStreaming?: boolean;
     /** If set, the message won't send immediately, and instead it will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
+    noforwards?: boolean;
 }
 
 /** interface used for forwarding messages */
@@ -536,6 +537,7 @@ export interface ForwardMessagesParams {
     silent?: boolean;
     /** If set, the message(s) won't forward immediately, and instead they will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
+    noforwards?: boolean;
 }
 
 /** Interface for editing messages */
@@ -680,6 +682,7 @@ export async function sendMessage(
         silent,
         supportStreaming,
         schedule,
+        noforwards,
     }: SendMessageParams = {}
 ) {
     if (file) {
@@ -701,6 +704,7 @@ export async function sendMessage(
             silent: silent,
             scheduleDate: schedule,
             buttons: buttons,
+            noforwards: noforwards,
         });
     }
     entity = await client.getInputEntity(entity);
@@ -741,6 +745,7 @@ export async function sendMessage(
             clearDraft: clearDraft,
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
             scheduleDate: schedule,
+            noforwards: noforwards,
         });
         message = message.message;
     } else {
@@ -766,6 +771,7 @@ export async function sendMessage(
             silent: silent,
             replyMarkup: client.buildReplyMarkup(buttons),
             scheduleDate: schedule,
+            noforwards: noforwards,
         });
     }
     const result = await client.invoke(request);
@@ -791,7 +797,7 @@ export async function sendMessage(
 export async function forwardMessages(
     client: TelegramClient,
     entity: EntityLike,
-    { messages, fromPeer, silent, schedule }: ForwardMessagesParams
+    { messages, fromPeer, silent, schedule, noforwards }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
         messages = [messages];
@@ -838,6 +844,7 @@ export async function forwardMessages(
             toPeer: entity,
             silent: silent,
             scheduleDate: schedule,
+            noforwards: noforwards,
         });
         const result = await client.invoke(request);
         sent.push(
