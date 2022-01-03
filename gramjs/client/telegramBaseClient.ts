@@ -21,6 +21,7 @@ import {
     ProxyInterface,
     TCPMTProxy,
 } from "../network/connection/TCPMTProxy";
+import { Semaphore } from "async-mutex";
 
 const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
@@ -105,6 +106,10 @@ export interface TelegramClientParams {
      * Whether to try to connect over Wss (or 443 port) or not.
      */
     useWSS?: boolean;
+    /**
+     * Limits how many downloads happen at the same time.
+     */
+    maxConcurrentDownloads?: number;
 }
 
 const clientParamsDefault = {
@@ -197,7 +202,7 @@ export abstract class TelegramBaseClient {
     _reconnecting: boolean;
     _destroyed: boolean;
     protected _proxy?: ProxyInterface;
-
+    _semaphore: Semaphore;
     constructor(
         session: string | Session,
         apiId: number,
@@ -234,7 +239,9 @@ export abstract class TelegramBaseClient {
         this._timeout = clientParams.timeout!;
         this._autoReconnect = clientParams.autoReconnect!;
         this._proxy = clientParams.proxy;
-
+        this._semaphore = new Semaphore(
+            clientParams.maxConcurrentDownloads || 1
+        );
         if (!(clientParams.connection instanceof Function)) {
             throw new Error("Connection should be a class not an instance");
         }
@@ -289,7 +296,10 @@ export abstract class TelegramBaseClient {
     set floodSleepThreshold(value: number) {
         this._floodSleepThreshold = Math.min(value || 0, 24 * 60 * 60);
     }
-
+    set maxConcurrentDownloads(value:number) {
+        // @ts-ignore
+        this._semaphore._value = value;
+    }
     // region connecting
     async _initSession() {
         await this.session.load();

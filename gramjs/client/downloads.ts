@@ -72,124 +72,129 @@ export async function downloadFile(
     inputLocation: Api.TypeInputFileLocation,
     fileParams: DownloadFileParams
 ) {
-    let { partSizeKb, end } = fileParams;
-    const { fileSize, workers = 1 } = fileParams;
-    const { dcId, progressCallback, start = 0 } = fileParams;
-    if (end && fileSize) {
-        end = end < fileSize ? end : fileSize - 1;
-    }
-
-    if (!partSizeKb) {
-        partSizeKb = fileSize
-            ? getAppropriatedPartSize(fileSize)
-            : DEFAULT_CHUNK_SIZE;
-    }
-
-    const partSize = partSizeKb * 1024;
-    const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
-
-    if (partSize % MIN_CHUNK_SIZE !== 0) {
-        throw new Error(
-            `The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`
-        );
-    }
-
-    client._log.info(`Downloading file in chunks of ${partSize} bytes`);
-
-    const foreman = new Foreman(workers);
-    const promises: Promise<any>[] = [];
-    let offset = start;
-    // Used for files with unknown size and for manual cancellations
-    let hasEnded = false;
-
-    let progress = 0;
-    if (progressCallback) {
-        progressCallback(progress);
-    }
-
-    // Preload sender
-    await client.getSender(dcId);
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        let limit = partSize;
-        let isPrecise = false;
-
-        if (
-            Math.floor(offset / ONE_MB) !==
-            Math.floor((offset + limit - 1) / ONE_MB)
-        ) {
-            limit = ONE_MB - (offset % ONE_MB);
-            isPrecise = true;
+    const [value, release] = await client._semaphore.acquire();
+    try {
+        let { partSizeKb, end } = fileParams;
+        const { fileSize, workers = 1 } = fileParams;
+        const { dcId, progressCallback, start = 0 } = fileParams;
+        if (end && fileSize) {
+            end = end < fileSize ? end : fileSize - 1;
         }
 
-        await foreman.requestWorker();
-
-        if (hasEnded) {
-            foreman.releaseWorker();
-            break;
+        if (!partSizeKb) {
+            partSizeKb = fileSize
+                ? getAppropriatedPartSize(fileSize)
+                : DEFAULT_CHUNK_SIZE;
         }
-        // eslint-disable-next-line no-loop-func
-        promises.push(
-            (async (offsetMemo: number) => {
-                // eslint-disable-next-line no-constant-condition
-                while (true) {
-                    let sender;
-                    try {
-                        sender = await client.getSender(dcId);
-                        const result = await sender.send(
-                            new Api.upload.GetFile({
-                                location: inputLocation,
-                                offset: offsetMemo,
-                                limit,
-                                precise: isPrecise || undefined,
-                            })
-                        );
 
-                        if (progressCallback) {
-                            if (progressCallback.isCanceled) {
-                                throw new Error("USER_CANCELED");
+        const partSize = partSizeKb * 1024;
+        const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
+
+        if (partSize % MIN_CHUNK_SIZE !== 0) {
+            throw new Error(
+                `The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`
+            );
+        }
+
+        client._log.info(`Downloading file in chunks of ${partSize} bytes`);
+
+        const foreman = new Foreman(workers);
+        const promises: Promise<any>[] = [];
+        let offset = start;
+        // Used for files with unknown size and for manual cancellations
+        let hasEnded = false;
+
+        let progress = 0;
+        if (progressCallback) {
+            progressCallback(progress);
+        }
+
+        // Preload sender
+        await client.getSender(dcId);
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            let limit = partSize;
+            let isPrecise = false;
+
+            if (
+                Math.floor(offset / ONE_MB) !==
+                Math.floor((offset + limit - 1) / ONE_MB)
+            ) {
+                limit = ONE_MB - (offset % ONE_MB);
+                isPrecise = true;
+            }
+
+            await foreman.requestWorker();
+
+            if (hasEnded) {
+                foreman.releaseWorker();
+                break;
+            }
+            // eslint-disable-next-line no-loop-func
+            promises.push(
+                (async (offsetMemo: number) => {
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        let sender;
+                        try {
+                            sender = await client.getSender(dcId);
+                            const result = await sender.send(
+                                new Api.upload.GetFile({
+                                    location: inputLocation,
+                                    offset: offsetMemo,
+                                    limit,
+                                    precise: isPrecise || undefined,
+                                })
+                            );
+
+                            if (progressCallback) {
+                                if (progressCallback.isCanceled) {
+                                    throw new Error("USER_CANCELED");
+                                }
+
+                                progress += 1 / partsCount;
+                                progressCallback(progress);
                             }
 
-                            progress += 1 / partsCount;
-                            progressCallback(progress);
-                        }
+                            if (!end && result.bytes.length < limit) {
+                                hasEnded = true;
+                            }
 
-                        if (!end && result.bytes.length < limit) {
+                            foreman.releaseWorker();
+
+                            return result.bytes;
+                        } catch (err) {
+                            if (sender && !sender.isConnected()) {
+                                await sleep(DISCONNECT_SLEEP);
+                                continue;
+                            } else if (err instanceof errors.FloodWaitError) {
+                                await sleep(err.seconds * 1000);
+                                continue;
+                            }
+
+                            foreman.releaseWorker();
+
                             hasEnded = true;
+                            throw err;
                         }
-
-                        foreman.releaseWorker();
-
-                        return result.bytes;
-                    } catch (err) {
-                        if (sender && !sender.isConnected()) {
-                            await sleep(DISCONNECT_SLEEP);
-                            continue;
-                        } else if (err instanceof errors.FloodWaitError) {
-                            await sleep(err.seconds * 1000);
-                            continue;
-                        }
-
-                        foreman.releaseWorker();
-
-                        hasEnded = true;
-                        throw err;
                     }
-                }
-            })(offset)
-        );
+                })(offset)
+            );
 
-        offset += limit;
+            offset += limit;
 
-        if (end && offset > end) {
-            break;
+            if (end && offset > end) {
+                break;
+            }
         }
+        const results = await Promise.all(promises);
+        const buffers = results.filter(Boolean);
+        const totalLength = end ? end + 1 - start : undefined;
+        return Buffer.concat(buffers, totalLength);
+    } finally {
+        release();
     }
-    const results = await Promise.all(promises);
-    const buffers = results.filter(Boolean);
-    const totalLength = end ? end + 1 - start : undefined;
-    return Buffer.concat(buffers, totalLength);
 }
 
 class Foreman {
