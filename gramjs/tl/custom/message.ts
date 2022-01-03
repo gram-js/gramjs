@@ -43,6 +43,8 @@ interface MessageBaseInterface {
     ttlPeriod?: number;
     replies?: any;
     action?: any;
+    reactions?: any;
+    noforwards?: any;
     _entities?: Map<string, Entity>;
 }
 
@@ -208,6 +210,8 @@ export class CustomMessage extends SenderGetter {
      * local database, etc.) when this threshold is met.
      */
     ttlPeriod?: number;
+    reactions?: Api.MessageReactions;
+    noforwards?: boolean;
     /** @hidden */
     _actionEntities?: any;
     /** @hidden */
@@ -253,7 +257,6 @@ export class CustomMessage extends SenderGetter {
         id,
         peerId = undefined,
         date = undefined,
-
         out = undefined,
         mentioned = undefined,
         mediaUnread = undefined,
@@ -261,9 +264,7 @@ export class CustomMessage extends SenderGetter {
         post = undefined,
         fromId = undefined,
         replyTo = undefined,
-
         message = undefined,
-
         fwdFrom = undefined,
         viaBotId = undefined,
         media = undefined,
@@ -280,8 +281,9 @@ export class CustomMessage extends SenderGetter {
         restrictionReason = undefined,
         forwards = undefined,
         replies = undefined,
-
         action = undefined,
+        reactions = undefined,
+        noforwards = undefined,
         ttlPeriod = undefined,
         _entities = new Map<string, Entity>(),
     }: MessageBaseInterface) {
@@ -326,6 +328,8 @@ export class CustomMessage extends SenderGetter {
         this.groupedId = groupedId;
         this.restrictionReason = restrictionReason;
         this.action = action;
+        this.noforwards = noforwards;
+        this.reactions = reactions;
 
         this._client = undefined;
         this._text = undefined;
