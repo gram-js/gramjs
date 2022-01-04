@@ -7,6 +7,7 @@ import { isArrayLike, returnBigInt } from "../Helpers";
 import { utils } from "../";
 import { SenderGetter } from "../tl/custom/senderGetter";
 import bigInt from "big-integer";
+import { parseID } from "../Utils";
 
 /** @hidden */
 export async function _intoIdSet(
@@ -24,7 +25,7 @@ export async function _intoIdSet(
         if (
             typeof chat == "number" ||
             typeof chat == "bigint" ||
-            typeof chat == "string" ||
+            (typeof chat == "string" && parseID(chat)) ||
             bigInt.isInstance(chat)
         ) {
             chat = returnBigInt(chat);

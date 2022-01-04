@@ -296,7 +296,7 @@ export abstract class TelegramBaseClient {
     set floodSleepThreshold(value: number) {
         this._floodSleepThreshold = Math.min(value || 0, 24 * 60 * 60);
     }
-    set maxConcurrentDownloads(value:number) {
+    set maxConcurrentDownloads(value: number) {
         // @ts-ignore
         this._semaphore._value = value;
     }

@@ -201,7 +201,10 @@ export class NewMessage extends EventBuilder {
         }
 
         if (this.fromUsers != undefined) {
-            if (!this.fromUsers.includes(event.message.senderId!)) {
+            if (
+                !event.message.senderId ||
+                !this.fromUsers.includes(event.message.senderId.toString())
+            ) {
                 return;
             }
         }
