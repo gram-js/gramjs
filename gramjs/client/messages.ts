@@ -555,7 +555,7 @@ export interface EditMessageParams {
     linkPreview?: boolean;
     /** The file object that should replace the existing media in the message. */
     file?: FileLike;
-    /** thumbnail to be edited. */
+    /** Whether to send the given file as a document or not. */
     forceDocument?: false;
     /** The matrix (list of lists), row list or button to be shown after sending the message.<br/>
      *  This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here.<br/>
