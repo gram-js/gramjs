@@ -15,12 +15,13 @@ import {
     isArrayLike,
     groupBy,
 } from "../Helpers";
-import { getMessageId, getPeerId, parseID } from "../Utils";
+import { getInputMedia, getMessageId, getPeerId, parseID } from "../Utils";
 import type { TelegramClient } from "../";
 import { utils } from "../";
 import { _parseMessageText } from "./messageParse";
 import { _getPeer } from "./users";
 import bigInt from "big-integer";
+import { _fileToMedia } from "./uploads";
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -552,9 +553,9 @@ export interface EditMessageParams {
     formattingEntities?: Api.TypeMessageEntity[];
     /** Should the link preview be shown? */
     linkPreview?: boolean;
-    /** The file object that should replace the existing media in the message. // not supported yet. */
-    file?: FileLike | FileLike[];
-    /** thumbnail to be edited. // not supported yet */
+    /** The file object that should replace the existing media in the message. */
+    file?: FileLike;
+    /** thumbnail to be edited. */
     forceDocument?: false;
     /** The matrix (list of lists), row list or button to be shown after sending the message.<br/>
      *  This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here.<br/>
@@ -871,21 +872,51 @@ export async function editMessage(
     }: EditMessageParams
 ) {
     entity = await client.getInputEntity(entity);
-    if (formattingEntities == undefined) {
-        [text, formattingEntities] = await _parseMessageText(
-            client,
-            text,
-            parseMode
-        );
+    let id: number | undefined;
+    let markup: Api.TypeReplyMarkup | undefined;
+    let entities: Api.TypeMessageEntity[] | undefined;
+    let inputMedia: Api.TypeInputMedia | undefined;
+    if (file) {
+        const { fileHandle, media, image } = await _fileToMedia(client, {
+            file,
+            forceDocument,
+        });
+        inputMedia = media;
+    }
+    if (message instanceof Api.Message) {
+        id = utils.getMessageId(message);
+        text = message.message;
+        entities = message.entities;
+        if (buttons == undefined) {
+            markup = message.replyMarkup;
+        } else {
+            markup = client.buildReplyMarkup(buttons);
+        }
+        if (message.media) {
+            inputMedia = getInputMedia(message.media, { forceDocument });
+        }
+    } else {
+        if (typeof message !== "number") {
+            throw Error(
+                "editMessageParams.message must be either a number or a Api.Message type"
+            );
+        }
+        id = message;
+        if (formattingEntities == undefined) {
+            [text, entities] = await _parseMessageText(client, text, parseMode);
+        } else {
+            entities = formattingEntities;
+        }
+        markup = client.buildReplyMarkup(buttons);
     }
     const request = new Api.messages.EditMessage({
         peer: entity,
-        id: utils.getMessageId(message),
+        id,
         message: text,
         noWebpage: !linkPreview,
-        entities: formattingEntities,
-        //media: no media for now,
-        replyMarkup: client.buildReplyMarkup(buttons),
+        entities,
+        media: inputMedia,
+        replyMarkup: markup,
         scheduleDate: schedule,
     });
     const result = await client.invoke(request);
