@@ -716,10 +716,11 @@ export class TelegramClient extends TelegramBaseClient {
      *  Used to edit a message by changing it's text or media
      *  message refers to the message to be edited not what to edit
      *  text refers to the new text
-     *  See also Message.edit()
+     *  See also Message.edit()<br/>
+     *  Notes: It is not possible to edit the media of a message that doesn't contain media.
      *  @param entity - From which chat to edit the message.<br/>
      *  This can also be the message to be edited, and the entity will be inferred from it, so the next parameter will be assumed to be the message text.<br/>
-     *  You may also pass a InputBotInlineMessageID, which is the only way to edit messages that were sent after the user selects an inline query result.
+     *  You may also pass a InputBotInlineMessageID, which is the only way to edit messages that were sent after the user selects an inline query result. Not supported yet!
      *  @param editMessageParams - see {@link EditMessageParams}.
      *  @return The edited Message.
      *  @throws
