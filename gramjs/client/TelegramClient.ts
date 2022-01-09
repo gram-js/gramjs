@@ -796,7 +796,17 @@ export class TelegramClient extends TelegramBaseClient {
      */
     pinMessage(
         entity: EntityLike,
-        message?: MessageIDLike,
+        message?: undefined,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ): Promise<Api.messages.AffectedHistory>;
+    pinMessage(
+        entity: EntityLike,
+        message: MessageIDLike,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ): Promise<Api.Message>;
+    pinMessage(
+        entity: EntityLike,
+        message?: any,
         pinMessageParams?: messageMethods.UpdatePinMessageParams
     ) {
         return messageMethods.pinMessage(
@@ -831,7 +841,17 @@ export class TelegramClient extends TelegramBaseClient {
      */
     unpinMessage(
         entity: EntityLike,
-        message?: MessageIDLike,
+        message?: undefined,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ): Promise<Api.messages.AffectedHistory>;
+    unpinMessage(
+        entity: EntityLike,
+        message: MessageIDLike,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ): Promise<undefined>;
+    unpinMessage(
+        entity: EntityLike,
+        message?: any,
         unpinMessageParams?: messageMethods.UpdatePinMessageParams
     ) {
         return messageMethods.unpinMessage(
@@ -1071,7 +1091,7 @@ export class TelegramClient extends TelegramBaseClient {
      *  lastName:'',
      *  vcard:''
      *  }))
-     ```
+     * ```
      */
     sendFile(
         entity: EntityLike,
@@ -1150,6 +1170,7 @@ export class TelegramClient extends TelegramBaseClient {
     /**
      * Turns the given entity into a valid Telegram {@link Api.User}, {@link Api.Chat} or {@link Api.Channel}.<br/>
      * You can also pass a list or iterable of entities, and they will be efficiently fetched from the network.
+     * @remark Telegram does not allow to get user profile by integer id if current client had never "saw" it.
      * @param entity - If a username is given, the username will be resolved making an API call every time.<br/>
      * Resolving usernames is an expensive operation and will start hitting flood waits around 50 usernames in a short period of time.<br/>
      * <br/>
