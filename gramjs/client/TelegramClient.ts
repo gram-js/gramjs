@@ -862,6 +862,44 @@ export class TelegramClient extends TelegramBaseClient {
         );
     }
 
+    /**
+     * Marks messages as read and optionally clears mentions. <br/>
+     * This effectively marks a message as read (or more than one) in the given conversation. <br />
+     * If a message or maximum ID is provided, all the messages up to and
+     * including such ID will be marked as read (for all messages whose ID ≤ max_id).
+     *
+     * See also {@link Message.markRead}`.
+     *
+     * @remarks If neither message nor maximum ID are provided, all messages will be marked as read by assuming that `max_id = 0`.
+     * @param entity - The chat where the message should be pinned.
+     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param markAsReadParams - see {@link MarkAsReadParams}.
+     * @return boolean
+     * @example
+     *  ```ts
+     *  // using a Message object
+     *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
+     *  await client.sendReadAcknowledge(chat, message)
+     *  // ...or using the int ID of a Message
+     *  await client.sendReadAcknowledge(chat, message.id);
+     *
+     *  // ...or passing a list of messages to mark as read
+     *  await client.sendReadAcknowledge(chat, messages)
+     *  ```
+     */
+    sendReadAcknowledge(
+        entity: EntityLike,
+        message?: MessageIDLike | MessageIDLike[],
+        markAsReadParams?: messageMethods.MarkAsReadParams
+    ) {
+        return messageMethods.markAsRead(
+            this,
+            entity,
+            message,
+            markAsReadParams
+        );
+    }
+
     //endregion
     //region dialogs
 
@@ -1032,7 +1070,7 @@ export class TelegramClient extends TelegramBaseClient {
     // region uploads
     /**
      * Uploads a file to Telegram's servers, without sending it.
-     * @remark generally it's better to use {@link sendFile} instead.
+     * @remarks generally it's better to use {@link sendFile} instead.
      * This method returns a handle (an instance of InputFile or InputFileBig, as required) which can be later used before it expires (they are usable during less than a day).<br/>
      * Uploading a file will simply return a "handle" to the file stored remotely in the Telegram servers,
      * which can be later used on. This will not upload the file to your own chat or any chat at all.
@@ -1170,7 +1208,7 @@ export class TelegramClient extends TelegramBaseClient {
     /**
      * Turns the given entity into a valid Telegram {@link Api.User}, {@link Api.Chat} or {@link Api.Channel}.<br/>
      * You can also pass a list or iterable of entities, and they will be efficiently fetched from the network.
-     * @remark Telegram does not allow to get user profile by integer id if current client had never "saw" it.
+     * @remarks Telegram does not allow to get user profile by integer id if current client had never "saw" it.
      * @param entity - If a username is given, the username will be resolved making an API call every time.<br/>
      * Resolving usernames is an expensive operation and will start hitting flood waits around 50 usernames in a short period of time.<br/>
      * <br/>
