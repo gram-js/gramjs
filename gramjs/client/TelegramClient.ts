@@ -776,6 +776,72 @@ export class TelegramClient extends TelegramBaseClient {
         });
     }
 
+    /**
+     * Pins a message in a chat.
+     *
+     * See also {@link Message.pin}`.
+     *
+     * @remarks The default behavior is to **not** notify members, unlike the official applications.
+     * @param entity - The chat where the message should be pinned.
+     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param pinMessageParams - see {@link UpdatePinMessageParams}.
+     * @return
+     * The pinned message. if message is undefined the return will be {@link AffectedHistory}
+     * @example
+     *  ```ts
+     *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
+     *
+     *  await client.pinMessage(chat, message);
+     *  ```
+     */
+    pinMessage(
+        entity: EntityLike,
+        message?: MessageIDLike,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ) {
+        return messageMethods.pinMessage(
+            this,
+            entity,
+            message,
+            pinMessageParams
+        );
+    }
+
+    /**
+     * Unpins a message in a chat.
+     *
+     * See also {@link Message.unpin}`.
+     *
+     * @remarks The default behavior is to **not** notify members, unlike the official applications.
+     * @param entity - The chat where the message should be pinned.
+     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param pinMessageParams - see {@link UpdatePinMessageParams}.
+     * @return
+     * The pinned message. if message is undefined the return will be {@link AffectedHistory}
+     * @example
+     *  ```ts
+     *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
+     *
+     *  // unpin one message
+     *  await client.unpinMessage(chat, message);
+     *
+     *  // unpin all messages
+     *  await client.unpinMessage(chat)
+     *  ```
+     */
+    unpinMessage(
+        entity: EntityLike,
+        message?: MessageIDLike,
+        unpinMessageParams?: messageMethods.UpdatePinMessageParams
+    ) {
+        return messageMethods.unpinMessage(
+            this,
+            entity,
+            message,
+            unpinMessageParams
+        );
+    }
+
     //endregion
     //region dialogs
 

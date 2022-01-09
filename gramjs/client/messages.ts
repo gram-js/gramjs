@@ -571,6 +571,18 @@ export interface EditMessageParams {
     schedule?: DateLike;
 }
 
+/** Interface for editing messages */
+export interface UpdatePinMessageParams {
+    /** Whether the pin should notify people or not. <br />
+     *  By default it has the opposite behavior of official clients, it will not notify members.
+     */
+    notify?: boolean;
+    /** Whether the message should be pinned for everyone or not. <br />
+     *  By default it has the opposite behavior of official clients, and it will pin the message for both sides, in private chats.
+     */
+    pmOneSide?: boolean;
+}
+
 /** @hidden */
 export function iterMessages(
     client: TelegramClient,
@@ -887,7 +899,7 @@ export async function editMessage(
         inputMedia = media;
     }
     if (message instanceof Api.Message) {
-        id = utils.getMessageId(message);
+        id = getMessageId(message);
         text = message.message;
         entities = message.entities;
         if (buttons == undefined) {
@@ -982,6 +994,89 @@ export async function deleteMessages(
         }
     }
     return Promise.all(results);
+}
+
+/** @hidden */
+export async function pinMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    message?: MessageIDLike,
+    pinMessageParams?: UpdatePinMessageParams
+) {
+    return await _pin(
+        client,
+        entity,
+        message,
+        false,
+        pinMessageParams?.notify,
+        pinMessageParams?.pmOneSide
+    );
+}
+
+/** @hidden */
+export async function unpinMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    message?: MessageIDLike,
+    unpinMessageParams?: UpdatePinMessageParams
+) {
+    return await _pin(
+        client,
+        entity,
+        message,
+        true,
+        unpinMessageParams?.notify,
+        unpinMessageParams?.pmOneSide
+    );
+}
+
+/** @hidden */
+export async function _pin(
+    client: TelegramClient,
+    entity: EntityLike,
+    message: MessageIDLike | undefined,
+    unpin: boolean,
+    notify: boolean = false,
+    pmOneSide: boolean = false
+) {
+    message = utils.getMessageId(message) || 0;
+    entity = await client.getInputEntity(entity);
+    let request:
+        | Api.messages.UnpinAllMessages
+        | Api.messages.UpdatePinnedMessage;
+
+    if (message === 0) {
+        request = new Api.messages.UnpinAllMessages({
+            peer: entity,
+        });
+        return await client.invoke(request);
+    }
+
+    request = new Api.messages.UpdatePinnedMessage({
+        silent: !notify,
+        unpin,
+        pmOneside: pmOneSide,
+        peer: entity,
+        id: message,
+    });
+    const result = await client.invoke(request);
+
+    /**
+     * Unpinning does not produce a service message.
+     * Pinning a message that was already pinned also produces no service message.
+     * Pinning a message in your own chat does not produce a service message,
+     * but pinning on a private conversation with someone else does.
+     */
+    if (
+        unpin ||
+        !("updates" in result) ||
+        ("updates" in result && !result.updates)
+    ) {
+        return;
+    }
+
+    // Pinning a message that doesn't exist would RPC-error earlier
+    return client._getResponseMessage(request, result, entity) as Api.Message;
 }
 
 // TODO do the rest
