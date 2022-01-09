@@ -821,7 +821,7 @@ export function getInputMedia(
         videoNote = false,
         supportsStreaming = false,
     }: GetInputMediaInterface = {}
-): any {
+): Api.TypeInputMedia {
     if (media.SUBCLASS_OF_ID === undefined) {
         _raiseCastFail(media, "InputMedia");
     }

@@ -6,7 +6,11 @@ import { ChatGetter } from "./chatGetter";
 import * as utils from "../../Utils";
 import { Forward } from "./forward";
 import type { File } from "./file";
-import { EditMessageParams, SendMessageParams } from "../../client/messages";
+import {
+    EditMessageParams,
+    SendMessageParams,
+    UpdatePinMessageParams,
+} from "../../client/messages";
 import { DownloadMediaInterface } from "../../client/downloads";
 import { inspect } from "util";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
@@ -813,6 +817,30 @@ export class CustomMessage extends SenderGetter {
                     revoke,
                 }
             );
+        }
+    }
+
+    async pin(params?: UpdatePinMessageParams) {
+        if (this._client) {
+            const entity = await this.getInputChat();
+            if (entity === undefined) {
+                throw Error(
+                    "Failed to pin message due to cannot get input chat."
+                );
+            }
+            return this._client.pinMessage(entity, this.id, params);
+        }
+    }
+
+    async unpin(params?: UpdatePinMessageParams) {
+        if (this._client) {
+            const entity = await this.getInputChat();
+            if (entity === undefined) {
+                throw Error(
+                    "Failed to unpin message due to cannot get input chat."
+                );
+            }
+            return this._client.unpinMessage(entity, this.id, params);
         }
     }
 

@@ -15,12 +15,13 @@ import {
     isArrayLike,
     groupBy,
 } from "../Helpers";
-import { getMessageId, getPeerId, parseID } from "../Utils";
+import { getInputMedia, getMessageId, getPeerId, parseID } from "../Utils";
 import type { TelegramClient } from "../";
 import { utils } from "../";
 import { _parseMessageText } from "./messageParse";
 import { _getPeer } from "./users";
 import bigInt from "big-integer";
+import { _fileToMedia } from "./uploads";
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -545,16 +546,16 @@ export interface EditMessageParams {
     /** The ID of the message (or Message itself) to be edited. If the entity was a Message, then this message will be treated as the new text. */
     message: Api.Message | number;
     /** The new text of the message. Does nothing if the entity was a Message. */
-    text: string;
+    text?: string;
     /** See the {@link TelegramClient.parseMode} property for allowed values. Markdown parsing will be used by default. */
     parseMode?: any;
     /** A list of message formatting entities. When provided, the parseMode is ignored. */
     formattingEntities?: Api.TypeMessageEntity[];
     /** Should the link preview be shown? */
     linkPreview?: boolean;
-    /** The file object that should replace the existing media in the message. // not supported yet. */
-    file?: FileLike | FileLike[];
-    /** thumbnail to be edited. // not supported yet */
+    /** The file object that should replace the existing media in the message. Does nothing if entity was a Message */
+    file?: FileLike;
+    /** Whether to send the given file as a document or not. */
     forceDocument?: false;
     /** The matrix (list of lists), row list or button to be shown after sending the message.<br/>
      *  This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here.<br/>
@@ -568,6 +569,18 @@ export interface EditMessageParams {
     buttons?: MarkupLike;
     /** If set, the message won't be edited immediately, and instead it will be scheduled to be automatically edited at a later time. */
     schedule?: DateLike;
+}
+
+/** Interface for editing messages */
+export interface UpdatePinMessageParams {
+    /** Whether the pin should notify people or not. <br />
+     *  By default it has the opposite behavior of official clients, it will not notify members.
+     */
+    notify?: boolean;
+    /** Whether the message should be pinned for everyone or not. <br />
+     *  By default it has the opposite behavior of official clients, and it will pin the message for both sides, in private chats.
+     */
+    pmOneSide?: boolean;
 }
 
 /** @hidden */
@@ -870,22 +883,59 @@ export async function editMessage(
         schedule,
     }: EditMessageParams
 ) {
+    if (typeof message === "number" && typeof text === "undefined" && !file) {
+        throw Error("You have to provide either file and text property.");
+    }
     entity = await client.getInputEntity(entity);
-    if (formattingEntities == undefined) {
-        [text, formattingEntities] = await _parseMessageText(
-            client,
-            text,
-            parseMode
-        );
+    let id: number | undefined;
+    let markup: Api.TypeReplyMarkup | undefined;
+    let entities: Api.TypeMessageEntity[] | undefined;
+    let inputMedia: Api.TypeInputMedia | undefined;
+    if (file) {
+        const { fileHandle, media, image } = await _fileToMedia(client, {
+            file,
+            forceDocument,
+        });
+        inputMedia = media;
+    }
+    if (message instanceof Api.Message) {
+        id = getMessageId(message);
+        text = message.message;
+        entities = message.entities;
+        if (buttons == undefined) {
+            markup = message.replyMarkup;
+        } else {
+            markup = client.buildReplyMarkup(buttons);
+        }
+        if (message.media) {
+            inputMedia = getInputMedia(message.media, { forceDocument });
+        }
+    } else {
+        if (typeof message !== "number") {
+            throw Error(
+                "editMessageParams.message must be either a number or a Api.Message type"
+            );
+        }
+        id = message;
+        if (formattingEntities == undefined) {
+            [text, entities] = await _parseMessageText(
+                client,
+                text || "",
+                parseMode
+            );
+        } else {
+            entities = formattingEntities;
+        }
+        markup = client.buildReplyMarkup(buttons);
     }
     const request = new Api.messages.EditMessage({
         peer: entity,
-        id: utils.getMessageId(message),
+        id,
         message: text,
         noWebpage: !linkPreview,
-        entities: formattingEntities,
-        //media: no media for now,
-        replyMarkup: client.buildReplyMarkup(buttons),
+        entities,
+        media: inputMedia,
+        replyMarkup: markup,
         scheduleDate: schedule,
     });
     const result = await client.invoke(request);
@@ -944,6 +994,89 @@ export async function deleteMessages(
         }
     }
     return Promise.all(results);
+}
+
+/** @hidden */
+export async function pinMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    message?: MessageIDLike,
+    pinMessageParams?: UpdatePinMessageParams
+) {
+    return await _pin(
+        client,
+        entity,
+        message,
+        false,
+        pinMessageParams?.notify,
+        pinMessageParams?.pmOneSide
+    );
+}
+
+/** @hidden */
+export async function unpinMessage(
+    client: TelegramClient,
+    entity: EntityLike,
+    message?: MessageIDLike,
+    unpinMessageParams?: UpdatePinMessageParams
+) {
+    return await _pin(
+        client,
+        entity,
+        message,
+        true,
+        unpinMessageParams?.notify,
+        unpinMessageParams?.pmOneSide
+    );
+}
+
+/** @hidden */
+export async function _pin(
+    client: TelegramClient,
+    entity: EntityLike,
+    message: MessageIDLike | undefined,
+    unpin: boolean,
+    notify: boolean = false,
+    pmOneSide: boolean = false
+) {
+    message = utils.getMessageId(message) || 0;
+    entity = await client.getInputEntity(entity);
+    let request:
+        | Api.messages.UnpinAllMessages
+        | Api.messages.UpdatePinnedMessage;
+
+    if (message === 0) {
+        request = new Api.messages.UnpinAllMessages({
+            peer: entity,
+        });
+        return await client.invoke(request);
+    }
+
+    request = new Api.messages.UpdatePinnedMessage({
+        silent: !notify,
+        unpin,
+        pmOneside: pmOneSide,
+        peer: entity,
+        id: message,
+    });
+    const result = await client.invoke(request);
+
+    /**
+     * Unpinning does not produce a service message.
+     * Pinning a message that was already pinned also produces no service message.
+     * Pinning a message in your own chat does not produce a service message,
+     * but pinning on a private conversation with someone else does.
+     */
+    if (
+        unpin ||
+        !("updates" in result) ||
+        ("updates" in result && !result.updates)
+    ) {
+        return;
+    }
+
+    // Pinning a message that doesn't exist would RPC-error earlier
+    return client._getResponseMessage(request, result, entity) as Api.Message;
 }
 
 // TODO do the rest

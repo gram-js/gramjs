@@ -716,10 +716,11 @@ export class TelegramClient extends TelegramBaseClient {
      *  Used to edit a message by changing it's text or media
      *  message refers to the message to be edited not what to edit
      *  text refers to the new text
-     *  See also Message.edit()
+     *  See also Message.edit()<br/>
+     *  Notes: It is not possible to edit the media of a message that doesn't contain media.
      *  @param entity - From which chat to edit the message.<br/>
      *  This can also be the message to be edited, and the entity will be inferred from it, so the next parameter will be assumed to be the message text.<br/>
-     *  You may also pass a InputBotInlineMessageID, which is the only way to edit messages that were sent after the user selects an inline query result.
+     *  You may also pass a InputBotInlineMessageID, which is the only way to edit messages that were sent after the user selects an inline query result. Not supported yet!
      *  @param editMessageParams - see {@link EditMessageParams}.
      *  @return The edited Message.
      *  @throws
@@ -773,6 +774,72 @@ export class TelegramClient extends TelegramBaseClient {
         return messageMethods.deleteMessages(this, entity, messageIds, {
             revoke: revoke,
         });
+    }
+
+    /**
+     * Pins a message in a chat.
+     *
+     * See also {@link Message.pin}`.
+     *
+     * @remarks The default behavior is to **not** notify members, unlike the official applications.
+     * @param entity - The chat where the message should be pinned.
+     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param pinMessageParams - see {@link UpdatePinMessageParams}.
+     * @return
+     * The pinned message. if message is undefined the return will be {@link AffectedHistory}
+     * @example
+     *  ```ts
+     *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
+     *
+     *  await client.pinMessage(chat, message);
+     *  ```
+     */
+    pinMessage(
+        entity: EntityLike,
+        message?: MessageIDLike,
+        pinMessageParams?: messageMethods.UpdatePinMessageParams
+    ) {
+        return messageMethods.pinMessage(
+            this,
+            entity,
+            message,
+            pinMessageParams
+        );
+    }
+
+    /**
+     * Unpins a message in a chat.
+     *
+     * See also {@link Message.unpin}`.
+     *
+     * @remarks The default behavior is to **not** notify members, unlike the official applications.
+     * @param entity - The chat where the message should be pinned.
+     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param pinMessageParams - see {@link UpdatePinMessageParams}.
+     * @return
+     * The pinned message. if message is undefined the return will be {@link AffectedHistory}
+     * @example
+     *  ```ts
+     *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
+     *
+     *  // unpin one message
+     *  await client.unpinMessage(chat, message);
+     *
+     *  // unpin all messages
+     *  await client.unpinMessage(chat)
+     *  ```
+     */
+    unpinMessage(
+        entity: EntityLike,
+        message?: MessageIDLike,
+        unpinMessageParams?: messageMethods.UpdatePinMessageParams
+    ) {
+        return messageMethods.unpinMessage(
+            this,
+            entity,
+            message,
+            unpinMessageParams
+        );
     }
 
     //endregion
