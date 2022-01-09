@@ -1040,19 +1040,18 @@ export async function _pin(
     pmOneSide: boolean = false
 ) {
     message = utils.getMessageId(message) || 0;
-    entity = await client.getInputEntity(entity);
-    let request:
-        | Api.messages.UnpinAllMessages
-        | Api.messages.UpdatePinnedMessage;
 
     if (message === 0) {
-        request = new Api.messages.UnpinAllMessages({
-            peer: entity,
-        });
-        return await client.invoke(request);
+        return await client.invoke(
+            new Api.messages.UnpinAllMessages({
+                peer: entity,
+            })
+        );
     }
 
-    request = new Api.messages.UpdatePinnedMessage({
+    entity = await client.getInputEntity(entity);
+
+    const request = new Api.messages.UpdatePinnedMessage({
         silent: !notify,
         unpin,
         pmOneside: pmOneSide,
