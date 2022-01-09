@@ -546,14 +546,14 @@ export interface EditMessageParams {
     /** The ID of the message (or Message itself) to be edited. If the entity was a Message, then this message will be treated as the new text. */
     message: Api.Message | number;
     /** The new text of the message. Does nothing if the entity was a Message. */
-    text: string;
+    text?: string;
     /** See the {@link TelegramClient.parseMode} property for allowed values. Markdown parsing will be used by default. */
     parseMode?: any;
     /** A list of message formatting entities. When provided, the parseMode is ignored. */
     formattingEntities?: Api.TypeMessageEntity[];
     /** Should the link preview be shown? */
     linkPreview?: boolean;
-    /** The file object that should replace the existing media in the message. */
+    /** The file object that should replace the existing media in the message. Does nothing if entity was a Message */
     file?: FileLike;
     /** Whether to send the given file as a document or not. */
     forceDocument?: false;
@@ -871,6 +871,9 @@ export async function editMessage(
         schedule,
     }: EditMessageParams
 ) {
+    if (typeof message === "number" && typeof text === "undefined" && !file) {
+        throw Error("You have to provide either file and text property.");
+    }
     entity = await client.getInputEntity(entity);
     let id: number | undefined;
     let markup: Api.TypeReplyMarkup | undefined;
@@ -903,7 +906,11 @@ export async function editMessage(
         }
         id = message;
         if (formattingEntities == undefined) {
-            [text, entities] = await _parseMessageText(client, text, parseMode);
+            [text, entities] = await _parseMessageText(
+                client,
+                text || "",
+                parseMode
+            );
         } else {
             entities = formattingEntities;
         }
