@@ -859,7 +859,7 @@ export class TelegramClient extends TelegramBaseClient {
             entity,
             message,
             unpinMessageParams
-        );
+        ) as Promise<Api.messages.AffectedHistory | undefined>;
     }
 
     /**
