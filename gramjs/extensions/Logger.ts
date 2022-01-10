@@ -22,13 +22,13 @@ export class Logger {
         info: string;
     };
     private messageFormat: string;
-    private logLevel: LogLevel;
+    private _logLevel: LogLevel;
 
     constructor(level?: LogLevel) {
         // if (!_level) {
         //     _level = level || "info"; // defaults to info
         // }
-        this.logLevel = level || LogLevel.INFO;
+        this._logLevel = level || LogLevel.INFO;
         this.isBrowser = !IS_NODE;
         if (!this.isBrowser) {
             this.colors = {
@@ -58,8 +58,8 @@ export class Logger {
      * @returns {boolean}
      */
     canSend(level: LogLevel) {
-        return this.logLevel
-            ? this.levels.indexOf(this.logLevel) >= this.levels.indexOf(level)
+        return this._logLevel
+            ? this.levels.indexOf(this._logLevel) >= this.levels.indexOf(level)
             : false;
     }
 
@@ -91,6 +91,10 @@ export class Logger {
         this._log(LogLevel.ERROR, message, this.colors.error);
     }
 
+    deprecationWarning(message: string) {
+        this.warn(message);
+    }
+
     format(message: string, level: string) {
         return this.messageFormat
             .replace("%t", new Date().toISOString())
@@ -98,8 +102,18 @@ export class Logger {
             .replace("%m", message);
     }
 
+    get logLevel() {
+        return this._logLevel;
+    }
+
     setLevel(level: LogLevel) {
-        this.logLevel = level;
+        this._logLevel = level;
+    }
+
+    static setLevel(level: string) {
+        console.log(
+            "Logger.setLevel is deprecated, it will has no effect. Please, use client.setLogLevel instead."
+        );
     }
 
     /**
