@@ -850,7 +850,7 @@ export class CustomMessage extends SenderGetter {
             return this._client.downloadMedia(this as any, params);
     }
 
-    async markRead() {
+    async markAsRead() {
         if (this._client) {
             const entity = await this.getInputChat();
             if (entity === undefined) {
@@ -858,7 +858,7 @@ export class CustomMessage extends SenderGetter {
                     `Failed to mark message id ${this.id} as read due to cannot get input chat.`
                 );
             }
-            return this._client.sendReadAcknowledge(entity, this.id);
+            return this._client.markAsRead(entity, this.id);
         }
     }
 
