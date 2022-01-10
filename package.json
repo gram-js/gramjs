@@ -5,6 +5,8 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "start": "ts-node gramjs/example.ts",
+    "dev": "ts-node-dev --respawn gramjs/example.ts",
     "test": "jest"
   },
   "repository": {
@@ -45,6 +47,7 @@
     "raw-loader": "^4.0.2",
     "ts-loader": "^8.0.16",
     "ts-node": "^9.1.1",
+    "ts-node-dev": "^1.1.8",
     "typedoc": "^0.21.0",
     "typescript": "^4.2.4",
     "webpack": "^5.21.2",
