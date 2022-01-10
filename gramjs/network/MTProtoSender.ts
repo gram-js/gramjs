@@ -31,6 +31,7 @@ import {
 } from "../errors";
 import { Connection, UpdateConnectionState } from "./";
 import type { TelegramClient } from "..";
+import { LogLevel } from "../extensions/Logger";
 
 interface DEFAULT_OPTIONS {
     logger: any;
@@ -247,7 +248,7 @@ export class MTProtoSender {
                 this._log.error(
                     `WebSocket connection failed attempt: ${attempt + 1}`
                 );
-                if (this._log.canSend("error")) {
+                if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
                 await sleep(this._delay);
