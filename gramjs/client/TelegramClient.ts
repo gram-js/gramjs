@@ -879,15 +879,15 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```ts
      *  // using a Message object
      *  const message = await client.sendMessage(chat, 'GramJS is awesome!');
-     *  await client.sendReadAcknowledge(chat, message)
+     *  await client.markAsRead(chat, message)
      *  // ...or using the int ID of a Message
-     *  await client.sendReadAcknowledge(chat, message.id);
+     *  await client.markAsRead(chat, message.id);
      *
      *  // ...or passing a list of messages to mark as read
-     *  await client.sendReadAcknowledge(chat, messages)
+     *  await client.markAsRead(chat, messages)
      *  ```
      */
-    sendReadAcknowledge(
+    markAsRead(
         entity: EntityLike,
         message?: MessageIDLike | MessageIDLike[],
         markAsReadParams?: messageMethods.MarkAsReadParams
