@@ -11,6 +11,7 @@ import {
 import { errors, utils } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
+import { LogLevel } from "../extensions/Logger";
 
 // UserMethods {
 // region Invoking Telegram request
@@ -330,7 +331,7 @@ export async function getInputEntity(
 
             return utils.getInputPeer(channels.chats[0]);
         } catch (e) {
-            if (client._log.canSend("error")) {
+            if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

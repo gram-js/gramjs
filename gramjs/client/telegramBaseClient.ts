@@ -22,6 +22,7 @@ import {
     TCPMTProxy,
 } from "../network/connection/TCPMTProxy";
 import { Semaphore } from "async-mutex";
+import { LogLevel } from "../extensions/Logger";
 
 const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
@@ -99,9 +100,11 @@ export interface TelegramClientParams {
      */
     systemLangCode?: string;
     /**
-     * Does nothing for now. don't change.
+     * Instance of Logger to use. <br />
+     * If a `Logger` is given, it'll be used directly. If nothing is given, the default logger will be used. <br />
+     * To create your own Logger make sure you extends GramJS logger {@link Logger} and override `log` method.
      */
-    baseLogger?: string | any;
+    baseLogger?: Logger;
     /**
      * Whether to try to connect over Wss (or 443 port) or not.
      */
@@ -128,7 +131,6 @@ const clientParamsDefault = {
     appVersion: "",
     langCode: "en",
     systemLangCode: "en",
-    baseLogger: "gramjs",
     useWSS:
         typeof window !== "undefined"
             ? window.location.protocol == "https:"
@@ -213,10 +215,10 @@ export abstract class TelegramBaseClient {
         if (!apiId || !apiHash) {
             throw new Error("Your API ID or Hash cannot be empty or undefined");
         }
-        if (typeof clientParams.baseLogger == "string") {
-            this._log = new Logger();
-        } else {
+        if (clientParams.baseLogger) {
             this._log = clientParams.baseLogger;
+        } else {
+            this._log = new Logger();
         }
         this._log.info("Running gramJS version " + version);
         if (session && typeof session == "string") {
@@ -428,7 +430,7 @@ export abstract class TelegramBaseClient {
                     sender.userDisconnected = false;
                     return sender;
                 }
-                if (this._log.canSend("error")) {
+                if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
 
@@ -466,7 +468,7 @@ export abstract class TelegramBaseClient {
                 }
             }
         } catch (err) {
-            if (this._log.canSend("error")) {
+            if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
             return this._borrowExportedSender(dcId, true);
@@ -519,5 +521,13 @@ export abstract class TelegramBaseClient {
 
     invoke<R extends Api.AnyRequest>(request: R): Promise<R["__response"]> {
         throw new Error("Cannot be called from here!");
+    }
+
+    setLogLevel(level: LogLevel) {
+        this._log.setLevel(level);
+    }
+
+    get logger() {
+        return this._log;
     }
 }

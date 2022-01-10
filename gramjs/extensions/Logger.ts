@@ -1,9 +1,17 @@
 import { IS_NODE } from "../Helpers";
 
-let _level: string | undefined = undefined;
+// let _level: string | undefined = undefined;
+
+export enum LogLevel {
+    NONE = "none",
+    ERROR = "error",
+    WARN = "warn",
+    INFO = "info",
+    DEBUG = "debug",
+}
 
 export class Logger {
-    static levels = ["error", "warn", "info", "debug"];
+    private levels = ["error", "warn", "info", "debug"];
     private readonly isBrowser: boolean;
     private colors: {
         warn: string;
@@ -14,11 +22,13 @@ export class Logger {
         info: string;
     };
     private messageFormat: string;
+    private _logLevel: LogLevel;
 
-    constructor(level?: string) {
-        if (!_level) {
-            _level = level || "info"; // defaults to info
-        }
+    constructor(level?: LogLevel) {
+        // if (!_level) {
+        //     _level = level || "info"; // defaults to info
+        // }
+        this._logLevel = level || LogLevel.INFO;
         this.isBrowser = !IS_NODE;
         if (!this.isBrowser) {
             this.colors = {
@@ -47,9 +57,9 @@ export class Logger {
      * @param level {string}
      * @returns {boolean}
      */
-    canSend(level: string) {
-        return _level
-            ? Logger.levels.indexOf(_level) >= Logger.levels.indexOf(level)
+    canSend(level: LogLevel) {
+        return this._logLevel
+            ? this.levels.indexOf(this._logLevel) >= this.levels.indexOf(level)
             : false;
     }
 
@@ -57,28 +67,28 @@ export class Logger {
      * @param message {string}
      */
     warn(message: string) {
-        this._log("warn", message, this.colors.warn);
+        this._log(LogLevel.WARN, message, this.colors.warn);
     }
 
     /**
      * @param message {string}
      */
     info(message: string) {
-        this._log("info", message, this.colors.info);
+        this._log(LogLevel.INFO, message, this.colors.info);
     }
 
     /**
      * @param message {string}
      */
     debug(message: string) {
-        this._log("debug", message, this.colors.debug);
+        this._log(LogLevel.DEBUG, message, this.colors.debug);
     }
 
     /**
      * @param message {string}
      */
     error(message: string) {
-        this._log("error", message, this.colors.error);
+        this._log(LogLevel.ERROR, message, this.colors.error);
     }
 
     format(message: string, level: string) {
@@ -88,8 +98,18 @@ export class Logger {
             .replace("%m", message);
     }
 
+    get logLevel() {
+        return this._logLevel;
+    }
+
+    setLevel(level: LogLevel) {
+        this._logLevel = level;
+    }
+
     static setLevel(level: string) {
-        _level = level;
+        console.log(
+            "Logger.setLevel is deprecated, it will has no effect. Please, use client.setLogLevel instead."
+        );
     }
 
     /**
@@ -97,22 +117,27 @@ export class Logger {
      * @param message {string}
      * @param color {string}
      */
-    _log(level: string, message: string, color: string) {
-        if (!_level) {
+    _log(level: LogLevel, message: string, color: string) {
+        if (this.canSend(level)) {
+            this.log(level, message, color);
+        } else {
             return;
         }
-        if (this.canSend(level)) {
-            if (!this.isBrowser) {
-                console.log(
-                    color + this.format(message, level) + this.colors.end
-                );
-            } else {
-                console.log(
-                    this.colors.start + this.format(message, level),
-                    color
-                );
-            }
+    }
+
+    /**
+     * Override this function for custom Logger. <br />
+     *
+     * @remarks use `this.isBrowser` to check and handle for different environment.
+     * @param level {string}
+     * @param message {string}
+     * @param color {string}
+     */
+    log(level: LogLevel, message: string, color: string) {
+        if (!this.isBrowser) {
+            console.log(color + this.format(message, level) + this.colors.end);
         } else {
+            console.log(this.colors.start + this.format(message, level), color);
         }
     }
 }
