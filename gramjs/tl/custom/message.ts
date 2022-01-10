@@ -16,6 +16,7 @@ import { inspect } from "util";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import { _selfId } from "../../client/users";
 import bigInt, { BigInteger } from "big-integer";
+import { LogLevel } from "../../extensions/Logger";
 
 interface MessageBaseInterface {
     id: any;
@@ -509,7 +510,7 @@ export class CustomMessage extends SenderGetter {
                 "Got error while trying to finish init message with id " +
                     this.id
             );
-            if (this._client._log.canSend("error")) {
+            if (this._client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

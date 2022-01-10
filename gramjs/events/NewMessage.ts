@@ -8,6 +8,7 @@ import type { Entity, EntityLike } from "../define";
 import type { TelegramClient } from "..";
 import { Api } from "../tl";
 import bigInt from "big-integer";
+import { LogLevel } from "../extensions/Logger";
 
 export interface NewMessageInterface extends DefaultEventInterface {
     func?: { (event: NewMessageEvent): boolean };
@@ -257,7 +258,7 @@ export class NewMessageEvent extends EventCommon {
             client._log.error(
                 "Got error while trying to finish init message with id " + m.id
             );
-            if (client._log.canSend("error")) {
+            if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

@@ -5,6 +5,7 @@ import { Dialog } from "../tl/custom/dialog";
 import { DateLike, EntityLike } from "../define";
 import { TotalList } from "../Helpers";
 import bigInt from "big-integer";
+import { LogLevel } from "../extensions/Logger";
 
 const _MAX_CHUNK_SIZE = 100;
 
@@ -117,7 +118,7 @@ export class _DialogsIter extends RequestIter {
                     "Got error while trying to finish init message with id " +
                         m.id
                 );
-                if (this.client._log.canSend("error")) {
+                if (this.client._log.canSend(LogLevel.ERROR)) {
                     console.error(e);
                 }
             }
