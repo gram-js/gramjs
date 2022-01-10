@@ -823,8 +823,8 @@ export class TelegramClient extends TelegramBaseClient {
      * See also {@link Message.unpin}`.
      *
      * @remarks The default behavior is to **not** notify members, unlike the official applications.
-     * @param entity - The chat where the message should be pinned.
-     * @param message - The message or the message ID to pin. If it's `undefined`, all messages will be unpinned instead.
+     * @param entity - The chat where the message should be unpinned.
+     * @param message - The message or the message ID to unpin. If it's `undefined`, all messages will be unpinned instead.
      * @param pinMessageParams - see {@link UpdatePinMessageParams}.
      * @return
      * The pinned message. if message is undefined the return will be {@link AffectedHistory}
@@ -836,7 +836,7 @@ export class TelegramClient extends TelegramBaseClient {
      *  await client.unpinMessage(chat, message);
      *
      *  // unpin all messages
-     *  await client.unpinMessage(chat)
+     *  await client.unpinMessage(chat);
      *  ```
      */
     unpinMessage(
