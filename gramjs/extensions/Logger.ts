@@ -91,10 +91,6 @@ export class Logger {
         this._log(LogLevel.ERROR, message, this.colors.error);
     }
 
-    deprecationWarning(message: string) {
-        this.warn(message);
-    }
-
     format(message: string, level: string) {
         return this.messageFormat
             .replace("%t", new Date().toISOString())
