@@ -583,6 +583,20 @@ export interface UpdatePinMessageParams {
     pmOneSide?: boolean;
 }
 
+/** Interface for mark message as read */
+export interface MarkAsReadParams {
+    /**
+     * Until which message should the read acknowledge be sent for. <br />
+     * This has priority over the `message` parameter.
+     */
+    maxId?: number;
+    /**
+     * Whether the mention badge should be cleared (so that there are no more mentions) or not for the given entity. <br />
+     * If no message is provided, this will be the only action taken.
+     */
+    clearMentions?: boolean;
+}
+
 /** @hidden */
 export function iterMessages(
     client: TelegramClient,
@@ -1040,19 +1054,18 @@ export async function _pin(
     pmOneSide: boolean = false
 ) {
     message = utils.getMessageId(message) || 0;
-    entity = await client.getInputEntity(entity);
-    let request:
-        | Api.messages.UnpinAllMessages
-        | Api.messages.UpdatePinnedMessage;
 
     if (message === 0) {
-        request = new Api.messages.UnpinAllMessages({
-            peer: entity,
-        });
-        return await client.invoke(request);
+        return await client.invoke(
+            new Api.messages.UnpinAllMessages({
+                peer: entity,
+            })
+        );
     }
 
-    request = new Api.messages.UpdatePinnedMessage({
+    entity = await client.getInputEntity(entity);
+
+    const request = new Api.messages.UpdatePinnedMessage({
         silent: !notify,
         unpin,
         pmOneside: pmOneSide,
@@ -1077,6 +1090,47 @@ export async function _pin(
 
     // Pinning a message that doesn't exist would RPC-error earlier
     return client._getResponseMessage(request, result, entity) as Api.Message;
+}
+
+/** @hidden */
+export async function markAsRead(
+    client: TelegramClient,
+    entity: EntityLike,
+    message?: MessageIDLike | MessageIDLike[],
+    markAsReadParams?: MarkAsReadParams
+): Promise<boolean> {
+    let maxId: number = markAsReadParams?.maxId || 0;
+    const maxIdIsUndefined = markAsReadParams?.maxId === undefined;
+    if (maxIdIsUndefined) {
+        if (message) {
+            if (Array.isArray(message)) {
+                maxId = Math.max(
+                    ...message.map((v) => utils.getMessageId(v) as number)
+                );
+            } else {
+                maxId = utils.getMessageId(message) as number;
+            }
+        }
+    }
+
+    entity = await client.getInputEntity(entity);
+    if (markAsReadParams && !markAsReadParams.clearMentions) {
+        await client.invoke(new Api.messages.ReadMentions({ peer: entity }));
+        if (maxIdIsUndefined && message === undefined) {
+            return true;
+        }
+    }
+
+    if (_entityType(entity) === _EntityType.CHANNEL) {
+        return await client.invoke(
+            new Api.channels.ReadHistory({ channel: entity, maxId })
+        );
+    } else {
+        await client.invoke(
+            new Api.messages.ReadHistory({ peer: entity, maxId })
+        );
+        return true;
+    }
 }
 
 // TODO do the rest

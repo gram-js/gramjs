@@ -850,6 +850,18 @@ export class CustomMessage extends SenderGetter {
             return this._client.downloadMedia(this as any, params);
     }
 
+    async markAsRead() {
+        if (this._client) {
+            const entity = await this.getInputChat();
+            if (entity === undefined) {
+                throw Error(
+                    `Failed to mark message id ${this.id} as read due to cannot get input chat.`
+                );
+            }
+            return this._client.markAsRead(entity, this.id);
+        }
+    }
+
     /* TODO doesn't look good enough.
     async click({ i = undefined, j = undefined, text = undefined, filter = undefined, data = undefined }) {
         if (!this._client) return;
@@ -905,27 +917,6 @@ export class CustomMessage extends SenderGetter {
         if (!j) return this._buttonsFlat[i].click();
         else return this._buttons[i][j].click();
     }
-*/
-    /* TODO add missing friendly functions
-    async markRead() {
-        if (this._client) {
-            await this._client.sendReadAcknowledge({
-                entity: await this.getInputChat(),
-                maxId: this.id
-            });
-        }
-    }
-
-    async pin(notify = false) {
-        if (this._client) {
-            await this._client.pinMessage({
-                entity: await this.getInputChat(),
-                message: this.id,
-                notify: notify
-            });
-        }
-    }
-*/
     /*
         _setButtons(chat, bot) {
             // TODO: Implement MessageButton
