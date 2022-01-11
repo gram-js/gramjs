@@ -1,4 +1,4 @@
-import type { Entity, EntityLike, FileLike } from "./define";
+import type { Entity, EntityLike, FileLike, MessageIDLike } from "./define";
 import { Api } from "./tl";
 import bigInt from "big-integer";
 import * as markdown from "./extensions/markdown";
@@ -1171,19 +1171,19 @@ export function  _getEntityPair(entityId, entities, cache, getInputPeer = getInp
 }
 */
 
-export function getMessageId(message: any): number | undefined {
+export function getMessageId(
+    message: number | Api.TypeMessage | MessageIDLike
+): number | undefined {
     if (message === null || message === undefined) {
         return undefined;
-    }
-    if (typeof message == "number") {
+    } else if (typeof message === "number") {
         return message;
-    }
-
-    if (message.SUBCLASS_OF_ID === 0x790009e3) {
+    } else if (message.SUBCLASS_OF_ID === 0x790009e3 || "id" in message) {
         // crc32(b'Message')
         return message.id;
+    } else {
+        throw new Error(`Invalid message type: ${message.constructor.name}`);
     }
-    throw new Error(`Invalid message type: ${message.constructor.name}`);
 }
 
 /**
