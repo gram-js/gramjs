@@ -1172,13 +1172,14 @@ export function  _getEntityPair(entityId, entities, cache, getInputPeer = getInp
 */
 
 export function getMessageId(
-    message?: number | Api.TypeMessage | MessageIDLike
+    message: number | Api.TypeMessage | MessageIDLike
 ): number | undefined {
     if (message === null || message === undefined) {
         return undefined;
     } else if (typeof message === "number") {
         return message;
-    } else if ("id" in message) {
+    } else if (message.SUBCLASS_OF_ID === 0x790009e3 || "id" in message) {
+        // crc32(b'Message')
         return message.id;
     } else {
         throw new Error(`Invalid message type: ${message.constructor.name}`);
