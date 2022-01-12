@@ -28,6 +28,7 @@ import { inspect } from "util";
 import { Album, AlbumEvent } from "../events/Album";
 import { CallbackQuery, CallbackQueryEvent } from "../events/CallbackQuery";
 import { EditedMessage, EditedMessageEvent } from "../events/EditedMessage";
+import { DeletedMessage, DeletedMessageEvent } from "../events/DeletedMessage";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -1045,6 +1046,10 @@ export class TelegramClient extends TelegramBaseClient {
     addEventHandler(
         callback: { (event: EditedMessageEvent): void },
         event: EditedMessage
+    ): void;
+    addEventHandler(
+        callback: { (event: DeletedMessageEvent): void },
+        event: DeletedMessage
     ): void;
     addEventHandler(
         callback: { (event: any): void },
