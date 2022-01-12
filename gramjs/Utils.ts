@@ -1172,7 +1172,7 @@ export function  _getEntityPair(entityId, entities, cache, getInputPeer = getInp
 */
 
 export function getMessageId(
-    message: number | Api.TypeMessage | MessageIDLike
+    message: number | Api.TypeMessage | MessageIDLike | undefined
 ): number | undefined {
     if (message === null || message === undefined) {
         return undefined;
