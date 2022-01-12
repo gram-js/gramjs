@@ -1174,7 +1174,7 @@ export function  _getEntityPair(entityId, entities, cache, getInputPeer = getInp
 export function getMessageId(
     message: number | Api.TypeMessage | MessageIDLike | undefined
 ): number | undefined {
-    if (message === null || message === undefined) {
+    if (!message) {
         return undefined;
     } else if (typeof message === "number") {
         return message;
