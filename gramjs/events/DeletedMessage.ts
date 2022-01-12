@@ -14,11 +14,11 @@ import { EventBuilder, EventCommon, DefaultEventInterface } from "./common";
  * can identify the chat with the message ID alone if you saved it
  * previously.
  *
- * Telethon **does not** save information of where messages occur,
+ * GramJS **does not** save information of where messages occur,
  * so it cannot know in which chat a message was deleted (this will
  * only work in channels, where the channel ID *is* present).
  *
- * This means that the `chats=` parameter will not work reliably,
+ * This means that the `chats:` parameter will not work reliably,
  * unless you intend on working with channels and super-groups only.
  *
  * @example
@@ -63,7 +63,7 @@ export class DeletedMessageEvent extends EventCommon {
     constructor(deletedIds: number[], peer?: EntityLike) {
         super({
             chatPeer: peer,
-            msgId: (deletedIds || [0])[0],
+            msgId: Array.isArray(deletedIds) ? deletedIds[0] : 0,
         });
         this.deletedIds = deletedIds;
         this.peer = peer;
