@@ -14,7 +14,7 @@ export interface EditedMessageInterface extends NewMessageInterface {
  *
  *   console.log(`Message ${message.id} from channel ${message.chatId!.toString();} was edited at ${message.editDate}`)
  * }
- * // adds an event handler for new messages
+ * // adds an event handler for edited messages
  * client.addEventHandler(editedEventPrint, new EditedMessage({}));
  * ```
  */
