@@ -634,10 +634,8 @@ export function getExtension(media: any): string {
  * str or an ``open()``'ed file (which has a ``.name`` attribute).
  */
 function _getExtension(file: any): string {
-    var kind;
     if (typeof file === "string") {
-        // thanks Stackoverflow
-        return file.slice(((file.lastIndexOf(".") - 2) >>> 0) + 2);
+        return "."+file.split('.').pop();
     } else if ("name" in file) {
         return _getExtension(file.name);
     } else {
