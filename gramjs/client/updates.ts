@@ -6,6 +6,7 @@ import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
 import { getRandomInt, returnBigInt, sleep } from "../Helpers";
+import { LogLevel } from "../extensions/Logger";
 
 const PING_INTERVAL = 9000; // 9 sec
 const PING_TIMEOUT = 10000; // 10 sec
@@ -197,6 +198,10 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         } catch (err: any) {
             // eslint-disable-next-line no-console
             client._log.error(err);
+            if (client._log.canSend(LogLevel.ERROR)) {
+                console.error(err);
+            }
+
             if (client._reconnecting) {
                 continue;
             }

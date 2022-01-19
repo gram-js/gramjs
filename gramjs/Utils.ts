@@ -635,7 +635,7 @@ export function getExtension(media: any): string {
  */
 function _getExtension(file: any): string {
     if (typeof file === "string") {
-        return "."+file.split('.').pop();
+        return "." + file.split(".").pop();
     } else if ("name" in file) {
         return _getExtension(file.name);
     } else {

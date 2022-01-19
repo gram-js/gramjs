@@ -89,7 +89,7 @@ class Connection {
         if (!this._connected) {
             // this will stop the current loop
             // @ts-ignore
-            await this._sendArray(undefined);
+            await this._sendArray.push(undefined);
             throw new Error("Not connected");
         }
         await this._sendArray.push(data);
