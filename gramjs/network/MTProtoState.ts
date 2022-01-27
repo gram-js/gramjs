@@ -18,6 +18,7 @@ export class MTProtoState {
     _sequence: number;
     private _lastMsgId: bigInt.BigInteger;
     private msgIds: string[];
+    private securityChecks: boolean;
 
     /**
      *
@@ -43,8 +44,9 @@ export class MTProtoState {
      authentication process, at which point the `MTProtoPlainSender` is better
      * @param authKey
      * @param loggers
+     * @param securityChecks
      */
-    constructor(authKey?: AuthKey, loggers?: any) {
+    constructor(authKey?: AuthKey, loggers?: any, securityChecks = true) {
         this.authKey = authKey;
         this._log = loggers;
         this.timeOffset = 0;
@@ -52,6 +54,7 @@ export class MTProtoState {
         this._sequence = 0;
         this.id = this._lastMsgId = bigInt.zero;
         this.msgIds = [];
+        this.securityChecks = securityChecks;
         this.reset();
     }
 
@@ -233,7 +236,10 @@ export class MTProtoState {
         }
 
         const remoteMsgId = reader.readLong();
-        if (this.msgIds.includes(remoteMsgId.toString())) {
+        if (
+            this.msgIds.includes(remoteMsgId.toString()) &&
+            this.securityChecks
+        ) {
             throw new SecurityError("Duplicate msgIds");
         }
         if (this.msgIds.length > 500) {

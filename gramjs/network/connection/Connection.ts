@@ -88,7 +88,6 @@ class Connection {
     async send(data: Buffer) {
         if (!this._connected) {
             // this will stop the current loop
-            // @ts-ignore
             await this._sendArray.push(undefined);
             throw new Error("Not connected");
         }

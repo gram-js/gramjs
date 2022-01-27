@@ -173,6 +173,9 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
         if (client._reconnecting) {
             continue;
         }
+        if (client._destroyed) {
+            return;
+        }
 
         try {
             await attempts(

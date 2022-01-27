@@ -47,6 +47,7 @@ interface DEFAULT_OPTIONS {
     senderCallback?: any;
     client: TelegramClient;
     onConnectionBreak?: CallableFunction;
+    securityChecks: boolean;
 }
 
 export class MTProtoSender {
@@ -62,6 +63,7 @@ export class MTProtoSender {
         isMainSender: null,
         senderCallback: null,
         onConnectionBreak: undefined,
+        securityChecks: true,
     };
     private _connection?: Connection;
     private readonly _log: Logger;
@@ -95,13 +97,17 @@ export class MTProtoSender {
     userDisconnected: boolean;
     isConnecting: boolean;
     _authenticated: boolean;
+    private _securityChecks: boolean;
 
     /**
      * @param authKey
      * @param opts
      */
     constructor(authKey: undefined | AuthKey, opts: DEFAULT_OPTIONS) {
-        const args = { ...MTProtoSender.DEFAULT_OPTIONS, ...opts };
+        const args = {
+            ...MTProtoSender.DEFAULT_OPTIONS,
+            ...opts,
+        };
         this._connection = undefined;
         this._log = args.logger;
         this._dcId = args.dcId;
@@ -116,6 +122,7 @@ export class MTProtoSender {
         this._senderCallback = args.senderCallback;
         this._client = args.client;
         this._onConnectionBreak = args.onConnectionBreak;
+        this._securityChecks = args.securityChecks;
 
         /**
          * whether we disconnected ourself or telegram did it.
@@ -144,7 +151,11 @@ export class MTProtoSender {
          * Preserving the references of the AuthKey and state is important
          */
         this.authKey = authKey || new AuthKey();
-        this._state = new MTProtoState(this.authKey, this._log);
+        this._state = new MTProtoState(
+            this.authKey,
+            this._log,
+            this._securityChecks
+        );
 
         /**
          * Outgoing messages are put in a queue and sent in a batch.

@@ -113,6 +113,10 @@ export interface TelegramClientParams {
      * Limits how many downloads happen at the same time.
      */
     maxConcurrentDownloads?: number;
+    /**
+     * Whether to check for tampering in messages or not.
+     */
+    securityChecks?: boolean;
 }
 
 const clientParamsDefault = {
@@ -131,6 +135,7 @@ const clientParamsDefault = {
     appVersion: "",
     langCode: "en",
     systemLangCode: "en",
+    _securityChecks: true,
     useWSS:
         typeof window !== "undefined"
             ? window.location.protocol == "https:"
@@ -205,6 +210,7 @@ export abstract class TelegramBaseClient {
     _destroyed: boolean;
     protected _proxy?: ProxyInterface;
     _semaphore: Semaphore;
+    _securityChecks: boolean;
     constructor(
         session: string | Session,
         apiId: number,
@@ -275,6 +281,7 @@ export abstract class TelegramBaseClient {
         this._bot = undefined;
         this._selfInputPeer = undefined;
         this.useWSS = clientParams.useWSS!;
+        this._securityChecks = !!clientParams.securityChecks;
         if (this.useWSS && this._proxy) {
             throw new Error(
                 "Cannot use SSL with proxies. You need to disable the useWSS client param in TelegramClient"
@@ -354,14 +361,12 @@ export abstract class TelegramBaseClient {
 
     /**
      * Disconnects all senders and removes all handlers
-     * @remarks
-     * This will also delete your session (not log out) so be careful with usage.
-     * Disconnect is safer as it will do almost the same while keeping your session file/
+     * Disconnect is safer as it will not remove your event handlers
      */
     async destroy() {
+        this._destroyed = true;
         await Promise.all([
             this.disconnect(),
-            this.session.delete(),
             ...Object.values(this._borrowedSenderPromises).map(
                 (promise: any) => {
                     return promise.then((sender: any) => sender.disconnect());
@@ -404,7 +409,7 @@ export abstract class TelegramBaseClient {
 
                 if (this.session.dcId !== dcId && !sender._authenticated) {
                     this._log.info(
-                        `Exporting authorization for data center ${dc.ipAddress}`
+                        `Exporting authorization for data center ${dc.ipAddress} with layer ${LAYER}`
                     );
                     const auth = await this.invoke(
                         new Api.auth.ExportAuthorization({ dcId: dcId })
@@ -413,6 +418,7 @@ export abstract class TelegramBaseClient {
                         id: auth.id,
                         bytes: auth.bytes,
                     });
+
                     const req = new Api.InvokeWithLayer({
                         layer: LAYER,
                         query: this._initRequest,
@@ -502,6 +508,7 @@ export abstract class TelegramBaseClient {
             isMainSender: dcId === this.session.dcId,
             onConnectionBreak: this._cleanupExportedSender.bind(this),
             client: this as unknown as TelegramClient,
+            securityChecks: this._securityChecks,
         });
     }
 

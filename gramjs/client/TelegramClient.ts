@@ -1333,6 +1333,7 @@ export class TelegramClient extends TelegramBaseClient {
                 updateCallback: _handleUpdate.bind(this),
                 isMainSender: true,
                 client: this,
+                securityChecks: this._securityChecks,
             });
         }
         // set defaults vars
@@ -1361,6 +1362,7 @@ export class TelegramClient extends TelegramBaseClient {
 
         this.session.setAuthKey(this._sender.authKey);
         this._initRequest.query = new Api.help.GetConfig();
+        this._log.info(`Using LAYER ${LAYER} for initial connect`);
         await this._sender.send(
             new Api.InvokeWithLayer({
                 layer: LAYER,
