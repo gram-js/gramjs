@@ -29,6 +29,7 @@ import { Album, AlbumEvent } from "../events/Album";
 import { CallbackQuery, CallbackQueryEvent } from "../events/CallbackQuery";
 import { EditedMessage, EditedMessageEvent } from "../events/EditedMessage";
 import { DeletedMessage, DeletedMessageEvent } from "../events/DeletedMessage";
+import { LogLevel } from "../extensions/Logger";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -1316,6 +1317,17 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     //endregion
+    /** @hidden */
+    async _handleReconnect() {
+        try {
+            await this.getMe();
+        } catch (e) {
+            this._log.error(`Error while trying to reconnect`);
+            if (this._log.canSend(LogLevel.ERROR)) {
+                console.error(e);
+            }
+        }
+    }
 
     //region base methods
 
@@ -1334,6 +1346,7 @@ export class TelegramClient extends TelegramBaseClient {
                 isMainSender: true,
                 client: this,
                 securityChecks: this._securityChecks,
+                autoReconnectCallback: this._handleReconnect.bind(this),
             });
         }
         // set defaults vars

@@ -948,7 +948,7 @@ export class MTProtoSender {
         this._sendQueue.extend(Array.from(this._pendingState.values()));
         this._pendingState = new Map<string, RequestState>();
         if (this._autoReconnectCallback) {
-            await this._autoReconnectCallback();
+            this._autoReconnectCallback();
         }
     }
 }
