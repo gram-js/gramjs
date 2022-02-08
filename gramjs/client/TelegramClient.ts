@@ -1165,7 +1165,7 @@ export class TelegramClient extends TelegramBaseClient {
      * const result = await client.invoke(new Api.account.CheckUsername({
      *      username: 'some string here'
      *   }));
-     * console.log("does this username exist?,result);
+     * console.log("does this username exist?",result);
      *
      * ```
      */

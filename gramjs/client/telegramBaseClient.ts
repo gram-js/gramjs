@@ -200,16 +200,24 @@ export abstract class TelegramBaseClient {
         string,
         [ReturnType<typeof setTimeout>, Api.TypeUpdate[]]
     >();
+    /** @hidden */
     private _exportedSenderPromises = new Map<number, Promise<MTProtoSender>>();
+    /** @hidden */
     private _exportedSenderReleaseTimeouts = new Map<
         number,
         ReturnType<typeof setTimeout>
     >();
+    /** @hidden */
     protected _loopStarted: boolean;
+    /** @hidden */
     _reconnecting: boolean;
+    /** @hidden */
     _destroyed: boolean;
+    /** @hidden */
     protected _proxy?: ProxyInterface;
+    /** @hidden */
     _semaphore: Semaphore;
+    /** @hidden */
     _securityChecks: boolean;
     constructor(
         session: string | Session,
@@ -377,11 +385,13 @@ export abstract class TelegramBaseClient {
         this._eventBuilders = [];
     }
 
+    /** @hidden */
     async _authKeyCallback(authKey: AuthKey, dcId: number) {
         this.session.setAuthKey(authKey, dcId);
         await this.session.save();
     }
 
+    /** @hidden */
     async _cleanupExportedSender(dcId: number) {
         if (this.session.dcId !== dcId) {
             this.session.setAuthKey(undefined, dcId);
@@ -391,6 +401,7 @@ export abstract class TelegramBaseClient {
         await sender?.disconnect();
     }
 
+    /** @hidden */
     async _connectSender(sender: MTProtoSender, dcId: number) {
         // if we don't already have an auth key we want to use normal DCs not -1
         const dc = await this.getDC(dcId, !!sender.authKey.getKey());
@@ -446,6 +457,7 @@ export abstract class TelegramBaseClient {
         }
     }
 
+    /** @hidden */
     async _borrowExportedSender(
         dcId: number,
         shouldReconnect?: boolean,
@@ -496,6 +508,7 @@ export abstract class TelegramBaseClient {
         return sender;
     }
 
+    /** @hidden */
     _createExportedSender(dcId: number) {
         return new MTProtoSender(this.session.getAuthKey(dcId), {
             logger: this._log,
@@ -512,6 +525,7 @@ export abstract class TelegramBaseClient {
         });
     }
 
+    /** @hidden */
     getSender(dcId: number): Promise<MTProtoSender> {
         return dcId
             ? this._borrowExportedSender(dcId)

@@ -31,7 +31,7 @@ You can find all methods and types at [gram.js.org](https://gram.js.org).
 
 ## Docs
 
-Youu can find the docs at [painor.gitbook.io/gramjs](https://painor.gitbook.io/gramjs) visit [gram.js.org](https://gram.js.org) to see all supported API methods and types.
+Youu can find the docs at [painor.gitbook.io/gramjs](https://painor.gitbook.io/gramjs) visit [gram.js.org](https://gram.js.org) and the beta docs [gram.js.org/beta](https://gram.js.org/beta)  to see all supported API methods and types.
 
 ## Asking questions
 

@@ -5,7 +5,7 @@ import type { TelegramClient } from "../..";
 import { ChatGetter } from "./chatGetter";
 import * as utils from "../../Utils";
 import { Forward } from "./forward";
-import type { File } from "./file";
+import { File } from "./file";
 import {
     EditMessageParams,
     SendMessageParams,
@@ -17,6 +17,7 @@ import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import { _selfId } from "../../client/users";
 import bigInt, { BigInteger } from "big-integer";
 import { LogLevel } from "../../extensions/Logger";
+import { MessageButton } from "./messageButton";
 
 interface MessageBaseInterface {
     id: any;
@@ -51,6 +52,110 @@ interface MessageBaseInterface {
     reactions?: any;
     noforwards?: any;
     _entities?: Map<string, Entity>;
+}
+
+/**
+ * Interface for clicking a message button.
+ * Calls `SendVote` with the specified poll option
+ * or `button.click <MessageButton.click>`
+ * on the specified button.
+ * Does nothing if the message is not a poll or has no buttons.
+ * @example
+ * ```ts
+ *    # Click the first button
+ *    await message.click(0)
+ *
+ *    # Click some row/column
+ *    await message.click(row, column)
+ *
+ *    # Click by text
+ *    await message.click(text='👍')
+ *
+ *    # Click by data
+ *    await message.click(data=b'payload')
+ *
+ *    # Click on a button requesting a phone
+ *    await message.click(0, share_phone=True)
+ * ```
+ */
+
+export interface ButtonClickParam {
+    /** Clicks the i'th button or poll option (starting from the index 0).
+     For multiple-choice polls, a list with the indices should be used.
+     Will ``raise IndexError`` if out of bounds. Example:
+
+     >>> message = ...  # get the message somehow
+     >>> # Clicking the 3rd button
+     >>> # [button1] [button2]
+     >>> # [     button3     ]
+     >>> # [button4] [button5]
+     >>> await message.click(2)  # index
+     . */
+    i?: number | number[];
+    /**
+     * Clicks the button at position (i, j), these being the
+     * indices for the (row, column) respectively. Example:
+
+     >>> # Clicking the 2nd button on the 1st row.
+     >>> # [button1] [button2]
+     >>> # [     button3     ]
+     >>> # [button4] [button5]
+     >>> await message.click(0, 1)  # (row, column)
+
+     This is equivalent to ``message.buttons[0][1].click()``.
+     */
+    j?: number;
+    /**                 Clicks the first button or poll option with the text "text". This may
+     also be a callable, like a ``new RegExp('foo*').test``,
+     and the text will be passed to it.
+
+     If you need to select multiple options in a poll,
+     pass a list of indices to the ``i`` parameter.
+     */
+    text?: string | Function;
+    /** Clicks the first button or poll option for which the callable
+     returns `True`. The callable should accept a single
+     `MessageButton <messagebutton.MessageButton>`
+     or `PollAnswer <PollAnswer>` argument.
+     If you need to select multiple options in a poll,
+     pass a list of indices to the ``i`` parameter.
+     */
+    filter?: Function;
+    /** This argument overrides the rest and will not search any
+     buttons. Instead, it will directly send the request to
+     behave as if it clicked a button with said data. Note
+     that if the message does not have this data, it will
+     ``DATA_INVALID``.
+     */
+    data?: Buffer;
+    /** When clicking on a keyboard button requesting a phone number
+     (`KeyboardButtonRequestPhone`), this argument must be
+     explicitly set to avoid accidentally sharing the number.
+
+     It can be `true` to automatically share the current user's
+     phone, a string to share a specific phone number, or a contact
+     media to specify all details.
+
+     If the button is pressed without this, `new Error("Value Error")` is raised.
+     */
+    sharePhone?: boolean | string | Api.InputMediaContact;
+    /** When clicking on a keyboard button requesting a geo location
+     (`KeyboardButtonRequestGeoLocation`), this argument must
+     be explicitly set to avoid accidentally sharing the location.
+
+     It must be a `list` of `float` as ``(longitude, latitude)``,
+     or a :tl:`InputGeoPoint` instance to avoid accidentally using
+     the wrong roder.
+
+     If the button is pressed without this, `ValueError` is raised.
+     */
+    shareGeo?: [number, number] | Api.InputMediaGeoPoint;
+    /**When clicking certain buttons (such as BotFather's confirmation
+     button to transfer ownership), if your account has 2FA enabled,
+     you need to provide your account's password. Otherwise,
+     `PASSWORD_HASH_INVALID` is raised.
+     */
+    password?: string;
 }
 
 /**
@@ -228,9 +333,9 @@ export class CustomMessage extends SenderGetter {
     /** @hidden */
     _replyMessage?: Api.Message;
     /** @hidden */
-    _buttons?: undefined;
+    _buttons?: MessageButton[][];
     /** @hidden */
-    _buttonsFlat?: undefined;
+    _buttonsFlat?: MessageButton[];
     /** @hidden */
     _buttonsCount?: number;
     /** @hidden */
@@ -526,58 +631,72 @@ export class CustomMessage extends SenderGetter {
         this._actionEntities = msg._actionEntities;
     }
 
-    /*
-            get buttons() {
-                if (!this._buttons && this.replyMarkup) {
-                    if (!this.inputChat) {
-                        return undefined
-                    }
+    /**
+     * Returns a list of lists of `MessageButton <MessageButton>`, if any.
+     * Otherwise, it returns `undefined`.
+     */
+    get buttons() {
+        if (!this._buttons && this.replyMarkup) {
+            if (!this.inputChat) {
+                return;
+            }
+            try {
+                const bot = this._neededMarkupBot();
+                this._setButtons(this.inputChat, bot);
+            } catch (e) {
+                return;
+            }
+        }
+        return this._buttons;
+    }
 
-                    const bot = this._neededMarkupBot();
-                    if (!bot) {
-                        this._setButtons(this._inputChat, bot)
-                    }
-                }
-                return this._buttons
+    /**
+     * Returns `buttons` when that property fails (this is rarely needed).
+     */
+    async getButtons() {
+        if (!this.buttons && this.replyMarkup) {
+            const chat = await this.getInputChat();
+            if (!chat) return;
+            let bot;
+            try {
+                bot = this._neededMarkupBot();
+            } catch (e) {
+                await this._reloadMessage();
+                bot = this._neededMarkupBot();
             }
-            async getButtons() {
-                if (!this.buttons && this.replyMarkup) {
-                    const chat = await this.getInputChat();
-                    if (!chat) return;
-                    let bot = this._neededMarkupBot();
-                    if (!bot) {
-                        await this._reloadMessage();
-                        bot = this._neededMarkupBot()
-                    }
-                    this._setButtons(chat, bot)
-                }
-                return this._buttons
-            }
-        /
-            get buttonCount() {
-                if (!this._buttonsCount) {
-                    if ((this.replyMarkup instanceof Api.ReplyInlineMarkup) ||
-                        (this.replyMarkup instanceof Api.ReplyKeyboardMarkup)) {
-                        this._buttonsCount = (this.replyMarkup.rows.map((r) => r.buttons.length)).reduce(function (a, b) {
-                            return a + b;
-                        }, 0);
-                    } else {
-                        this._buttonsCount = 0
-                    }
-                }
-                return this._buttonsCount
-            }
+            this._setButtons(chat, bot);
+        }
+        return this._buttons;
+    }
 
-            get file() {
-                if (!this._file) {
-                    const media = this.photo || this.document;
-                    if (media) {
-                        this._file = new File(media);
-                    }
-                }
-                return this._file
+    get buttonCount() {
+        if (!this._buttonsCount) {
+            if (
+                this.replyMarkup instanceof Api.ReplyInlineMarkup ||
+                this.replyMarkup instanceof Api.ReplyKeyboardMarkup
+            ) {
+                this._buttonsCount = this.replyMarkup.rows
+                    .map((r) => r.buttons.length)
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
+            } else {
+                this._buttonsCount = 0;
             }
-    */
+        }
+        return this._buttonsCount;
+    }
+
+    get file() {
+        if (!this._file) {
+            const media = this.photo || this.document;
+            if (media) {
+                this._file = new File(media);
+            }
+        }
+        return this._file;
+    }
+
     get photo() {
         if (this.media instanceof Api.MessageMediaPhoto) {
             if (this.media.photo instanceof Api.Photo) return this.media.photo;
@@ -863,95 +982,210 @@ export class CustomMessage extends SenderGetter {
         }
     }
 
-    /* TODO doesn't look good enough.
-    async click({ i = undefined, j = undefined, text = undefined, filter = undefined, data = undefined }) {
-        if (!this._client) return;
-
-        if (data) {
-            if (!(await this._getInputChat()))
-                return undefined;
-
-            try {
-                return await this._client.invoke(functions.messages.GetBotCallbackAnswerRequest({
-                    peer: this._inputChat,
-                    msgId: this.id,
-                    data: data
-                }));
-            } catch (e) {
-                if (e instanceof errors.BotTimeout)
-                    return undefined;
-            }
-        }
-
-        if ([i, text, filter].filter((x) => !!x) > 1)
-            throw new Error("You can only set either of i, text or filter");
-
-        if (!(await this.getButtons()))
+    async click({
+        i,
+        j,
+        text,
+        filter,
+        data,
+        sharePhone,
+        shareGeo,
+        password,
+    }: ButtonClickParam) {
+        if (!this.client) {
             return;
+        }
+        if (data) {
+            const chat = await this.getInputChat();
+            if (!chat) {
+                return;
+            }
 
-        if (text) {
-            if (callable(text)) {
-                for (const button of this._buttonsFlat) {
-                    if (text(button.text)) {
-                        return button.click();
+            const button = new Api.KeyboardButtonCallback({
+                text: "",
+                data: data,
+            });
+            return await new MessageButton(
+                this.client,
+                button,
+                chat,
+                undefined,
+                this.id
+            ).click({
+                sharePhone: sharePhone,
+                shareGeo: shareGeo,
+                password: password,
+            });
+        }
+        if (this.poll) {
+            function findPoll(answers: Api.PollAnswer[]) {
+                if (i != undefined) {
+                    if (Array.isArray(i)) {
+                        const corrects = [];
+                        for (let x = 0; x < i.length; x++) {
+                            corrects.push(answers[x].option);
+                        }
+                        return corrects;
                     }
+                    return [answers[i].option];
                 }
-            } else {
-                for (const button of this._buttonsFlat) {
-                    if (button.text === text) {
-                        return button.click();
+                if (text != undefined) {
+                    if (typeof text == "function") {
+                        for (const answer of answers) {
+                            if (text(answer.text)) {
+                                return [answer.option];
+                            }
+                        }
+                    } else {
+                        for (const answer of answers) {
+                            if (answer.text == text) {
+                                return [answer.option];
+                            }
+                        }
                     }
+                    return;
+                }
+                if (filter != undefined) {
+                    for (const answer of answers) {
+                        if (filter(answer)) {
+                            return [answer.option];
+                        }
+                    }
+                    return;
                 }
             }
+
+            const options = findPoll(this.poll.poll.answers) || [];
+            return await this.client.invoke(
+                new Api.messages.SendVote({
+                    peer: this.inputChat,
+                    msgId: this.id,
+                    options: options,
+                })
+            );
         }
 
-        if (filter && callable(filter)) {
-            for (const button of this._buttonsFlat) {
-                if (filter(button)) {
-                    return button.click();
-                }
+        if (!(await this.getButtons())) {
+            return; // Accessing the property sets this._buttons[_flat]
+        }
+
+        function findButton(self: CustomMessage) {
+            if (!self._buttonsFlat || !self._buttons) {
+                return;
             }
-            return undefined;
-        }
-
-        i = !i ? 0 : i;
-        if (!j) return this._buttonsFlat[i].click();
-        else return this._buttons[i][j].click();
-    }
-    /*
-        _setButtons(chat, bot) {
-            // TODO: Implement MessageButton
-            // if (this._client && (this.replyMarkup instanceof types.ReplyInlineMarkup ||
-            //         this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-            //     this._buttons = this.replyMarkup.rows.map((row) =>
-            //         row.buttons.map((button) => new Messagebutton(this._client, button, chat, bot, this.id)))
-            // }
-            // this._buttonsFlat = this._buttons.flat()
-        }
-
-        _neededMarkupBot() {
-            if (this._client && !(this.replyMarkup instanceof types.ReplyInlineMarkup ||
-                this.replyMarkup instanceof types.ReplyKeyboardMarkup)) {
-                return undefined;
+            if (Array.isArray(i)) {
+                i = i[0];
             }
-
-            for (const row of this.replyMarkup.rows) {
-                for (const button of row.buttons) {
-                    if (button instanceof types.KeyboardButtonSwitchInline) {
-                        if (button.samePeer) {
-                            const bot = this._inputSender;
-                            if (!bot) throw new Error("No input sender");
-                            return bot;
-                        } else {
-                            const ent = this._client._entityCache[this.viaBotId];
-                            if (!ent) throw new Error("No input sender");
-                            return ent;
+            if (text != undefined) {
+                if (typeof text == "function") {
+                    for (const button of self._buttonsFlat) {
+                        if (text(button.text)) {
+                            return button;
+                        }
+                    }
+                } else {
+                    for (const button of self._buttonsFlat) {
+                        if (button.text == text) {
+                            return button;
                         }
                     }
                 }
+                return;
+            }
+            if (filter != undefined) {
+                for (const button of self._buttonsFlat) {
+                    if (filter(button)) {
+                        return button;
+                    }
+                }
+                return;
+            }
+            if (i == undefined) {
+                i = 0;
+            }
+            if (j == undefined) {
+                return self._buttonsFlat[i];
+            } else {
+                return self._buttons[i][j];
             }
         }
-    */
+
+        const button = findButton(this);
+        if (button) {
+            return await button.click({
+                sharePhone: sharePhone,
+                shareGeo: shareGeo,
+                password: password,
+            });
+        }
+    }
+
+    /**
+     * Helper methods to set the buttons given the input sender and chat.
+     */
+    _setButtons(chat: EntityLike, bot?: EntityLike) {
+        if (
+            this.client &&
+            (this.replyMarkup instanceof Api.ReplyInlineMarkup ||
+                this.replyMarkup instanceof Api.ReplyKeyboardMarkup)
+        ) {
+            this._buttons = [];
+            this._buttonsFlat = [];
+            for (const row of this.replyMarkup.rows) {
+                const tmp = [];
+                for (const button of row.buttons) {
+                    const btn = new MessageButton(
+                        this.client,
+                        button,
+                        chat,
+                        bot,
+                        this.id
+                    );
+                    tmp.push(btn);
+                    this._buttonsFlat.push(btn);
+                }
+                this._buttons.push(tmp);
+            }
+        }
+    }
+
+    /**
+     *Returns the input peer of the bot that's needed for the reply markup.
+
+     This is necessary for `KeyboardButtonSwitchInline` since we need
+     to know what bot we want to start. Raises ``Error`` if the bot
+     cannot be found but is needed. Returns `None` if it's not needed.
+     */
+    _neededMarkupBot() {
+        if (!this.client || this.replyMarkup == undefined) {
+            return;
+        }
+        if (
+            !(
+                this.replyMarkup instanceof Api.ReplyInlineMarkup ||
+                this.replyMarkup instanceof Api.ReplyKeyboardMarkup
+            )
+        ) {
+            return;
+        }
+        for (const row of this.replyMarkup.rows) {
+            for (const button of row.buttons) {
+                if (button instanceof Api.KeyboardButtonSwitchInline) {
+                    if (button.samePeer || !this.viaBotId) {
+                        const bot = this._inputSender;
+                        if (!bot) throw new Error("No input sender");
+                        return bot;
+                    } else {
+                        const ent = this.client!._entityCache.get(
+                            this.viaBotId
+                        );
+                        if (!ent) throw new Error("No input sender");
+                        return ent;
+                    }
+                }
+            }
+        }
+    }
 
     // TODO fix this
 
