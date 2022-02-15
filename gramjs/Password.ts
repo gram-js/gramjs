@@ -8,7 +8,7 @@ import {
     sha256,
 } from "./Helpers";
 import bigInt from "big-integer";
-import { isNode } from "browser-or-node";
+import { isNode } from "./platform";
 const crypto = require(isNode ? "crypto" : "./crypto/crypto");
 
 const SIZE_FOR_HASH = 256;
