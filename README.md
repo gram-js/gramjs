@@ -10,11 +10,15 @@ Here you'll learn how to obtain necessary information to create telegram applica
  
 Install GramJS: 
 
-`$ npm i telegram -D`
+```bash
+$ npm i telegram -D
+```
 
 Install [input package](https://www.npmjs.com/package/input), we'll use it to prompt ourselves inside terminal for login information:
 
-`$ npm i input -D`
+```bash
+$ npm i input -D
+```
 
 After installation, you'll need to obtain an API ID and hash:
 1. Login into your [telegram account](https://my.telegram.org/)
