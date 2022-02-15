@@ -24,15 +24,19 @@ To get a browser bundle of GramJS, use the following command:
 NODE_ENV=production npx webpack
 ```
 
-## Using the raw API
+## Calling the raw API
+To use raw telegram API methods use [invoke function](https://gram.js.org/beta/classes/TelegramClient.html#invoke).
 
-Currently, you can call any raw API method like `await client.invoke(new RequestClass(args))` .
-You can find all methods and types at [gram.js.org](https://gram.js.org).
+```javascript
+await client.invoke(new RequestClass(args))
+``` 
 
-## Docs
+## Documentation
 
-Youu can find the docs at [painor.gitbook.io/gramjs](https://painor.gitbook.io/gramjs) visit [gram.js.org](https://gram.js.org) and the beta docs [gram.js.org/beta](https://gram.js.org/beta)  to see all supported API methods and types.
+General documentation, use cases, quick start, refer to [gram.js.org](https://gram.js.org), or [older version of documentation](https://painor.gitbook.io/gramjs) (will be removed in the future).
 
-## Asking questions
+For more advanced documentation refer to [gram.js.org/beta](https://gram.js.org/beta) (work in progress).
 
-If you have any question about GramJS, feel free to open a issue or join us at the Telegram group, [@GramJSChat](https://t.me/gramjschat).
+## Ask a question
+
+If you have any questions about GramJS, feel free to open an issue or ask directly in our telegram group - [@GramJSChat](https://t.me/gramjschat).
