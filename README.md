@@ -3,20 +3,65 @@
 A Telegram client written in JavaScript for Node.js and browsers, with its core being based on
 [Telethon](https://github.com/LonamiWebs/Telethon).
 
-### Obtaining your app ID and hash
+## How to get started
+Here you'll learn how to obtain necessary information to create telegram application, authorize into your account and send yourself a message. 
 
-1. Follow [this link](https://my.telegram.org), and login with your phone number.
-2. Click "API development tools".
-3. Fill in your application details.
-   There is no need to enter any URL, and only the first two fields (app title and short name)
-   can be modified later.
-4. Finally, click "Create application".
+>Note that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation). 
+ 
+Install GramJS: 
 
-## Running GramJS
+`$ npm i telegram -D`
 
-GramJS can run on Node.js, browsers and with frameworks like React.
+Install [input package](https://www.npmjs.com/package/input), we'll use it to prompt ourselves inside terminal for login information:
 
-In browsers, GramJS will be using the `localStorage` to cache the layers.
+`$ npm i input -D`
+
+After installation, you'll need to obtain an API ID and hash:
+1. Login into your [telegram account](https://my.telegram.org/)
+2. Then click "API development tools" and fill your application details (only app title and short name required)
+3. Finally, click "Create application"
+
+> Never share any API/authorization details, that will compromise your application and account.
+
+When you've successfully created the application, change `apiId` and `apiHash` on what you got from telegram. 
+
+Then run this code to send a message to yourself.
+
+```javascript
+import { TelegramClient } from "telegram";
+import { StringSession } from "telegram/sessions";
+import input from "input";
+
+const apiId = 123456;
+const apiHash = "123456abcdfg";
+const stringSession = new StringSession(""); // fill this later with the value from session.save()
+
+(async () => {
+  console.log("Loading interactive example...");
+  const client = new TelegramClient(stringSession, apiId, apiHash, {
+    connectionRetries: 5,
+  });
+  await client.start({
+    phoneNumber: async () => await input.text("Please enter your number: "),
+    password: async () => await input.text("Please enter your password: "),
+    phoneCode: async () =>
+      await input.text("Please enter the code you received: "),
+    onError: (err) => console.log(err),
+  });
+  console.log("You should now be connected.");
+  console.log(client.session.save()); // Save this string to avoid logging in again
+  await client.sendMessage("me", { message: "Hello!" });
+})(); 
+```
+Be sure to save output of `client.session.save()` into `stringSession` variable to avoid logging in again.
+
+
+
+## Running GramJS inside browsers
+
+GramJS works great in combination with frontend libraries such as React, Vue and others.
+
+While working within browsers, GramJS is using `localStorage` to cache the layers.
 
 To get a browser bundle of GramJS, use the following command:
 
