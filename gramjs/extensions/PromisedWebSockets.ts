@@ -1,5 +1,6 @@
 import { w3cwebsocket } from "websocket";
 import { Mutex } from "async-mutex";
+import { isBrowser } from "../platform";
 
 const mutex = new Mutex();
 
@@ -95,7 +96,7 @@ export class PromisedWebSockets {
                     this.closed = true;
                 };
                 //CONTEST
-                if (typeof window !== "undefined") {
+                if (isBrowser) {
                     window.addEventListener("offline", async () => {
                         await this.close();
                         if (this.resolveRead) {
