@@ -6,7 +6,7 @@ A Telegram client written in JavaScript for Node.js and browsers, with its core 
 ## How to get started
 Here you'll learn how to obtain necessary information to create telegram application, authorize into your account and send yourself a message. 
 
->Note that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation). 
+>**Note** that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation). 
  
 Install GramJS: 
 
@@ -25,7 +25,7 @@ After installation, you'll need to obtain an API ID and hash:
 2. Then click "API development tools" and fill your application details (only app title and short name required)
 3. Finally, click "Create application"
 
-> Never share any API/authorization details, that will compromise your application and account.
+> **Never** share any API/authorization details, that will compromise your application and account.
 
 When you've successfully created the application, change `apiId` and `apiHash` on what you got from telegram. 
 
@@ -57,7 +57,12 @@ const stringSession = new StringSession(""); // fill this later with the value f
   await client.sendMessage("me", { message: "Hello!" });
 })(); 
 ```
-Be sure to save output of `client.session.save()` into `stringSession` variable to avoid logging in again.
+> **Note** that you can also save auth key to a folder instead of a string, change `stringSession` into this:
+> ```javascript
+> const storeSession = new StoreSession("folder_name");
+> ```
+
+Be sure to save output of `client.session.save()` into `stringSession` or `storeSession` variable to avoid logging in again.
 
 
 
