@@ -50,6 +50,7 @@ type FileLike =
     | BotFileID
     | Buffer
     | Api.TypeMessageMedia
+    | Api.TypeInputMedia
     | Api.TypeInputFile
     | Api.TypeInputFileLocation
     | File
