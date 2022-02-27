@@ -137,10 +137,7 @@ const clientParamsDefault = {
     langCode: "en",
     systemLangCode: "en",
     _securityChecks: true,
-    useWSS:
-        isBrowser
-            ? window.location.protocol == "https:"
-            : false,
+    useWSS: isBrowser ? window.location.protocol == "https:" : false,
 };
 
 export abstract class TelegramBaseClient {

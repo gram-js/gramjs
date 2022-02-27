@@ -12,6 +12,7 @@ import { errors, utils } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
 import { LogLevel } from "../extensions/Logger";
+import { MTProtoSender } from "../network";
 
 // UserMethods {
 // region Invoking Telegram request
@@ -19,22 +20,27 @@ import { LogLevel } from "../extensions/Logger";
 /** @hidden */
 export async function invoke<R extends Api.AnyRequest>(
     client: TelegramClient,
-    request: R
+    request: R,
+    sender?: MTProtoSender
 ): Promise<R["__response"]> {
     if (request.classType !== "request") {
         throw new Error("You can only invoke MTProtoRequests");
     }
-    if (client._sender == undefined) {
+    if (!sender) {
+        sender = client._sender;
+    }
+    if (sender == undefined) {
         throw new Error(
             "Cannot send requests while disconnected. You need to call .connect()"
         );
     }
+
     await request.resolve(client, utils);
     client._lastRequest = new Date().getTime();
     let attempt: number;
     for (attempt = 0; attempt < client._requestRetries; attempt++) {
         try {
-            const promise = client._sender.send(request);
+            const promise = sender.send(request);
             const result = await promise;
             client.session.processEntities(result);
             client._entityCache.add(result);
@@ -277,11 +283,9 @@ export async function getInputEntity(
         // eslint-disable-next-line no-empty
     } catch (e) {}
     // Only network left to try
-    try {
-        if (typeof peer === "string") {
-            return utils.getInputPeer(await _getEntityFromString(client, peer));
-        }
-    } catch (e) {}
+    if (typeof peer === "string") {
+        return utils.getInputPeer(await _getEntityFromString(client, peer));
+    }
 
     // If we're a bot and the user has messaged us privately users.getUsers
     // will work with accessHash = 0. Similar for channels.getChannels.

@@ -4,11 +4,12 @@ A Telegram client written in JavaScript for Node.js and browsers, with its core 
 [Telethon](https://github.com/LonamiWebs/Telethon).
 
 ## How to get started
-Here you'll learn how to obtain necessary information to create telegram application, authorize into your account and send yourself a message. 
 
->**Note** that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation). 
- 
-Install GramJS: 
+Here you'll learn how to obtain necessary information to create telegram application, authorize into your account and send yourself a message.
+
+> **Note** that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation).
+
+Install GramJS:
 
 ```bash
 $ npm i telegram -D
@@ -21,13 +22,14 @@ $ npm i input -D
 ```
 
 After installation, you'll need to obtain an API ID and hash:
+
 1. Login into your [telegram account](https://my.telegram.org/)
 2. Then click "API development tools" and fill your application details (only app title and short name required)
 3. Finally, click "Create application"
 
 > **Never** share any API/authorization details, that will compromise your application and account.
 
-When you've successfully created the application, change `apiId` and `apiHash` on what you got from telegram. 
+When you've successfully created the application, change `apiId` and `apiHash` on what you got from telegram.
 
 Then run this code to send a message to yourself.
 
@@ -55,16 +57,16 @@ const stringSession = new StringSession(""); // fill this later with the value f
   console.log("You should now be connected.");
   console.log(client.session.save()); // Save this string to avoid logging in again
   await client.sendMessage("me", { message: "Hello!" });
-})(); 
+})();
 ```
+
 > **Note** that you can also save auth key to a folder instead of a string, change `stringSession` into this:
+>
 > ```javascript
 > const storeSession = new StoreSession("folder_name");
 > ```
 
 Be sure to save output of `client.session.save()` into `stringSession` or `storeSession` variable to avoid logging in again.
-
-
 
 ## Running GramJS inside browsers
 
@@ -79,11 +81,12 @@ NODE_ENV=production npx webpack
 ```
 
 ## Calling the raw API
+
 To use raw telegram API methods use [invoke function](https://gram.js.org/beta/classes/TelegramClient.html#invoke).
 
 ```javascript
-await client.invoke(new RequestClass(args))
-``` 
+await client.invoke(new RequestClass(args));
+```
 
 ## Documentation
 
