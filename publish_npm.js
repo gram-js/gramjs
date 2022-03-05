@@ -1,5 +1,7 @@
 const { exec } = require("child_process");
 const fs = require("fs");
+fs.rmSync("dist", { recursive: true, force: true });
+
 const tsc = exec("tsc");
 tsc.on("close", (code) => {
   if (code === 0) {

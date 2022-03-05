@@ -525,6 +525,12 @@ export interface SendMessageParams {
     /** If set, the message won't send immediately, and instead it will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
     noforwards?: boolean;
+    /** Similar to ``replyTo``, but replies in the linked group of a broadcast channel instead (effectively leaving a "comment to" the specified message).
+
+     This parameter takes precedence over ``replyTo``.
+     If there is no linked chat, `SG_ID_INVALID` is thrown.
+     */
+    commentTo?: number | Api.Message;
 }
 
 /** interface used for forwarding messages */
@@ -710,6 +716,7 @@ export async function sendMessage(
         supportStreaming,
         schedule,
         noforwards,
+        commentTo,
     }: SendMessageParams = {}
 ) {
     if (file) {
@@ -732,9 +739,16 @@ export async function sendMessage(
             scheduleDate: schedule,
             buttons: buttons,
             noforwards: noforwards,
+            commentTo: commentTo,
         });
     }
     entity = await client.getInputEntity(entity);
+    if (commentTo != undefined) {
+        console.log("this is a comment");
+        const discussionData = await getCommentData(client, entity, commentTo);
+        entity = discussionData.entity;
+        replyTo = discussionData.replyTo;
+    }
     let markup, request;
     if (message && message instanceof Api.Message) {
         if (buttons == undefined) {
@@ -1131,6 +1145,35 @@ export async function markAsRead(
         );
         return true;
     }
+}
+
+/** @hidden */
+export async function getCommentData(
+    client: TelegramClient,
+    entity: EntityLike,
+    message: number | Api.Message
+) {
+    const result = await client.invoke(
+        new Api.messages.GetDiscussionMessage({
+            peer: entity,
+            msgId: utils.getMessageId(message),
+        })
+    );
+    const relevantMessage = result.messages[0];
+    let chat;
+    for (const c of result.chats) {
+        if (
+            relevantMessage.peerId instanceof Api.PeerChannel &&
+            c.id.eq(relevantMessage.peerId.channelId)
+        ) {
+            chat = c;
+            break;
+        }
+    }
+    return {
+        entity: utils.getInputPeer(chat),
+        replyTo: relevantMessage.id,
+    };
 }
 
 // TODO do the rest

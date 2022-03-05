@@ -61,7 +61,7 @@ export async function invoke<R extends Api.AnyRequest>(
             ) {
                 if (e.seconds <= client.floodSleepThreshold) {
                     client._log.info(
-                        `Sleeping for ${e.seconds}s on flood wait`
+                        `Sleeping for ${e.seconds}s on flood wait (Caused by ${request.className})`
                     );
                     await sleep(e.seconds * 1000);
                 } else {

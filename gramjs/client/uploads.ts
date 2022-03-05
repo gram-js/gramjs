@@ -8,6 +8,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import { errors, utils } from "../index";
 import { _parseMessageText } from "./messageParse";
+import { getCommentData } from "./messages";
 
 interface OnProgress {
     // Float between 0 and 1.
@@ -226,6 +227,12 @@ export interface SendFileInterface {
     /** How many workers to use to upload the file. anything above 16 is unstable. */
     workers?: number;
     noforwards?: boolean;
+    /** Similar to ``replyTo``, but replies in the linked group of a broadcast channel instead (effectively leaving a "comment to" the specified message).
+
+     This parameter takes precedence over ``replyTo``.
+     If there is no linked chat, `SG_ID_INVALID` is thrown.
+     */
+    commentTo?: number | Api.Message;
 }
 
 interface FileToMediaInterface {
@@ -451,6 +458,7 @@ export async function _sendAlbum(
         scheduleDate,
         workers = 1,
         noforwards,
+        commentTo,
     }: SendFileInterface
 ) {
     entity = await client.getInputEntity(entity);
@@ -470,7 +478,13 @@ export async function _sendAlbum(
     for (const c of caption) {
         captions.push(await _parseMessageText(client, c, parseMode));
     }
-    replyTo = utils.getMessageId(replyTo);
+    if (commentTo != undefined) {
+        const discussionData = await getCommentData(client, entity, commentTo);
+        entity = discussionData.entity;
+        replyTo = discussionData.replyTo;
+    } else {
+        replyTo = utils.getMessageId(replyTo);
+    }
     const albumFiles = [];
     for (const file of files) {
         let { fileHandle, media, image } = await _fileToMedia(client, {
@@ -561,6 +575,7 @@ export async function sendFile(
         scheduleDate,
         workers = 1,
         noforwards,
+        commentTo,
     }: SendFileInterface
 ) {
     if (!file) {
@@ -570,7 +585,13 @@ export async function sendFile(
         caption = "";
     }
     entity = await client.getInputEntity(entity);
-    replyTo = utils.getMessageId(replyTo);
+    if (commentTo != undefined) {
+        const discussionData = await getCommentData(client, entity, commentTo);
+        entity = discussionData.entity;
+        replyTo = discussionData.replyTo;
+    } else {
+        replyTo = utils.getMessageId(replyTo);
+    }
     if (Array.isArray(file)) {
         return await _sendAlbum(client, entity, {
             file: file,
