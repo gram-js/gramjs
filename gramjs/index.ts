@@ -1,6 +1,5 @@
 export { Api } from "./tl";
 import * as tl from "./tl";
-
 export { TelegramClient } from "./client/TelegramClient";
 export { Connection } from "./network";
 export { version } from "./Version";
@@ -10,5 +9,6 @@ import * as errors from "./errors";
 import * as sessions from "./sessions";
 import * as extensions from "./extensions";
 import * as helpers from "./Helpers";
+import * as client from "./client";
 
-export { utils, errors, sessions, extensions, helpers, tl };
+export { utils, errors, sessions, extensions, helpers, tl, client };
