@@ -1,5 +1,5 @@
 import { getPeerId, sanitizeParseMode } from "../Utils";
-import { Api } from "../tl";
+import { Api } from "../tl/api";
 import type { EntityLike } from "../define";
 import type { TelegramClient } from "./TelegramClient";
 import { utils } from "../index";

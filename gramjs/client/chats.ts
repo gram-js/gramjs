@@ -5,7 +5,7 @@ import { RequestIter } from "../requestIter";
 import { helpers, utils } from "../";
 import { Api } from "../tl";
 import bigInt, { BigInteger } from "big-integer";
-import { inspect } from "util";
+import { inspect } from "../inspect";
 
 const _MAX_PARTICIPANTS_CHUNK_SIZE = 200;
 const _MAX_ADMIN_LOG_CHUNK_SIZE = 100;

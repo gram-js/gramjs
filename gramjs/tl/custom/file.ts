@@ -1,8 +1,8 @@
 import type { FileLike } from "../../define";
 import { Api } from "../api";
 import { _photoSizeByteCount } from "../../Utils";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
+import { inspect } from "../../inspect";
 
 export class File {
     private readonly media: FileLike;

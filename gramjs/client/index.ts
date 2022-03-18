@@ -27,5 +27,5 @@ export {
     tgClient,
     updates,
     uploads,
-    users
+    users,
 };

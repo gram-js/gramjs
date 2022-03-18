@@ -3,7 +3,7 @@ import { Api } from "./tl";
 import bigInt from "big-integer";
 import * as markdown from "./extensions/markdown";
 import { EntityCache } from "./entityCache";
-import mime from "mime-types";
+import mime from "mime";
 import type { ParseInterface } from "./client/messageParse";
 import { MarkdownParser } from "./extensions/markdown";
 import { CustomFile } from "./client/uploads";
@@ -583,7 +583,7 @@ export function isAudio(file: any): boolean {
         return (metadata.get("mimeType") || "").startsWith("audio/");
     } else {
         file = "a" + ext;
-        return (mime.lookup(file) || "").startsWith("audio/");
+        return (mime.getType(file) || "").startsWith("audio/");
     }
 }
 
@@ -623,7 +623,7 @@ export function getExtension(media: any): string {
             // Octet stream are just bytes, which have no default extension
             return "";
         } else {
-            return mime.extension(media.mimeType) || "";
+            return mime.getExtension(media.mimeType) || "";
         }
     }
     return "";
@@ -659,7 +659,7 @@ function isVideo(file: any): boolean {
         }
     } else {
         file = "a" + ext;
-        return (mime.lookup(file) || "").startsWith("video/");
+        return (mime.getType(file) || "").startsWith("video/");
     }
 }
 
@@ -682,7 +682,7 @@ export function getAttributes(
     const name: string =
         typeof file == "string" ? file : file.name || "unnamed";
     if (mimeType === undefined) {
-        mimeType = mime.lookup(name) || "application/octet-stream";
+        mimeType = mime.getType(name) || "application/octet-stream";
     }
     const attrObj = new Map();
     attrObj.set(

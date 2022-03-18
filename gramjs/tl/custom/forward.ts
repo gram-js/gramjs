@@ -10,7 +10,7 @@ import {
     returnBigInt,
 } from "../../Helpers";
 import { _getEntityPair, getPeerId } from "../../Utils";
-import { inspect } from "util";
+import { inspect } from "../../inspect";
 
 export class Forward extends SenderGetter {
     private originalFwd: Api.MessageFwdHeader;

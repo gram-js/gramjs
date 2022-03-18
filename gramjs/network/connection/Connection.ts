@@ -4,7 +4,7 @@ import {
     PromisedWebSockets,
 } from "../../extensions";
 import { AsyncQueue } from "../../extensions";
-import { IS_NODE } from "../../Helpers";
+import { isNode } from "../../platform";
 import { AbridgedPacketCodec } from "./TCPAbridged";
 import { FullPacketCodec } from "./TCPFull";
 import { ProxyInterface } from "./TCPMTProxy";
@@ -55,7 +55,7 @@ class Connection {
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
-        this.socket = IS_NODE
+        this.socket = isNode
             ? new PromisedNetSockets(this._proxy)
             : new PromisedWebSockets();
 

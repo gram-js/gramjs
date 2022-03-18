@@ -94,7 +94,7 @@ class MTProxyIO {
             Buffer.from(random.slice(60)),
         ]);
         const dcIdBytes = Buffer.alloc(2);
-        dcIdBytes.writeInt8(this._dcId);
+        dcIdBytes.writeInt8(this._dcId, 0);
         random = Buffer.concat([
             Buffer.from(random.slice(0, 60)),
             dcIdBytes,

@@ -2,8 +2,8 @@ import type { Entity } from "../../define";
 import type { TelegramClient } from "../..";
 import { getInputPeer, getPeer } from "../../Utils";
 import { Api } from "../api";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
+import { inspect } from "../../inspect";
 
 export class Draft {
     private _client: TelegramClient;

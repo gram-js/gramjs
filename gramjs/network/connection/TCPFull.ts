@@ -34,7 +34,7 @@ export class FullPacketCodec extends PacketCodec {
         reader: PromisedNetSockets | PromisedWebSockets
     ): Promise<Buffer> {
         const packetLenSeq = await reader.readExactly(8); // 4 and 4
-        // process.exit(0);
+
         if (packetLenSeq === undefined) {
             // Return empty buffer in case of issue
             return Buffer.alloc(0);

@@ -19,17 +19,18 @@ import type { EventBuilder } from "../events/common";
 import { MTProtoSender } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
-import { betterConsoleLog, IS_NODE } from "../Helpers";
+import { betterConsoleLog } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
-import { inspect } from "util";
 import { Album, AlbumEvent } from "../events/Album";
 import { CallbackQuery, CallbackQueryEvent } from "../events/CallbackQuery";
 import { EditedMessage, EditedMessageEvent } from "../events/EditedMessage";
 import { DeletedMessage, DeletedMessageEvent } from "../events/DeletedMessage";
 import { LogLevel } from "../extensions/Logger";
+import { inspect } from "../inspect";
+import { isNode } from "../platform";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -1422,7 +1423,7 @@ export class TelegramClient extends TelegramBaseClient {
         downloadDC = false
     ): Promise<{ id: number; ipAddress: string; port: number }> {
         this._log.debug(`Getting DC ${dcId}`);
-        if (!IS_NODE) {
+        if (!isNode) {
             switch (dcId) {
                 case 1:
                     return {

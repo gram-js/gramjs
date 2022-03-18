@@ -1,5 +1,5 @@
-import { Socket } from "net";
-import { SocksClient } from "socks";
+import * as net from "./net";
+import { SocksClient } from "./socks";
 
 import { Mutex } from "async-mutex";
 import { ProxyInterface } from "../network/connection/TCPMTProxy";
@@ -9,7 +9,7 @@ const mutex = new Mutex();
 const closeError = new Error("NetSocket was closed");
 
 export class PromisedNetSockets {
-    private client?: Socket;
+    private client?: net.Socket;
     private closed: boolean;
     private stream: Buffer;
     private canRead?: boolean | Promise<boolean>;
@@ -108,7 +108,7 @@ export class PromisedNetSockets {
             this.client = info.socket;
             connected = true;
         } else {
-            this.client = new Socket();
+            this.client = new net.Socket();
         }
 
         this.canRead = new Promise((resolve) => {
@@ -158,7 +158,7 @@ export class PromisedNetSockets {
 
     async receive() {
         if (this.client) {
-            this.client.on("data", async (message) => {
+            this.client.on("data", async (message: Buffer) => {
                 const release = await mutex.acquire();
                 try {
                     let data;

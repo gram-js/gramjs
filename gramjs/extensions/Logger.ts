@@ -1,6 +1,6 @@
-import { IS_NODE } from "../Helpers";
-
 // let _level: string | undefined = undefined;
+
+import { isNode } from "../platform";
 
 export enum LogLevel {
     NONE = "none",
@@ -29,7 +29,7 @@ export class Logger {
         //     _level = level || "info"; // defaults to info
         // }
         this._logLevel = level || LogLevel.INFO;
-        this.isBrowser = !IS_NODE;
+        this.isBrowser = !isNode;
         if (!this.isBrowser) {
             this.colors = {
                 start: "\x1b[2m",

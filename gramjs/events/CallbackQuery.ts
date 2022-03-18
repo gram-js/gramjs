@@ -60,7 +60,7 @@ export class CallbackQuery extends EventBuilder {
             return new CallbackQueryEvent(update, update.peer, update.msgId);
         } else if (update instanceof Api.UpdateInlineBotCallbackQuery) {
             const b = toSignedLittleBuffer(update.msgId.id, 8);
-            const msgId = b.readInt32LE();
+            const msgId = b.readInt32LE(0);
             const peerId = b.readInt32LE(4);
             const peer =
                 peerId < 0

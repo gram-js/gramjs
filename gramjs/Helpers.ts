@@ -1,10 +1,7 @@
 import bigInt from "big-integer";
-import { isNode } from "./platform";
 import type { EntityLike } from "./define";
 import type { Api } from "./tl";
-
-export const IS_NODE = isNode;
-const crypto = require(isNode ? "crypto" : "./crypto/crypto");
+import crypto from "./CryptoFile";
 
 /**
  * converts a buffer to big int

@@ -2,8 +2,8 @@ import type { TelegramClient } from "../..";
 import type { EntityLike } from "../../define";
 import { Api } from "../api";
 import { InlineResult } from "./inlineResult";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
+import { inspect } from "../../inspect";
 
 export class InlineResults extends Array<InlineResult> {
     private result: Api.messages.TypeBotResults;

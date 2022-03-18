@@ -1,5 +1,5 @@
 import { Connection, TelegramClient, version } from "../";
-import { IS_NODE, sleep } from "../Helpers";
+import { sleep } from "../Helpers";
 import {
     ConnectionTCPFull,
     ConnectionTCPObfuscated,
@@ -8,7 +8,7 @@ import { Session, StoreSession } from "../sessions";
 import { Logger } from "../extensions";
 import { Api } from "../tl";
 
-import os from "os";
+import os from "./os";
 import type { AuthKey } from "../crypto/AuthKey";
 import { EntityCache } from "../entityCache";
 import type { ParseInterface } from "./messageParse";
@@ -23,13 +23,13 @@ import {
 } from "../network/connection/TCPMTProxy";
 import { Semaphore } from "async-mutex";
 import { LogLevel } from "../extensions/Logger";
-import { isBrowser } from "../platform";
+import { isBrowser, isNode } from "../platform";
 
 const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
 
 const DEFAULT_DC_ID = 4;
-const DEFAULT_IPV4_IP = IS_NODE ? "149.154.167.91" : "vesta.web.telegram.org";
+const DEFAULT_IPV4_IP = isNode ? "149.154.167.91" : "vesta.web.telegram.org";
 const DEFAULT_IPV6_IP = "2001:067c:04e8:f004:0000:0000:0000:000a";
 
 /**
@@ -121,7 +121,7 @@ export interface TelegramClientParams {
 }
 
 const clientParamsDefault = {
-    connection: IS_NODE ? ConnectionTCPFull : ConnectionTCPObfuscated,
+    connection: isNode ? ConnectionTCPFull : ConnectionTCPObfuscated,
     useIPV6: false,
     timeout: 10,
     requestRetries: 5,

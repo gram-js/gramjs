@@ -1,4 +1,4 @@
-const { inspect } = require("util");
+const { inspect } = require("../inspect");
 const bigInt = require("big-integer");
 
 const {

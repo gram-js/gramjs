@@ -3,9 +3,9 @@ import { Api } from "../api";
 import type { Entity } from "../../define";
 import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
 import { Draft } from "./draft";
-import { inspect } from "util";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import bigInt from "big-integer";
+import { inspect } from "../../inspect";
 
 export class Dialog {
     _client: TelegramClient;

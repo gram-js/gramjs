@@ -2,9 +2,9 @@ import type { TelegramClient } from "../../client/TelegramClient";
 import type { ButtonLike, EntityLike, MessageIDLike } from "../../define";
 import { Api } from "../api";
 import { Button } from "./button";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
 import { computeCheck } from "../../Password";
+import { inspect } from "../../inspect";
 
 export class MessageButton {
     private readonly _client: TelegramClient;

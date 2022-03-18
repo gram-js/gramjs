@@ -30,6 +30,7 @@ module.exports = {
       util: require.resolve("util/"),
       assert: false,
       stream: false,
+      events: false,
       constants: false,
     },
   },

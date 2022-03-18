@@ -3,7 +3,7 @@
     "module": "commonjs",
     "target": "es2017",
     "lib": ["dom", "es7"],
-    "inlineSourceMap": true,
+    "sourceMap": false,
     "downlevelIteration": true,
     "allowJs": true,
     "esModuleInterop": true,

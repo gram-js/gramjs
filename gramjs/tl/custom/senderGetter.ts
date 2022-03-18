@@ -1,10 +1,10 @@
 import type { Entity } from "../../define";
 import type { TelegramClient } from "../..";
 import { Api } from "../api";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
 import { ChatGetter } from "./chatGetter";
 import bigInt from "big-integer";
+import { inspect } from "../../inspect";
 
 interface SenderGetterConstructorInterface {
     senderId?: bigInt.BigInteger;

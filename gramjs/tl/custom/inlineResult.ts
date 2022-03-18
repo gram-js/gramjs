@@ -2,8 +2,8 @@ import type { TelegramClient } from "../..";
 import type { EntityLike, MessageIDLike } from "../../define";
 import { Api } from "../api";
 import { utils } from "../../";
-import { inspect } from "util";
 import { betterConsoleLog } from "../../Helpers";
+import { inspect } from "../../inspect";
 
 export class InlineResult {
     private _ARTICLE = "article";
