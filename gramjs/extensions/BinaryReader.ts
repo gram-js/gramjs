@@ -7,7 +7,7 @@ import { readBigIntFromBuffer } from "../Helpers";
 export class BinaryReader {
     private readonly stream: Buffer;
     private _last?: Buffer;
-    private offset: number;
+    offset: number;
 
     /**
      * Small utility class to read binary data.

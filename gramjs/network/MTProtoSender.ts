@@ -65,7 +65,7 @@ export class MTProtoSender {
         onConnectionBreak: undefined,
         securityChecks: true,
     };
-    private _connection?: Connection;
+    _connection?: Connection;
     private readonly _log: Logger;
     private _dcId: number;
     private readonly _retries: number;

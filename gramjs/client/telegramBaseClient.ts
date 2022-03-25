@@ -217,6 +217,7 @@ export abstract class TelegramBaseClient {
     _semaphore: Semaphore;
     /** @hidden */
     _securityChecks: boolean;
+
     constructor(
         session: string | Session,
         apiId: number,
@@ -311,23 +312,23 @@ export abstract class TelegramBaseClient {
     set floodSleepThreshold(value: number) {
         this._floodSleepThreshold = Math.min(value || 0, 24 * 60 * 60);
     }
+
     set maxConcurrentDownloads(value: number) {
         // @ts-ignore
         this._semaphore._value = value;
     }
+
     // region connecting
     async _initSession() {
         await this.session.load();
-
-        if (
-            !this.session.serverAddress ||
-            this.session.serverAddress.includes(":") !== this._useIPV6
-        ) {
+        if (!this.session.serverAddress) {
             this.session.setDC(
                 DEFAULT_DC_ID,
                 this._useIPV6 ? DEFAULT_IPV6_IP : DEFAULT_IPV4_IP,
                 this.useWSS ? 443 : 80
             );
+        } else {
+            this._useIPV6 = this.session.serverAddress.includes(":");
         }
     }
 

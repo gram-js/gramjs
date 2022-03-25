@@ -1,17 +1,26 @@
 import { Api } from "../tl";
 import type { TelegramClient } from "./TelegramClient";
-import { getAppropriatedPartSize, strippedPhotoToJpg } from "../Utils";
+import { strippedPhotoToJpg } from "../Utils";
 import { sleep } from "../Helpers";
-import { EntityLike } from "../define";
-import { errors, utils } from "../";
+import { EntityLike, OutFile, ProgressCallback } from "../define";
+import { utils } from "../";
+import { RequestIter } from "../requestIter";
+import { MTProtoSender } from "../network";
+import { FileMigrateError } from "../errors";
+import { createWriteStream } from "./fs";
+import { BinaryWriter } from "../extensions";
+import * as fs from "./fs";
+import path from "./path";
 
 /**
  * progress callback that will be called each time a new chunk is downloaded.
  */
 export interface progressCallback {
     (
-        /** float between 0 and 1 */
-        progress: number,
+        /** How much was downloaded */
+        downloaded: number,
+        /** Full size of the file to be downloaded */
+        fullSize: number,
         /** other args to be passed if needed */
         ...args: any[]
     ): void;
@@ -39,8 +48,34 @@ export interface DownloadFileParams {
     start?: number;
     /** Where to stop downloading. useful for chunk downloading. */
     end?: number;
+    /** A callback function accepting two parameters:     ``(received bytes, total)``.     */
+    progressCallback?: progressCallback;
+}
+
+/**
+ * Low level interface for downloading files
+ */
+export interface DownloadFileParamsV2 {
+    /**
+     * The output file path, directory,buffer, or stream-like object.
+     * If the path exists and is a file, it will be overwritten.
+
+     * If the file path is `undefined` or `Buffer`, then the result
+     will be saved in memory and returned as `Buffer`.
+     */
+    outputFile?: OutFile;
+    /** The dcId that the file belongs to. Used to borrow a sender from that DC. The library should handle this for you */
+    dcId?: number;
+    /** The file size that is about to be downloaded, if known.<br/>
+     Only used if ``progressCallback`` is specified. */
+    fileSize?: number;
+    /** How much to download in each chunk. The larger the less requests to be made. (max is 512kb). */
+    partSizeKb?: number;
     /** Progress callback accepting one param. (progress :number) which is a float between 0 and 1 */
     progressCallback?: progressCallback;
+    /** */
+
+    msgData?: [EntityLike, number];
 }
 
 /**
@@ -65,135 +100,338 @@ const DEFAULT_CHUNK_SIZE = 64; // kb
 const ONE_MB = 1024 * 1024;
 const REQUEST_TIMEOUT = 15000;
 const DISCONNECT_SLEEP = 1000;
+const TIMED_OUT_SLEEP = 1000;
+const MAX_CHUNK_SIZE = 512 * 1024;
+
+export interface DirectDownloadIterInterface {
+    fileLocation: Api.TypeInputFileLocation;
+    dcId: number;
+    offset: number;
+    stride: number;
+    chunkSize: number;
+    requestSize: number;
+    fileSize: number;
+    msgData: number;
+}
+
+export interface IterDownloadFunction {
+    file?: Api.TypeMessageMedia | Api.TypeInputFile | Api.TypeInputFileLocation;
+    offset?: number;
+    stride?: number;
+    limit?: number;
+    chunkSize?: number;
+    requestSize: number;
+    fileSize?: number;
+    dcId?: number;
+    msgData?: [EntityLike, number];
+}
+
+class DirectDownloadIter extends RequestIter {
+    protected request?: Api.upload.GetFile;
+    private _sender?: MTProtoSender;
+    private _timedOut: boolean = false;
+    protected _stride?: number;
+    protected _chunkSize?: number;
+    protected _lastPart?: Buffer;
+    protected buffer: Buffer[] | undefined;
+
+    async _init({
+        fileLocation,
+        dcId,
+        offset,
+        stride,
+        chunkSize,
+        requestSize,
+        fileSize,
+        msgData,
+    }: DirectDownloadIterInterface) {
+        this.request = new Api.upload.GetFile({
+            location: fileLocation,
+            offset,
+            limit: requestSize,
+        });
+
+        this.total = fileSize;
+        this._stride = stride;
+        this._chunkSize = chunkSize;
+        this._lastPart = undefined;
+        //this._msgData = msgData;
+        this._timedOut = false;
+
+        this._sender = await this.client.getSender(dcId);
+    }
+
+    async _loadNextChunk(): Promise<boolean | undefined> {
+        const current = await this._request();
+        this.buffer!.push(current);
+        if (current.length < this.request!.limit) {
+            // we finished downloading
+            this.left = this.buffer!.length;
+            await this.close();
+            return true;
+        } else {
+            this.request!.offset += this._stride!;
+        }
+    }
+
+    async _request(): Promise<Buffer> {
+        try {
+            this._sender = await this.client.getSender(this._sender!.dcId);
+            const result = await this.client.invoke(
+                this.request!,
+                this._sender
+            );
+            this._timedOut = false;
+            if (result instanceof Api.upload.FileCdnRedirect) {
+                throw new Error(
+                    "CDN Not supported. Please Add an issue in github"
+                );
+            }
+            return result.bytes;
+        } catch (e: any) {
+            if (e.errorMessage == "TIMEOUT") {
+                if (this._timedOut) {
+                    this.client._log.warn(
+                        "Got two timeouts in a row while downloading file"
+                    );
+                    throw e;
+                }
+                this._timedOut = true;
+                this.client._log.info(
+                    "Got timeout while downloading file, retrying once"
+                );
+                await sleep(TIMED_OUT_SLEEP);
+                return await this._request();
+            } else if (e instanceof FileMigrateError) {
+                this.client._log.info("File lives in another DC");
+                this._sender = await this.client.getSender(e.newDc);
+                return await this._request();
+            } else if (e.errorMessage == "FILEREF_UPGRADE_NEEDED") {
+                // TODO later
+                throw e;
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    async close() {
+        this.client._log.debug("Finished downloading file ...");
+    }
+
+    [Symbol.asyncIterator](): AsyncIterator<Buffer, any, undefined> {
+        return super[Symbol.asyncIterator]();
+    }
+}
+
+class GenericDownloadIter extends DirectDownloadIter {
+    async _loadNextChunk(): Promise<boolean | undefined> {
+        // 1. Fetch enough for one chunk
+        let data = Buffer.alloc(0);
+
+        //  1.1. ``bad`` is how much into the data we have we need to offset
+        const bad = this.request!.offset % this.request!.limit;
+        const before = this.request!.offset;
+
+        // 1.2. We have to fetch from a valid offset, so remove that bad part
+        this.request!.offset -= bad;
+
+        let done = false;
+        while (!done && data.length - bad < this._chunkSize!) {
+            const current = await this._request();
+            this.request!.offset += this.request!.limit;
+
+            data = Buffer.concat([data, current]);
+            done = current.length < this.request!.limit;
+        }
+        // 1.3 Restore our last desired offset
+        this.request!.offset = before;
+
+        // 2. Fill the buffer with the data we have
+        // 2.1. The current chunk starts at ``bad`` offset into the data,
+        //  and each new chunk is ``stride`` bytes apart of the other
+        for (let i = bad; i < data.length; i += this._stride!) {
+            this.buffer!.push(data.slice(i, i + this._chunkSize!));
+
+            // 2.2. We will yield this offset, so move to the next one
+            this.request!.offset += this._stride!;
+        }
+
+        // 2.3. If we are in the last chunk, we will return the last partial data
+        if (done) {
+            this.left = this.buffer!.length;
+            await this.close();
+            return;
+        }
+
+        // 2.4 If we are not done, we can't return incomplete chunks.
+        if (this.buffer![this.buffer!.length - 1].length != this._chunkSize) {
+            this._lastPart = this.buffer!.pop();
+            //   3. Be careful with the offsets. Re-fetching a bit of data
+            //   is fine, since it greatly simplifies things.
+            // TODO Try to not re-fetch data
+            this.request!.offset -= this._stride!;
+        }
+    }
+}
 
 /** @hidden */
-export async function downloadFile(
+function iterDownload(
+    client: TelegramClient,
+    {
+        file,
+        offset = 0,
+        stride,
+        limit,
+        chunkSize,
+        requestSize = MAX_CHUNK_SIZE,
+        fileSize,
+        dcId,
+        msgData,
+    }: IterDownloadFunction
+) {
+    // we're ignoring here to make it more flexible (which is probably a bad idea)
+    // @ts-ignore
+    const info = utils.getFileInfo(file);
+    if (info.dcId != undefined) {
+        dcId = info.dcId;
+    }
+    if (fileSize == undefined) {
+        fileSize = info.size;
+    }
+
+    file = info.location;
+
+    if (chunkSize == undefined) {
+        chunkSize = requestSize;
+    }
+
+    if (limit == undefined && fileSize != undefined) {
+        limit = Math.floor((fileSize + chunkSize - 1) / chunkSize);
+    }
+    if (stride == undefined) {
+        stride = chunkSize;
+    } else if (stride < chunkSize) {
+        throw new Error("Stride must be >= chunkSize");
+    }
+
+    requestSize -= requestSize % MIN_CHUNK_SIZE;
+
+    if (requestSize < MIN_CHUNK_SIZE) {
+        requestSize = MIN_CHUNK_SIZE;
+    } else if (requestSize > MAX_CHUNK_SIZE) {
+        requestSize = MAX_CHUNK_SIZE;
+    }
+    let cls;
+    if (
+        chunkSize == requestSize &&
+        offset % MAX_CHUNK_SIZE == 0 &&
+        stride % MIN_CHUNK_SIZE == 0 &&
+        (limit == undefined || offset % limit == 0)
+    ) {
+        cls = DirectDownloadIter;
+        client._log.info(
+            `Starting direct file download in chunks of ${requestSize} at ${offset}, stride ${stride}`
+        );
+    } else {
+        cls = GenericDownloadIter;
+        client._log.info(
+            `Starting indirect file download in chunks of ${requestSize} at ${offset}, stride ${stride}`
+        );
+    }
+    return new cls(
+        client,
+        limit,
+        {},
+        {
+            fileLocation: file,
+            dcId,
+            offset,
+            stride,
+            chunkSize,
+            requestSize,
+            fileSize,
+            msgData,
+        }
+    );
+}
+
+function getWriter(outputFile?: OutFile) {
+    if (!outputFile || Buffer.isBuffer(outputFile)) {
+        return new BinaryWriter(Buffer.alloc(0));
+    } else if (typeof outputFile == "string") {
+        // We want to make sure that the path exists.
+        return createWriteStream(outputFile);
+    } else {
+        return outputFile;
+    }
+}
+
+function closeWriter(
+    writer: BinaryWriter | { write: Function; close?: Function }
+) {
+    if ("close" in writer && writer.close) {
+        writer.close();
+    }
+}
+
+function returnWriterValue(writer: any): Buffer | string | undefined {
+    if (writer instanceof BinaryWriter) {
+        return writer.getValue();
+    }
+    if (writer instanceof fs.WriteStream) {
+        if (typeof writer.path == "string") {
+            return path.resolve(writer.path);
+        } else {
+            return Buffer.from(writer.path);
+        }
+    }
+}
+
+/** @hidden */
+export async function downloadFileV2(
     client: TelegramClient,
     inputLocation: Api.TypeInputFileLocation,
-    fileParams: DownloadFileParams
+    {
+        outputFile = undefined,
+        partSizeKb = undefined,
+        fileSize = undefined,
+        progressCallback = undefined,
+        dcId = undefined,
+        msgData = undefined,
+    }: DownloadFileParamsV2
 ) {
-    const [value, release] = await client._semaphore.acquire();
+    if (!partSizeKb) {
+        if (!fileSize) {
+            partSizeKb = 64;
+        } else {
+            partSizeKb = utils.getAppropriatedPartSize(fileSize);
+        }
+    }
+
+    const partSize = Math.floor(partSizeKb * 1024);
+    if (partSize % MIN_CHUNK_SIZE != 0) {
+        throw new Error("The part size must be evenly divisible by 4096");
+    }
+    const writer = getWriter(outputFile);
+
+    let downloaded = 0;
     try {
-        let { partSizeKb, end } = fileParams;
-        const { fileSize, workers = 1 } = fileParams;
-        const { dcId, progressCallback, start = 0 } = fileParams;
-        if (end && fileSize) {
-            end = end < fileSize ? end : fileSize - 1;
-        }
-
-        if (!partSizeKb) {
-            partSizeKb = fileSize
-                ? getAppropriatedPartSize(fileSize)
-                : DEFAULT_CHUNK_SIZE;
-        }
-
-        const partSize = partSizeKb * 1024;
-        const partsCount = end ? Math.ceil((end - start) / partSize) : 1;
-
-        if (partSize % MIN_CHUNK_SIZE !== 0) {
-            throw new Error(
-                `The part size must be evenly divisible by ${MIN_CHUNK_SIZE}`
-            );
-        }
-
-        client._log.info(`Downloading file in chunks of ${partSize} bytes`);
-
-        const foreman = new Foreman(workers);
-        const promises: Promise<any>[] = [];
-        let offset = start;
-        // Used for files with unknown size and for manual cancellations
-        let hasEnded = false;
-
-        let progress = 0;
-        if (progressCallback) {
-            progressCallback(progress);
-        }
-
-        // Preload sender
-        await client.getSender(dcId);
-
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            let limit = partSize;
-            let isPrecise = false;
-
-            if (
-                Math.floor(offset / ONE_MB) !==
-                Math.floor((offset + limit - 1) / ONE_MB)
-            ) {
-                limit = ONE_MB - (offset % ONE_MB);
-                isPrecise = true;
+        for await (const chunk of iterDownload(client, {
+            file: inputLocation,
+            requestSize: partSize,
+            dcId: dcId,
+            msgData: msgData,
+        })) {
+            await writer.write(chunk);
+            if (progressCallback) {
+                await progressCallback(downloaded, fileSize || 0);
             }
-
-            await foreman.requestWorker();
-
-            if (hasEnded) {
-                foreman.releaseWorker();
-                break;
-            }
-            // eslint-disable-next-line no-loop-func
-            promises.push(
-                (async (offsetMemo: number) => {
-                    // eslint-disable-next-line no-constant-condition
-                    while (true) {
-                        let sender;
-                        try {
-                            sender = await client.getSender(dcId);
-                            const result = await sender.send(
-                                new Api.upload.GetFile({
-                                    location: inputLocation,
-                                    offset: offsetMemo,
-                                    limit,
-                                    precise: isPrecise || undefined,
-                                })
-                            );
-
-                            if (progressCallback) {
-                                if (progressCallback.isCanceled) {
-                                    throw new Error("USER_CANCELED");
-                                }
-
-                                progress += 1 / partsCount;
-                                progressCallback(progress);
-                            }
-
-                            if (!end && result.bytes.length < limit) {
-                                hasEnded = true;
-                            }
-
-                            foreman.releaseWorker();
-
-                            return result.bytes;
-                        } catch (err) {
-                            if (sender && !sender.isConnected()) {
-                                await sleep(DISCONNECT_SLEEP);
-                                continue;
-                            } else if (err instanceof errors.FloodWaitError) {
-                                await sleep(err.seconds * 1000);
-                                continue;
-                            }
-
-                            foreman.releaseWorker();
-
-                            hasEnded = true;
-                            throw err;
-                        }
-                    }
-                })(offset)
-            );
-
-            offset += limit;
-
-            if (end && offset > end) {
-                break;
-            }
+            downloaded += chunk.length;
         }
-        const results = await Promise.all(promises);
-        const buffers = results.filter(Boolean);
-        const totalLength = end ? end + 1 - start : undefined;
-        return Buffer.concat(buffers, totalLength);
+        return returnWriterValue(writer);
     } finally {
-        release();
+        closeWriter(writer);
     }
 }
 
@@ -239,30 +477,56 @@ function createDeferred(): Deferred {
  * All of these are optional and will be calculated automatically if not specified.
  */
 export interface DownloadMediaInterface {
-    sizeType?: string;
-    /** where to start downloading **/
-    start?: number;
-    /** where to stop downloading **/
-    end?: number;
-    /** a progress callback that will be called each time a new chunk is downloaded and passes a number between 0 and 1*/
-    progressCallback?: progressCallback;
-    /** number of workers to use while downloading. more means faster but anything above 16 may cause issues. */
-    workers?: number;
+    /**
+     * The output file location, if left undefined this method will return a buffer
+     */
+    outputFile?: OutFile;
+    /**
+     * Which thumbnail size from the document or photo to download, instead of downloading the document or photo itself.<br/>
+     <br/>
+     If it's specified but the file does not have a thumbnail, this method will return `undefined`.<br/>
+     <br/>
+     The parameter should be an integer index between ``0`` and ``sizes.length``.<br/>
+     ``0`` will download the smallest thumbnail, and ``sizes.length - 1`` will download the largest thumbnail.<br/>
+     <br/>
+     You can also pass the `Api.PhotoSize` instance to use.  Alternatively, the thumb size type `string` may be used.<br/>
+     <br/>
+     In short, use ``thumb=0`` if you want the smallest thumbnail and ``thumb=sizes.length`` if you want the largest thumbnail.
+     */
+    thumb?: number | Api.TypePhotoSize;
+    /**
+     *  A callback function accepting two parameters:
+     * ``(received bytes, total)``.
+     */
+    progressCallback?: ProgressCallback;
 }
 
 /** @hidden */
 export async function downloadMedia(
     client: TelegramClient,
     messageOrMedia: Api.Message | Api.TypeMessageMedia,
-    downloadParams: DownloadMediaInterface
-): Promise<Buffer> {
+    outputFile?: OutFile,
+    thumb?: number | Api.TypePhotoSize,
+    progressCallback?: ProgressCallback
+): Promise<Buffer | string | undefined> {
+    /*
+      Downloading large documents may be slow enough to require a new file reference
+      to be obtained mid-download. Store (input chat, message id) so that the message
+      can be re-fetched.
+     */
+    let msgData: [EntityLike, number] | undefined;
     let date;
     let media;
 
     if (messageOrMedia instanceof Api.Message) {
         media = messageOrMedia.media;
+        date = messageOrMedia.date;
+        msgData = messageOrMedia.inputChat
+            ? [messageOrMedia.inputChat, messageOrMedia.id]
+            : undefined;
     } else {
         media = messageOrMedia;
+        date = Date.now();
     }
     if (typeof media == "string") {
         throw new Error("not implemented");
@@ -273,19 +537,34 @@ export async function downloadMedia(
         }
     }
     if (media instanceof Api.MessageMediaPhoto || media instanceof Api.Photo) {
-        return _downloadPhoto(client, media, downloadParams);
+        return _downloadPhoto(
+            client,
+            media,
+            outputFile,
+            date,
+            thumb,
+            progressCallback
+        );
     } else if (
         media instanceof Api.MessageMediaDocument ||
         media instanceof Api.Document
     ) {
-        return _downloadDocument(client, media, downloadParams);
+        return _downloadDocument(
+            client,
+            media,
+            outputFile,
+            date,
+            thumb,
+            progressCallback,
+            msgData
+        );
     } else if (media instanceof Api.MessageMediaContact) {
-        return _downloadContact(client, media, downloadParams);
+        return _downloadContact(client, media, {});
     } else if (
         media instanceof Api.WebDocument ||
         media instanceof Api.WebDocumentNoProxy
     ) {
-        return _downloadWebDocument(client, media, downloadParams);
+        return _downloadWebDocument(client, media, {});
     } else {
         return Buffer.alloc(0);
     }
@@ -295,35 +574,41 @@ export async function downloadMedia(
 export async function _downloadDocument(
     client: TelegramClient,
     doc: Api.MessageMediaDocument | Api.TypeDocument,
-    args: DownloadMediaInterface
-): Promise<Buffer> {
+    outputFile: OutFile | undefined,
+    date: number,
+    thumb?: number | string | Api.TypePhotoSize,
+    progressCallback?: ProgressCallback,
+    msgData?: [EntityLike, number]
+): Promise<Buffer | string | undefined> {
     if (doc instanceof Api.MessageMediaDocument) {
         if (!doc.document) {
             return Buffer.alloc(0);
         }
-
         doc = doc.document;
     }
     if (!(doc instanceof Api.Document)) {
         return Buffer.alloc(0);
     }
-
-    let size = undefined;
-    if (args.sizeType) {
-        size = doc.thumbs ? pickFileSize(doc.thumbs, args.sizeType) : undefined;
-        if (!size && doc.mimeType.startsWith("video/")) {
-            return Buffer.alloc(0);
-        }
-
+    let size;
+    if (thumb == undefined) {
+        outputFile = getProperFilename(
+            outputFile,
+            "document",
+            "." + (utils.getExtension(doc) || "bin"),
+            date
+        );
+    } else {
+        outputFile = getProperFilename(outputFile, "photo", ".jpg", date);
+        size = getThumb(doc.thumbs || [], thumb);
         if (
-            size &&
-            (size instanceof Api.PhotoCachedSize ||
-                size instanceof Api.PhotoStrippedSize)
+            size instanceof Api.PhotoCachedSize ||
+            size instanceof Api.PhotoStrippedSize
         ) {
-            return _downloadCachedPhotoSize(size);
+            return _downloadCachedPhotoSize(size, outputFile);
         }
     }
-    return client.downloadFile(
+    return await downloadFileV2(
+        client,
         new Api.InputDocumentFileLocation({
             id: doc.id,
             accessHash: doc.accessHash,
@@ -331,17 +616,10 @@ export async function _downloadDocument(
             thumbSize: size ? size.type : "",
         }),
         {
-            fileSize:
-                size && !(size instanceof Api.PhotoSizeEmpty)
-                    ? size instanceof Api.PhotoSizeProgressive
-                        ? Math.max(...size.sizes)
-                        : size.size
-                    : doc.size,
-            progressCallback: args.progressCallback,
-            start: args.start,
-            end: args.end,
-            dcId: doc.dcId,
-            workers: args.workers,
+            outputFile: outputFile,
+            fileSize: size && "size" in size ? size.size : doc.size,
+            progressCallback: progressCallback,
+            msgData: msgData,
         }
     );
 }
@@ -380,25 +658,109 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
 }
 
 /** @hidden */
-export function _downloadCachedPhotoSize(
-    size: Api.PhotoCachedSize | Api.PhotoStrippedSize
+function getThumb(
+    thumbs: (Api.TypePhotoSize | Api.VideoSize)[],
+    thumb?: number | string | Api.TypePhotoSize | Api.VideoSize
+) {
+    function sortThumb(thumb: Api.TypePhotoSize | Api.VideoSize) {
+        if (thumb instanceof Api.PhotoStrippedSize) {
+            return thumb.bytes.length;
+        }
+        if (thumb instanceof Api.PhotoCachedSize) {
+            return thumb.bytes.length;
+        }
+        if (thumb instanceof Api.PhotoSize) {
+            return thumb.size;
+        }
+        if (thumb instanceof Api.PhotoSizeProgressive) {
+            return Math.max(...thumb.sizes);
+        }
+        if (thumb instanceof Api.VideoSize) {
+            return thumb.size;
+        }
+        return 0;
+    }
+
+    thumbs = thumbs.sort((a, b) => sortThumb(a) - sortThumb(b));
+    const correctThumbs = [];
+    for (const t of thumbs) {
+        if (!(t instanceof Api.PhotoPathSize)) {
+            correctThumbs.push(t);
+        }
+    }
+    if (thumb == undefined) {
+        return correctThumbs.pop();
+    } else if (typeof thumb == "number") {
+        return correctThumbs[thumb];
+    } else if (typeof thumb == "string") {
+        for (const t of correctThumbs) {
+            if (t.type == thumb) {
+                return t;
+            }
+        }
+    } else if (
+        thumb instanceof Api.PhotoSize ||
+        thumb instanceof Api.PhotoCachedSize ||
+        thumb instanceof Api.PhotoStrippedSize ||
+        thumb instanceof Api.VideoSize
+    ) {
+        return thumb;
+    }
+}
+
+/** @hidden */
+export async function _downloadCachedPhotoSize(
+    size: Api.PhotoCachedSize | Api.PhotoStrippedSize,
+    outputFile?: OutFile
 ) {
     // No need to download anything, simply write the bytes
-    let data;
+    let data:Buffer;
     if (size instanceof Api.PhotoStrippedSize) {
         data = strippedPhotoToJpg(size.bytes);
     } else {
         data = size.bytes;
     }
-    return data;
+    const writer = getWriter(outputFile);
+    try {
+        await writer.write(data);
+    } finally {
+        closeWriter(writer);
+    }
+
+    return returnWriterValue(writer);
+}
+
+/** @hidden */
+
+function getProperFilename(
+    file: OutFile | undefined,
+    fileType: string,
+    extension: string,
+    date: number
+) {
+    if (!file || typeof file != "string") {
+        return file;
+    }
+    let fullName = fileType + date + extension;
+    if (fs.existsSync(file)) {
+        if (fs.lstatSync(file).isFile()) {
+            return file;
+        } else {
+            return path.join(file, fullName);
+        }
+    }
+    return fullName;
 }
 
 /** @hidden */
 export async function _downloadPhoto(
     client: TelegramClient,
     photo: Api.MessageMediaPhoto | Api.Photo,
-    args: DownloadMediaInterface
-): Promise<Buffer> {
+    file?: OutFile,
+    date?: number,
+    thumb?: number | string | Api.TypePhotoSize,
+    progressCallback?: progressCallback
+): Promise<Buffer | string | undefined> {
     if (photo instanceof Api.MessageMediaPhoto) {
         if (photo.photo instanceof Api.PhotoEmpty || !photo.photo) {
             return Buffer.alloc(0);
@@ -408,18 +770,31 @@ export async function _downloadPhoto(
     if (!(photo instanceof Api.Photo)) {
         return Buffer.alloc(0);
     }
-    const size = pickFileSize(photo.sizes, args.sizeType || sizeTypes[0]);
+    const photoSizes = [...(photo.sizes || []), ...(photo.videoSizes || [])];
+    const size = getThumb(photoSizes, thumb);
     if (!size || size instanceof Api.PhotoSizeEmpty) {
         return Buffer.alloc(0);
     }
+    if (!date) {
+        date = Date.now();
+    }
 
+    file = getProperFilename(file, "photo", ".jpg", date);
     if (
         size instanceof Api.PhotoCachedSize ||
         size instanceof Api.PhotoStrippedSize
     ) {
-        return _downloadCachedPhotoSize(size);
+        return _downloadCachedPhotoSize(size, file);
     }
-    return client.downloadFile(
+    let fileSize: number;
+    if (size instanceof Api.PhotoSizeProgressive) {
+        fileSize = Math.max(...size.sizes);
+    } else {
+        fileSize = size.size;
+    }
+
+    return downloadFileV2(
+        client,
         new Api.InputPhotoFileLocation({
             id: photo.id,
             accessHash: photo.accessHash,
@@ -427,12 +802,10 @@ export async function _downloadPhoto(
             thumbSize: size.type,
         }),
         {
+            outputFile: file,
+            fileSize: fileSize,
+            progressCallback: progressCallback,
             dcId: photo.dcId,
-            fileSize:
-                size instanceof Api.PhotoSizeProgressive
-                    ? Math.max(...size.sizes)
-                    : size.size,
-            progressCallback: args.progressCallback,
         }
     );
 }
@@ -475,6 +848,5 @@ export async function downloadProfilePhoto(
     }
     return client.downloadFile(loc, {
         dcId,
-        workers: 1,
     });
 }

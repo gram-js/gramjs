@@ -12,7 +12,7 @@ function addBuffer(dir) {
     } else {
       if (
         (fullPath.endsWith(".ts") || fullPath.endsWith(".js")) &&
-        (!fullPath.endsWith(".d.ts") || fullPath.endsWith("api.d.ts"))
+        (!fullPath.endsWith(".d.ts") || fullPath.endsWith("api.d.ts") || fullPath.endsWith("define.d.ts"))
       ) {
         const tsFile = fs.readFileSync(fullPath, "utf8");
         if (tsFile.includes("Buffer")) {
@@ -99,7 +99,7 @@ npmi.on("close", (code) => {
     fs.copyFileSync("gramjs/define.d.ts", "browser/define.d.ts");
     renameFiles("browser", "rename");
 
-    const npm_publish = exec("npm publish --tag browser", { cwd: "browser" });
+    const npm_publish = exec("npm publish --tag next", { cwd: "browser" });
     npm_publish.stdout.on("data", function (data) {
       console.log(data.toString());
     });

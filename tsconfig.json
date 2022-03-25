@@ -13,8 +13,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./browser"
   },
-  "exclude": ["gramjs/tl/types-generator", "node_modules"],
-  "include": ["gramjs"]
+  "exclude": ["tempBrowser/tl/types-generator", "node_modules"],
+  "include": ["tempBrowser"]
 }

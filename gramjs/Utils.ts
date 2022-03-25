@@ -8,6 +8,65 @@ import type { ParseInterface } from "./client/messageParse";
 import { MarkdownParser } from "./extensions/markdown";
 import { CustomFile } from "./client/uploads";
 
+export function getFileInfo(
+    fileLocation:
+        | Api.Message
+        | Api.MessageMediaDocument
+        | Api.MessageMediaPhoto
+        | Api.TypeInputFileLocation
+): {
+    dcId?: number;
+    location: Api.TypeInputFileLocation;
+    size?: number;
+} {
+    if (!fileLocation || !fileLocation.SUBCLASS_OF_ID) {
+        _raiseCastFail(fileLocation, "InputFileLocation");
+    }
+    if (fileLocation.SUBCLASS_OF_ID == 354669666) {
+        return {
+            dcId: undefined,
+            location: fileLocation,
+            size: undefined,
+        };
+    }
+    let location;
+    if (fileLocation instanceof Api.Message) {
+        location = fileLocation.media;
+    }
+    if (fileLocation instanceof Api.MessageMediaDocument) {
+        location = fileLocation.document;
+    } else if (fileLocation instanceof Api.MessageMediaPhoto) {
+        location = fileLocation.photo;
+    }
+
+    if (location instanceof Api.Document) {
+        return {
+            dcId: location.dcId,
+            location: new Api.InputDocumentFileLocation({
+                id: location.id,
+                accessHash: location.accessHash,
+                fileReference: location.fileReference,
+                thumbSize: "",
+            }),
+            size: location.size,
+        };
+    } else if (location instanceof Api.Photo) {
+        return {
+            dcId: location.dcId,
+            location: new Api.InputPhotoFileLocation({
+                id: location.id,
+                accessHash: location.accessHash,
+                fileReference: location.fileReference,
+                thumbSize: location.sizes[location.sizes.length - 1].type,
+            }),
+            size: _photoSizeByteCount(
+                location.sizes[location.sizes.length - 1]
+            ),
+        };
+    }
+    _raiseCastFail(fileLocation, "InputFileLocation");
+}
+
 /**
  * Turns the given iterable into chunks of the specified size,
  * which is 100 by default since that's what Telegram uses the most.
@@ -42,7 +101,7 @@ const VALID_USERNAME_RE = new RegExp(
     "i"
 );
 
-function _raiseCastFail(entity: EntityLike, target: any): never {
+function _raiseCastFail(entity: any, target: string): never {
     let toWrite = entity;
     if (typeof entity === "object" && "className" in entity) {
         toWrite = entity.className;

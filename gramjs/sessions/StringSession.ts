@@ -46,10 +46,24 @@ export class StringSession extends MemorySession {
                     "." +
                     ip_v4[3].toString();
             } else {
+                // TODO find a better of doing this
                 const serverAddressLen = reader.read(2).readInt16BE(0);
-                this._serverAddress = reader.read(serverAddressLen).toString();
+                if (serverAddressLen > 100) {
+                    reader.offset -= 2;
+                    this._serverAddress = reader
+                        .read(16)
+                        .toString("hex")
+                        .match(/.{1,4}/g)!
+                        .map((val) => val.replace(/^0+/, ""))
+                        .join(":")
+                        .replace(/0000\:/g, ":")
+                        .replace(/:{2,}/g, "::");
+                } else {
+                    this._serverAddress = reader
+                        .read(serverAddressLen)
+                        .toString();
+                }
             }
-
             this._port = reader.read(2).readInt16BE(0);
             this._key = reader.read(-1);
         }

@@ -169,6 +169,7 @@ export class CustomMessage extends SenderGetter {
     static SUBCLASS_OF_ID: number;
     CONSTRUCTOR_ID!: number;
     SUBCLASS_OF_ID!: number;
+
     /**
      * Whether the message is outgoing (i.e. you sent it from
      * another session) or incoming (i.e. someone else sent it).
@@ -964,10 +965,10 @@ export class CustomMessage extends SenderGetter {
         }
     }
 
-    async downloadMedia(params: DownloadMediaInterface) {
+    async downloadMedia(params?: DownloadMediaInterface) {
         // small hack for patched method
         if (this._client)
-            return this._client.downloadMedia(this as any, params);
+            return this._client.downloadMedia(this as any, params || {});
     }
 
     async markAsRead() {
