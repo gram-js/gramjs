@@ -82,7 +82,7 @@ export function createCipheriv(algorithm: string, key: Buffer, iv: Buffer) {
     }
 }
 
-export function randomBytes(count: Buffer) {
+export function randomBytes(count: number) {
     const bytes = new Uint8Array(count);
     crypto.getRandomValues(bytes);
     return bytes;
@@ -114,10 +114,16 @@ export class Hash {
                 );
             }
         }
+        return Buffer.alloc(0);
     }
 }
 
-export async function pbkdf2Sync(password: any, salt: any, iterations: any) {
+export async function pbkdf2Sync(
+    password: any,
+    salt: any,
+    iterations: any,
+    ...args: any
+) {
     const passwordKey = await crypto.subtle.importKey(
         "raw",
         password,

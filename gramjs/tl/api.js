@@ -576,12 +576,13 @@ function createClasses(classesType, params) {
                     }
                 }
             }
+
             [inspect.custom]() {
                 return betterConsoleLog(this);
             }
 
             toJSON() {
-                return this.originalArgs;
+                return { ...this.originalArgs, className: fullName };
             }
         }
 

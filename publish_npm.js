@@ -12,7 +12,9 @@ function addBuffer(dir) {
     } else {
       if (
         (fullPath.endsWith(".ts") || fullPath.endsWith(".js")) &&
-        (!fullPath.endsWith(".d.ts") || fullPath.endsWith("api.d.ts") || fullPath.endsWith("define.d.ts"))
+        (!fullPath.endsWith(".d.ts") ||
+          fullPath.endsWith("api.d.ts") ||
+          fullPath.endsWith("define.d.ts"))
       ) {
         const tsFile = fs.readFileSync(fullPath, "utf8");
         if (tsFile.includes("Buffer")) {
@@ -80,6 +82,8 @@ fs.writeFileSync(
   JSON.stringify(packageJSON, null, "  "),
   "utf8"
 );
+renameFiles("tempBrowser", "rename");
+
 const npmi = exec("npm i");
 npmi.on("close", (code) => {
   if (code !== 0) {
@@ -87,6 +91,13 @@ npmi.on("close", (code) => {
   }
 
   const tsc = exec("tsc");
+  tsc.stdout.on("data", function (data) {
+    console.log("stdout: " + data.toString());
+  });
+
+  tsc.stderr.on("data", function (data) {
+    console.error("stderr: " + data.toString());
+  });
   tsc.on("close", (code) => {
     if (code !== 0) {
       throw new Error("Error happened " + code);
@@ -97,9 +108,8 @@ npmi.on("close", (code) => {
     fs.copyFileSync("LICENSE", "browser/LICENSE");
     fs.copyFileSync("gramjs/tl/api.d.ts", "browser/tl/api.d.ts");
     fs.copyFileSync("gramjs/define.d.ts", "browser/define.d.ts");
-    renameFiles("browser", "rename");
 
-    const npm_publish = exec("npm publish --tag next", { cwd: "browser" });
+    const npm_publish = exec("npm publish --tag browser", { cwd: "browser" });
     npm_publish.stdout.on("data", function (data) {
       console.log(data.toString());
     });
@@ -136,36 +146,44 @@ npmi.on("close", (code) => {
       JSON.stringify(packageJSON, null, "  "),
       "utf8"
     );
-    const tsc = exec("tsc");
-    tsc.on("close", (code) => {
-      if (code === 0) {
-        fs.copyFileSync("package.json", "dist/package.json");
-        fs.copyFileSync("README.md", "dist/README.md");
-        fs.copyFileSync("LICENSE", "dist/LICENSE");
-        fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
-        fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
-        renameFiles("dist", "delete");
-        /*const npm_publish = exec("npm publish", { cwd: "dist" });
-        npm_publish.stdout.on("data", function (data) {
-          console.log(data.toString());
-        });
 
-        npm_publish.stderr.on("data", function (data) {
-          console.error(data.toString());
-        });
-        npm_publish.on("close", (code) => {
-          if (code === 0) {
-            console.log("=====================================");
-            console.log("FINISHED UPLOADING NODE VERSION");
-            console.log("=====================================");
-          } else {
-            throw new Error("something went wrong");
-          }
-        });*/
-      } else {
-        console.log(code);
-        throw new Error("Error happened");
+    const npmi = exec("npm i");
+    npmi.on("close", (code) => {
+      if (code !== 0) {
+        throw new Error("Error happened " + code);
       }
+
+      const tsc = exec("tsc");
+      tsc.on("close", (code) => {
+        if (code === 0) {
+          fs.copyFileSync("package.json", "dist/package.json");
+          fs.copyFileSync("README.md", "dist/README.md");
+          fs.copyFileSync("LICENSE", "dist/LICENSE");
+          fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
+          fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
+          renameFiles("dist", "delete");
+          const npm_publish = exec("npm publish", { cwd: "dist" });
+          npm_publish.stdout.on("data", function (data) {
+            console.log(data.toString());
+          });
+
+          npm_publish.stderr.on("data", function (data) {
+            console.error(data.toString());
+          });
+          npm_publish.on("close", (code) => {
+            if (code === 0) {
+              console.log("=====================================");
+              console.log("FINISHED UPLOADING NODE VERSION");
+              console.log("=====================================");
+            } else {
+              throw new Error("something went wrong");
+            }
+          });
+        } else {
+          console.log(code);
+          throw new Error("Error happened");
+        }
+      });
     });
   });
 });

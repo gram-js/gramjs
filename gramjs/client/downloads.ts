@@ -714,7 +714,7 @@ export async function _downloadCachedPhotoSize(
     outputFile?: OutFile
 ) {
     // No need to download anything, simply write the bytes
-    let data:Buffer;
+    let data: Buffer;
     if (size instanceof Api.PhotoStrippedSize) {
         data = strippedPhotoToJpg(size.bytes);
     } else {
