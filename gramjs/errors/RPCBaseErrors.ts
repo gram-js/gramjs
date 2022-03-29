@@ -5,8 +5,8 @@ import { Api } from "../tl";
 import { CustomError } from "ts-custom-error";
 
 export class RPCError extends CustomError {
-    protected code: number | undefined;
-    protected errorMessage: string;
+    public code: number | undefined;
+    public errorMessage: string;
 
     constructor(message: string, request: Api.AnyRequest, code?: number) {
         super(
