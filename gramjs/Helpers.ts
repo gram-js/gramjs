@@ -2,7 +2,7 @@ import bigInt from "big-integer";
 import type { EntityLike } from "./define";
 import type { Api } from "./tl";
 import crypto from "./CryptoFile";
-
+import {computeCheck} from "./Password"
 /**
  * converts a buffer to big int
  * @param buffer
@@ -540,4 +540,13 @@ export function _entityType(entity: EntityLike) {
     }
     // 'Empty' in name or not found, we don't care, not a valid entity.
     throw new Error(`${entity} does not have any entity type`);
+}
+
+export async function getPasswordSrpCheck(passwordSrpResult:any,password : string){
+    const passwordSrpCheck = await computeCheck(
+        passwordSrpResult,
+        password
+    );
+
+    return passwordSrpCheck
 }
