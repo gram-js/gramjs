@@ -741,15 +741,12 @@ function getProperFilename(
     if (!file || typeof file != "string") {
         return file;
     }
-    let fullName = fileType + date + extension;
-    if (fs.existsSync(file)) {
-        if (fs.lstatSync(file).isFile()) {
-            return file;
-        } else {
-            return path.join(file, fullName);
-        }
+
+    if (fs.existsSync(file) && fs.lstatSync(file).isDirectory()) {
+        let fullName = fileType + date + extension;
+        return path.join(file, fullName);
     }
-    return fullName;
+    return file;
 }
 
 /** @hidden */
