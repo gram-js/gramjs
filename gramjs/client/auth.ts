@@ -388,6 +388,15 @@ export async function sendCode(
     }
 }
 
+export async function getPasswordSrpCheck(passwordSrpResult:any,password : string){
+    const passwordSrpCheck = await computePasswordSrpCheck(
+        passwordSrpResult,
+        password
+    );
+
+    return passwordSrpCheck
+}
+
 /** @hidden */
 export async function signInWithPassword(
     client: TelegramClient,
@@ -410,7 +419,7 @@ export async function signInWithPassword(
                 throw new Error("Password is empty");
             }
 
-            const passwordSrpCheck = await computePasswordSrpCheck(
+            const passwordSrpCheck = await getPasswordSrpCheck(
                 passwordSrpResult,
                 password
             );
