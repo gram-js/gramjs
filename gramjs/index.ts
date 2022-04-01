@@ -10,5 +10,5 @@ import * as sessions from "./sessions";
 import * as extensions from "./extensions";
 import * as helpers from "./Helpers";
 import * as client from "./client";
-
-export { utils, errors, sessions, extensions, helpers, tl, client };
+import * as password from "./Password"
+export { utils, errors, sessions, extensions, helpers, tl, client,password };
