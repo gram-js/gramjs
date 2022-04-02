@@ -954,6 +954,7 @@ messages.availableReactions#768e3aad hash:int reactions:Vector<AvailableReaction
 messages.translateNoResult#67ca4737 = messages.TranslatedText;
 messages.translateResultText#a214f7d0 text:string = messages.TranslatedText;
 messagePeerReaction#51b67eff flags:# big:flags.0?true unread:flags.1?true peer_id:Peer reaction:string = MessagePeerReaction;
+phone.groupCallStreamRtmpUrl#2dbf3432 url:string key:string = phone.GroupCallStreamRtmpUrl;
 ---functions---
 invokeAfterMsg#cb9f372d {X:Type} msg_id:long query:!X = X;
 invokeAfterMsgs#3dc4b4f0 {X:Type} msg_ids:Vector<long> query:!X = X;
@@ -1370,4 +1371,5 @@ stats.loadAsyncGraph#621d5fa0 flags:# token:string x:flags.0?long = StatsGraph;
 stats.getMegagroupStats#dcdf8607 flags:# dark:flags.0?true channel:InputChannel = stats.MegagroupStats;
 stats.getMessagePublicForwards#5630281b channel:InputChannel msg_id:int offset_rate:int offset_peer:InputPeer offset_id:int limit:int = messages.Messages;
 stats.getMessageStats#b6e0a3f5 flags:# dark:flags.0?true channel:InputChannel msg_id:int = stats.MessageStats;
+phone.getGroupCallStreamRtmpUrl#deb3abbf peer:InputPeer revoke:Bool = phone.GroupCallStreamRtmpUrl;
 `;

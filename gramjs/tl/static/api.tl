@@ -1325,6 +1325,8 @@ messages.translateResultText#a214f7d0 text:string = messages.TranslatedText;
 
 messagePeerReaction#51b67eff flags:# big:flags.0?true unread:flags.1?true peer_id:Peer reaction:string = MessagePeerReaction;
 
+phone.groupCallStreamRtmpUrl#2dbf3432 url:string key:string = phone.GroupCallStreamRtmpUrl;
+
 ---functions---
 
 invokeAfterMsg#cb9f372d {X:Type} msg_id:long query:!X = X;
@@ -1761,3 +1763,5 @@ stats.getMessagePublicForwards#5630281b channel:InputChannel msg_id:int offset_r
 stats.getMessageStats#b6e0a3f5 flags:# dark:flags.0?true channel:InputChannel msg_id:int = stats.MessageStats;
 
 // LAYER 138
+
+phone.getGroupCallStreamRtmpUrl#deb3abbf peer:InputPeer revoke:Bool = phone.GroupCallStreamRtmpUrl;
