@@ -744,7 +744,6 @@ export async function sendMessage(
     }
     entity = await client.getInputEntity(entity);
     if (commentTo != undefined) {
-        console.log("this is a comment");
         const discussionData = await getCommentData(client, entity, commentTo);
         entity = discussionData.entity;
         replyTo = discussionData.replyTo;
