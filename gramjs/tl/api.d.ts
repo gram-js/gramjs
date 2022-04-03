@@ -18980,6 +18980,7 @@ export namespace Api {
     }
     export class CreateGroupCall extends Request<Partial<{
       // flags: null;
+      rtmpStream?: boolean;
       peer: Api.TypeEntityLike;
       randomId: int;
       title?: string;
@@ -18991,6 +18992,7 @@ export namespace Api {
     className: "phone.CreateGroupCall";
     static fromReader(reader: Reader): CreateGroupCall;
       // flags: null;
+      rtmpStream?: boolean;
       peer: Api.TypeEntityLike;
       randomId: int;
       title?: string;
