@@ -76,6 +76,8 @@ export interface DownloadFileParamsV2 {
     /** */
 
     msgData?: [EntityLike, number];
+
+    abortSignal?: AbortSignal;
 }
 
 /**
@@ -399,6 +401,7 @@ export async function downloadFileV2(
         progressCallback = undefined,
         dcId = undefined,
         msgData = undefined,
+        abortSignal = undefined
     }: DownloadFileParamsV2
 ) {
     if (!partSizeKb) {
@@ -423,6 +426,7 @@ export async function downloadFileV2(
             dcId: dcId,
             msgData: msgData,
         })) {
+            if (abortSignal?.aborted) throw new Error("USER_ABORTED")
             await writer.write(chunk);
             if (progressCallback) {
                 await progressCallback(downloaded, fileSize || 0);
@@ -499,6 +503,10 @@ export interface DownloadMediaInterface {
      * ``(received bytes, total)``.
      */
     progressCallback?: ProgressCallback;
+    /**
+     * This is used to abort/cancel the ongoing download
+    */
+    abortSignal?: AbortSignal
 }
 
 /** @hidden */
@@ -507,7 +515,8 @@ export async function downloadMedia(
     messageOrMedia: Api.Message | Api.TypeMessageMedia,
     outputFile?: OutFile,
     thumb?: number | Api.TypePhotoSize,
-    progressCallback?: ProgressCallback
+    progressCallback?: ProgressCallback,
+    abortSignal?: AbortSignal
 ): Promise<Buffer | string | undefined> {
     /*
       Downloading large documents may be slow enough to require a new file reference
@@ -556,7 +565,8 @@ export async function downloadMedia(
             date,
             thumb,
             progressCallback,
-            msgData
+            msgData,
+            abortSignal
         );
     } else if (media instanceof Api.MessageMediaContact) {
         return _downloadContact(client, media, {});
@@ -578,7 +588,8 @@ export async function _downloadDocument(
     date: number,
     thumb?: number | string | Api.TypePhotoSize,
     progressCallback?: ProgressCallback,
-    msgData?: [EntityLike, number]
+    msgData?: [EntityLike, number],
+    abortSignal?: AbortSignal
 ): Promise<Buffer | string | undefined> {
     if (doc instanceof Api.MessageMediaDocument) {
         if (!doc.document) {
@@ -620,6 +631,7 @@ export async function _downloadDocument(
             fileSize: size && "size" in size ? size.size : doc.size,
             progressCallback: progressCallback,
             msgData: msgData,
+            abortSignal: abortSignal
         }
     );
 }
