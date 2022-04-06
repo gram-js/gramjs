@@ -109,7 +109,7 @@ export class TelegramClient extends TelegramBaseClient {
      * @example
      * ```ts
      * await client.connect();
-     * if (await client.checkAuthorization(){
+     * if (await client.checkAuthorization()){
      *     console.log("I am logged in!");
      * }else{
      *     console.log("I am connected to telegram servers but not logged in with any account/bot");
