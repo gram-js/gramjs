@@ -762,18 +762,16 @@ export async function sendMessage(
             message.media &&
             !(message.media instanceof Api.MessageMediaWebPage)
         ) {
-            throw new Error("Not Supported Yet");
-            /*
-                            return this.sendFile(entity, message.media, {
+            return client.sendFile(entity, {
+                                file: message.media,
                                 caption: message.message,
                                 silent: silent,
                                 replyTo: replyTo,
                                 buttons: markup,
                                 formattingEntities: message.entities,
-                                schedule: schedule
+                                scheduleDate: schedule
                             })
 
-             */
         }
         request = new Api.messages.SendMessage({
             peer: entity,
