@@ -122,6 +122,9 @@ export async function _dispatchUpdate(
     args: { update: UpdateConnectionState | any }
 ): Promise<void> {
     for (const [builder, callback] of client._eventBuilders) {
+        if (!builder || !callback){
+            continue;
+        }
         if (!builder.resolved) {
             await builder.resolve(client);
         }
@@ -172,7 +175,7 @@ export async function _dispatchUpdate(
 export async function _updateLoop(client: TelegramClient): Promise<void> {
     while (!client._destroyed) {
         await sleep(PING_INTERVAL);
-        if (client._reconnecting) {
+        if (client._reconnecting || client._sender!.userDisconnected) {
             continue;
         }
         if (client._destroyed) {
@@ -202,16 +205,12 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
             );
         } catch (err: any) {
             // eslint-disable-next-line no-console
-            client._log.error(err);
-            if (client._log.canSend(LogLevel.ERROR)) {
-                console.error(err);
-            }
-
-            if (client._reconnecting) {
+            if (client._reconnecting || client._sender!.userDisconnected) {
                 continue;
             }
 
             await client.disconnect();
+
             await client.connect();
         }
 
