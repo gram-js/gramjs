@@ -67,7 +67,7 @@ const fromLine = (line: string, isFunction: boolean) => {
                 .replace(/(:|\?)bytes /g, "$1string ")
                 .replace(/</g, " ")
                 .replace(/>|{|}/g, "")
-                .replace(/ \w+:flags\.\d+\?true/g, "");
+                .replace(/ \w+:flags(\d+)?\.\d+\?true/g, "");
 
         if (currentConfig.name === "inputMediaInvoice") {
             // eslint-disable-next-line no-empty
@@ -132,13 +132,14 @@ function buildArgConfig(name: string, argType: string) {
         // is determined by a previous argument
         // However, we assume that the argument will always be called 'flags'
         // @ts-ignore
-        const flagMatch = currentConfig.type.match(/flags.(\d+)\?([\w<>.]+)/);
+        const flagMatch = currentConfig.type.match(/flags(\d+)?.(\d+)\?([\w<>.]+)/);
 
         if (flagMatch) {
             currentConfig.isFlag = true;
-            currentConfig.flagIndex = Number(flagMatch[1]);
-            // Update the type to match the exact type, not the "flagged" one
-            [, , currentConfig.type] = flagMatch;
+            currentConfig.flagIndex = Number(flagMatch[1] ?? flagMatch[2]);
+            // Update the type to match the exact type, not the "flagged" one 
+            [, , , currentConfig.type] = flagMatch;
+
         }
 
         // Then check if the type is a Vector<REAL_TYPE>
