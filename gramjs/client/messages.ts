@@ -45,7 +45,6 @@ export class _MessagesIter extends RequestIter {
         | Api.messages.GetReplies
         | Api.messages.GetHistory
         | Api.messages.Search;
-    fromId?: string | bigInt.BigInteger;
     addOffset?: number;
     maxId?: number;
     minId?: number;
@@ -98,9 +97,6 @@ export class _MessagesIter extends RequestIter {
         }
         if (fromUser) {
             fromUser = await this.client.getInputEntity(fromUser);
-            this.fromId = await this.client.getPeerId(fromUser);
-        } else {
-            this.fromId = undefined;
         }
 
         if (!this.entity && fromUser) {
@@ -139,11 +135,7 @@ export class _MessagesIter extends RequestIter {
             fromUser !== undefined
         ) {
             const ty = _entityType(this.entity);
-            if (ty == _EntityType.USER) {
-                fromUser = undefined;
-            } else {
-                this.fromId = undefined;
-            }
+
             this.request = new Api.messages.Search({
                 peer: this.entity,
                 q: search || "",
@@ -240,9 +232,6 @@ export class _MessagesIter extends RequestIter {
             ? (r.messages.reverse() as unknown as Api.Message[])
             : (r.messages as unknown as Api.Message[]);
         for (const message of messages) {
-            if (this.fromId && message.senderId?.notEquals(this.fromId)) {
-                continue;
-            }
             if (!this._messageInRange(message)) {
                 return true;
             }
