@@ -132,14 +132,15 @@ function buildArgConfig(name: string, argType: string) {
         // is determined by a previous argument
         // However, we assume that the argument will always be called 'flags'
         // @ts-ignore
-        const flagMatch = currentConfig.type.match(/flags(\d+)?.(\d+)\?([\w<>.]+)/);
+        const flagMatch = currentConfig.type.match(
+            /flags(\d+)?.(\d+)\?([\w<>.]+)/
+        );
 
         if (flagMatch) {
             currentConfig.isFlag = true;
             currentConfig.flagIndex = Number(flagMatch[1] ?? flagMatch[2]);
-            // Update the type to match the exact type, not the "flagged" one 
+            // Update the type to match the exact type, not the "flagged" one
             [, , , currentConfig.type] = flagMatch;
-
         }
 
         // Then check if the type is a Vector<REAL_TYPE>
