@@ -122,7 +122,7 @@ export async function _dispatchUpdate(
     args: { update: UpdateConnectionState | any }
 ): Promise<void> {
     for (const [builder, callback] of client._eventBuilders) {
-        if (!builder || !callback){
+        if (!builder || !callback) {
             continue;
         }
         if (!builder.resolved) {
