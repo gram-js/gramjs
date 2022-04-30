@@ -193,7 +193,7 @@ export class HTMLParser {
                 html.push(`<strong>${entityText}</strong>`);
             } else if (entity instanceof Api.MessageEntitySpoiler) {
                 html.push(`<spoiler>${entityText}</spoiler>`);
-            }else if (entity instanceof Api.MessageEntityItalic) {
+            } else if (entity instanceof Api.MessageEntityItalic) {
                 html.push(`<em>${entityText}</em>`);
             } else if (entity instanceof Api.MessageEntityCode) {
                 html.push(`<code>${entityText}</code>`);

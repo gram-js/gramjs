@@ -752,15 +752,14 @@ export async function sendMessage(
             !(message.media instanceof Api.MessageMediaWebPage)
         ) {
             return client.sendFile(entity, {
-                                file: message.media,
-                                caption: message.message,
-                                silent: silent,
-                                replyTo: replyTo,
-                                buttons: markup,
-                                formattingEntities: message.entities,
-                                scheduleDate: schedule
-                            })
-
+                file: message.media,
+                caption: message.message,
+                silent: silent,
+                replyTo: replyTo,
+                buttons: markup,
+                formattingEntities: message.entities,
+                scheduleDate: schedule,
+            });
         }
         request = new Api.messages.SendMessage({
             peer: entity,
