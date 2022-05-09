@@ -112,7 +112,7 @@ export function _getResponseMessage(
     }
     const randomToId = new Map<string, number>();
     const idToMessage = new Map<number, Api.Message>();
-    const schedToMessage = new Map<number, Api.Message>();
+    let schedMessage;
     for (const update of updates) {
         if (update instanceof Api.UpdateMessageID) {
             randomToId.set(update.randomId!.toString(), update.id);
@@ -171,7 +171,8 @@ export function _getResponseMessage(
                 entities,
                 inputChat
             );
-            schedToMessage.set(
+            schedMessage = update.message as unknown as Api.Message;
+            idToMessage.set(
                 update.message.id,
                 update.message as unknown as Api.Message
             );
@@ -195,94 +196,60 @@ export function _getResponseMessage(
     if (request == undefined) {
         return idToMessage;
     }
-    let mapping: Map<number, Api.Message>;
-    let opposite = new Map<number, Api.Message>();
-    if ("scheduleDate" in request && request.scheduleDate != undefined) {
-        mapping = schedToMessage;
-        opposite = idToMessage;
-    } else {
-        mapping = idToMessage;
-    }
-    let randomId =
+    let randomId;
+    if (
         isArrayLike(request) ||
         typeof request == "number" ||
         bigInt.isInstance(request)
-            ? request
-            : request.randomId.toString();
+    ) {
+        randomId = request;
+    } else {
+        randomId = request.randomId;
+    }
     if (!randomId) {
+        if (schedMessage) {
+            return schedMessage;
+        }
         client._log.warn(
             `No randomId in ${request} to map to. returning undefined for ${result}`
         );
         return undefined;
     }
-
     if (!isArrayLike(randomId)) {
-        let msg = mapping.get(randomToId.get(randomId)!);
-        if (!msg) {
-            msg = opposite.get(randomToId.get(randomId)!);
-        }
+        let msg = idToMessage.get(randomToId.get(randomId.toString())!);
         if (!msg) {
             client._log.warn(
                 `Request ${request.className} had missing message mapping ${result.className}`
             );
         }
         return msg;
-    } else {
-        let arrayRandomId: bigInt.BigInteger[] =
-            randomId as bigInt.BigInteger[];
-        const mappingToReturn = [];
-        let warned = false;
-        for (let i = 0; i < arrayRandomId.length; i++) {
-            const tempRandom = arrayRandomId[i];
-            if (tempRandom == undefined) {
-                warned = true;
-                break;
-            }
-            const rnd = tempRandom.toString();
-            const msgId = randomToId.get(rnd);
-            if (msgId == undefined) {
-                warned = true;
-                break;
-            }
-            const msg = mapping.get(msgId);
-            if (!msg) {
-                warned = true;
-                break;
-            } else {
-                mappingToReturn.push(msg);
-            }
+    }
+    const final = [];
+    let warned = false;
+    for (const rnd of randomId) {
+        const tmp = randomToId.get((rnd as any).toString());
+        if (!tmp) {
+            warned = true;
+            break;
         }
-        if (!warned) {
-            return mappingToReturn;
+        const tmp2 = idToMessage.get(tmp);
+        if (!tmp2) {
+            warned = true;
+            break;
         }
-        const oppositeToReturn = [];
-        warned = false;
-        for (let i = 0; i < randomId.length; i++) {
-            const rnd = randomId[i] + "";
-            const msg = opposite.get(randomToId.get(rnd)!);
-            if (!msg) {
-                client._log.warn(
-                    `Request ${request} had missing message mapping ${result}`
-                );
-                warned = true;
-                break;
-            } else {
-                oppositeToReturn.push(msg);
-            }
-        }
-        if (!warned) {
-            return mappingToReturn;
-        }
+        final.push(tmp2);
+    }
+    if (warned) {
+        client._log.warn(
+            `Request ${request.className} had missing message mapping ${result.className}`
+        );
     }
     const finalToReturn = [];
-    for (let i = 0; i < randomId.length; i++) {
-        const rnd = randomId[i] + "";
-        if (randomToId.has(rnd)) {
-            finalToReturn.push(
-                mapping.get(randomToId.get(rnd)!) ||
-                    opposite.get(randomToId.get(rnd)!)
-            );
-        }
+    for (const rnd of randomId) {
+        finalToReturn.push(
+            idToMessage.get(randomToId.get((rnd as any).toString())!)
+        );
     }
+
     return finalToReturn;
 }
