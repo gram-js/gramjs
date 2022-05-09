@@ -149,6 +149,8 @@ export async function _dispatchUpdate(
                     : undefined
             );
             if (event) {
+                event._client = client;
+
                 if ("_eventName" in event) {
                     event._setClient(client);
                     event.originalUpdate = args.update;
