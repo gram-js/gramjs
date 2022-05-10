@@ -31,7 +31,8 @@ export class Button {
             button instanceof Api.KeyboardButtonCallback ||
             button instanceof Api.KeyboardButtonSwitchInline ||
             button instanceof Api.KeyboardButtonUrl ||
-            button instanceof Api.KeyboardButtonUrlAuth
+            button instanceof Api.KeyboardButtonUrlAuth ||
+            button instanceof Api.InputKeyboardButtonUrlAuth
         );
     }
 
