@@ -21,8 +21,9 @@ export class Logger {
         error: string;
         info: string;
     };
-    private messageFormat: string;
+    public messageFormat: string;
     private _logLevel: LogLevel;
+    public tzOffset: number;
 
     constructor(level?: LogLevel) {
         // if (!_level) {
@@ -50,6 +51,7 @@ export class Logger {
             };
         }
         this.messageFormat = "[%t] [%l] - [%m]";
+        this.tzOffset = new Date().getTimezoneOffset() * 60000
     }
 
     /**
@@ -93,7 +95,7 @@ export class Logger {
 
     format(message: string, level: string) {
         return this.messageFormat
-            .replace("%t", new Date().toISOString())
+            .replace("%t", this.getDateTime())
             .replace("%l", level.toUpperCase())
             .replace("%m", message);
     }
@@ -139,5 +141,9 @@ export class Logger {
         } else {
             console.log(this.colors.start + this.format(message, level), color);
         }
+    }
+
+    getDateTime() {
+        return new Date(Date.now() - this.tzOffset).toISOString().slice(0, -1);
     }
 }
