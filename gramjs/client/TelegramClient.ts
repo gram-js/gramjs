@@ -492,7 +492,8 @@ export class TelegramClient extends TelegramBaseClient {
             messageOrMedia,
             downloadParams.outputFile,
             downloadParams.thumb,
-            downloadParams.progressCallback
+            downloadParams.progressCallback,
+            downloadParams.abortSignal
         );
     }
 
