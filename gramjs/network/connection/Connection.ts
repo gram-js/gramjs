@@ -4,10 +4,19 @@ import {
     PromisedWebSockets,
 } from "../../extensions";
 import { AsyncQueue } from "../../extensions";
-import { isNode } from "../../platform";
 import { AbridgedPacketCodec } from "./TCPAbridged";
 import { FullPacketCodec } from "./TCPFull";
 import { ProxyInterface } from "./TCPMTProxy";
+
+interface ConnectionInterfaceParams {
+    ip: string;
+    port: number;
+    dcId: number;
+    loggers: Logger;
+    proxy?: ProxyInterface;
+    socket: PromisedNetSockets | PromisedWebSockets;
+    testServers: boolean;
+}
 
 /**
  * The `Connection` class is a wrapper around ``asyncio.open_connection``.
@@ -35,14 +44,17 @@ class Connection {
     private readonly _sendArray: AsyncQueue;
     private _recvArray: AsyncQueue;
     socket: PromisedNetSockets | PromisedWebSockets;
+    public _testServers: boolean;
 
-    constructor(
-        ip: string,
-        port: number,
-        dcId: number,
-        loggers: Logger,
-        proxy?: ProxyInterface
-    ) {
+    constructor({
+        ip,
+        port,
+        dcId,
+        loggers,
+        proxy,
+        socket,
+        testServers,
+    }: ConnectionInterfaceParams) {
         this._ip = ip;
         this._port = port;
         this._dcId = dcId;
@@ -55,17 +67,14 @@ class Connection {
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
-        this.socket = isNode
-            ? new PromisedNetSockets(this._proxy)
-            : new PromisedWebSockets();
-
-        //this.socket = new PromisedWebSockets()
+        this.socket = socket;
+        this._testServers = testServers;
     }
 
     async _connect() {
         this._log.debug("Connecting");
         this._codec = new this.PacketCodecClass!(this);
-        await this.socket.connect(this._port, this._ip);
+        await this.socket.connect(this._port, this._ip, this._testServers);
         this._log.debug("Finished connecting");
         // await this.socket.connect({host: this._ip, port: this._port});
         await this._initConn();

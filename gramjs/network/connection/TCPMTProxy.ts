@@ -121,19 +121,39 @@ class MTProxyIO {
     }
 }
 
+interface TCPMTProxyInterfaceParams {
+    ip: string;
+    port: number;
+    dcId: number;
+    loggers: Logger;
+    proxy: ProxyInterface;
+    socket: PromisedNetSockets | PromisedWebSockets;
+    testServers: boolean;
+}
+
 export class TCPMTProxy extends ObfuscatedConnection {
     ObfuscatedIO = MTProxyIO;
 
     _secret: Buffer;
 
-    constructor(
-        ip: string,
-        port: number,
-        dcId: number,
-        loggers: Logger,
-        proxy: ProxyInterface
-    ) {
-        super(proxy.ip, proxy.port, dcId, loggers);
+    constructor({
+        ip,
+        port,
+        dcId,
+        loggers,
+        proxy,
+        socket,
+        testServers,
+    }: TCPMTProxyInterfaceParams) {
+        super({
+            ip: proxy.ip,
+            port: proxy.port,
+            dcId: dcId,
+            loggers: loggers,
+            socket: socket,
+            proxy: proxy,
+            testServers: testServers,
+        });
         if (!proxy.MTProxy) {
             throw new Error("This connection only supports MPTProxies");
         }

@@ -64,21 +64,21 @@ export class PromisedWebSockets {
         return toReturn;
     }
 
-    getWebSocketLink(ip: string, port: number) {
+    getWebSocketLink(ip: string, port: number, testServers: boolean) {
         if (port === 443) {
-            return `wss://${ip}:${port}/apiws`;
+            return `wss://${ip}:${port}/apiws${testServers ? "_test" : ""}`;
         } else {
-            return `ws://${ip}:${port}/apiws`;
+            return `ws://${ip}:${port}/apiws${testServers ? "_test" : ""}`;
         }
     }
 
-    async connect(port: number, ip: string) {
+    async connect(port: number, ip: string, testServers: boolean = false) {
         this.stream = Buffer.alloc(0);
         this.canRead = new Promise((resolve) => {
             this.resolveRead = resolve;
         });
         this.closed = false;
-        this.website = this.getWebSocketLink(ip, port);
+        this.website = this.getWebSocketLink(ip, port, testServers);
         this.client = new w3cwebsocket(this.website, "binary");
         return new Promise((resolve, reject) => {
             if (this.client) {
@@ -143,5 +143,9 @@ export class PromisedWebSockets {
                 }
             };
         }
+    }
+
+    toString() {
+        return "PromisedWebSocket";
     }
 }

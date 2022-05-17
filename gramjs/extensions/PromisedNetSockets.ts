@@ -173,4 +173,7 @@ export class PromisedNetSockets {
             });
         }
     }
+    toString() {
+        return "PromisedNetSocket";
+    }
 }

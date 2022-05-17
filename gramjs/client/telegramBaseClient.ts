@@ -5,7 +5,7 @@ import {
     ConnectionTCPObfuscated,
 } from "../network/connection";
 import { Session, StoreSession } from "../sessions";
-import { Logger } from "../extensions";
+import { Logger, PromisedNetSockets, PromisedWebSockets } from "../extensions";
 import { Api } from "../tl";
 
 import os from "./os";
@@ -19,7 +19,6 @@ import { LAYER } from "../tl/AllTLObjects";
 import {
     ConnectionTCPMTProxyAbridged,
     ProxyInterface,
-    TCPMTProxy,
 } from "../network/connection/TCPMTProxy";
 import { Semaphore } from "async-mutex";
 import { LogLevel } from "../extensions/Logger";
@@ -118,10 +117,19 @@ export interface TelegramClientParams {
      * Whether to check for tampering in messages or not.
      */
     securityChecks?: boolean;
+    /**
+     * Only for web DCs. Whether to use test servers or not.
+     */
+    testServers?: boolean;
+    /**
+     * What type of network connection to use (Normal Socket (for node) or Websockets (for browsers usually) )
+     */
+    networkSocket?: typeof PromisedNetSockets | typeof PromisedWebSockets;
 }
 
 const clientParamsDefault = {
     connection: isNode ? ConnectionTCPFull : ConnectionTCPObfuscated,
+    networkSocket: isNode ? PromisedNetSockets : PromisedWebSockets,
     useIPV6: false,
     timeout: 10,
     requestRetries: 5,
@@ -138,6 +146,7 @@ const clientParamsDefault = {
     systemLangCode: "en",
     _securityChecks: true,
     useWSS: isBrowser ? window.location.protocol == "https:" : false,
+    testServers: false,
 };
 
 export abstract class TelegramBaseClient {
@@ -217,6 +226,10 @@ export abstract class TelegramBaseClient {
     _semaphore: Semaphore;
     /** @hidden */
     _securityChecks: boolean;
+    /** @hidden */
+    public testServers: boolean;
+    /** @hidden */
+    public socket: PromisedNetSockets | PromisedWebSockets;
 
     constructor(
         session: string | Session,
@@ -257,6 +270,15 @@ export abstract class TelegramBaseClient {
         this._semaphore = new Semaphore(
             clientParams.maxConcurrentDownloads || 1
         );
+        this.testServers = clientParams.testServers || false;
+        if (
+            clientParams.networkSocket!.constructor ===
+            PromisedNetSockets.constructor
+        ) {
+            this.socket = new clientParams.networkSocket!(this._proxy);
+        } else {
+            this.socket = new clientParams.networkSocket!();
+        }
         if (!(clientParams.connection instanceof Function)) {
             throw new Error("Connection should be a class not an instance");
         }
@@ -408,13 +430,15 @@ export abstract class TelegramBaseClient {
         while (true) {
             try {
                 await sender.connect(
-                    new this._connection(
-                        dc.ipAddress,
-                        dc.port,
-                        dcId,
-                        this._log,
-                        this._proxy
-                    )
+                    new this._connection({
+                        ip: dc.ipAddress,
+                        port: dc.port,
+                        dcId: dcId,
+                        loggers: this._log,
+                        proxy: this._proxy,
+                        testServers: this.testServers,
+                        socket: this.socket,
+                    })
                 );
 
                 if (this.session.dcId !== dcId && !sender._authenticated) {

@@ -51,7 +51,7 @@ export class Logger {
             };
         }
         this.messageFormat = "[%t] [%l] - [%m]";
-        this.tzOffset = new Date().getTimezoneOffset() * 60000
+        this.tzOffset = new Date().getTimezoneOffset() * 60000;
     }
 
     /**

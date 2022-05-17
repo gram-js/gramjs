@@ -327,7 +327,9 @@ export class MTProtoSender {
      */
     async _connect() {
         this._log.info(
-            "Connecting to {0}...".replace("{0}", this._connection!.toString())
+            "Connecting to {0} using {1}"
+                .replace("{0}", this._connection!.toString())
+                .replace("{1}", this._connection!.socket.toString())
         );
         await this._connection!.connect();
         this._log.debug("Connection success!");
@@ -935,13 +937,15 @@ export class MTProtoSender {
         const constructor = this._connection!
             .constructor as unknown as typeof Connection;
 
-        const newConnection = new constructor(
-            this._connection!._ip,
-            this._connection!._port,
-            this._connection!._dcId,
-            this._connection!._log,
-            this._connection!._proxy
-        );
+        const newConnection = new constructor({
+            ip: this._connection!._ip,
+            port: this._connection!._port,
+            dcId: this._connection!._dcId,
+            loggers: this._connection!._log,
+            proxy: this._connection!._proxy,
+            testServers: this._connection!._testServers,
+            socket: this._connection!.socket,
+        });
         await this.connect(newConnection, true);
 
         this._reconnecting = false;

@@ -141,7 +141,13 @@ export class MessagePacker {
     }
     rejectAll() {
         this._pendingStates.forEach((requestState) => {
-            requestState.reject(new Error("Disconnect"));
+            requestState.reject(
+                new Error(
+                    "Disconnect (caused from " +
+                        requestState?.request?.className +
+                        ")"
+                )
+            );
         });
     }
 }

@@ -896,8 +896,15 @@ export async function editMessage(
         schedule,
     }: EditMessageParams
 ) {
-    if (typeof message === "number" && typeof text === "undefined" && !file && !schedule) {
-        throw Error("You have to provide either file or text or schedule property.");
+    if (
+        typeof message === "number" &&
+        typeof text === "undefined" &&
+        !file &&
+        !schedule
+    ) {
+        throw Error(
+            "You have to provide either file or text or schedule property."
+        );
     }
     entity = await client.getInputEntity(entity);
     let id: number | undefined;
