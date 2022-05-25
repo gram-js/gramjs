@@ -12,14 +12,7 @@ import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
 import * as twoFA from "./2fa";
-import type {
-    ButtonLike,
-    Entity,
-    EntityLike,
-    MessageIDLike,
-    OutFile,
-    ProgressCallback,
-} from "../define";
+import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
 import { Api } from "../tl";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
@@ -1372,7 +1365,7 @@ export class TelegramClient extends TelegramBaseClient {
             dcId: this.session.dcId,
             loggers: this._log,
             proxy: this._proxy,
-            socket: this.socket,
+            socket: this.networkSocket,
             testServers: this.testServers,
         });
         const newConnection = await this._sender.connect(connection);

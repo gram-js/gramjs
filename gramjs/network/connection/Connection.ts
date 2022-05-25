@@ -14,7 +14,7 @@ interface ConnectionInterfaceParams {
     dcId: number;
     loggers: Logger;
     proxy?: ProxyInterface;
-    socket: PromisedNetSockets | PromisedWebSockets;
+    socket: typeof PromisedNetSockets | typeof PromisedWebSockets;
     testServers: boolean;
 }
 
@@ -67,7 +67,7 @@ class Connection {
         this._obfuscation = undefined; // TcpObfuscated and MTProxy
         this._sendArray = new AsyncQueue();
         this._recvArray = new AsyncQueue();
-        this.socket = socket;
+        this.socket = new socket(proxy);
         this._testServers = testServers;
     }
 

@@ -127,7 +127,7 @@ interface TCPMTProxyInterfaceParams {
     dcId: number;
     loggers: Logger;
     proxy: ProxyInterface;
-    socket: PromisedNetSockets | PromisedWebSockets;
+    socket: typeof PromisedNetSockets | typeof PromisedWebSockets;
     testServers: boolean;
 }
 

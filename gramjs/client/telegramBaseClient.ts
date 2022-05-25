@@ -229,7 +229,7 @@ export abstract class TelegramBaseClient {
     /** @hidden */
     public testServers: boolean;
     /** @hidden */
-    public socket: PromisedNetSockets | PromisedWebSockets;
+    public networkSocket: typeof PromisedNetSockets | typeof PromisedWebSockets;
 
     constructor(
         session: string | Session,
@@ -271,14 +271,7 @@ export abstract class TelegramBaseClient {
             clientParams.maxConcurrentDownloads || 1
         );
         this.testServers = clientParams.testServers || false;
-        if (
-            clientParams.networkSocket!.constructor ===
-            PromisedNetSockets.constructor
-        ) {
-            this.socket = new clientParams.networkSocket!(this._proxy);
-        } else {
-            this.socket = new clientParams.networkSocket!();
-        }
+        this.networkSocket = clientParams.networkSocket || PromisedNetSockets;
         if (!(clientParams.connection instanceof Function)) {
             throw new Error("Connection should be a class not an instance");
         }
@@ -437,7 +430,7 @@ export abstract class TelegramBaseClient {
                         loggers: this._log,
                         proxy: this._proxy,
                         testServers: this.testServers,
-                        socket: this.socket,
+                        socket: this.networkSocket,
                     })
                 );
 

@@ -13,7 +13,12 @@
  */
 import { AuthKey } from "../crypto/AuthKey";
 import { MTProtoState } from "./MTProtoState";
-import { BinaryReader, Logger } from "../extensions";
+import {
+    BinaryReader,
+    Logger,
+    PromisedNetSockets,
+    PromisedWebSockets,
+} from "../extensions";
 import { MessagePacker } from "../extensions";
 import { GZIPPacked, MessageContainer, RPCResult, TLMessage } from "../tl/core";
 import { Api } from "../tl";
@@ -936,7 +941,9 @@ export class MTProtoSender {
         // For some reason reusing existing connection caused stuck requests
         const constructor = this._connection!
             .constructor as unknown as typeof Connection;
-
+        const socket = this._connection!.socket.constructor as
+            | typeof PromisedNetSockets
+            | typeof PromisedWebSockets;
         const newConnection = new constructor({
             ip: this._connection!._ip,
             port: this._connection!._port,
@@ -944,7 +951,7 @@ export class MTProtoSender {
             loggers: this._connection!._log,
             proxy: this._connection!._proxy,
             testServers: this._connection!._testServers,
-            socket: this._connection!.socket,
+            socket: socket,
         });
         await this.connect(newConnection, true);
 
