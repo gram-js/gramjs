@@ -326,12 +326,27 @@ export async function signInUserWithQrCode(
                 migratedResult.authorization instanceof Api.auth.Authorization
             ) {
                 return migratedResult.authorization.user;
+            } else {
+                client._log.error(
+                    `Received unknown result while scanning QR ${result2.className}`
+                );
+                throw new Error(
+                    `Received unknown result while scanning QR ${result2.className}`
+                );
             }
+        } else {
+            client._log.error(
+                `Received unknown result while scanning QR ${result2.className}`
+            );
+            throw new Error(
+                `Received unknown result while scanning QR ${result2.className}`
+            );
         }
     } catch (err: any) {
         if (err.errorMessage === "SESSION_PASSWORD_NEEDED") {
             return client.signInWithPassword(apiCredentials, authParams);
         }
+        throw err;
     }
 
     await authParams.onError(new Error("QR auth failed"));
