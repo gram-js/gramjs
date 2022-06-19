@@ -593,7 +593,7 @@ export class MTProtoSender {
 
         const toPop = [];
 
-        for (const state of Object.values(this._pendingState)) {
+        for (const state of this._pendingState.values()) {
             if (state.containerId && state.containerId.equals(msgId)) {
                 toPop.push(state.msgId);
             }
@@ -602,8 +602,8 @@ export class MTProtoSender {
         if (toPop.length) {
             const temp = [];
             for (const x of toPop) {
-                temp.push(this._pendingState.get(x));
-                this._pendingState.delete(x);
+                temp.push(this._pendingState.get(x!.toString()));
+                this._pendingState.delete(x!.toString());
             }
             return temp;
         }

@@ -1,11 +1,11 @@
 import { MemorySession } from "./Memory";
-import store from "store2";
+import store, {StoreBase} from "store2";
 import { AuthKey } from "../crypto/AuthKey";
 import bigInt from "big-integer";
 
 export class StoreSession extends MemorySession {
     private readonly sessionName: string;
-    private store: store.StoreAPI;
+    private store: StoreBase;
 
     constructor(sessionName: string, divider = ":") {
         super();
