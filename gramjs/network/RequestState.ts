@@ -1,7 +1,7 @@
 import bigInt from "big-integer";
 
 export class RequestState {
-    public containerId: undefined;
+    public containerId?: bigInt.BigInteger;
     public msgId?: bigInt.BigInteger;
     public request: any;
     public data: Buffer;
