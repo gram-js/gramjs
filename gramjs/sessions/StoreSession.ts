@@ -1,5 +1,5 @@
 import { MemorySession } from "./Memory";
-import store, {StoreBase} from "store2";
+import store, { StoreBase } from "store2";
 import { AuthKey } from "../crypto/AuthKey";
 import bigInt from "big-integer";
 

@@ -423,7 +423,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     downloadFile(
         inputLocation: Api.TypeInputFileLocation,
-        fileParams: downloadMethods.DownloadFileParamsV2
+        fileParams: downloadMethods.DownloadFileParamsV2 = {}
     ) {
         return downloadMethods.downloadFileV2(this, inputLocation, fileParams);
     }
@@ -593,7 +593,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     iterMessages(
         entity: EntityLike | undefined,
-        iterParams: Partial<messageMethods.IterMessagesParams>
+        iterParams: Partial<messageMethods.IterMessagesParams> = {}
     ) {
         return messageMethods.iterMessages(this, entity, iterParams);
     }
@@ -622,7 +622,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     getMessages(
         entity: EntityLike | undefined,
-        getMessagesParams: Partial<messageMethods.IterMessagesParams>
+        getMessagesParams: Partial<messageMethods.IterMessagesParams> = {}
     ) {
         return messageMethods.getMessages(this, entity, getMessagesParams);
     }
@@ -670,7 +670,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     sendMessage(
         entity: EntityLike,
-        sendMessageParams: messageMethods.SendMessageParams
+        sendMessageParams: messageMethods.SendMessageParams = {}
     ) {
         return messageMethods.sendMessage(this, entity, sendMessageParams);
     }
@@ -919,7 +919,7 @@ export class TelegramClient extends TelegramBaseClient {
      * }
      * ```
      */
-    iterDialogs(iterDialogsParams: dialogMethods.IterDialogsParams) {
+    iterDialogs(iterDialogsParams: dialogMethods.IterDialogsParams = {}) {
         return dialogMethods.iterDialogs(this, iterDialogsParams);
     }
 
@@ -945,7 +945,7 @@ export class TelegramClient extends TelegramBaseClient {
      * archived = await client.get_dialogs({archived:true})
      * ```
      */
-    getDialogs(params: dialogMethods.IterDialogsParams) {
+    getDialogs(params: dialogMethods.IterDialogsParams = {}) {
         return dialogMethods.getDialogs(this, params);
     }
 
@@ -984,7 +984,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     iterParticipants(
         entity: EntityLike,
-        params: chatMethods.IterParticipantsParams
+        params: chatMethods.IterParticipantsParams = {}
     ) {
         return chatMethods.iterParticipants(this, entity, params);
     }
@@ -998,7 +998,7 @@ export class TelegramClient extends TelegramBaseClient {
      */
     getParticipants(
         entity: EntityLike,
-        params: chatMethods.IterParticipantsParams
+        params: chatMethods.IterParticipantsParams = {}
     ) {
         return chatMethods.getParticipants(this, entity, params);
     }
