@@ -63,7 +63,10 @@ type OutFile =
     | Buffer
     | WriteStream
     | { write: Function; close?: Function };
-type ProgressCallback = (total: number, downloaded: number) => void;
+type ProgressCallback = (
+    total: bigInt.BigInteger,
+    downloaded: bigInt.BigInteger
+) => void;
 type ButtonLike = Api.TypeKeyboardButton | Button;
 
 type MarkupLike =

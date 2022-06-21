@@ -11,6 +11,7 @@ import { createWriteStream } from "./fs";
 import { BinaryWriter } from "../extensions";
 import * as fs from "./fs";
 import path from "./path";
+import bigInt from "big-integer";
 
 /**
  * progress callback that will be called each time a new chunk is downloaded.
@@ -18,9 +19,9 @@ import path from "./path";
 export interface progressCallback {
     (
         /** How much was downloaded */
-        downloaded: number,
+        downloaded: bigInt.BigInteger,
         /** Full size of the file to be downloaded */
-        fullSize: number,
+        fullSize: bigInt.BigInteger,
         /** other args to be passed if needed */
         ...args: any[]
     ): void;
@@ -68,7 +69,7 @@ export interface DownloadFileParamsV2 {
     dcId?: number;
     /** The file size that is about to be downloaded, if known.<br/>
      Only used if ``progressCallback`` is specified. */
-    fileSize?: number;
+    fileSize?: bigInt.BigInteger;
     /** How much to download in each chunk. The larger the less requests to be made. (max is 512kb). */
     partSizeKb?: number;
     /** Progress callback accepting one param. (progress :number) which is a float between 0 and 1 */
@@ -106,7 +107,7 @@ const MAX_CHUNK_SIZE = 512 * 1024;
 export interface DirectDownloadIterInterface {
     fileLocation: Api.TypeInputFileLocation;
     dcId: number;
-    offset: number;
+    offset: bigInt.BigInteger;
     stride: number;
     chunkSize: number;
     requestSize: number;
@@ -116,12 +117,12 @@ export interface DirectDownloadIterInterface {
 
 export interface IterDownloadFunction {
     file?: Api.TypeMessageMedia | Api.TypeInputFile | Api.TypeInputFileLocation;
-    offset?: number;
+    offset?: bigInt.BigInteger;
     stride?: number;
     limit?: number;
     chunkSize?: number;
     requestSize: number;
-    fileSize?: number;
+    fileSize?: bigInt.BigInteger;
     dcId?: number;
     msgData?: [EntityLike, number];
 }
@@ -170,7 +171,7 @@ class DirectDownloadIter extends RequestIter {
             await this.close();
             return true;
         } else {
-            this.request!.offset += this._stride!;
+            this.request!.offset = this.request!.offset.add(this._stride!);
         }
     }
 
@@ -230,16 +231,20 @@ class GenericDownloadIter extends DirectDownloadIter {
         let data = Buffer.alloc(0);
 
         //  1.1. ``bad`` is how much into the data we have we need to offset
-        const bad = this.request!.offset % this.request!.limit;
+        const bad = this.request!.offset.divide(
+            this.request!.limit
+        ).toJSNumber();
         const before = this.request!.offset;
 
         // 1.2. We have to fetch from a valid offset, so remove that bad part
-        this.request!.offset -= bad;
+        this.request!.offset = this.request!.offset.subtract(bad);
 
         let done = false;
         while (!done && data.length - bad < this._chunkSize!) {
             const current = await this._request();
-            this.request!.offset += this.request!.limit;
+            this.request!.offset = this.request!.offset.add(
+                this.request!.limit
+            );
 
             data = Buffer.concat([data, current]);
             done = current.length < this.request!.limit;
@@ -254,7 +259,7 @@ class GenericDownloadIter extends DirectDownloadIter {
             this.buffer!.push(data.slice(i, i + this._chunkSize!));
 
             // 2.2. We will yield this offset, so move to the next one
-            this.request!.offset += this._stride!;
+            this.request!.offset = this.request!.offset.add(this._stride!);
         }
 
         // 2.3. If we are in the last chunk, we will return the last partial data
@@ -270,7 +275,7 @@ class GenericDownloadIter extends DirectDownloadIter {
             //   3. Be careful with the offsets. Re-fetching a bit of data
             //   is fine, since it greatly simplifies things.
             // TODO Try to not re-fetch data
-            this.request!.offset -= this._stride!;
+            this.request!.offset = this.request!.offset.subtract(this._stride!);
         }
     }
 }
@@ -280,7 +285,7 @@ function iterDownload(
     client: TelegramClient,
     {
         file,
-        offset = 0,
+        offset = bigInt.zero,
         stride,
         limit,
         chunkSize,
@@ -307,7 +312,9 @@ function iterDownload(
     }
 
     if (limit == undefined && fileSize != undefined) {
-        limit = Math.floor((fileSize + chunkSize - 1) / chunkSize);
+        limit = Math.floor(
+            fileSize.add(chunkSize).subtract(1).divide(chunkSize).toJSNumber()
+        );
     }
     if (stride == undefined) {
         stride = chunkSize;
@@ -325,9 +332,9 @@ function iterDownload(
     let cls;
     if (
         chunkSize == requestSize &&
-        offset % MAX_CHUNK_SIZE == 0 &&
+        offset!.divide(MAX_CHUNK_SIZE).eq(bigInt.zero) &&
         stride % MIN_CHUNK_SIZE == 0 &&
-        (limit == undefined || offset % limit == 0)
+        (limit == undefined || offset!.divide(limit).eq(bigInt.zero))
     ) {
         cls = DirectDownloadIter;
         client._log.info(
@@ -415,7 +422,7 @@ export async function downloadFileV2(
     }
     const writer = getWriter(outputFile);
 
-    let downloaded = 0;
+    let downloaded = bigInt.zero;
     try {
         for await (const chunk of iterDownload(client, {
             file: inputLocation,
@@ -425,9 +432,12 @@ export async function downloadFileV2(
         })) {
             await writer.write(chunk);
             if (progressCallback) {
-                await progressCallback(downloaded, fileSize || 0);
+                await progressCallback(
+                    downloaded,
+                    bigInt(fileSize || bigInt.zero)
+                );
             }
-            downloaded += chunk.length;
+            downloaded = downloaded.add(chunk.length);
         }
         return returnWriterValue(writer);
     } finally {
@@ -617,7 +627,7 @@ export async function _downloadDocument(
         }),
         {
             outputFile: outputFile,
-            fileSize: size && "size" in size ? size.size : doc.size,
+            fileSize: size && "size" in size ? bigInt(size.size) : doc.size,
             progressCallback: progressCallback,
             msgData: msgData,
         }
@@ -800,7 +810,7 @@ export async function _downloadPhoto(
         }),
         {
             outputFile: file,
-            fileSize: fileSize,
+            fileSize: bigInt(fileSize),
             progressCallback: progressCallback,
             dcId: photo.dcId,
         }

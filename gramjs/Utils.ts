@@ -1,4 +1,4 @@
-import type { Entity, EntityLike, FileLike, MessageIDLike } from "./define";
+import type { Entity, EntityLike, MessageIDLike } from "./define";
 import { Api } from "./tl";
 import bigInt from "big-integer";
 import * as markdown from "./extensions/markdown";
@@ -17,7 +17,7 @@ export function getFileInfo(
 ): {
     dcId?: number;
     location: Api.TypeInputFileLocation;
-    size?: number;
+    size?: bigInt.BigInteger;
 } {
     if (!fileLocation || !fileLocation.SUBCLASS_OF_ID) {
         _raiseCastFail(fileLocation, "InputFileLocation");
@@ -59,8 +59,10 @@ export function getFileInfo(
                 fileReference: location.fileReference,
                 thumbSize: location.sizes[location.sizes.length - 1].type,
             }),
-            size: _photoSizeByteCount(
-                location.sizes[location.sizes.length - 1]
+            size: bigInt(
+                _photoSizeByteCount(
+                    location.sizes[location.sizes.length - 1]
+                ) || 0
             ),
         };
     }
@@ -1025,21 +1027,16 @@ export function getInputMedia(
  * @param fileSize
  * @returns {Number}
  */
-export function getAppropriatedPartSize(fileSize: number) {
-    if (fileSize <= 104857600) {
+export function getAppropriatedPartSize(fileSize: bigInt.BigInteger) {
+    if (fileSize.lesser(104857600)) {
         // 100MB
         return 128;
     }
-    if (fileSize <= 786432000) {
+    if (fileSize.lesser(786432000)) {
         // 750MB
         return 256;
     }
-    if (fileSize <= 2097152000) {
-        // 2000MB
-        return 512;
-    }
-
-    throw new Error("File size too large");
+    return 512;
 }
 
 export function getPeer(peer: EntityLike | any) {

@@ -9,6 +9,7 @@ import { promises as fs } from "./fs";
 import { errors, utils } from "../index";
 import { _parseMessageText } from "./messageParse";
 import { getCommentData } from "./messages";
+import bigInt from "big-integer";
 
 interface OnProgress {
     // Float between 0 and 1.
@@ -72,7 +73,7 @@ export async function uploadFile(
     const fileId = readBigIntFromBuffer(generateRandomBytes(8), true, true);
     const isLarge = size > LARGE_FILE_THRESHOLD;
 
-    const partSize = getAppropriatedPartSize(size) * KB_TO_BYTES;
+    const partSize = getAppropriatedPartSize(bigInt(size)) * KB_TO_BYTES;
     const partCount = Math.floor((size + partSize - 1) / partSize);
     const buffer = Buffer.from(await fileToBuffer(file));
 

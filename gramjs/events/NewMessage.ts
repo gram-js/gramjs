@@ -79,7 +79,7 @@ export class NewMessage extends EventBuilder {
     /** @hidden */
     private readonly _noCheck: boolean;
 
-    constructor(newMessageParams: NewMessageInterface) {
+    constructor(newMessageParams: NewMessageInterface = {}) {
         let {
             chats,
             func,
