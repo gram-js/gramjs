@@ -270,6 +270,7 @@ export class MTProtoSender {
                 await sleep(this._delay);
             }
         }
+        this.userDisconnected = false;
         this.isConnecting = false;
         return true;
     }
@@ -480,7 +481,6 @@ export class MTProtoSender {
         let message;
 
         while (this._userConnected && !this._reconnecting) {
-            // this._log.debug('Receiving items from the network...');
             this._log.debug("Receiving items from the network...");
             try {
                 body = await this._connection!.recv();
