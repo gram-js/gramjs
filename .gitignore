@@ -21,3 +21,5 @@ example.d.ts
 settings
 
 /browser/
+
+.DS_STORE
