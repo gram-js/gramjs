@@ -56,10 +56,53 @@ export class CustomFile {
     }
 }
 
+interface CustomBufferOptions {
+    filePath?: string;
+    buffer?: Buffer;
+}
+
+class CustomBuffer {
+    constructor(private readonly options: CustomBufferOptions) {
+        if (!options.buffer && !options.filePath) {
+            throw new Error("Either one of `buffer` or `filePath` should be specified");
+        }
+    }
+
+    async slice(begin: number, end: number): Promise<Buffer> {
+        const { buffer, filePath } = this.options;
+        if (buffer) {
+            return buffer.slice(begin, end);
+        } else if (filePath) {
+            const buffSize = end - begin;
+            const buff = Buffer.alloc(buffSize);
+            const fHandle = await fs.open(filePath, 'r');
+            
+            await fHandle.read(buff, 0, buffSize, begin);
+            await fHandle.close();
+            
+            return Buffer.from(buff);
+        }
+
+        return Buffer.alloc(0);
+    }
+}
+
 const KB_TO_BYTES = 1024;
 const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
 const UPLOAD_TIMEOUT = 15 * 1000;
 const DISCONNECT_SLEEP = 1000;
+
+async function getFileBuffer(file: File | CustomFile, fileSize: number): Promise<CustomBuffer> {
+    const isBiggerThan2Gb = fileSize > 2 ** 31 - 1;
+    const options: CustomBufferOptions = {};
+    if (isBiggerThan2Gb && file instanceof CustomFile) {
+        options.filePath = file.path;
+    } else {
+        options.buffer = Buffer.from(await fileToBuffer(file));
+    }
+
+    return new CustomBuffer(options);
+}
 
 /** @hidden */
 export async function uploadFile(
@@ -75,7 +118,7 @@ export async function uploadFile(
 
     const partSize = getAppropriatedPartSize(bigInt(size)) * KB_TO_BYTES;
     const partCount = Math.floor((size + partSize - 1) / partSize);
-    const buffer = Buffer.from(await fileToBuffer(file));
+    const buffer = await getFileBuffer(file, size);
 
     // Make sure a new sender can be created before starting upload
     await client.getSender(client.session.dcId);
@@ -100,7 +143,7 @@ export async function uploadFile(
         }
 
         for (let j = i; j < end; j++) {
-            const bytes = buffer.slice(j * partSize, (j + 1) * partSize);
+            const bytes = await buffer.slice(j * partSize, (j + 1) * partSize);
 
             // eslint-disable-next-line no-loop-func
             sendingParts.push(
