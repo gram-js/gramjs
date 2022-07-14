@@ -64,7 +64,9 @@ interface CustomBufferOptions {
 class CustomBuffer {
     constructor(private readonly options: CustomBufferOptions) {
         if (!options.buffer && !options.filePath) {
-            throw new Error("Either one of `buffer` or `filePath` should be specified");
+            throw new Error(
+                "Either one of `buffer` or `filePath` should be specified"
+            );
         }
     }
 
@@ -75,11 +77,11 @@ class CustomBuffer {
         } else if (filePath) {
             const buffSize = end - begin;
             const buff = Buffer.alloc(buffSize);
-            const fHandle = await fs.open(filePath, 'r');
-            
+            const fHandle = await fs.open(filePath, "r");
+
             await fHandle.read(buff, 0, buffSize, begin);
             await fHandle.close();
-            
+
             return Buffer.from(buff);
         }
 
@@ -92,7 +94,10 @@ const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
 const UPLOAD_TIMEOUT = 15 * 1000;
 const DISCONNECT_SLEEP = 1000;
 
-async function getFileBuffer(file: File | CustomFile, fileSize: number): Promise<CustomBuffer> {
+async function getFileBuffer(
+    file: File | CustomFile,
+    fileSize: number
+): Promise<CustomBuffer> {
     const isBiggerThan2Gb = fileSize > 2 ** 31 - 1;
     const options: CustomBufferOptions = {};
     if (isBiggerThan2Gb && file instanceof CustomFile) {
