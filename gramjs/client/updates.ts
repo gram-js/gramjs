@@ -1,10 +1,10 @@
 import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
-import type { TelegramClient } from "../";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
 import bigInt from "big-integer";
 import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
-import { utils } from "../index";
+import * as utils from "../Utils";
 import { getRandomInt, returnBigInt, sleep } from "../Helpers";
 import { LogLevel } from "../extensions/Logger";
 
@@ -20,7 +20,7 @@ const PING_DISCONNECT_DELAY = 60000; // 1 min
  */
 export class StopPropagation extends Error {}
 /** @hidden */
-export function on(client: TelegramClient, event?: EventBuilder) {
+export function on(client: AbstractTelegramClient, event?: EventBuilder) {
     return (f: { (event: any): void }) => {
         client.addEventHandler(f, event);
         return f;
@@ -29,7 +29,7 @@ export function on(client: TelegramClient, event?: EventBuilder) {
 
 /** @hidden */
 export function addEventHandler(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     callback: CallableFunction,
     event?: EventBuilder
 ) {
@@ -44,7 +44,7 @@ export function addEventHandler(
 
 /** @hidden */
 export function removeEventHandler(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     callback: CallableFunction,
     event: EventBuilder
 ) {
@@ -54,7 +54,7 @@ export function removeEventHandler(
 }
 
 /** @hidden */
-export function listEventHandlers(client: TelegramClient) {
+export function listEventHandlers(client: AbstractTelegramClient) {
     return client._eventBuilders;
 }
 
@@ -65,7 +65,7 @@ export function catchUp() {
 
 /** @hidden */
 export function _handleUpdate(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     update: Api.TypeUpdate | number
 ): void {
     if (typeof update === "number") {
@@ -102,7 +102,7 @@ export function _handleUpdate(
 
 /** @hidden */
 export function _processUpdate(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     update: any,
     others: any,
     entities?: any
@@ -118,7 +118,7 @@ export function _processUpdate(
 
 /** @hidden */
 export async function _dispatchUpdate(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     args: { update: UpdateConnectionState | any }
 ): Promise<void> {
     for (const [builder, callback] of client._eventBuilders) {
@@ -174,7 +174,9 @@ export async function _dispatchUpdate(
 }
 
 /** @hidden */
-export async function _updateLoop(client: TelegramClient): Promise<void> {
+export async function _updateLoop(
+    client: AbstractTelegramClient
+): Promise<void> {
     while (!client._destroyed) {
         await sleep(PING_INTERVAL);
         if (client._reconnecting || client._sender!.userDisconnected) {

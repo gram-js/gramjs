@@ -1,7 +1,7 @@
 import { Parser } from "htmlparser2";
 import { Handler } from "htmlparser2/lib/Parser";
 import { Api } from "../tl";
-import { helpers } from "../index";
+import * as helpers from "../Helpers";
 
 class HTMLToTelegramParser implements Handler {
     text: string;

@@ -1,5 +1,4 @@
-import { EntityLike } from "../define";
-import { Api } from "../tl";
+import { Api } from "../tl/api";
 import { EventBuilder, EventCommon, DefaultEventInterface } from "./common";
 
 /**
@@ -58,9 +57,9 @@ export class DeletedMessage extends EventBuilder {
 
 export class DeletedMessageEvent extends EventCommon {
     deletedIds: number[];
-    peer?: EntityLike;
+    peer?: Api.TypeEntityLike;
 
-    constructor(deletedIds: number[], peer?: EntityLike) {
+    constructor(deletedIds: number[], peer?: Api.TypeEntityLike) {
         super({
             chatPeer: peer,
             msgId: Array.isArray(deletedIds) ? deletedIds[0] : 0,

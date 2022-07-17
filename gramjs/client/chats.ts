@@ -1,8 +1,9 @@
-import type { TelegramClient } from "./TelegramClient";
-import type { EntitiesLike, Entity, EntityLike, ValueOf } from "../define";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
+import { ValueOf } from "../define-nodep";
 import { sleep, getMinBigInt, TotalList, betterConsoleLog } from "../Helpers";
 import { RequestIter } from "../requestIter";
-import { helpers, utils } from "../";
+import * as helpers from "../Helpers";
+import * as utils from "../Utils";
 import { Api } from "../tl";
 import bigInt, { BigInteger } from "big-integer";
 import { inspect } from "../inspect";
@@ -41,8 +42,8 @@ class _ChatAction {
         cancel: new Api.SendMessageCancelAction(),
     };
 
-    private _client: TelegramClient;
-    private readonly _chat: EntityLike;
+    private _client: AbstractTelegramClient;
+    private readonly _chat: Api.TypeEntityLike;
     private readonly _action: ValueOf<typeof _ChatAction._str_mapping>;
     private readonly _delay: number;
     private readonly autoCancel: boolean;
@@ -55,8 +56,8 @@ class _ChatAction {
     }
 
     constructor(
-        client: TelegramClient,
-        chat: EntityLike,
+        client: AbstractTelegramClient,
+        chat: Api.TypeEntityLike,
         action: ValueOf<typeof _ChatAction._str_mapping>,
         params: ChatActionInterface = {
             delay: 4,
@@ -111,14 +112,14 @@ class _ChatAction {
 }
 
 interface ParticipantsIterInterface {
-    entity: EntityLike;
+    entity: Api.TypeEntityLike;
     filter: any;
     search?: string;
     showTotal?: boolean;
 }
 
 export class _ParticipantsIter extends RequestIter {
-    private filterEntity: ((entity: Entity) => boolean) | undefined;
+    private filterEntity: ((entity: Api.TypeEntity) => boolean) | undefined;
     private requests?: Api.channels.GetParticipants[];
 
     [inspect.custom]() {
@@ -152,7 +153,7 @@ export class _ParticipantsIter extends RequestIter {
         if (search && (filter || ty != helpers._EntityType.CHANNEL)) {
             // We need to 'search' ourselves unless we have a PeerChannel
             search = search.toLowerCase();
-            this.filterEntity = (entity: Entity) => {
+            this.filterEntity = (entity: Api.TypeEntity) => {
                 return (
                     utils
                         .getDisplayName(entity)
@@ -164,7 +165,7 @@ export class _ParticipantsIter extends RequestIter {
                 );
             };
         } else {
-            this.filterEntity = (entity: Entity) => true;
+            this.filterEntity = (entity: Api.TypeEntity) => true;
         }
         // Only used for channels, but we should always set the attribute
         this.requests = [];
@@ -220,7 +221,7 @@ export class _ParticipantsIter extends RequestIter {
                     return false;
                 }
 
-                const users = new Map<string, Entity>();
+                const users = new Map<string, Api.TypeEntity>();
                 for (const user of full.users) {
                     users.set(user.id.toString(), user);
                 }
@@ -276,7 +277,7 @@ export class _ParticipantsIter extends RequestIter {
             }
 
             this.requests[i].offset += participants.participants.length;
-            const users = new Map<string, Entity>();
+            const users = new Map<string, Api.TypeEntity>();
             for (const user of participants.users) {
                 users.set(user.id.toString(), user);
             }
@@ -319,7 +320,7 @@ interface _AdminLogFilterInterface {
 }
 
 interface _AdminLogSearchInterface {
-    admins?: EntitiesLike;
+    admins?: Api.TypeEntityLike[];
     search?: string;
     minId?: BigInteger;
     maxId?: BigInteger;
@@ -334,7 +335,7 @@ class _AdminLogIter extends RequestIter {
     }
 
     async _init(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         searchArgs?: _AdminLogSearchInterface,
         filterArgs?: _AdminLogFilterInterface
     ) {
@@ -410,8 +411,8 @@ export interface IterParticipantsParams {
 
 /** @hidden */
 export function iterParticipants(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     { limit, search, filter, showTotal = true }: IterParticipantsParams
 ) {
     return new _ParticipantsIter(
@@ -429,10 +430,14 @@ export function iterParticipants(
 
 /** @hidden */
 export async function getParticipants(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     params: IterParticipantsParams
 ) {
     const it = client.iterParticipants(entity, params);
-    return (await it.collect()) as TotalList<Api.User>;
+    const users = new TotalList<Api.User>();
+    for await (const user of it) {
+        users.push(user);
+    }
+    return users;
 }

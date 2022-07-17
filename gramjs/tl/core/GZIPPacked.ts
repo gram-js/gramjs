@@ -1,4 +1,4 @@
-import { serializeBytes } from "../";
+import { serializeBytes } from "../generationHelpers";
 import { inflate } from "pako";
 import type { BinaryReader } from "../../extensions";
 

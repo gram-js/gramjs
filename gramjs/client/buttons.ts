@@ -1,5 +1,4 @@
 import { Api } from "../tl";
-import type { ButtonLike } from "../define";
 import { Button } from "../tl/custom/button";
 import { MessageButton } from "../tl/custom/messageButton";
 import { isArrayLike } from "../Helpers";
@@ -7,12 +6,7 @@ import { isArrayLike } from "../Helpers";
 // ButtonMethods
 /** @hidden */
 export function buildReplyMarkup(
-    buttons:
-        | Api.TypeReplyMarkup
-        | undefined
-        | ButtonLike
-        | ButtonLike[]
-        | ButtonLike[][],
+    buttons: Api.TypeMarkupLike | undefined,
     inlineOnly: boolean = false
 ): Api.TypeReplyMarkup | undefined {
     if (buttons == undefined) {

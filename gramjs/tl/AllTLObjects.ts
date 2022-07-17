@@ -1,6 +1,6 @@
 export const LAYER = 143;
 
-import { Api } from "./";
+import { Api } from "./api";
 
 const tlobjects: any = {};
 

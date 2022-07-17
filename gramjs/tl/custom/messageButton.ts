@@ -1,5 +1,4 @@
-import type { TelegramClient } from "../../client/TelegramClient";
-import type { ButtonLike, EntityLike, MessageIDLike } from "../../define";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { Api } from "../api";
 import { Button } from "./button";
 import { betterConsoleLog } from "../../Helpers";
@@ -7,22 +6,22 @@ import { computeCheck } from "../../Password";
 import { inspect } from "../../inspect";
 
 export class MessageButton {
-    private readonly _client: TelegramClient;
-    private readonly _chat: EntityLike;
-    public readonly button: ButtonLike;
-    private readonly _bot?: EntityLike;
-    private readonly _msgId: MessageIDLike;
+    private readonly _client: AbstractTelegramClient;
+    private readonly _chat: Api.TypeEntityLike;
+    public readonly button: Api.TypeKeyboardButton;
+    private readonly _bot?: Api.TypeEntityLike;
+    private readonly _msgId: Api.TypeMessageIDLike;
 
     [inspect.custom]() {
         return betterConsoleLog(this);
     }
 
     constructor(
-        client: TelegramClient,
-        original: ButtonLike,
-        chat: EntityLike,
-        bot: EntityLike | undefined,
-        msgId: MessageIDLike
+        client: AbstractTelegramClient,
+        original: Api.TypeKeyboardButton,
+        chat: Api.TypeEntityLike,
+        bot: Api.TypeEntityLike | undefined,
+        msgId: Api.TypeMessageIDLike
     ) {
         this.button = original;
         this._bot = bot;

@@ -5,8 +5,7 @@ import bigInt from "big-integer";
 
 import { getDisplayName, getInputPeer, getPeerId } from "../Utils";
 import { isArrayLike, returnBigInt } from "../Helpers";
-import { utils } from "../";
-import type { EntityLike } from "../define";
+import * as utils from "../Utils";
 
 export class MemorySession extends Session {
     protected _serverAddress?: string;
@@ -228,7 +227,7 @@ export class MemorySession extends Session {
         }
     }
 
-    getInputEntity(key: EntityLike): Api.TypeInputPeer {
+    getInputEntity(key: Api.TypeEntityLike): Api.TypeInputPeer {
         let exact;
         if (
             typeof key === "object" &&

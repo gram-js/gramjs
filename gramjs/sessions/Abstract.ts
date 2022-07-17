@@ -1,5 +1,4 @@
 import type { AuthKey } from "../crypto/AuthKey";
-import type { EntityLike } from "../define";
 import { Api } from "../tl";
 
 export abstract class Session {
@@ -73,7 +72,7 @@ export abstract class Session {
      * to suit several purposes (e.g. user only provided its ID or wishes
      * to use a cached username to avoid extra RPC).
      */
-    abstract getInputEntity(key: EntityLike): Api.TypeInputPeer;
+    abstract getInputEntity(key: Api.TypeEntityLike): Api.TypeInputPeer;
 
     /**
      * Returns an ID of the takeout process initialized for this session,

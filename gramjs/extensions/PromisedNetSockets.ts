@@ -2,7 +2,7 @@ import * as net from "./net";
 import { SocksClient } from "./socks";
 
 import { Mutex } from "async-mutex";
-import { ProxyInterface } from "../network/connection/TCPMTProxy";
+import { ProxyInterface } from "../network/connection/types";
 
 const mutex = new Mutex();
 

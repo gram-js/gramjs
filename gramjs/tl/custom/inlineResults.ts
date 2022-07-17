@@ -1,11 +1,14 @@
-import type { TelegramClient } from "../..";
-import type { EntityLike } from "../../define";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { Api } from "../api";
 import { InlineResult } from "./inlineResult";
 import { betterConsoleLog } from "../../Helpers";
 import { inspect } from "../../inspect";
+import { AbsInlineResults } from "./absInlineResults";
 
-export class InlineResults extends Array<InlineResult> {
+export class InlineResults
+    extends Array<InlineResult>
+    implements AbsInlineResults
+{
     private result: Api.messages.TypeBotResults;
     private queryId: Api.long;
     private readonly cacheTime: Api.int;
@@ -19,9 +22,9 @@ export class InlineResults extends Array<InlineResult> {
     }
 
     constructor(
-        client: TelegramClient,
+        client: AbstractTelegramClient,
         original: Api.messages.TypeBotResults,
-        entity?: EntityLike
+        entity?: Api.TypeEntityLike
     ) {
         super(
             ...original.results.map(

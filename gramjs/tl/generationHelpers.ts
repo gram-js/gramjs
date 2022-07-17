@@ -1,5 +1,5 @@
 import { crc32 } from "../Helpers";
-import type { DateLike } from "../define";
+import type { DateLike } from "../define-nodep";
 
 const snakeToCamelCase = (name: string) => {
     const result = name.replace(/(?:^|_)([a-z])/g, (_, g) => g.toUpperCase());

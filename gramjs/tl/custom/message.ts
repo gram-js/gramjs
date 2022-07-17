@@ -1,16 +1,15 @@
 import { SenderGetter } from "./senderGetter";
-import type { Entity, EntityLike } from "../../define";
 import { Api } from "../api";
-import type { TelegramClient } from "../..";
 import { ChatGetter } from "./chatGetter";
 import * as utils from "../../Utils";
 import { Forward } from "./forward";
 import { File } from "./file";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import {
     EditMessageParams,
     SendMessageParams,
     UpdatePinMessageParams,
-} from "../../client/messages";
+} from "../../client/types";
 import { DownloadMediaInterface } from "../../client/downloads";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import { _selfId } from "../../client/users";
@@ -19,7 +18,7 @@ import { LogLevel } from "../../extensions/Logger";
 import { MessageButton } from "./messageButton";
 import { inspect } from "../../inspect";
 
-interface MessageBaseInterface {
+export interface MessageBaseInterface {
     id: any;
     peerId?: any;
     date?: any;
@@ -51,7 +50,7 @@ interface MessageBaseInterface {
     action?: any;
     reactions?: any;
     noforwards?: any;
-    _entities?: Map<string, Entity>;
+    _entities?: Map<string, Api.TypeEntity>;
 }
 
 /**
@@ -326,7 +325,7 @@ export class CustomMessage extends SenderGetter {
     /** @hidden */
     _actionEntities?: any;
     /** @hidden */
-    _client?: TelegramClient;
+    _client?: AbstractTelegramClient;
     /** @hidden */
     _text?: string;
     /** @hidden */
@@ -340,9 +339,9 @@ export class CustomMessage extends SenderGetter {
     /** @hidden */
     _buttonsCount?: number;
     /** @hidden */
-    _viaBot?: EntityLike;
+    _viaBot?: Api.TypeEntityLike;
     /** @hidden */
-    _viaInputBot?: EntityLike;
+    _viaInputBot?: Api.TypeEntityLike;
     /** @hidden */
     _inputSender?: any;
     /** @hidden */
@@ -350,7 +349,7 @@ export class CustomMessage extends SenderGetter {
     /** @hidden */
     _sender?: any;
     /** @hidden */
-    _entities?: Map<string, Entity>;
+    _entities?: Map<string, Api.TypeEntity>;
     /** @hidden */
 
     /* @ts-ignore */
@@ -396,7 +395,7 @@ export class CustomMessage extends SenderGetter {
         reactions = undefined,
         noforwards = undefined,
         ttlPeriod = undefined,
-        _entities = new Map<string, Entity>(),
+        _entities = new Map<string, Api.TypeEntity>(),
     }: MessageBaseInterface) {
         if (!id) throw new Error("id is a required attribute for Message");
         let senderId = undefined;
@@ -468,9 +467,9 @@ export class CustomMessage extends SenderGetter {
     }
 
     _finishInit(
-        client: TelegramClient,
-        entities: Map<string, Entity>,
-        inputChat?: EntityLike
+        client: AbstractTelegramClient,
+        entities: Map<string, Api.TypeEntity>,
+        inputChat?: Api.TypeEntityLike
     ) {
         this._client = client;
         const cache = client._entityCache;
@@ -609,7 +608,7 @@ export class CustomMessage extends SenderGetter {
             const chat = this.isChannel ? await this.getInputChat() : undefined;
             let temp = await this._client.getMessages(chat, { ids: this.id });
             if (temp) {
-                msg = temp[0] as CustomMessage;
+                msg = temp[0] as unknown as CustomMessage;
             }
         } catch (e) {
             this._client._log.error(
@@ -905,7 +904,7 @@ export class CustomMessage extends SenderGetter {
         }
     }
 
-    async forwardTo(entity: EntityLike) {
+    async forwardTo(entity: Api.TypeEntityLike) {
         if (this._client) {
             entity = await this._client.getInputEntity(entity);
             const params = {
@@ -1124,7 +1123,7 @@ export class CustomMessage extends SenderGetter {
     /**
      * Helper methods to set the buttons given the input sender and chat.
      */
-    _setButtons(chat: EntityLike, bot?: EntityLike) {
+    _setButtons(chat: Api.TypeEntityLike, bot?: Api.TypeEntityLike) {
         if (
             this.client &&
             (this.replyMarkup instanceof Api.ReplyInlineMarkup ||

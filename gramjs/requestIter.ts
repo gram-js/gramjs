@@ -1,6 +1,5 @@
-import type { TelegramClient } from "./client/TelegramClient";
-import { sleep } from "./Helpers";
-import { helpers } from "./";
+import { AbstractTelegramClient } from "./client/AbstractTelegramClient";
+import * as helpers from "./Helpers";
 
 interface BaseRequestIterInterface {
     reverse?: boolean;
@@ -8,7 +7,7 @@ interface BaseRequestIterInterface {
 }
 
 export class RequestIter implements AsyncIterable<any> {
-    public client: TelegramClient;
+    public client: AbstractTelegramClient;
     public reverse: boolean | undefined;
     public waitTime: number | undefined;
     protected readonly limit: number;
@@ -20,7 +19,7 @@ export class RequestIter implements AsyncIterable<any> {
     kwargs: {};
 
     constructor(
-        client: TelegramClient,
+        client: AbstractTelegramClient,
         limit?: number,
         params: BaseRequestIterInterface = {},
         args = {}
@@ -62,7 +61,7 @@ export class RequestIter implements AsyncIterable<any> {
                 }
                 if (this.index == this.buffer.length) {
                     if (this.waitTime) {
-                        await sleep(
+                        await helpers.sleep(
                             this.waitTime -
                                 (new Date().getTime() / 1000 - this.lastLoad)
                         );

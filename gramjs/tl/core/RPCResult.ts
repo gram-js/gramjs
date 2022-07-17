@@ -1,6 +1,6 @@
 import { Api } from "../api";
 import type { BinaryReader } from "../../extensions";
-import { GZIPPacked } from "./";
+import { GZIPPacked } from "./GZIPPacked";
 import bigInt from "big-integer";
 
 export class RPCResult {

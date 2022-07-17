@@ -1,11 +1,10 @@
-import type { ButtonLike, EntityLike } from "../../define";
 import { Api } from "../api";
-import { utils } from "../../";
+import * as utils from "../../Utils";
 import { betterConsoleLog } from "../../Helpers";
 import { inspect } from "../../inspect";
 
 export class Button {
-    public button: ButtonLike;
+    public button: Api.TypeKeyboardButton;
     public resize: boolean | undefined;
     public selective: boolean | undefined;
     public singleUse: boolean | undefined;
@@ -26,7 +25,7 @@ export class Button {
         this.selective = selective;
     }
 
-    static _isInline(button: ButtonLike) {
+    static _isInline(button: Api.TypeKeyboardButton) {
         return (
             button instanceof Api.KeyboardButtonCallback ||
             button instanceof Api.KeyboardButtonSwitchInline ||
@@ -67,7 +66,7 @@ export class Button {
     static auth(
         text: string,
         url?: string,
-        bot?: EntityLike,
+        bot?: Api.TypeEntityLike,
         writeAccess?: boolean,
         fwdText?: string
     ) {

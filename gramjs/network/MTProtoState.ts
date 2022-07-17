@@ -1,6 +1,6 @@
 import bigInt from "big-integer";
 import type { AuthKey } from "../crypto/AuthKey";
-import { helpers } from "../";
+import * as helpers from "../Helpers";
 import { Api } from "../tl";
 import { sha256, toSignedLittleBuffer } from "../Helpers";
 import { GZIPPacked, TLMessage } from "../tl/core";

@@ -1,13 +1,12 @@
-import type { Entity } from "../../define";
-import type { TelegramClient } from "../..";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { getInputPeer, getPeer } from "../../Utils";
 import { Api } from "../api";
 import { betterConsoleLog } from "../../Helpers";
 import { inspect } from "../../inspect";
 
 export class Draft {
-    private _client: TelegramClient;
-    private readonly _entity?: Entity;
+    private _client: AbstractTelegramClient;
+    private readonly _entity?: Api.TypeEntity;
     private readonly _peer: ReturnType<typeof getPeer>;
     private _inputEntity: Api.TypeInputPeer | undefined;
     private _text?: string;
@@ -21,8 +20,8 @@ export class Draft {
     }
 
     constructor(
-        client: TelegramClient,
-        entity: Entity,
+        client: AbstractTelegramClient,
+        entity: Api.TypeEntity,
         draft: Api.TypeDraftMessage | undefined
     ) {
         this._client = client;

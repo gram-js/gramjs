@@ -1,95 +1,15 @@
 import { getPeerId, sanitizeParseMode } from "../Utils";
 import { Api } from "../tl/api";
-import type { EntityLike } from "../define";
-import type { TelegramClient } from "./TelegramClient";
-import { utils } from "../index";
-import { _EntityType, _entityType, isArrayLike } from "../Helpers";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
+import * as utils from "../Utils";
+import { isArrayLike } from "../Helpers";
+import { _EntityType, _entityType } from "../tl/helpers";
 import bigInt from "big-integer";
-
-export type messageEntities =
-    | typeof Api.MessageEntityBold
-    | typeof Api.MessageEntityItalic
-    | typeof Api.MessageEntityStrike
-    | typeof Api.MessageEntityCode
-    | typeof Api.MessageEntityPre;
-export const DEFAULT_DELIMITERS: {
-    [key: string]: messageEntities;
-} = {
-    "**": Api.MessageEntityBold,
-    __: Api.MessageEntityItalic,
-    "~~": Api.MessageEntityStrike,
-    "`": Api.MessageEntityCode,
-    "```": Api.MessageEntityPre,
-};
-
-export interface ParseInterface {
-    parse: (message: string) => [string, Api.TypeMessageEntity[]];
-    unparse: (text: string, entities: Api.TypeMessageEntity[]) => string;
-}
-
-/** @hidden */
-export async function _replaceWithMention(
-    client: TelegramClient,
-    entities: Api.TypeMessageEntity[],
-    i: number,
-    user: EntityLike
-) {
-    try {
-        entities[i] = new Api.InputMessageEntityMentionName({
-            offset: entities[i].offset,
-            length: entities[i].length,
-            userId: (await client.getInputEntity(
-                user
-            )) as unknown as Api.TypeInputUser,
-        });
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
-/** @hidden */
-export async function _parseMessageText(
-    client: TelegramClient,
-    message: string,
-    parseMode: false | string | ParseInterface
-): Promise<[string, Api.TypeMessageEntity[]]> {
-    if (parseMode == false) {
-        return [message, []];
-    }
-    if (parseMode == undefined) {
-        if (client.parseMode == undefined) {
-            return [message, []];
-        }
-        parseMode = client.parseMode;
-    } else if (typeof parseMode === "string") {
-        parseMode = sanitizeParseMode(parseMode);
-    }
-    const [rawMessage, msgEntities] = parseMode.parse(message);
-    for (let i = msgEntities.length - 1; i >= 0; i--) {
-        const e = msgEntities[i];
-        if (e instanceof Api.MessageEntityTextUrl) {
-            const m = /^@|\+|tg:\/\/user\?id=(\d+)/.exec(e.url);
-            if (m) {
-                const userIdOrUsername = m[1] ? Number(m[1]) : e.url;
-                const isMention = await _replaceWithMention(
-                    client,
-                    msgEntities,
-                    i,
-                    userIdOrUsername
-                );
-                if (!isMention) {
-                    msgEntities.splice(i, 1);
-                }
-            }
-        }
-    }
-    return [rawMessage, msgEntities];
-}
+import { ParseInterface } from "./types";
 
 /** @hidden */
 export function _getResponseMessage(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     request: any,
     result: any,
     inputChat: any

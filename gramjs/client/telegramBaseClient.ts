@@ -1,6 +1,8 @@
-import { Connection, TelegramClient, version } from "../";
+import { version } from "../Version";
+
 import { sleep } from "../Helpers";
 import {
+    Connection,
     ConnectionTCPFull,
     ConnectionTCPObfuscated,
 } from "../network/connection";
@@ -11,15 +13,12 @@ import { Api } from "../tl";
 import os from "./os";
 import type { AuthKey } from "../crypto/AuthKey";
 import { EntityCache } from "../entityCache";
-import type { ParseInterface } from "./messageParse";
-import type { EventBuilder } from "../events/common";
+import { ParseInterface } from "./types";
 import { MarkdownParser } from "../extensions/markdown";
 import { MTProtoSender } from "../network";
 import { LAYER } from "../tl/AllTLObjects";
-import {
-    ConnectionTCPMTProxyAbridged,
-    ProxyInterface,
-} from "../network/connection/TCPMTProxy";
+import { ConnectionTCPMTProxyAbridged } from "../network/connection/TCPMTProxy";
+import { ProxyInterface } from "../network/connection/types";
 import { Semaphore } from "async-mutex";
 import { LogLevel } from "../extensions/Logger";
 import { isBrowser, isNode } from "../platform";
@@ -195,7 +194,7 @@ export abstract class TelegramBaseClient {
     public useWSS: boolean;
 
     /** @hidden */
-    public _eventBuilders: [EventBuilder, CallableFunction][];
+    public _eventBuilders: [any, CallableFunction][];
     /** @hidden */
     public _entityCache: EntityCache;
     /** @hidden */
@@ -536,7 +535,7 @@ export abstract class TelegramBaseClient {
             authKeyCallback: this._authKeyCallback.bind(this),
             isMainSender: dcId === this.session.dcId,
             onConnectionBreak: this._cleanupExportedSender.bind(this),
-            client: this as unknown as TelegramClient,
+            client: this,
             securityChecks: this._securityChecks,
         });
     }

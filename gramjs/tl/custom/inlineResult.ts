@@ -1,11 +1,11 @@
-import type { TelegramClient } from "../..";
-import type { EntityLike, MessageIDLike } from "../../define";
 import { Api } from "../api";
-import { utils } from "../../";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
+import * as utils from "../../Utils";
 import { betterConsoleLog } from "../../Helpers";
 import { inspect } from "../../inspect";
+import { AbsInlineResult } from "./absInlineResult";
 
-export class InlineResult {
+export class InlineResult implements AbsInlineResult {
     private _ARTICLE = "article";
     private _PHOTO = "photo";
     private _GIF = "gif";
@@ -17,20 +17,20 @@ export class InlineResult {
     private _VENUE = "venue";
     private _CONTACT = "contact";
     private _GAME = "game";
-    private readonly _entity: EntityLike | undefined;
+    private readonly _entity: Api.TypeEntityLike | undefined;
     private readonly _queryId: Api.long | undefined;
     private readonly result: Api.TypeBotInlineResult;
-    private _client: TelegramClient;
+    private _client: AbstractTelegramClient;
 
     [inspect.custom]() {
         return betterConsoleLog(this);
     }
 
     constructor(
-        client: TelegramClient,
+        client: AbstractTelegramClient,
         original: Api.TypeBotInlineResult,
         queryId?: Api.long,
-        entity?: EntityLike
+        entity?: Api.TypeEntityLike
     ) {
         this._client = client;
         this.result = original;
@@ -73,8 +73,8 @@ export class InlineResult {
     }
 
     async click(
-        entity?: EntityLike,
-        replyTo?: MessageIDLike,
+        entity?: Api.TypeEntityLike,
+        replyTo?: Api.TypeMessageIDLike,
         silent: boolean = false,
         clearDraft: boolean = false,
         hideVia: boolean = false

@@ -1,6 +1,5 @@
-import type { TelegramClient } from "../..";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { Api } from "../api";
-import type { Entity } from "../../define";
 import { getDisplayName, getInputPeer, getPeerId } from "../../Utils";
 import { Draft } from "./draft";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
@@ -8,14 +7,14 @@ import bigInt from "big-integer";
 import { inspect } from "../../inspect";
 
 export class Dialog {
-    _client: TelegramClient;
+    _client: AbstractTelegramClient;
     dialog: Api.Dialog;
     pinned: boolean;
     folderId?: number;
     archived: boolean;
     message?: Api.Message;
     date: number;
-    entity?: Entity;
+    entity?: Api.TypeEntity;
     inputEntity: Api.TypeInputPeer;
     id?: bigInt.BigInteger;
     name?: string;
@@ -31,9 +30,9 @@ export class Dialog {
     }
 
     constructor(
-        client: TelegramClient,
+        client: AbstractTelegramClient,
         dialog: Api.Dialog,
-        entities: Map<string, Entity>,
+        entities: Map<string, Api.TypeEntity>,
         message?: Api.Message
     ) {
         this._client = client;

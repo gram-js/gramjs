@@ -7,17 +7,7 @@ import {
     PromisedWebSockets,
 } from "../../extensions";
 import { CTR } from "../../crypto/CTR";
-
-export interface ProxyInterface {
-    socksType?: 4 | 5;
-    ip: string;
-    port: number;
-    secret?: string;
-    MTProxy?: boolean;
-    timeout?: number;
-    username?: string;
-    password?: string;
-}
+import { ProxyInterface } from "./types";
 
 class MTProxyIO {
     header?: Buffer = undefined;

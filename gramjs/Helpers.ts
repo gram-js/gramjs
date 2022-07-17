@@ -1,5 +1,4 @@
 import bigInt from "big-integer";
-import type { EntityLike } from "./define";
 import type { Api } from "./tl";
 import crypto from "./CryptoFile";
 
@@ -508,7 +507,7 @@ export const _EntityType = {
 };
 Object.freeze(_EntityType);
 
-export function _entityType(entity: EntityLike) {
+export function _entityType(entity: Api.TypeEntityLike) {
     if (typeof entity !== "object" || !("SUBCLASS_OF_ID" in entity)) {
         throw new Error(
             `${entity} is not a TLObject, cannot determine entity type`

@@ -29,7 +29,7 @@ function patchMethods(methods) {
                 arg.toLowerCase().includes("msgid")
             ) {
                 if (method["argsConfig"][arg]["type"] !== "long") {
-                    method["argsConfig"][arg]["type"] = "MessageIDLike";
+                    method["argsConfig"][arg]["type"] = "TypeMessageIDLike";
                 }
             }
         }

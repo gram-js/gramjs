@@ -12,14 +12,14 @@ import * as userMethods from "./users";
 import * as chatMethods from "./chats";
 import * as dialogMethods from "./dialogs";
 import * as twoFA from "./2fa";
-import type { ButtonLike, Entity, EntityLike, MessageIDLike } from "../define";
-import { Api } from "../tl";
+import { Api } from "../tl/api";
 import { sanitizeParseMode } from "../Utils";
 import type { EventBuilder } from "../events/common";
 import { MTProtoSender } from "../network";
+import * as types from "./types";
 
 import { LAYER } from "../tl/AllTLObjects";
-import { betterConsoleLog } from "../Helpers";
+import { betterConsoleLog, TotalList } from "../Helpers";
 import { DownloadMediaInterface } from "./downloads";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _handleUpdate, _updateLoop } from "./updates";
@@ -31,6 +31,9 @@ import { DeletedMessage, DeletedMessageEvent } from "../events/DeletedMessage";
 import { LogLevel } from "../extensions/Logger";
 import { inspect } from "../inspect";
 import { isNode } from "../platform";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
+import { InlineResults } from "../tl/custom/inlineResults";
+import { Dialog } from "../tl/custom/dialog";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -44,7 +47,10 @@ import { isNode } from "../platform";
  *
  * You don't need to import any methods that are inside the TelegramClient class as they binding in it.
  */
-export class TelegramClient extends TelegramBaseClient {
+export class TelegramClient
+    extends TelegramBaseClient
+    implements AbstractTelegramClient
+{
     /**
      * @param session - a session to be used to save the connection and auth key to. This can be a custom session that inherits MemorySession.
      * @param apiId - The API ID you obtained from https://my.telegram.org.
@@ -93,7 +99,9 @@ export class TelegramClient extends TelegramBaseClient {
      *
      * You can now use the client instance to call other api requests.
      */
-    start(authParams: authMethods.UserAuthParams | authMethods.BotAuthParams) {
+    start(
+        authParams: types.UserAuthParams | authMethods.BotAuthParams
+    ): Promise<void> {
         return authMethods.start(this, authParams);
     }
 
@@ -110,7 +118,7 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      * @return boolean (true of authorized else false)
      */
-    checkAuthorization() {
+    checkAuthorization(): Promise<boolean> {
         return authMethods.checkAuthorization(this);
     }
 
@@ -142,8 +150,8 @@ export class TelegramClient extends TelegramBaseClient {
      */
     signInUser(
         apiCredentials: authMethods.ApiCredentials,
-        authParams: authMethods.UserAuthParams
-    ) {
+        authParams: types.UserAuthParams
+    ): Promise<Api.TypeUser> {
         return authMethods.signInUser(this, apiCredentials, authParams);
     }
 
@@ -180,8 +188,8 @@ export class TelegramClient extends TelegramBaseClient {
      */
     signInUserWithQrCode(
         apiCredentials: authMethods.ApiCredentials,
-        authParams: authMethods.QrCodeAuthParams
-    ) {
+        authParams: types.QrCodeAuthParams
+    ): Promise<Api.TypeUser> {
         return authMethods.signInUserWithQrCode(
             this,
             apiCredentials,
@@ -208,7 +216,10 @@ export class TelegramClient extends TelegramBaseClient {
         apiCredentials: authMethods.ApiCredentials,
         phoneNumber: string,
         forceSMS = false
-    ) {
+    ): Promise<{
+        phoneCodeHash: string;
+        isCodeViaApp: boolean;
+    }> {
         return authMethods.sendCode(
             this,
             apiCredentials,
@@ -226,8 +237,8 @@ export class TelegramClient extends TelegramBaseClient {
      */
     signInWithPassword(
         apiCredentials: authMethods.ApiCredentials,
-        authParams: authMethods.UserPasswordAuthParams
-    ) {
+        authParams: types.UserPasswordAuthParams
+    ): Promise<Api.TypeUser> {
         return authMethods.signInWithPassword(this, apiCredentials, authParams);
     }
 
@@ -252,7 +263,7 @@ export class TelegramClient extends TelegramBaseClient {
     signInBot(
         apiCredentials: authMethods.ApiCredentials,
         authParams: authMethods.BotAuthParams
-    ) {
+    ): Promise<Api.TypeUser> {
         return authMethods.signInBot(this, apiCredentials, authParams);
     }
 
@@ -301,7 +312,7 @@ export class TelegramClient extends TelegramBaseClient {
         email,
         emailCodeCallback,
         onEmailCodeError,
-    }: twoFA.TwoFaParams) {
+    }: types.TwoFaParams): Promise<void> {
         return twoFA.updateTwoFaSettings(this, {
             isCheckPassword,
             currentPassword,
@@ -337,12 +348,12 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     inlineQuery(
-        bot: EntityLike,
+        bot: Api.TypeEntityLike,
         query: string,
         entity?: Api.InputPeerSelf,
         offset?: string,
         geoPoint?: Api.TypeInputGeoPoint
-    ) {
+    ): Promise<InlineResults> {
         return botMethods.inlineQuery(
             this,
             bot,
@@ -383,12 +394,7 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     buildReplyMarkup(
-        buttons:
-            | Api.TypeReplyMarkup
-            | undefined
-            | ButtonLike
-            | ButtonLike[]
-            | ButtonLike[][],
+        buttons: undefined | Api.TypeMarkupLike,
         inlineOnly: boolean = false
     ) {
         return buttonsMethods.buildReplyMarkup(buttons, inlineOnly);
@@ -424,7 +430,7 @@ export class TelegramClient extends TelegramBaseClient {
     downloadFile(
         inputLocation: Api.TypeInputFileLocation,
         fileParams: downloadMethods.DownloadFileParamsV2 = {}
-    ) {
+    ): Promise<string | Buffer | undefined> {
         return downloadMethods.downloadFileV2(this, inputLocation, fileParams);
     }
 
@@ -447,11 +453,11 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     downloadProfilePhoto(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         downloadProfilePhotoParams: downloadMethods.DownloadProfilePhotoParams = {
             isBig: false,
         }
-    ) {
+    ): Promise<string | Buffer | undefined> {
         return downloadMethods.downloadProfilePhoto(
             this,
             entity,
@@ -479,7 +485,7 @@ export class TelegramClient extends TelegramBaseClient {
     downloadMedia(
         messageOrMedia: Api.Message | Api.TypeMessageMedia,
         downloadParams?: DownloadMediaInterface
-    ) {
+    ): Promise<string | Buffer | undefined> {
         return downloadMethods.downloadMedia(
             this,
             messageOrMedia,
@@ -496,7 +502,7 @@ export class TelegramClient extends TelegramBaseClient {
      * This property is the default parse mode used when sending messages. Defaults to {@link MarkdownParser}.<br/>
      * It will always be either undefined or an object with parse and unparse methods.<br/>
      * When setting a different value it should be one of:<br/>
-     *<br/>
+     * <br/>
      *  - Object with parse and unparse methods.<br/>
      *  - A str indicating the parse_mode. For Markdown 'md' or 'markdown' may be used. For HTML, 'html' may be used.<br/>
      * The parse method should be a function accepting a single parameter, the text to parse, and returning a tuple consisting of (parsed message str, [MessageEntity instances]).<br/>
@@ -527,12 +533,7 @@ export class TelegramClient extends TelegramBaseClient {
      * await client.sendMessage("me",{message:"<u> this will be sent as it is</u> ** with no formatting **});
      */
     setParseMode(
-        mode:
-            | "md"
-            | "markdown"
-            | "html"
-            | parseMethods.ParseInterface
-            | undefined
+        mode: "md" | "markdown" | "html" | types.ParseInterface | undefined
     ) {
         if (mode) {
             this._parseMode = sanitizeParseMode(mode);
@@ -592,9 +593,9 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     iterMessages(
-        entity: EntityLike | undefined,
+        entity: Api.TypeEntityLike | undefined,
         iterParams: Partial<messageMethods.IterMessagesParams> = {}
-    ) {
+    ): AsyncIterable<Api.Message> {
         return messageMethods.iterMessages(this, entity, iterParams);
     }
 
@@ -621,9 +622,9 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     getMessages(
-        entity: EntityLike | undefined,
+        entity: Api.TypeEntityLike | undefined,
         getMessagesParams: Partial<messageMethods.IterMessagesParams> = {}
-    ) {
+    ): Promise<TotalList<Api.Message>> {
         return messageMethods.getMessages(this, entity, getMessagesParams);
     }
 
@@ -661,7 +662,6 @@ export class TelegramClient extends TelegramBaseClient {
      * // ...and here I need HTML
      * await client.sendMessage('me', {message:'Hello, <i>world</i>!', {parseMode='html'}})
      *
-     *
      * // Scheduling a message to be sent after 5 minutes
      *
      * await client.sendMessage(chat, {message:'Hi, future!', schedule:(60 * 5) + (Date.now() / 1000)})
@@ -669,19 +669,19 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     sendMessage(
-        entity: EntityLike,
-        sendMessageParams: messageMethods.SendMessageParams = {}
-    ) {
+        entity: Api.TypeEntityLike,
+        sendMessageParams: types.SendMessageParams = {}
+    ): Promise<Api.Message> {
         return messageMethods.sendMessage(this, entity, sendMessageParams);
     }
 
     /**
      * Forwards the given messages to the specified entity.<br/>
-     *<br/>
+     * <br/>
      * If you want to "forward" a message without the forward header
      * (the "forwarded from" text), you should use `sendMessage` with
      * the original message instead. This will send a copy of it.
-     *<br/>
+     * <br/>
      * See also {@link Message.forwardTo}`.
      * @param entity - To which entity the message(s) will be forwarded.
      * @param forwardMessagesParams - see {@link ForwardMessagesParams}
@@ -705,9 +705,9 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     forwardMessages(
-        entity: EntityLike,
-        forwardMessagesParams: messageMethods.ForwardMessagesParams
-    ) {
+        entity: Api.TypeEntityLike,
+        forwardMessagesParams: types.ForwardMessagesParams
+    ): Promise<Api.Message[]> {
         return messageMethods.forwardMessages(
             this,
             entity,
@@ -741,9 +741,9 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```
      */
     editMessage(
-        entity: EntityLike,
-        editMessageParams: messageMethods.EditMessageParams
-    ) {
+        entity: Api.TypeEntityLike,
+        editMessageParams: types.EditMessageParams
+    ): Promise<Api.Message> {
         return messageMethods.editMessage(this, entity, editMessageParams);
     }
 
@@ -770,10 +770,10 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```
      */
     deleteMessages(
-        entity: EntityLike | undefined,
-        messageIds: MessageIDLike[],
+        entity: Api.TypeEntityLike | undefined,
+        messageIds: Api.TypeMessageIDLike[],
         { revoke = true }
-    ) {
+    ): Promise<Api.messages.AffectedMessages[]> {
         return messageMethods.deleteMessages(this, entity, messageIds, {
             revoke: revoke,
         });
@@ -798,19 +798,19 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```
      */
     pinMessage(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         message?: undefined,
-        pinMessageParams?: messageMethods.UpdatePinMessageParams
+        pinMessageParams?: types.UpdatePinMessageParams
     ): Promise<Api.messages.AffectedHistory>;
     pinMessage(
-        entity: EntityLike,
-        message: MessageIDLike,
-        pinMessageParams?: messageMethods.UpdatePinMessageParams
+        entity: Api.TypeEntityLike,
+        message: Api.TypeMessageIDLike,
+        pinMessageParams?: types.UpdatePinMessageParams
     ): Promise<Api.Message>;
     pinMessage(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         message?: any,
-        pinMessageParams?: messageMethods.UpdatePinMessageParams
+        pinMessageParams?: types.UpdatePinMessageParams
     ) {
         return messageMethods.pinMessage(
             this,
@@ -843,19 +843,19 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```
      */
     unpinMessage(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         message?: undefined,
-        pinMessageParams?: messageMethods.UpdatePinMessageParams
+        pinMessageParams?: types.UpdatePinMessageParams
     ): Promise<Api.messages.AffectedHistory>;
     unpinMessage(
-        entity: EntityLike,
-        message: MessageIDLike,
-        pinMessageParams?: messageMethods.UpdatePinMessageParams
+        entity: Api.TypeEntityLike,
+        message: Api.TypeMessageIDLike,
+        pinMessageParams?: types.UpdatePinMessageParams
     ): Promise<undefined>;
     unpinMessage(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         message?: any,
-        unpinMessageParams?: messageMethods.UpdatePinMessageParams
+        unpinMessageParams?: types.UpdatePinMessageParams
     ) {
         return messageMethods.unpinMessage(
             this,
@@ -891,10 +891,10 @@ export class TelegramClient extends TelegramBaseClient {
      *  ```
      */
     markAsRead(
-        entity: EntityLike,
-        message?: MessageIDLike | MessageIDLike[],
-        markAsReadParams?: messageMethods.MarkAsReadParams
-    ) {
+        entity: Api.TypeEntityLike,
+        message?: Api.TypeMessageIDLike | Api.TypeMessageIDLike[],
+        markAsReadParams?: types.MarkAsReadParams
+    ): Promise<boolean> {
         return messageMethods.markAsRead(
             this,
             entity,
@@ -919,7 +919,9 @@ export class TelegramClient extends TelegramBaseClient {
      * }
      * ```
      */
-    iterDialogs(iterDialogsParams: dialogMethods.IterDialogsParams = {}) {
+    iterDialogs(
+        iterDialogsParams: dialogMethods.IterDialogsParams = {}
+    ): AsyncIterable<Dialog> {
         return dialogMethods.iterDialogs(this, iterDialogsParams);
     }
 
@@ -945,7 +947,9 @@ export class TelegramClient extends TelegramBaseClient {
      * archived = await client.get_dialogs({archived:true})
      * ```
      */
-    getDialogs(params: dialogMethods.IterDialogsParams = {}) {
+    getDialogs(
+        params: dialogMethods.IterDialogsParams = {}
+    ): Promise<TotalList<Dialog>> {
         return dialogMethods.getDialogs(this, params);
     }
 
@@ -983,9 +987,9 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     iterParticipants(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         params: chatMethods.IterParticipantsParams = {}
-    ) {
+    ): AsyncIterable<Api.User> {
         return chatMethods.iterParticipants(this, entity, params);
     }
 
@@ -997,9 +1001,9 @@ export class TelegramClient extends TelegramBaseClient {
      * @return
      */
     getParticipants(
-        entity: EntityLike,
+        entity: Api.TypeEntityLike,
         params: chatMethods.IterParticipantsParams = {}
-    ) {
+    ): Promise<TotalList<Api.User>> {
         return chatMethods.getParticipants(this, entity, params);
     }
 
@@ -1074,7 +1078,7 @@ export class TelegramClient extends TelegramBaseClient {
      * Lists all registered event handlers.
      * @return pair of [eventBuilder,CallableFunction]
      */
-    listEventHandlers() {
+    listEventHandlers(): [EventBuilder, CallableFunction][] {
         return updateMethods.listEventHandlers(this);
     }
 
@@ -1100,7 +1104,9 @@ export class TelegramClient extends TelegramBaseClient {
      *  }));
      * ```
      */
-    uploadFile(fileParams: uploadMethods.UploadFileParams) {
+    uploadFile(
+        fileParams: types.UploadFileParams
+    ): Promise<Api.InputFile | Api.InputFileBig> {
         return uploadMethods.uploadFile(this, fileParams);
     }
 
@@ -1143,9 +1149,9 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
     sendFile(
-        entity: EntityLike,
-        sendFileParams: uploadMethods.SendFileInterface
-    ) {
+        entity: Api.TypeEntityLike,
+        sendFileParams: types.SendFileInterface
+    ): Promise<Api.Message> {
         return uploadMethods.sendFile(this, entity, sendFileParams);
     }
 
@@ -1188,7 +1194,7 @@ export class TelegramClient extends TelegramBaseClient {
      * console.log("My username is",me.username);
      * ```
      */
-    getMe(inputPeer = false) {
+    getMe(inputPeer = false): Promise<Api.InputPeerUser | Api.User> {
         return userMethods.getMe(this, inputPeer);
     }
 
@@ -1203,7 +1209,7 @@ export class TelegramClient extends TelegramBaseClient {
      * }
      * ```
      */
-    isBot() {
+    isBot(): Promise<boolean | undefined> {
         return userMethods.isBot(this);
     }
 
@@ -1216,7 +1222,7 @@ export class TelegramClient extends TelegramBaseClient {
      *     console.log("I am not logged in. I need to sign in first before being able to call methods");
      * }
      */
-    isUserAuthorized() {
+    isUserAuthorized(): Promise<boolean> {
         return userMethods.isUserAuthorized(this);
     }
 
@@ -1249,8 +1255,8 @@ export class TelegramClient extends TelegramBaseClient {
      * ```
      */
 
-    getEntity(entity: EntityLike): Promise<Entity>;
-    getEntity(entity: EntityLike[]): Promise<Entity[]>;
+    getEntity(entity: Api.TypeEntityLike): Promise<Api.TypeEntity>;
+    getEntity(entity: Api.TypeEntityLike[]): Promise<Api.TypeEntity[]>;
     getEntity(entity: any) {
         return userMethods.getEntity(this, entity);
     }
@@ -1261,20 +1267,20 @@ export class TelegramClient extends TelegramBaseClient {
      * **Generally you should let the library do its job** and don't worry about getting the input entity first, but if you're going to use an entity often, consider making the call.
      * @param entity - If a username or invite link is given, the library will use the cache.<br/>
      * This means that it's possible to be using a username that changed or an old invite link (this only happens if an invite link for a small group chat is used after it was upgraded to a mega-group).
-     *<br/>
+     * <br/>
      *  - If the username or ID from the invite link is not found in the cache, it will be fetched. The same rules apply to phone numbers ('+34 123456789') from people in your contact list.
-     *<br/>
+     * <br/>
      *  - If an exact name is given, it must be in the cache too. This is not reliable as different people can share the same name and which entity is returned is arbitrary,<br/>
      *  and should be used only for quick tests.
-     *<br/>
+     * <br/>
      *  - If a positive integer ID is given, the entity will be searched in cached users, chats or channels, without making any call.
-     *<br/>
+     * <br/>
      *  - If a negative integer ID is given, the entity will be searched exactly as either a chat (prefixed with -) or as a channel (prefixed with -100).
-     *<br/>
+     * <br/>
      *  - If a Peer is given, it will be searched exactly in the cache as either a user, chat or channel.
-     *<br/>
+     * <br/>
      *  - If the given object can be turned into an input entity directly, said operation will be done.
-     *<br/>
+     * <br/>
      *  -If the entity can't be found, this will throw an error.
      * @return
      * {@link Api.InputPeerUser} , {@link Api.InputPeerChat} , {@link Api.InputPeerChannel} or {@link Api.InputPeerSelf} if the parameter  is "me" or "self"
@@ -1289,7 +1295,7 @@ export class TelegramClient extends TelegramBaseClient {
      * chat = await client.getInputEntity(-123456789)
      * ```
      */
-    getInputEntity(entity: EntityLike) {
+    getInputEntity(entity: Api.TypeEntityLike): Promise<Api.TypeInputPeer> {
         return userMethods.getInputEntity(this, entity);
     }
 
@@ -1306,17 +1312,17 @@ export class TelegramClient extends TelegramBaseClient {
      * console.log(await client.getPeerId("me"));
      * ```
      */
-    getPeerId(peer: EntityLike, addMark = true) {
+    getPeerId(peer: Api.TypeEntityLike, addMark = true): Promise<string> {
         return userMethods.getPeerId(this, peer, addMark);
     }
 
     /** @hidden */
-    _getInputDialog(peer: any) {
+    _getInputDialog(peer: any): Promise<any> {
         return userMethods._getInputDialog(this, peer);
     }
 
     /** @hidden */
-    _getInputNotify(notify: any) {
+    _getInputNotify(notify: any): Promise<any> {
         return userMethods._getInputNotify(this, notify);
     }
 
@@ -1495,7 +1501,15 @@ export class TelegramClient extends TelegramBaseClient {
     }
 
     /** @hidden */
-    _getResponseMessage(req: any, result: any, inputChat: any) {
+    _getResponseMessage(
+        req: any,
+        result: any,
+        inputChat: any
+    ):
+        | Api.TypeMessage
+        | Map<number, Api.Message>
+        | (Api.Message | undefined)[]
+        | undefined {
         return parseMethods._getResponseMessage(this, req, result, inputChat);
     }
 

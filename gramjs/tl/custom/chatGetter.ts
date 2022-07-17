@@ -1,23 +1,22 @@
-import type { Entity, EntityLike } from "../../define";
-import type { TelegramClient } from "../../client/TelegramClient";
-import { utils } from "../../";
+import * as utils from "../../Utils";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { Api } from "../api";
 import { betterConsoleLog, returnBigInt } from "../../Helpers";
 import { inspect } from "../../inspect";
 
 export interface ChatGetterConstructorParams {
-    chatPeer?: EntityLike;
-    inputChat?: EntityLike;
-    chat?: EntityLike;
+    chatPeer?: Api.TypeEntityLike;
+    inputChat?: Api.TypeEntityLike;
+    chat?: Api.TypeEntityLike;
     broadcast?: boolean;
 }
 
 export class ChatGetter {
-    _chatPeer?: EntityLike;
-    _inputChat?: EntityLike;
-    _chat?: Entity;
+    _chatPeer?: Api.TypeEntityLike;
+    _inputChat?: Api.TypeEntityLike;
+    _chat?: Api.TypeEntity;
     _broadcast?: boolean;
-    public _client?: TelegramClient;
+    public _client?: AbstractTelegramClient;
 
     [inspect.custom]() {
         return betterConsoleLog(this);

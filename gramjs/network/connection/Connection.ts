@@ -4,9 +4,7 @@ import {
     PromisedWebSockets,
 } from "../../extensions";
 import { AsyncQueue } from "../../extensions";
-import { AbridgedPacketCodec } from "./TCPAbridged";
-import { FullPacketCodec } from "./TCPFull";
-import { ProxyInterface } from "./TCPMTProxy";
+import { ProxyInterface } from "./types";
 
 interface ConnectionInterfaceParams {
     ip: string;
@@ -30,7 +28,7 @@ interface ConnectionInterfaceParams {
  * the client is disconnected (includes remote disconnections).
  */
 class Connection {
-    PacketCodecClass?: typeof AbridgedPacketCodec | typeof FullPacketCodec;
+    PacketCodecClass?: typeof PacketCodec;
     readonly _ip: string;
     readonly _port: number;
     _dcId: number;
@@ -191,9 +189,9 @@ class ObfuscatedConnection extends Connection {
 }
 
 class PacketCodec {
-    private _conn: Buffer;
+    private _conn: Connection;
 
-    constructor(connection: Buffer) {
+    constructor(connection: Connection) {
         this._conn = connection;
     }
 

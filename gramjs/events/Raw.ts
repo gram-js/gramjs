@@ -1,6 +1,6 @@
 import { EventBuilder, EventCommon } from "./common";
-import type { TelegramClient } from "..";
-import { Api } from "../tl";
+import { AbstractTelegramClient } from "../client/AbstractTelegramClient";
+import { Api } from "../tl/api";
 
 export interface RawInterface {
     /**
@@ -30,7 +30,7 @@ export class Raw extends EventBuilder {
         this.types = params.types;
     }
 
-    async resolve(client: TelegramClient) {
+    async resolve(client: AbstractTelegramClient) {
         this.resolved = true;
     }
 

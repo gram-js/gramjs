@@ -1,12 +1,14 @@
-import type { Entity, EntityLike, MessageIDLike } from "./define";
 import { Api } from "./tl";
 import bigInt from "big-integer";
-import * as markdown from "./extensions/markdown";
 import { EntityCache } from "./entityCache";
 import mime from "mime";
-import type { ParseInterface } from "./client/messageParse";
+import { ParseInterface } from "./client/types";
 import { MarkdownParser } from "./extensions/markdown";
-import { CustomFile } from "./client/uploads";
+import { CustomFile } from "./classes";
+import { AbstractTelegramClient } from "./client/AbstractTelegramClient";
+import path from "./client/path";
+import { promises as fs } from "./client/fs";
+import { FileToMediaInterface } from "./client/types";
 
 export function getFileInfo(
     fileLocation:
@@ -242,10 +244,10 @@ export function _photoSizeByteCount(size: Api.TypePhotoSize) {
 
 export function _getEntityPair(
     entityId: string,
-    entities: Map<string, Entity>,
+    entities: Map<string, Api.TypeEntity>,
     cache: EntityCache,
     getInputPeerFunction: any = getInputPeer
-): [Entity?, Api.TypeInputPeer?] {
+): [Api.TypeEntity?, Api.TypeInputPeer?] {
     const entity = entities.get(entityId);
     let inputEntity;
     try {
@@ -280,7 +282,7 @@ export function getInnerText(text: string, entities: Api.TypeMessageEntity[]) {
  * @param entity
  * @returns {InputChannel|*}
  */
-export function getInputChannel(entity: EntityLike) {
+export function getInputChannel(entity: Api.TypeEntityLike) {
     if (
         typeof entity === "string" ||
         typeof entity == "number" ||
@@ -326,7 +328,7 @@ export function getInputChannel(entity: EntityLike) {
 
  * @param entity
  */
-export function getInputUser(entity: EntityLike): Api.TypeInputUser {
+export function getInputUser(entity: Api.TypeEntityLike): Api.TypeInputUser {
     if (
         typeof entity === "string" ||
         typeof entity == "number" ||
@@ -729,7 +731,7 @@ function isVideo(file: any): boolean {
  the mime type as a tuple ([attribute], mime_type).
  */
 export function getAttributes(
-    file: File | CustomFile | TypeInputFile | string,
+    file: File | CustomFile | TypeInputFile | string | Buffer,
     {
         attributes = null,
         mimeType = undefined,
@@ -741,7 +743,11 @@ export function getAttributes(
     }: GetAttributesParams
 ) {
     const name: string =
-        typeof file == "string" ? file : file.name || "unnamed";
+        typeof file == "string"
+            ? file
+            : file instanceof CustomFile
+            ? file.name
+            : "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.getType(name) || "application/octet-stream";
     }
@@ -1039,7 +1045,7 @@ export function getAppropriatedPartSize(fileSize: bigInt.BigInteger) {
     return 512;
 }
 
-export function getPeer(peer: EntityLike | any) {
+export function getPeer(peer: Api.TypeEntityLike | any) {
     if (!peer) {
         _raiseCastFail(peer, "undefined");
     }
@@ -1131,7 +1137,7 @@ export function sanitizeParseMode(
  * @param peer
  * @param addMark
  */
-export function getPeerId(peer: EntityLike, addMark = true): string {
+export function getPeerId(peer: Api.TypeEntityLike, addMark = true): string {
     if (typeof peer == "string" && parseID(peer)) {
         peer = returnBigInt(peer);
     }
@@ -1226,7 +1232,7 @@ export function  _getEntityPair(entityId, entities, cache, getInputPeer = getInp
 */
 
 export function getMessageId(
-    message: number | Api.TypeMessage | MessageIDLike | undefined
+    message: number | Api.TypeMessage | Api.TypeMessageIDLike | undefined
 ): number | undefined {
     if (!message) {
         return undefined;
@@ -1318,7 +1324,7 @@ export function rtrim(s: string, mask: string) {
  :tl:`Chat` or :tl:`Channel`. Returns an empty string otherwise
  * @param entity
  */
-export function getDisplayName(entity: EntityLike) {
+export function getDisplayName(entity: Api.TypeEntityLike) {
     if (entity instanceof Api.User) {
         if (entity.lastName && entity.firstName) {
             return `${entity.firstName} ${entity.lastName}`;
@@ -1357,3 +1363,248 @@ export function  isListLike(item) {
     )
 }
 */
+
+/** @hidden */
+export async function _fileToMedia(
+    client: AbstractTelegramClient,
+    {
+        file,
+        forceDocument,
+        fileSize,
+        progressCallback,
+        attributes,
+        thumb,
+        voiceNote = false,
+        videoNote = false,
+        supportsStreaming = false,
+        mimeType,
+        asImage,
+        workers = 1,
+    }: FileToMediaInterface
+): Promise<{
+    fileHandle?: any;
+    media?: Api.TypeInputMedia;
+    image?: boolean;
+}> {
+    if (!file) {
+        return { fileHandle: undefined, media: undefined, image: undefined };
+    }
+    const isImage_ = isImage(file);
+
+    if (asImage == undefined) {
+        asImage = isImage_ && !forceDocument;
+    }
+    if (
+        typeof file == "object" &&
+        !Buffer.isBuffer(file) &&
+        !(file instanceof Api.InputFile) &&
+        !(file instanceof Api.InputFileBig) &&
+        !(file instanceof CustomFile) &&
+        !("read" in file)
+    ) {
+        try {
+            return {
+                fileHandle: undefined,
+                media: getInputMedia(file, {
+                    isPhoto: asImage,
+                    attributes: attributes,
+                    forceDocument: forceDocument,
+                    voiceNote: voiceNote,
+                    videoNote: videoNote,
+                    supportsStreaming: supportsStreaming,
+                }),
+                image: asImage,
+            };
+        } catch (e) {
+            return {
+                fileHandle: undefined,
+                media: undefined,
+                image: isImage_,
+            };
+        }
+    }
+    let media;
+    let fileHandle;
+    let createdFile;
+
+    if (file instanceof Api.InputFile || file instanceof Api.InputFileBig) {
+        fileHandle = file;
+    } else if (
+        typeof file == "string" &&
+        (file.startsWith("https://") || file.startsWith("http://"))
+    ) {
+        if (asImage) {
+            media = new Api.InputMediaPhotoExternal({ url: file });
+        } else {
+            media = new Api.InputMediaDocumentExternal({ url: file });
+        }
+    } else if (!(typeof file == "string") || (await fs.lstat(file)).isFile()) {
+        if (typeof file == "string") {
+            createdFile = new CustomFile(
+                path.basename(file),
+                (await fs.stat(file)).size,
+                file
+            );
+        } else if (
+            (typeof File !== "undefined" && file instanceof File) ||
+            file instanceof CustomFile
+        ) {
+            createdFile = file;
+        } else {
+            let name;
+            if ("name" in file) {
+                // @ts-ignore
+                name = file.name;
+            } else {
+                name = "unnamed";
+            }
+            if (Buffer.isBuffer(file)) {
+                createdFile = new CustomFile(name, file.length, "", file);
+            }
+        }
+        if (!createdFile) {
+            throw new Error(
+                `Could not create file from ${JSON.stringify(file)}`
+            );
+        }
+        fileHandle = await client.uploadFile({
+            file: createdFile,
+            onProgress: progressCallback,
+            workers: workers,
+        });
+    } else {
+        throw new Error(`"Not a valid path nor a url ${file}`);
+    }
+    if (media != undefined) {
+    } else if (fileHandle == undefined) {
+        throw new Error(
+            `Failed to convert ${file} to media. Not an existing file or an HTTP URL`
+        );
+    } else if (asImage) {
+        media = new Api.InputMediaUploadedPhoto({
+            file: fileHandle,
+        });
+    } else {
+        let res = getAttributes(file, {
+            mimeType: mimeType,
+            attributes: attributes,
+            forceDocument: forceDocument && !isImage,
+            voiceNote: voiceNote,
+            videoNote: videoNote,
+            supportsStreaming: supportsStreaming,
+            thumb: thumb,
+        });
+        attributes = res.attrs;
+        mimeType = res.mimeType;
+
+        let uploadedThumb;
+        if (!thumb) {
+            uploadedThumb = undefined;
+        } else {
+            // todo refactor
+            if (typeof thumb == "string") {
+                uploadedThumb = new CustomFile(
+                    path.basename(thumb),
+                    (await fs.stat(thumb)).size,
+                    thumb
+                );
+            } else if (typeof File !== "undefined" && thumb instanceof File) {
+                uploadedThumb = thumb;
+            } else {
+                let name;
+                if ("name" in thumb) {
+                    name = thumb.name;
+                } else {
+                    name = "unnamed";
+                }
+                if (Buffer.isBuffer(thumb)) {
+                    uploadedThumb = new CustomFile(
+                        name,
+                        thumb.length,
+                        "",
+                        thumb
+                    );
+                }
+            }
+            if (!uploadedThumb) {
+                throw new Error(`Could not create file from ${file}`);
+            }
+            uploadedThumb = await client.uploadFile({
+                file: uploadedThumb,
+                workers: 1,
+            });
+        }
+        media = new Api.InputMediaUploadedDocument({
+            file: fileHandle,
+            mimeType: mimeType,
+            attributes: attributes,
+            thumb: uploadedThumb,
+            forceFile: forceDocument && !isImage,
+        });
+    }
+    return {
+        fileHandle: fileHandle,
+        media: media,
+        image: asImage,
+    };
+}
+
+/** @hidden */
+export async function _replaceWithMention(
+    client: AbstractTelegramClient,
+    entities: Api.TypeMessageEntity[],
+    i: number,
+    user: Api.TypeEntityLike
+) {
+    try {
+        entities[i] = new Api.InputMessageEntityMentionName({
+            offset: entities[i].offset,
+            length: entities[i].length,
+            userId: (await client.getInputEntity(
+                user
+            )) as unknown as Api.TypeInputUser,
+        });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+/** @hidden */
+export async function _parseMessageText(
+    client: AbstractTelegramClient,
+    message: string,
+    parseMode: false | string | ParseInterface
+): Promise<[string, Api.TypeMessageEntity[]]> {
+    if (parseMode == false) {
+        return [message, []];
+    }
+    if (parseMode == undefined) {
+        if (client.parseMode == undefined) {
+            return [message, []];
+        }
+        parseMode = client.parseMode;
+    } else if (typeof parseMode === "string") {
+        parseMode = sanitizeParseMode(parseMode);
+    }
+    const [rawMessage, msgEntities] = parseMode.parse(message);
+    for (let i = msgEntities.length - 1; i >= 0; i--) {
+        const e = msgEntities[i];
+        if (e instanceof Api.MessageEntityTextUrl) {
+            const m = /^@|\+|tg:\/\/user\?id=(\d+)/.exec(e.url);
+            if (m) {
+                const userIdOrUsername = m[1] ? Number(m[1]) : e.url;
+                const isMention = await _replaceWithMention(
+                    client,
+                    msgEntities,
+                    i,
+                    userIdOrUsername
+                );
+                if (!isMention) {
+                    msgEntities.splice(i, 1);
+                }
+            }
+        }
+    }
+    return [rawMessage, msgEntities];
+}

@@ -1,9 +1,9 @@
 import { Api } from "../tl";
-import type { TelegramClient } from "./TelegramClient";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
 import { strippedPhotoToJpg } from "../Utils";
 import { sleep } from "../Helpers";
-import { EntityLike, OutFile, ProgressCallback } from "../define";
-import { utils } from "../";
+import { OutFile, ProgressCallback } from "../define-nodep";
+import * as utils from "../Utils";
 import { RequestIter } from "../requestIter";
 import { MTProtoSender } from "../network";
 import { FileMigrateError } from "../errors";
@@ -76,7 +76,7 @@ export interface DownloadFileParamsV2 {
     progressCallback?: progressCallback;
     /** */
 
-    msgData?: [EntityLike, number];
+    msgData?: [Api.TypeEntityLike, number];
 }
 
 /**
@@ -124,7 +124,7 @@ export interface IterDownloadFunction {
     requestSize: number;
     fileSize?: bigInt.BigInteger;
     dcId?: number;
-    msgData?: [EntityLike, number];
+    msgData?: [Api.TypeEntityLike, number];
 }
 
 class DirectDownloadIter extends RequestIter {
@@ -282,7 +282,7 @@ class GenericDownloadIter extends DirectDownloadIter {
 
 /** @hidden */
 function iterDownload(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     {
         file,
         offset = bigInt.zero,
@@ -397,7 +397,7 @@ function returnWriterValue(writer: any): Buffer | string | undefined {
 
 /** @hidden */
 export async function downloadFileV2(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     inputLocation: Api.TypeInputFileLocation,
     {
         outputFile = undefined,
@@ -513,7 +513,7 @@ export interface DownloadMediaInterface {
 
 /** @hidden */
 export async function downloadMedia(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     messageOrMedia: Api.Message | Api.TypeMessageMedia,
     outputFile?: OutFile,
     thumb?: number | Api.TypePhotoSize,
@@ -524,7 +524,7 @@ export async function downloadMedia(
       to be obtained mid-download. Store (input chat, message id) so that the message
       can be re-fetched.
      */
-    let msgData: [EntityLike, number] | undefined;
+    let msgData: [Api.TypeEntityLike, number] | undefined;
     let date;
     let media;
 
@@ -582,13 +582,13 @@ export async function downloadMedia(
 
 /** @hidden */
 export async function _downloadDocument(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     doc: Api.MessageMediaDocument | Api.TypeDocument,
     outputFile: OutFile | undefined,
     date: number,
     thumb?: number | string | Api.TypePhotoSize,
     progressCallback?: ProgressCallback,
-    msgData?: [EntityLike, number]
+    msgData?: [Api.TypeEntityLike, number]
 ): Promise<Buffer | string | undefined> {
     if (doc instanceof Api.MessageMediaDocument) {
         if (!doc.document) {
@@ -636,7 +636,7 @@ export async function _downloadDocument(
 
 /** @hidden */
 export async function _downloadContact(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     media: Api.MessageMediaContact,
     args: DownloadMediaInterface
 ): Promise<Buffer> {
@@ -645,7 +645,7 @@ export async function _downloadContact(
 
 /** @hidden */
 export async function _downloadWebDocument(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     media: Api.WebDocument | Api.WebDocumentNoProxy,
     args: DownloadMediaInterface
 ): Promise<Buffer> {
@@ -761,7 +761,7 @@ function getProperFilename(
 
 /** @hidden */
 export async function _downloadPhoto(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     photo: Api.MessageMediaPhoto | Api.Photo,
     file?: OutFile,
     date?: number,
@@ -819,8 +819,8 @@ export async function _downloadPhoto(
 
 /** @hidden */
 export async function downloadProfilePhoto(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     fileParams: DownloadProfilePhotoParams
 ) {
     let photo;

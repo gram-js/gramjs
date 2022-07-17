@@ -1,8 +1,9 @@
 import { Api } from "../tl";
+import { AbstractTelegramClient } from "../client/AbstractTelegramClient";
 import { RequestIter } from "../requestIter";
-import { TelegramClient, utils } from "../index";
+import * as utils from "../Utils";
 import { Dialog } from "../tl/custom/dialog";
-import { DateLike, EntityLike } from "../define";
+import { DateLike } from "../define-nodep";
 import { TotalList } from "../Helpers";
 import bigInt from "big-integer";
 import { LogLevel } from "../extensions/Logger";
@@ -187,18 +188,18 @@ export class _DialogsIter extends RequestIter {
 /** interface for iterating and getting dialogs. */
 export interface IterDialogsParams {
     /**  How many dialogs to be retrieved as maximum. Can be set to undefined to retrieve all dialogs.<br/>
-     * Note that this may take whole minutes if you have hundreds of dialogs, as Telegram will tell the library to slow down through a FloodWaitError.*/
+     * Note that this may take whole minutes if you have hundreds of dialogs, as Telegram will tell the library to slow down through a FloodWaitError. */
     limit?: number;
     /** The offset date of last message of dialog to be used. */
     offsetDate?: DateLike;
     /** The message ID to be used as offset. */
     offsetId?: number;
     /** offset Peer to be used (defaults to Empty = no offset) */
-    offsetPeer?: EntityLike;
+    offsetPeer?: Api.TypeEntityLike;
     /** Whether pinned dialogs should be ignored or not. When set to true, these won't be yielded at all. */
     ignorePinned?: boolean;
     /**  Whether Chat that have migratedTo a Supergroup should be included or not.<br/>
-     * By default all the chats in your dialogs are returned, but setting this to True will ignore (i.e. skip) them in the same way official applications do.*/
+     * By default all the chats in your dialogs are returned, but setting this to True will ignore (i.e. skip) them in the same way official applications do. */
     ignoreMigrated?: boolean;
     /** The folder from which the dialogs should be retrieved.<br/>
      * If left unspecified, all dialogs (including those from folders) will be returned.<br/>
@@ -212,7 +213,7 @@ export interface IterDialogsParams {
 
 /** @hidden */
 export function iterDialogs(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     {
         limit = undefined,
         offsetDate = undefined,
@@ -245,8 +246,12 @@ export function iterDialogs(
 
 /** @hidden */
 export async function getDialogs(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     params: IterDialogsParams
 ): Promise<TotalList<Dialog>> {
-    return (await client.iterDialogs(params).collect()) as TotalList<Dialog>;
+    const dialogs = new TotalList<Dialog>();
+    for await (const dialog of client.iterDialogs(params)) {
+        dialogs.push(dialog);
+    }
+    return dialogs;
 }

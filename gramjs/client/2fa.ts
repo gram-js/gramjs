@@ -1,18 +1,9 @@
 import { generateRandomBytes } from "../Helpers";
 import { computeCheck, computeDigest } from "../Password";
-import type { TelegramClient } from "./TelegramClient";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
 import { Api } from "../tl";
-import { errors } from "../index";
-
-export interface TwoFaParams {
-    isCheckPassword?: boolean;
-    currentPassword?: string;
-    newPassword?: string;
-    hint?: string;
-    email?: string;
-    emailCodeCallback?: (length: number) => Promise<string>;
-    onEmailCodeError?: (err: Error) => void;
-}
+import * as errors from "../errors";
+import { TwoFaParams } from "./types";
 
 /**
  * Changes the 2FA settings of the logged in user.
@@ -52,7 +43,7 @@ export interface TwoFaParams {
  "EMAIL_HASH_EXPIRED" if the user took too long to verify their email
  */
 export async function updateTwoFaSettings(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     {
         isCheckPassword,
         currentPassword,

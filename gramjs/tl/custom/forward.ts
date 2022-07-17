@@ -1,8 +1,7 @@
 import { ChatGetter } from "./chatGetter";
 import { SenderGetter } from "./senderGetter";
+import { AbstractTelegramClient } from "../../client/AbstractTelegramClient";
 import { Api } from "../api";
-import type { TelegramClient } from "../../client/TelegramClient";
-import type { Entity } from "../../define";
 import {
     _EntityType,
     _entityType,
@@ -20,9 +19,9 @@ export class Forward extends SenderGetter {
     }
 
     constructor(
-        client: TelegramClient,
+        client: AbstractTelegramClient,
         original: Api.MessageFwdHeader,
-        entities: Map<string, Entity>
+        entities: Map<string, Api.TypeEntity>
     ) {
         super();
         // contains info for the original header sent by telegram.

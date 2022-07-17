@@ -1,4 +1,4 @@
-import { Api } from "../tl";
+import { Api } from "../tl/api";
 import { NewMessage, NewMessageEvent, NewMessageInterface } from "./NewMessage";
 
 export interface EditedMessageInterface extends NewMessageInterface {

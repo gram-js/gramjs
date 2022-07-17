@@ -1,18 +1,17 @@
 import { Api } from "../tl";
-import type { Entity, EntityLike } from "../define";
 import { ChatGetter } from "../tl/custom";
-import type { TelegramClient } from "..";
+import { AbstractTelegramClient } from "../client/AbstractTelegramClient";
 
 import { isArrayLike, returnBigInt } from "../Helpers";
-import { utils } from "../";
+import * as utils from "../Utils";
 import { SenderGetter } from "../tl/custom/senderGetter";
 import bigInt from "big-integer";
 import { parseID } from "../Utils";
 
 /** @hidden */
 export async function _intoIdSet(
-    client: TelegramClient,
-    chats: EntityLike[] | EntityLike | undefined
+    client: AbstractTelegramClient,
+    chats: Api.TypeEntityLike[] | Api.TypeEntityLike | undefined
 ): Promise<string[] | undefined> {
     if (chats == undefined) {
         return undefined;
@@ -75,7 +74,7 @@ export interface DefaultEventInterface {
      * May be one or more entities (username/peer/etc.), preferably IDs.<br/>
      * By default, only matching chats will be handled.
      */
-    chats?: EntityLike[];
+    chats?: Api.TypeEntityLike[];
     /**
      * Whether to treat the chats as a blacklist instead of as a whitelist (default).<br/>
      * This means that every chat will be handled *except* those specified in ``chats``<br/>
@@ -100,7 +99,7 @@ export class EventBuilder {
     blacklistChats: boolean;
     resolved: boolean;
     func?: CallableFunction;
-    client?: TelegramClient;
+    client?: AbstractTelegramClient;
 
     constructor(eventParams: DefaultEventInterface) {
         this.chats = eventParams.chats?.map((x) => x.toString());
@@ -117,7 +116,7 @@ export class EventBuilder {
         if (update) return update;
     }
 
-    async resolve(client: TelegramClient) {
+    async resolve(client: AbstractTelegramClient) {
         if (this.resolved) {
             return;
         }
@@ -125,7 +124,7 @@ export class EventBuilder {
         this.resolved = true;
     }
 
-    async _resolve(client: TelegramClient) {
+    async _resolve(client: AbstractTelegramClient) {
         this.chats = await _intoIdSet(client, this.chats);
     }
 
@@ -154,14 +153,14 @@ export class EventBuilder {
 }
 
 interface EventCommonInterface {
-    chatPeer?: EntityLike;
+    chatPeer?: Api.TypeEntityLike;
     msgId?: number;
     broadcast?: boolean;
 }
 
 export class EventCommon extends ChatGetter {
     _eventName = "Event";
-    _entities: Map<string, Entity>;
+    _entities: Map<string, Api.TypeEntity>;
     _messageId?: number;
 
     constructor({
@@ -176,7 +175,7 @@ export class EventCommon extends ChatGetter {
         this._messageId = msgId;
     }
 
-    _setClient(client: TelegramClient) {
+    _setClient(client: AbstractTelegramClient) {
         this._client = client;
     }
 
@@ -187,7 +186,7 @@ export class EventCommon extends ChatGetter {
 
 export class EventCommonSender extends SenderGetter {
     _eventName = "Event";
-    _entities: Map<string, Entity>;
+    _entities: Map<string, Api.TypeEntity>;
     _messageId?: number;
 
     constructor({
@@ -203,7 +202,7 @@ export class EventCommonSender extends SenderGetter {
         this._messageId = msgId;
     }
 
-    _setClient(client: TelegramClient) {
+    _setClient(client: AbstractTelegramClient) {
         this._client = client;
     }
 

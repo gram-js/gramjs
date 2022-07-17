@@ -1,41 +1,34 @@
-import { Api } from "../tl";
-import type {
-    DateLike,
-    EntityLike,
-    FileLike,
-    MarkupLike,
-    MessageIDLike,
-    MessageLike,
-} from "../define";
+import { Api } from "../tl/api";
+import { DateLike } from "../define-nodep";
 import { RequestIter } from "../requestIter";
-import {
-    _EntityType,
-    _entityType,
-    TotalList,
-    isArrayLike,
-    groupBy,
-} from "../Helpers";
+import { groupBy, isArrayLike, TotalList } from "../Helpers";
 import { getInputMedia, getMessageId, getPeerId, parseID } from "../Utils";
-import type { TelegramClient } from "../";
-import { utils } from "../";
-import { _parseMessageText } from "./messageParse";
+import { AbstractTelegramClient } from "./AbstractTelegramClient";
+import * as utils from "../Utils";
 import { _getPeer } from "./users";
 import bigInt from "big-integer";
-import { _fileToMedia } from "./uploads";
+import { _EntityType, _entityType } from "../tl/helpers";
+import {
+    SendMessageParams,
+    MarkAsReadParams,
+    ForwardMessagesParams,
+    EditMessageParams,
+    UpdatePinMessageParams,
+} from "./types";
 
 const _MAX_CHUNK_SIZE = 100;
 
 interface MessageIterParams {
-    entity: EntityLike;
+    entity: Api.TypeEntityLike;
     offsetId: number;
     minId: number;
     maxId: number;
-    fromUser?: EntityLike;
+    fromUser?: Api.TypeEntityLike;
     offsetDate: DateLike;
     addOffset: number;
     filter: any;
     search: string;
-    replyTo: MessageIDLike;
+    replyTo: Api.TypeMessageIDLike;
 }
 
 export class _MessagesIter extends RequestIter {
@@ -300,7 +293,7 @@ export class _MessagesIter extends RequestIter {
 }
 
 interface IDsIterInterface {
-    entity: EntityLike;
+    entity: Api.TypeEntityLike;
     ids: Api.TypeInputMessage[];
 }
 
@@ -398,7 +391,7 @@ export class _IDsIter extends RequestIter {
 export interface IterMessagesParams {
     /** Number of messages to be retrieved.<br/>
      * Due to limitations with the API retrieving more than 3000 messages will take longer than half a minute. (might even take longer)<br/>
-     * if undefined is passed instead of a number the library will try to retrieve all the messages.*/
+     * if undefined is passed instead of a number the library will try to retrieve all the messages. */
     limit?: number;
     /** Offset date (messages previous to this date will be retrieved). Exclusive. */
     offsetDate?: DateLike;
@@ -417,7 +410,7 @@ export interface IterMessagesParams {
      */
     filter?: Api.TypeMessagesFilter | Api.TypeMessagesFilter[];
     /** Only messages from this user will be returned. */
-    fromUser?: EntityLike;
+    fromUser?: Api.TypeEntityLike;
     /** Wait time (in seconds) between different GetHistory requests.<br/>
      * Use this parameter to avoid hitting the FloodWaitError as needed.<br/>
      * If left to undefined, it will default to 1 second only if the number of messages is higher than 3000.
@@ -465,137 +458,10 @@ const IterMessagesDefaults: IterMessagesParams = {
     scheduled: false,
 };
 
-/**
- * Interface for sending a message. only message is required
- */
-export interface SendMessageParams {
-    /**  The message to be sent, or another message object to resend as a copy.<br/>
-     * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
-     * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
-    message?: MessageLike;
-    /** Whether to reply to a message or not. If an integer is provided, it should be the ID of the message that it should reply to. */
-    replyTo?: number | Api.Message;
-    /** Optional attributes that override the inferred ones, like DocumentAttributeFilename and so on. */
-    attributes?: Api.TypeDocumentAttribute[];
-    /** See the {@link parseMode} property for allowed values. Markdown parsing will be used by default. */
-    parseMode?: any;
-    /** A list of message formatting entities. When provided, the parseMode is ignored. */
-    formattingEntities?: Api.TypeMessageEntity[];
-    /** Should the link preview be shown? */
-    linkPreview?: boolean;
-    /** Sends a message with a file attached (e.g. a photo, video, audio or document). The message may be empty. */
-    file?: FileLike | FileLike[];
-    /** Optional JPEG thumbnail (for documents). Telegram will ignore this parameter unless you pass a .jpg file!<br/>
-     * The file must also be small in dimensions and in disk size. Successful thumbnails were files below 20kB and 320x320px.<br/>
-     *  Width/height and dimensions/size ratios may be important.
-     *  For Telegram to accept a thumbnail, you must provide the dimensions of the underlying media through `attributes:` with DocumentAttributesVideo.
-     */
-    thumb?: FileLike;
-    /** Whether to send the given file as a document or not. */
-    forceDocument?: false;
-    /** Whether the existing draft should be cleared or not. */
-    clearDraft?: false;
-    /** The matrix (list of lists), row list or button to be shown after sending the message.<br/>
-     *  This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here.<br/>
-     *  <br/>
-     *  All the following limits apply together:
-     *   - There can be 100 buttons at most (any more are ignored).
-     *   - There can be 8 buttons per row at most (more are ignored).
-     *   - The maximum callback data per button is 64 bytes.
-     *   - The maximum data that can be embedded in total is just over 4KB, shared between inline callback data and text.
-     */
-    buttons?: MarkupLike;
-    /** Whether the message should notify people in a broadcast channel or not. Defaults to false, which means it will notify them. Set it to True to alter this behaviour. */
-    silent?: boolean;
-    /** Whether the sent video supports streaming or not.<br/>
-     *  Note that Telegram only recognizes as streamable some formats like MP4, and others like AVI or MKV will not work.<br/>
-     *  You should convert these to MP4 before sending if you want them to be streamable. Unsupported formats will result in VideoContentTypeError. */
-    supportStreaming?: boolean;
-    /** If set, the message won't send immediately, and instead it will be scheduled to be automatically sent at a later time. */
-    schedule?: DateLike;
-    noforwards?: boolean;
-    /** Similar to ``replyTo``, but replies in the linked group of a broadcast channel instead (effectively leaving a "comment to" the specified message).
-
-     This parameter takes precedence over ``replyTo``.
-     If there is no linked chat, `SG_ID_INVALID` is thrown.
-     */
-    commentTo?: number | Api.Message;
-}
-
-/** interface used for forwarding messages */
-export interface ForwardMessagesParams {
-    /** The message(s) to forward, or their integer IDs. */
-    messages: MessageIDLike | MessageIDLike[];
-    /** If the given messages are integer IDs and not instances of the Message class, this must be specified in order for the forward to work.<br/> */
-    fromPeer: EntityLike;
-    /** Whether the message should notify people with sound or not.<br/>
-     * Defaults to false (send with a notification sound unless the person has the chat muted). Set it to true to alter this behaviour. */
-    silent?: boolean;
-    /** If set, the message(s) won't forward immediately, and instead they will be scheduled to be automatically sent at a later time. */
-    schedule?: DateLike;
-    noforwards?: boolean;
-}
-
-/** Interface for editing messages */
-export interface EditMessageParams {
-    /** The ID of the message (or Message itself) to be edited. If the entity was a Message, then this message will be treated as the new text. */
-    message: Api.Message | number;
-    /** The new text of the message. Does nothing if the entity was a Message. */
-    text?: string;
-    /** See the {@link TelegramClient.parseMode} property for allowed values. Markdown parsing will be used by default. */
-    parseMode?: any;
-    /** A list of message formatting entities. When provided, the parseMode is ignored. */
-    formattingEntities?: Api.TypeMessageEntity[];
-    /** Should the link preview be shown? */
-    linkPreview?: boolean;
-    /** The file object that should replace the existing media in the message. Does nothing if entity was a Message */
-    file?: FileLike;
-    /** Whether to send the given file as a document or not. */
-    forceDocument?: false;
-    /** The matrix (list of lists), row list or button to be shown after sending the message.<br/>
-     *  This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here.<br/>
-     *  <br/>
-     *  All the following limits apply together:
-     *   - There can be 100 buttons at most (any more are ignored).
-     *   - There can be 8 buttons per row at most (more are ignored).
-     *   - The maximum callback data per button is 64 bytes.
-     *   - The maximum data that can be embedded in total is just over 4KB, shared between inline callback data and text.
-     */
-    buttons?: MarkupLike;
-    /** If set, the message won't be edited immediately, and instead it will be scheduled to be automatically edited at a later time. */
-    schedule?: DateLike;
-}
-
-/** Interface for editing messages */
-export interface UpdatePinMessageParams {
-    /** Whether the pin should notify people or not. <br />
-     *  By default it has the opposite behavior of official clients, it will not notify members.
-     */
-    notify?: boolean;
-    /** Whether the message should be pinned for everyone or not. <br />
-     *  By default it has the opposite behavior of official clients, and it will pin the message for both sides, in private chats.
-     */
-    pmOneSide?: boolean;
-}
-
-/** Interface for mark message as read */
-export interface MarkAsReadParams {
-    /**
-     * Until which message should the read acknowledge be sent for. <br />
-     * This has priority over the `message` parameter.
-     */
-    maxId?: number;
-    /**
-     * Whether the mention badge should be cleared (so that there are no more mentions) or not for the given entity. <br />
-     * If no message is provided, this will be the only action taken.
-     */
-    clearMentions?: boolean;
-}
-
 /** @hidden */
 export function iterMessages(
-    client: TelegramClient,
-    entity: EntityLike | undefined,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike | undefined,
     options: Partial<IterMessagesParams>
 ) {
     const {
@@ -657,8 +523,8 @@ export function iterMessages(
 
 /** @hidden */
 export async function getMessages(
-    client: TelegramClient,
-    entity: EntityLike | undefined,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike | undefined,
     params: Partial<IterMessagesParams>
 ): Promise<TotalList<Api.Message>> {
     if (Object.keys(params).length == 1 && params.limit === undefined) {
@@ -677,15 +543,19 @@ export async function getMessages(
         }
         return [];
     }
-    return (await it.collect()) as TotalList<Api.Message>;
+    const messages = new TotalList<Api.Message>();
+    for await (const message of it) {
+        messages.push(message);
+    }
+    return messages;
 }
 
 // region Message
 /** @hidden */
 export async function sendMessage(
-    client: TelegramClient,
+    client: AbstractTelegramClient,
     /** To who will it be sent. */
-    entity: EntityLike,
+    entity: Api.TypeEntityLike,
     /**  The message to be sent, or another message object to resend as a copy.<br/>
      * The maximum length for a message is 35,000 bytes or 4,096 characters.<br/>
      * Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length. */
@@ -776,7 +646,7 @@ export async function sendMessage(
         message = message.message;
     } else {
         if (formattingEntities == undefined) {
-            [message, formattingEntities] = await _parseMessageText(
+            [message, formattingEntities] = await utils._parseMessageText(
                 client,
                 message || "",
                 parseMode
@@ -821,8 +691,8 @@ export async function sendMessage(
 
 /** @hidden */
 export async function forwardMessages(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     { messages, fromPeer, silent, schedule, noforwards }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
@@ -882,8 +752,8 @@ export async function forwardMessages(
 
 /** @hidden */
 export async function editMessage(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     {
         message,
         text,
@@ -912,7 +782,7 @@ export async function editMessage(
     let entities: Api.TypeMessageEntity[] | undefined;
     let inputMedia: Api.TypeInputMedia | undefined;
     if (file) {
-        const { fileHandle, media, image } = await _fileToMedia(client, {
+        const { fileHandle, media, image } = await utils._fileToMedia(client, {
             file,
             forceDocument,
         });
@@ -938,7 +808,7 @@ export async function editMessage(
         }
         id = message;
         if (formattingEntities == undefined) {
-            [text, entities] = await _parseMessageText(
+            [text, entities] = await utils._parseMessageText(
                 client,
                 text || "",
                 parseMode
@@ -964,9 +834,9 @@ export async function editMessage(
 
 /** @hidden */
 export async function deleteMessages(
-    client: TelegramClient,
-    entity: EntityLike | undefined,
-    messageIds: MessageIDLike[],
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike | undefined,
+    messageIds: Api.TypeMessageIDLike[],
     { revoke = false }
 ) {
     let ty = _EntityType.USER;
@@ -1018,9 +888,9 @@ export async function deleteMessages(
 
 /** @hidden */
 export async function pinMessage(
-    client: TelegramClient,
-    entity: EntityLike,
-    message?: MessageIDLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
+    message?: Api.TypeMessageIDLike,
     pinMessageParams?: UpdatePinMessageParams
 ) {
     return await _pin(
@@ -1035,9 +905,9 @@ export async function pinMessage(
 
 /** @hidden */
 export async function unpinMessage(
-    client: TelegramClient,
-    entity: EntityLike,
-    message?: MessageIDLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
+    message?: Api.TypeMessageIDLike,
     unpinMessageParams?: UpdatePinMessageParams
 ) {
     return await _pin(
@@ -1052,9 +922,9 @@ export async function unpinMessage(
 
 /** @hidden */
 export async function _pin(
-    client: TelegramClient,
-    entity: EntityLike,
-    message: MessageIDLike | undefined,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
+    message: Api.TypeMessageIDLike | undefined,
     unpin: boolean,
     notify: boolean = false,
     pmOneSide: boolean = false
@@ -1100,9 +970,9 @@ export async function _pin(
 
 /** @hidden */
 export async function markAsRead(
-    client: TelegramClient,
-    entity: EntityLike,
-    message?: MessageIDLike | MessageIDLike[],
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
+    message?: Api.TypeMessageIDLike | Api.TypeMessageIDLike[],
     markAsReadParams?: MarkAsReadParams
 ): Promise<boolean> {
     let maxId: number = markAsReadParams?.maxId || 0;
@@ -1141,8 +1011,8 @@ export async function markAsRead(
 
 /** @hidden */
 export async function getCommentData(
-    client: TelegramClient,
-    entity: EntityLike,
+    client: AbstractTelegramClient,
+    entity: Api.TypeEntityLike,
     message: number | Api.Message
 ) {
     const result = await client.invoke(

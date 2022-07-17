@@ -4,8 +4,7 @@ import {
     EventBuilder,
     EventCommon,
 } from "./common";
-import type { Entity, EntityLike } from "../define";
-import type { TelegramClient } from "..";
+import { AbstractTelegramClient } from "../client/AbstractTelegramClient";
 import { Api } from "../tl";
 import bigInt from "big-integer";
 import { LogLevel } from "../extensions/Logger";
@@ -29,7 +28,7 @@ export interface NewMessageInterface extends DefaultEventInterface {
      * users. `from_users` lets you filter by messages sent by *one or
      * more* users across the desired chats (doesn't need a list).
      */
-    fromUsers?: EntityLike[];
+    fromUsers?: Api.TypeEntityLike[];
     /**
      * Whether forwarded messages should be handled or not. By default,
      * both forwarded and normal messages are included. If it's `True`
@@ -72,7 +71,7 @@ export class NewMessage extends EventBuilder {
     func?: { (event: NewMessageEvent): boolean };
     incoming?: boolean;
     outgoing?: boolean;
-    fromUsers?: EntityLike[];
+    fromUsers?: Api.TypeEntityLike[];
     forwards?: boolean;
     pattern?: RegExp;
 
@@ -118,7 +117,7 @@ export class NewMessage extends EventBuilder {
         ].every((v) => v == undefined);
     }
 
-    async _resolve(client: TelegramClient) {
+    async _resolve(client: AbstractTelegramClient) {
         await super._resolve(client);
         this.fromUsers = await _intoIdSet(client, this.fromUsers);
     }
@@ -228,7 +227,7 @@ export class NewMessage extends EventBuilder {
 export class NewMessageEvent extends EventCommon {
     message: Api.Message;
     originalUpdate: (Api.TypeUpdate | Api.TypeUpdates) & {
-        _entities?: Map<number, Entity>;
+        _entities?: Map<number, Api.TypeEntity>;
     };
 
     constructor(
@@ -244,7 +243,7 @@ export class NewMessageEvent extends EventCommon {
         this.message = message;
     }
 
-    _setClient(client: TelegramClient) {
+    _setClient(client: AbstractTelegramClient) {
         super._setClient(client);
         const m = this.message;
         try {
