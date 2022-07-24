@@ -20,7 +20,7 @@ import { MTProtoSender } from "../network";
 
 import { LAYER } from "../tl/AllTLObjects";
 import { betterConsoleLog } from "../Helpers";
-import { DownloadMediaInterface } from "./downloads";
+import { DownloadMediaInterface, IterDownloadFunction } from "./downloads";
 import { NewMessage, NewMessageEvent } from "../events";
 import { _handleUpdate, _updateLoop } from "./updates";
 import { Session } from "../sessions";
@@ -426,6 +426,35 @@ export class TelegramClient extends TelegramBaseClient {
         fileParams: downloadMethods.DownloadFileParamsV2 = {}
     ) {
         return downloadMethods.downloadFileV2(this, inputLocation, fileParams);
+    }
+
+    /**
+     * Iterates over a file download, yielding chunks of the file.
+     * This method can be used to stream files in a more convenient way, since it offers more control (pausing, resuming, etc.)
+     * @param iterFileParams - {@link IterDownloadFunction}
+     * @return a Buffer downloaded from the inputFile.
+     * @example
+     * ```ts
+     * const photo = message.photo;
+     * for await (const chunk of client.iterDownload({
+     *       file: new Api.InputPhotoFileLocation({
+     *          id: photo.id,
+     *          accessHash: photo.accessHash,
+     *          fileReference: photo.fileReference,
+     *          thumbSize: size.type
+     *      }),
+     *      offset: start,
+     *      limit: end,
+     *      requestSize:2048*1024
+     * )){
+     *     console.log("Downloaded chunk of size",chunk.length);
+     * };
+     * ```
+     */
+    iterDownload(
+        iterFileParams: downloadMethods.IterDownloadFunction
+    ) {
+        return downloadMethods.iterDownload(this, iterFileParams);
     }
 
     //region download
