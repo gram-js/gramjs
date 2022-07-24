@@ -78,7 +78,7 @@ ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 
                 const hasRequiredArgs = argKeys.some(
                     (argName) =>
-                        argName !== "flags" && !argsConfig[argName].isFlag
+                        !argName.startsWith("flags") && !argsConfig[argName].isFlag
                 );
 
                 return `
@@ -135,7 +135,7 @@ ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 
                 const hasRequiredArgs = argKeys.some(
                     (argName) =>
-                        argName !== "flags" && !argsConfig[argName].isFlag
+                        !argName.startsWith("flags") && !argsConfig[argName].isFlag
                 );
 
                 return `
@@ -180,7 +180,7 @@ ${indent}}`.trim();
         const { isVector, isFlag, skipConstructorId, type } = argConfig;
 
         const valueType = renderValueType(type, isVector, !skipConstructorId);
-        return `${argName === "flags" ? "// " : ""}${argName}${
+        return `${argName.startsWith("flags") ? "// " : ""}${argName}${
             isFlag || (argName === "randomId" && type === "long" && !isVector)
                 ? "?"
                 : ""

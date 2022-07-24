@@ -109,6 +109,7 @@ function buildArgConfig(name: string, argType: string) {
         isVector: false,
         isFlag: false,
         skipConstructorId: false,
+        flagName: null,
         flagIndex: -1,
         flagIndicator: true,
         type: null,
@@ -130,17 +131,19 @@ function buildArgConfig(name: string, argType: string) {
         // The type may be a flag (flags.IDX?REAL_TYPE)
         // Note that 'flags' is NOT the flags name; this
         // is determined by a previous argument
-        // However, we assume that the argument will always be called 'flags'
+        // However, we assume that the argument will always be starts with 'flags'
         // @ts-ignore
         const flagMatch = currentConfig.type.match(
-            /flags(\d+)?.(\d+)\?([\w<>.]+)/
+            /(flags(?:\d+)?).(\d+)\?([\w<>.]+)/
         );
 
         if (flagMatch) {
             currentConfig.isFlag = true;
-            currentConfig.flagIndex = Number(flagMatch[1] ?? flagMatch[2]);
+            // As of layer 140, flagName can be "flags" or "flags2"
+            currentConfig.flagName = flagMatch[1]
+            currentConfig.flagIndex = Number(flagMatch[2]);
             // Update the type to match the exact type, not the "flagged" one
-            [, , , currentConfig.type] = flagMatch;
+            currentConfig.type = flagMatch[3];
         }
 
         // Then check if the type is a Vector<REAL_TYPE>
