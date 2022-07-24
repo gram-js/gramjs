@@ -424,7 +424,7 @@ function createClasses(classesType, params) {
                     if (argsConfig.hasOwnProperty(arg)) {
                         if (argsConfig[arg].isFlag) {
                             if (
-                                this[arg] === false ||
+                                (this[arg] === false && argsConfig[arg].type !== 'Bool') ||
                                 this[arg] === null ||
                                 this[arg] === undefined ||
                                 argsConfig[arg].type === "true"
@@ -460,7 +460,7 @@ function createClasses(classesType, params) {
                                 for (const f in argsConfig) {
                                     if (argsConfig[f].isFlag) {
                                         if (
-                                            this[f] === false ||
+                                            (this[f] === false && argsConfig[f].type !== 'Bool') ||
                                             this[f] === undefined ||
                                             this[f] === null
                                         ) {
