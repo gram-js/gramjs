@@ -1055,7 +1055,7 @@ export namespace Api {
         hasScheduled?: boolean;
         canViewStats?: boolean;
         blocked?: boolean;
-        flags2: null;
+        // flags2: null;
         canDeleteChannel?: boolean;
         id: long;
         about: string;
@@ -1107,7 +1107,7 @@ export namespace Api {
         hasScheduled?: boolean;
         canViewStats?: boolean;
         blocked?: boolean;
-        flags2: null;
+        // flags2: null;
         canDeleteChannel?: boolean;
         id: long;
         about: string;
@@ -5088,7 +5088,7 @@ export namespace Api {
     }
     export class ReceivedNotifyMessage extends VirtualClass<{
         id: int;
-        // flags: int;
+        flags: int;
     }> {
         CONSTRUCTOR_ID: 2743383929;
         SUBCLASS_OF_ID: 2841786398;
@@ -5096,7 +5096,7 @@ export namespace Api {
         className: "ReceivedNotifyMessage";
         static fromReader(reader: Reader): ReceivedNotifyMessage;
         id: int;
-        // flags: int;
+        flags: int;
     }
     export class ChatInviteExported extends VirtualClass<{
         // flags: null;
@@ -14892,7 +14892,7 @@ export namespace Api {
         }
         export class ImportBotAuthorization extends Request<
             Partial<{
-                // flags: int;
+                flags: int;
                 apiId: int;
                 apiHash: string;
                 botAuthToken: string;
@@ -14904,7 +14904,7 @@ export namespace Api {
             classType: "request";
             className: "auth.ImportBotAuthorization";
             static fromReader(reader: Reader): ImportBotAuthorization;
-            // flags: int;
+            flags: int;
             apiId: int;
             apiHash: string;
             botAuthToken: string;
