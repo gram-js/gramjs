@@ -315,18 +315,18 @@ function createClasses(classesType, params) {
                         if (arg.isFlag) {
                             if (arg.type === "true") {
                                 args[argName] = Boolean(
-                                    args["flags"] & (1 << arg.flagIndex)
+                                    args[arg.flagName] & (1 << arg.flagIndex)
                                 );
                                 continue;
                             }
-                            if (args["flags"] & (1 << arg.flagIndex)) {
+                            if (args[arg.flagName] & (1 << arg.flagIndex)) {
                                 args[argName] = getArgFromReader(reader, arg);
                             } else {
                                 args[argName] = null;
                             }
                         } else {
                             if (arg.flagIndicator) {
-                                arg.name = "flags";
+                                arg.name = argName;
                             }
                             args[argName] = getArgFromReader(reader, arg);
                         }
@@ -338,7 +338,10 @@ function createClasses(classesType, params) {
             validate() {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
-                        if (arg === "flags" || argsConfig[arg].isFlag) {
+                        if (
+                            argsConfig[arg].flagIndicator ||
+                            argsConfig[arg].isFlag
+                        ) {
                             // we don't care about flags
                             continue;
                         }
@@ -458,7 +461,10 @@ function createClasses(classesType, params) {
                             } else {
                                 let flagCalculate = 0;
                                 for (const f in argsConfig) {
-                                    if (argsConfig[f].isFlag) {
+                                    if (
+                                        argsConfig[f].isFlag &&
+                                        arg === argsConfig[f].flagName
+                                    ) {
                                         if (
                                             (this[f] === false && argsConfig[f].type !== 'Bool') ||
                                             this[f] === undefined ||
