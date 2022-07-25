@@ -78,7 +78,8 @@ ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 
                 const hasRequiredArgs = argKeys.some(
                     (argName) =>
-                        !argsConfig[argName].flagIndicator && !argsConfig[argName].isFlag
+                        !argsConfig[argName].flagIndicator &&
+                        !argsConfig[argName].isFlag
                 );
 
                 return `
@@ -135,7 +136,8 @@ ${indent}static fromReader(reader: Reader): ${upperFirst(name)};
 
                 const hasRequiredArgs = argKeys.some(
                     (argName) =>
-                        !argsConfig[argName].flagIndicator && !argsConfig[argName].isFlag
+                        !argsConfig[argName].flagIndicator &&
+                        !argsConfig[argName].isFlag
                 );
 
                 return `

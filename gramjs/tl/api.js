@@ -338,7 +338,10 @@ function createClasses(classesType, params) {
             validate() {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
-                        if (argsConfig[arg].flagIndicator || argsConfig[arg].isFlag) {
+                        if (
+                            argsConfig[arg].flagIndicator ||
+                            argsConfig[arg].isFlag
+                        ) {
                             // we don't care about flags
                             continue;
                         }
@@ -458,7 +461,10 @@ function createClasses(classesType, params) {
                             } else {
                                 let flagCalculate = 0;
                                 for (const f in argsConfig) {
-                                    if (argsConfig[f].isFlag && arg === argsConfig[f].flagName) {
+                                    if (
+                                        argsConfig[f].isFlag &&
+                                        arg === argsConfig[f].flagName
+                                    ) {
                                         if (
                                             this[f] === false ||
                                             this[f] === undefined ||

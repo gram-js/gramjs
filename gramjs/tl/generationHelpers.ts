@@ -140,7 +140,7 @@ function buildArgConfig(name: string, argType: string) {
         if (flagMatch) {
             currentConfig.isFlag = true;
             // As of layer 140, flagName can be "flags" or "flags2"
-            currentConfig.flagName = flagMatch[1]
+            currentConfig.flagName = flagMatch[1];
             currentConfig.flagIndex = Number(flagMatch[2]);
             // Update the type to match the exact type, not the "flagged" one
             currentConfig.type = flagMatch[3];
