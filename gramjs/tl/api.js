@@ -338,7 +338,7 @@ function createClasses(classesType, params) {
             validate() {
                 for (const arg in argsConfig) {
                     if (argsConfig.hasOwnProperty(arg)) {
-                        if (arg.startsWith("flags") || argsConfig[arg].isFlag) {
+                        if (argsConfig[arg].flagIndicator || argsConfig[arg].isFlag) {
                             // we don't care about flags
                             continue;
                         }
