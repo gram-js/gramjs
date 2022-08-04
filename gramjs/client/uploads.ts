@@ -652,6 +652,7 @@ export async function sendFile(
             supportsStreaming: supportsStreaming,
             clearDraft: clearDraft,
             forceDocument: forceDocument,
+            noforwards: noforwards,
         });
     }
     if (Array.isArray(caption)) {

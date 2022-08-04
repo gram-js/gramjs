@@ -451,9 +451,7 @@ export class TelegramClient extends TelegramBaseClient {
      * };
      * ```
      */
-    iterDownload(
-        iterFileParams: downloadMethods.IterDownloadFunction
-    ) {
+    iterDownload(iterFileParams: downloadMethods.IterDownloadFunction) {
         return downloadMethods.iterDownload(this, iterFileParams);
     }
 

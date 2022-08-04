@@ -179,7 +179,8 @@ ${indent}}`.trim();
     }
 
     function renderArg(argName, argConfig) {
-        const { isVector, isFlag, skipConstructorId, flagIndicator, type } = argConfig;
+        const { isVector, isFlag, skipConstructorId, flagIndicator, type } =
+            argConfig;
 
         const valueType = renderValueType(type, isVector, !skipConstructorId);
         return `${flagIndicator ? "// " : ""}${argName}${
