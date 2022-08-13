@@ -284,7 +284,7 @@ export class MTProtoState {
         const bad = this._getNewMsgId();
         const old = this.timeOffset;
         const now = Math.floor(new Date().getTime() / 1000);
-        const correct = correctMsgId.shiftRight(BigInt(32)).toJSNumber();
+        const correct = correctMsgId.shiftRight(bigInt(32)).toJSNumber();
         this.timeOffset = correct - now;
 
         if (this.timeOffset !== old) {

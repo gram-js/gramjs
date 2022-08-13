@@ -133,11 +133,11 @@ export function readBufferFromBigInt(
     if (bytesNumber < bytes) {
         throw new Error("OverflowError: int too big to convert");
     }
-    if (!signed && bigIntVar.lesser(BigInt(0))) {
+    if (!signed && bigIntVar.lesser(bigInt(0))) {
         throw new Error("Cannot convert to unsigned");
     }
     let below = false;
-    if (bigIntVar.lesser(BigInt(0))) {
+    if (bigIntVar.lesser(bigInt(0))) {
         below = true;
         bigIntVar = bigIntVar.abs();
     }
@@ -358,8 +358,8 @@ export function modExp(
     let result = bigInt.one;
     let x = a;
     while (b.greater(bigInt.zero)) {
-        const leastSignificantBit = b.remainder(BigInt(2));
-        b = b.divide(BigInt(2));
+        const leastSignificantBit = b.remainder(bigInt(2));
+        b = b.divide(bigInt(2));
         if (leastSignificantBit.eq(bigInt.one)) {
             result = result.multiply(x);
             result = result.remainder(n);
