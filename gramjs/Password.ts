@@ -32,33 +32,33 @@ function checkPrimeAndGoodCheck(prime, g) {
     if (Factorizator.factorize(prime)[0] !== 1) {
         throw new Error('give "prime" is not prime')
     }
-    if (g.eq(BigInt(2))) {
-        if ((prime.remainder(BigInt(8))).neq(BigInt(7))) {
+    if (g.eq(bigInt(2))) {
+        if ((prime.remainder(bigInt(8))).neq(bigInt(7))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 8}`)
         }
-    } else if (g.eq(BigInt(3))) {
-        if ((prime.remainder(BigInt(3))).neq(BigInt(2))) {
+    } else if (g.eq(bigInt(3))) {
+        if ((prime.remainder(bigInt(3))).neq(bigInt(2))) {
             throw new Error(`bad g ${g}, mod3 ${prime % 3}`)
         }
         // eslint-disable-next-line no-empty
-    } else if (g.eq(BigInt(4))) {
+    } else if (g.eq(bigInt(4))) {
 
-    } else if (g.eq(BigInt(5))) {
-        if (!([ BigInt(1), BigInt(4) ].includes(prime.remainder(BigInt(5))))) {
+    } else if (g.eq(bigInt(5))) {
+        if (!([ bigInt(1), bigInt(4) ].includes(prime.remainder(bigInt(5))))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 5}`)
         }
-    } else if (g.eq(BigInt(6))) {
-        if (!([ BigInt(19), BigInt(23) ].includes(prime.remainder(BigInt(24))))) {
+    } else if (g.eq(bigInt(6))) {
+        if (!([ bigInt(19), bigInt(23) ].includes(prime.remainder(bigInt(24))))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 24}`)
         }
-    } else if (g.eq(BigInt(7))) {
-        if (!([ BigInt(3), BigInt(5), BigInt(6) ].includes(prime.remainder(BigInt(7))))) {
+    } else if (g.eq(bigInt(7))) {
+        if (!([ bigInt(3), bigInt(5), bigInt(6) ].includes(prime.remainder(bigInt(7))))) {
             throw new Error(`bad g ${g}, mod8 ${prime % 7}`)
         }
     } else {
         throw new Error(`bad g ${g}`)
     }
-    const primeSub1Div2 = (prime.subtract(BigInt(1))).divide(BigInt(2))
+    const primeSub1Div2 = (prime.subtract(bigInt(1))).divide(bigInt(2))
     if (Factorizator.factorize(primeSub1Div2)[0] !== 1) {
         throw new Error('(prime - 1) // 2 is not prime')
     }
@@ -110,7 +110,7 @@ function checkPrimeAndGood(primeBytes: Buffer, g: number) {
  * @returns {boolean}
  */
 function isGoodLarge(number: bigInt.BigInteger, p: bigInt.BigInteger) {
-    return number.greater(BigInt(0)) && p.subtract(number).greater(BigInt(0));
+    return number.greater(bigInt(0)) && p.subtract(number).greater(bigInt(0));
 }
 
 /**
@@ -147,7 +147,7 @@ function isGoodModExpFirst(
     const maxModExpSize = 256;
 
     return !(
-        diff.lesser(BigInt(0)) ||
+        diff.lesser(bigInt(0)) ||
         diff.bitLength().toJSNumber() < minDiffBitsCount ||
         modexp.bitLength().toJSNumber() < minDiffBitsCount ||
         Math.floor((modexp.bitLength().toJSNumber() + 7) / 8) > maxModExpSize
@@ -272,7 +272,7 @@ async function computeCheck(request: Api.account.Password, password: string) {
                     await sha256(Buffer.concat([aForHash, bForHash])),
                     false
                 );
-                if (u.greater(BigInt(0))) {
+                if (u.greater(bigInt(0))) {
                     return {
                         a: a,
                         aForHash: aForHash,
