@@ -113,6 +113,7 @@ class _ChatAction {
 interface ParticipantsIterInterface {
     entity: EntityLike;
     filter: any;
+    offset?: number;
     search?: string;
     showTotal?: boolean;
 }
@@ -128,6 +129,7 @@ export class _ParticipantsIter extends RequestIter {
     async _init({
         entity,
         filter,
+        offset,
         search,
         showTotal,
     }: ParticipantsIterInterface): Promise<boolean | void> {
@@ -190,7 +192,7 @@ export class _ParticipantsIter extends RequestIter {
                         new Api.ChannelParticipantsSearch({
                             q: search || "",
                         }),
-                    offset: 0,
+                    offset: offset,
                     limit: _MAX_PARTICIPANTS_CHUNK_SIZE,
                     hash: bigInt.zero,
                 })
@@ -256,9 +258,6 @@ export class _ParticipantsIter extends RequestIter {
             this.limit - this.requests[0].offset,
             _MAX_PARTICIPANTS_CHUNK_SIZE
         );
-        if (this.requests[0].offset > this.limit) {
-            return true;
-        }
         const results = [];
         for (const request of this.requests) {
             results.push(await this.client.invoke(request));
@@ -400,6 +399,8 @@ class _AdminLogIter extends RequestIter {
 export interface IterParticipantsParams {
     /** how many members to retrieve. defaults to Number.MAX_SAFE_INTEGER (everyone) */
     limit?: number;
+    /** how many members to skip. defaults to 0 */
+    offset?: number;
     /** a query string to filter participants based on their display names and usernames. defaults to "" (everyone) */
     search?: string;
     /** optional filter to be used. E.g only admins filter or only banned members filter. PS : some filters need more permissions. */
@@ -412,7 +413,7 @@ export interface IterParticipantsParams {
 export function iterParticipants(
     client: TelegramClient,
     entity: EntityLike,
-    { limit, search, filter, showTotal = true }: IterParticipantsParams
+    { limit, offset, search, filter, showTotal = true }: IterParticipantsParams
 ) {
     return new _ParticipantsIter(
         client,
@@ -421,6 +422,7 @@ export function iterParticipants(
         {
             entity: entity,
             filter: filter,
+            offset: offset ?? 0,
             search: search,
             showTotal: showTotal,
         }
