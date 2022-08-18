@@ -422,7 +422,7 @@ export function iterParticipants(
         {
             entity: entity,
             filter: filter,
-            offset: offset ?? 0,
+            offset,
             search: search,
             showTotal: showTotal,
         }
