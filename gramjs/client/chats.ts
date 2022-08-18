@@ -192,7 +192,7 @@ export class _ParticipantsIter extends RequestIter {
                         new Api.ChannelParticipantsSearch({
                             q: search || "",
                         }),
-                    offset: offset,
+                    offset,
                     limit: _MAX_PARTICIPANTS_CHUNK_SIZE,
                     hash: bigInt.zero,
                 })
