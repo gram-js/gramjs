@@ -85,6 +85,7 @@ export interface DownloadFileParamsV2 {
 export interface DownloadProfilePhotoParams {
     /** Whether to download the big version or the small one of the photo */
     isBig?: boolean;
+    outputFile?: OutFile;
 }
 
 interface Deferred {
@@ -854,6 +855,7 @@ export async function downloadProfilePhoto(
         return Buffer.alloc(0);
     }
     return client.downloadFile(loc, {
+        outputFile: fileParams.outputFile,
         dcId,
     });
 }
