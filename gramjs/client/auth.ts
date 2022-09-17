@@ -261,8 +261,17 @@ export async function signInUserWithQrCode(
     apiCredentials: ApiCredentials,
     authParams: QrCodeAuthParams
 ): Promise<Api.TypeUser> {
+    let isScanningComplete = false;
+
+    if (authParams.qrCode == undefined) {
+        throw new Error("qrCode callback not defined");
+    }
     const inputPromise = (async () => {
         while (1) {
+            if (isScanningComplete) {
+                break;
+            }
+
             const result = await client.invoke(
                 new Api.auth.ExportLoginToken({
                     apiId: Number(apiCredentials.apiId),
@@ -270,18 +279,15 @@ export async function signInUserWithQrCode(
                     exceptIds: [],
                 })
             );
-
             if (!(result instanceof Api.auth.LoginToken)) {
                 throw new Error("Unexpected");
             }
 
             const { token, expires } = result;
-            if (authParams.qrCode) {
-                await Promise.race([
-                    authParams.qrCode({ token, expires }),
-                    sleep(QR_CODE_TIMEOUT),
-                ]);
-            }
+            await Promise.race([
+                authParams.qrCode!({ token, expires }),
+                sleep(QR_CODE_TIMEOUT),
+            ]);
             await sleep(QR_CODE_TIMEOUT);
         }
     })();
@@ -298,6 +304,8 @@ export async function signInUserWithQrCode(
         await Promise.race([updatePromise, inputPromise]);
     } catch (err) {
         throw err;
+    } finally {
+        isScanningComplete = true;
     }
 
     try {
