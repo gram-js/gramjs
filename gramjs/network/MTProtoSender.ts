@@ -236,6 +236,9 @@ export class MTProtoSender {
         if (this._userConnected && !force) {
             this._log.info("User is already connected!");
             return false;
+        } else if (this.isConnecting) {
+            this._log.info("A connection attempt is already in progress.");
+            return false;
         }
         this.isConnecting = true;
         this._connection = connection;
@@ -243,18 +246,14 @@ export class MTProtoSender {
         for (let attempt = 0; attempt < this._retries; attempt++) {
             try {
                 await this._connect();
-                if (this._updateCallback) {
-                    this._updateCallback(
-                        this._client,
-                        new UpdateConnectionState(
-                            UpdateConnectionState.connected
-                        )
-                    );
-                }
+                this._updateCallback?.(
+                    this._client,
+                    new UpdateConnectionState(UpdateConnectionState.connected)
+                );
                 break;
             } catch (err) {
-                if (this._updateCallback && attempt === 0) {
-                    this._updateCallback(
+                if (attempt === 0) {
+                    this._updateCallback?.(
                         this._client,
                         new UpdateConnectionState(
                             UpdateConnectionState.disconnected
@@ -435,13 +434,14 @@ export class MTProtoSender {
             // This means that while it's not empty we can wait for
             // more messages to be added to the send queue.
             const res = await this._sendQueue.get();
+
             if (this._reconnecting) {
                 this._log.debug("Reconnecting. will stop loop");
                 return;
             }
 
             if (!res) {
-                this._log.debug("Empty result. will not stop loop");
+                this._log.info("Empty result. will not stop loop");
                 continue;
             }
             let { data } = res;
@@ -489,7 +489,7 @@ export class MTProtoSender {
                 if (!this.userDisconnected) {
                     this._log.error(e);
                     this._log.warn("Connection closed while receiving data");
-                    this.reconnect();
+                    await this.reconnect();
                 }
                 return;
             }
@@ -536,13 +536,13 @@ export class MTProtoSender {
                         this._log.warn(
                             `Invalid buffer ${e.code} for dc ${this._dcId}`
                         );
-                        this.reconnect();
+                        await this.reconnect();
                     }
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data");
                     this._log.error(e);
-                    this.reconnect();
+                    await this.reconnect();
                     return;
                 }
             }
@@ -913,17 +913,22 @@ export class MTProtoSender {
      */
     async _handleMsgAll(message: TLMessage) {}
 
-    reconnect() {
+    async reconnect() {
         if (this._userConnected && !this._reconnecting) {
             this._reconnecting = true;
             // TODO Should we set this?
             // this._user_connected = false
             // we want to wait a second between each reconnect try to not flood the server with reconnects
             // in case of internal server issues.
-            sleep(1000).then(() => {
-                this._log.info("Started reconnecting");
-                this._reconnect();
-            });
+            await sleep(1000);
+            this._log.info("Started reconnecting");
+            try {
+                await this._reconnect();
+            } catch (err) {
+                this._log.warn(`Error reconnecting ${err}`);
+            } finally {
+                this._reconnecting = false;
+            }
         }
     }
 
@@ -932,7 +937,7 @@ export class MTProtoSender {
         try {
             await this.disconnect();
         } catch (err: any) {
-            this._log.warn(err);
+            this._log.warn(`Error disconnecting: ${err}`);
         }
         // @ts-ignore
         this._sendQueue.append(undefined);
@@ -953,13 +958,10 @@ export class MTProtoSender {
             testServers: this._connection!._testServers,
             socket: socket,
         });
-        await this.connect(newConnection, true);
 
-        this._reconnecting = false;
+        await this.connect(newConnection, true);
         this._sendQueue.extend(Array.from(this._pendingState.values()));
         this._pendingState = new Map<string, RequestState>();
-        if (this._autoReconnectCallback) {
-            this._autoReconnectCallback();
-        }
+        this._autoReconnectCallback?.();
     }
 }
