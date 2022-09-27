@@ -352,9 +352,7 @@ export abstract class TelegramBaseClient {
     }
 
     async disconnect() {
-        if (this._sender) {
-            await this._sender.disconnect();
-        }
+        await this._disconnect();
         await Promise.all(
             Object.values(this._exportedSenderPromises).map(
                 (promise: Promise<MTProtoSender>) => {
@@ -375,10 +373,16 @@ export abstract class TelegramBaseClient {
             number,
             Promise<MTProtoSender>
         >();
+
+        // TODO cancel hanging promises
     }
 
     get disconnected() {
         return !this._sender || this._sender._disconnected;
+    }
+
+    async _disconnect() {
+        await this._sender?.disconnect();
     }
 
     /**

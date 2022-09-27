@@ -19,6 +19,7 @@ const PING_DISCONNECT_DELAY = 60000; // 1 min
  It can be seen as the ``StopIteration`` in a for loop but for events.
  */
 export class StopPropagation extends Error {}
+
 /** @hidden */
 export function on(client: TelegramClient, event?: EventBuilder) {
     return (f: { (event: any): void }) => {
@@ -175,52 +176,26 @@ export async function _dispatchUpdate(
 
 /** @hidden */
 export async function _updateLoop(client: TelegramClient): Promise<void> {
-    while (!client._destroyed) {
-        await sleep(PING_INTERVAL);
-        if (client._reconnecting || client._sender!.userDisconnected) {
-            continue;
-        }
-        if (client._destroyed) {
-            return;
-        }
-
+    while (client.connected) {
         try {
-            await attempts(
-                () => {
-                    return timeout(
-                        client._sender!.send(
-                            new Api.PingDelayDisconnect({
-                                pingId: bigInt(
-                                    getRandomInt(
-                                        Number.MIN_SAFE_INTEGER,
-                                        Number.MAX_SAFE_INTEGER
-                                    )
-                                ),
-                                disconnectDelay: PING_DISCONNECT_DELAY,
-                            })
-                        ),
-                        PING_TIMEOUT
-                    );
-                },
-                PING_FAIL_ATTEMPTS,
-                PING_FAIL_INTERVAL
-            );
-        } catch (err: any) {
-            // eslint-disable-next-line no-console
-            if (client._reconnecting || client._sender!.userDisconnected) {
+            await sleep(60 * 1000);
+            if (!client._sender?._transportConnected()) {
                 continue;
             }
-
-            await client.disconnect();
-
-            await client.connect();
+            await client.invoke(
+                new Api.Ping({
+                    pingId: bigInt(
+                        getRandomInt(
+                            Number.MIN_SAFE_INTEGER,
+                            Number.MAX_SAFE_INTEGER
+                        )
+                    ),
+                })
+            );
+        } catch (e) {
+            return;
         }
-
-        // We need to send some content-related request at least hourly
-        // for Telegram to keep delivering updates, otherwise they will
-        // just stop even if we're connected. Do so every 30 minutes.
-
-        // TODO Call getDifference instead since it's more relevant
+        client.session.save();
         if (
             new Date().getTime() - (client._lastRequest || 0) >
             30 * 60 * 1000
@@ -232,7 +207,6 @@ export async function _updateLoop(client: TelegramClient): Promise<void> {
             }
         }
     }
-    await client.disconnect();
 }
 
 /** @hidden */

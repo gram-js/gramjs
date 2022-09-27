@@ -5,7 +5,7 @@ import { AuthKey } from "../crypto/AuthKey";
 const CURRENT_VERSION = "1";
 
 export class StringSession extends MemorySession {
-    private readonly _key?: Buffer;
+    _key?: Buffer;
 
     /**
      * This session file can be easily saved and loaded as a string. According

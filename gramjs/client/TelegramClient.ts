@@ -1380,11 +1380,6 @@ export class TelegramClient extends TelegramBaseClient {
                 autoReconnectCallback: this._handleReconnect.bind(this),
             });
         }
-        // set defaults vars
-        this._sender.userDisconnected = false;
-        this._sender._userConnected = false;
-        this._sender._reconnecting = false;
-        this._sender._disconnected = true;
 
         const connection = new this._connection({
             ip: this.session.serverAddress,
@@ -1395,17 +1390,12 @@ export class TelegramClient extends TelegramBaseClient {
             socket: this.networkSocket,
             testServers: this.testServers,
         });
-        const newConnection = await this._sender.connect(connection);
-        if (!newConnection) {
-            // we're already connected so no need to reset auth key.
-            if (!this._loopStarted) {
-                _updateLoop(this);
-                this._loopStarted = true;
-            }
+        if (!(await this._sender.connect(connection))) {
             return;
         }
-
         this.session.setAuthKey(this._sender.authKey);
+        this.session.save();
+
         this._initRequest.query = new Api.help.GetConfig();
         this._log.info(`Using LAYER ${LAYER} for initial connect`);
         await this._sender.send(
@@ -1414,14 +1404,8 @@ export class TelegramClient extends TelegramBaseClient {
                 query: this._initRequest,
             })
         );
-
-        if (!this._loopStarted) {
-            _updateLoop(this);
-            this._loopStarted = true;
-        }
-        this._reconnecting = false;
+        _updateLoop(this);
     }
-
     //endregion
     // region Working with different connections/Data Centers
     /** @hidden */
@@ -1433,9 +1417,9 @@ export class TelegramClient extends TelegramBaseClient {
         // so it's not valid anymore. Set to undefined to force recreating it.
         await this._sender!.authKey.setKey(undefined);
         this.session.setAuthKey(undefined);
-        this._reconnecting = true;
-        await this.disconnect();
-        return this.connect();
+        this.session.save();
+        await this._disconnect();
+        return await this.connect();
     }
 
     /**
