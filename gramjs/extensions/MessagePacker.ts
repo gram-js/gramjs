@@ -48,6 +48,7 @@ export class MessagePacker {
             });
             await this._ready;
         }
+
         let data;
         let buffer = new BinaryWriter(Buffer.alloc(0));
 

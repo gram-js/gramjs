@@ -473,11 +473,11 @@ export class MTProtoSender {
             // more messages to be added to the send queue.
 
             const res = await this._sendQueue.get();
-
-            // TODO fix later?
-            // @ts-ignore
+            if (!res) {
+                continue;
+            }
             let { data } = res;
-            // @ts-ignore
+
             const { batch } = res;
             this._log.debug(
                 `Encrypting ${batch.length} message(s) in ${data.length} bytes for sending`
