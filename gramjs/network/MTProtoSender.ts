@@ -277,7 +277,15 @@ export class MTProtoSender {
      * all pending requests, and closes the send and receive loops.
      */
     async disconnect() {
-        await this._disconnect();
+        const release = await this._connectMutex.acquire();
+        try {
+            await this._disconnect();
+        } catch (e: any) {
+            this._log.error(e);
+        }
+        finally {
+            release();
+        }
     }
 
     /**
