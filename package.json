@@ -1,6 +1,6 @@
 {
   "name": "telegram",
-  "version": "2.12.3",
+  "version": "2.12.6",
   "description": "NodeJS/Browser MTProto API Telegram client library,",
   "main": "index.js",
   "types": "index.d.ts",
@@ -59,12 +59,12 @@
     "buffer": "^6.0.3",
     "htmlparser2": "^6.1.0",
     "mime": "^3.0.0",
-    "node-localstorage": "^2.2.1",
     "pako": "^2.0.3",
     "path-browserify": "^1.0.1",
-    "socks": "^2.6.2",
     "store2": "^2.13.0",
     "ts-custom-error": "^3.2.0",
-    "websocket": "^1.0.34"
+    "websocket": "^1.0.34",
+    "node-localstorage": "^2.2.1",
+    "socks": "^2.6.2"
   }
 }

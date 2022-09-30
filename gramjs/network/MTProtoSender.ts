@@ -282,8 +282,7 @@ export class MTProtoSender {
             await this._disconnect();
         } catch (e: any) {
             this._log.error(e);
-        }
-        finally {
+        } finally {
             release();
         }
     }
@@ -400,6 +399,7 @@ export class MTProtoSender {
     async _disconnect(error?: Error) {
         if (!this._connection) {
             this._log.info("Not disconnecting (already have no connection)");
+            return;
         }
 
         this._log.info(
@@ -427,7 +427,7 @@ export class MTProtoSender {
             this._pendingState.clear();
             this._cancelLoops();
             this._log.info(
-                "Disconnecting from %s...".replace(
+                "Disconnecting from %s complete!".replace(
                     "%s",
                     this._connection!.toString()
                 )
