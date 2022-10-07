@@ -1,5 +1,3 @@
-import { isNode } from "./platform";
-
-const crypto = require(isNode ? "crypto" : "./crypto/crypto");
+import * as crypto from "crypto";
 
 export default crypto;
