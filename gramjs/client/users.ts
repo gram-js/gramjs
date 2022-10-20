@@ -223,6 +223,8 @@ export async function getEntity(
     return single ? result[0] : result;
 }
 
+
+
 /** @hidden */
 export async function getInputEntity(
     client: TelegramClient,
@@ -427,6 +429,87 @@ export async function _getEntityFromString(
         }
     }
     throw new Error(`Cannot find any entity corresponding to "${string}"`);
+}
+
+/** @hidden */
+export async function isEntityExists(
+    client: TelegramClient,
+    string: string
+) : Promise<boolean> {
+    const phone = utils.parsePhone(string);
+    if (phone) {
+        try {
+            const result = await client.invoke(
+                new Api.contacts.GetContacts({
+                    hash: bigInt.zero,
+                })
+            );
+            if (!(result instanceof Api.contacts.ContactsNotModified)) {
+                for (const user of result.users) {
+                    if (user instanceof Api.User && user.phone === phone) {
+                        return true;
+                    }
+                }
+            }
+        } catch (e: any) {
+            if (e.errorMessage === "BOT_METHOD_INVALID") {
+                throw new Error(
+                    "Cannot get entity by phone number as a " +
+                        "bot (try using integer IDs, not strings)"
+                );
+            }
+            return false;
+        }
+    }
+    const id = utils.parseID(string);
+    if (id != undefined) {
+        return true;
+    } else if (["me", "this"].includes(string.toLowerCase())) {
+        return true;
+    } else {
+        const { username, isInvite } = utils.parseUsername(string);
+        if (isInvite) {
+            const invite = await client.invoke(
+                new Api.messages.CheckChatInvite({
+                    hash: username,
+                })
+            );
+            if (invite instanceof Api.ChatInvite) {
+                throw new Error(
+                    "Cannot get entity from a channel (or group) " +
+                        "that you are not part of. Join the group and retry"
+                );
+            } else if (invite instanceof Api.ChatInviteAlready) {
+                return true;
+            }
+        } else if (username) {
+            try {
+                const result = await client.invoke(
+                    new Api.contacts.ResolveUsername({ username: username })
+                );
+                const pid = utils.getPeerId(result.peer, false);
+                if (result.peer instanceof Api.PeerUser) {
+                    for (const x of result.users) {
+                        if (returnBigInt(x.id).equals(returnBigInt(pid))) {
+                            return true;
+                        }
+                    }
+                } else {
+                    for (const x of result.chats) {
+                        if (returnBigInt(x.id).equals(returnBigInt(pid))) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (e: any) {
+                if (e.errorMessage === "USERNAME_NOT_OCCUPIED") {
+                    return false;
+                }
+                throw e;
+            }
+        }
+    }
+    return false;
 }
 
 /** @hidden */
