@@ -461,10 +461,7 @@ export async function isEntityExists(
             return false;
         }
     }
-    const id = utils.parseID(string);
-    if (id != undefined) {
-        return true;
-    } else if (["me", "this"].includes(string.toLowerCase())) {
+    if (["me", "this"].includes(string.toLowerCase())) {
         return true;
     } else {
         const { username, isInvite } = utils.parseUsername(string);
