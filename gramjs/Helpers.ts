@@ -328,6 +328,7 @@ export function convertToLittle(buf: Buffer) {
 export function sha1(data: Buffer): Promise<Buffer> {
     const shaSum = crypto.createHash("sha1");
     shaSum.update(data);
+    // @ts-ignore
     return shaSum.digest();
 }
 
@@ -339,6 +340,7 @@ export function sha1(data: Buffer): Promise<Buffer> {
 export function sha256(data: Buffer): Promise<Buffer> {
     const shaSum = crypto.createHash("sha256");
     shaSum.update(data);
+    // @ts-ignore
     return shaSum.digest();
 }
 

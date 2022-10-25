@@ -374,8 +374,9 @@ export namespace Api {
         provider: string;
         providerData: Api.TypeDataJSON;
         startParam?: string;
+        extendedMedia?: Api.TypeInputMedia;
     }> {
-        CONSTRUCTOR_ID: 3648624756;
+        CONSTRUCTOR_ID: 2394269397;
         SUBCLASS_OF_ID: 4210575092;
         classType: "constructor";
         className: "InputMediaInvoice";
@@ -389,6 +390,7 @@ export namespace Api {
         provider: string;
         providerData: Api.TypeDataJSON;
         startParam?: string;
+        extendedMedia?: Api.TypeInputMedia;
     }
     export class InputMediaGeoLive extends VirtualClass<{
         // flags: null;
@@ -1389,8 +1391,9 @@ export namespace Api {
         currency: string;
         totalAmount: long;
         startParam: string;
+        extendedMedia?: Api.TypeMessageExtendedMedia;
     }> {
-        CONSTRUCTOR_ID: 2220168007;
+        CONSTRUCTOR_ID: 4138027219;
         SUBCLASS_OF_ID: 1198308914;
         classType: "constructor";
         className: "MessageMediaInvoice";
@@ -1405,6 +1408,7 @@ export namespace Api {
         currency: string;
         totalAmount: long;
         startParam: string;
+        extendedMedia?: Api.TypeMessageExtendedMedia;
     }
     export class MessageMediaGeoLive extends VirtualClass<{
         // flags: null;
@@ -3894,6 +3898,20 @@ export namespace Api {
         masks?: boolean;
         emojis?: boolean;
         stickerset: long;
+    }
+    export class UpdateMessageExtendedMedia extends VirtualClass<{
+        peer: Api.TypePeer;
+        msgId: int;
+        extendedMedia: Api.TypeMessageExtendedMedia;
+    }> {
+        CONSTRUCTOR_ID: 1517529484;
+        SUBCLASS_OF_ID: 2676568142;
+        classType: "constructor";
+        className: "UpdateMessageExtendedMedia";
+        static fromReader(reader: Reader): UpdateMessageExtendedMedia;
+        peer: Api.TypePeer;
+        msgId: int;
+        extendedMedia: Api.TypeMessageExtendedMedia;
     }
     export class UpdatesTooLong extends VirtualClass<void> {
         CONSTRUCTOR_ID: 3809980286;
@@ -11495,6 +11513,34 @@ export namespace Api {
         // flags: null;
         premiumRequired?: boolean;
         peer: Api.TypePeer;
+    }
+    export class MessageExtendedMediaPreview extends VirtualClass<{
+        // flags: null;
+        w?: int;
+        h?: int;
+        thumb?: Api.TypePhotoSize;
+        videoDuration?: int;
+    }> {
+        CONSTRUCTOR_ID: 2908916936;
+        SUBCLASS_OF_ID: 2535971165;
+        classType: "constructor";
+        className: "MessageExtendedMediaPreview";
+        static fromReader(reader: Reader): MessageExtendedMediaPreview;
+        // flags: null;
+        w?: int;
+        h?: int;
+        thumb?: Api.TypePhotoSize;
+        videoDuration?: int;
+    }
+    export class MessageExtendedMedia extends VirtualClass<{
+        media: Api.TypeMessageMedia;
+    }> {
+        CONSTRUCTOR_ID: 3997670500;
+        SUBCLASS_OF_ID: 2535971165;
+        classType: "constructor";
+        className: "MessageExtendedMedia";
+        static fromReader(reader: Reader): MessageExtendedMedia;
+        media: Api.TypeMessageMedia;
     }
     export class ResPQ extends VirtualClass<{
         nonce: int128;
@@ -20166,6 +20212,21 @@ export namespace Api {
             className: "messages.ClearRecentReactions";
             static fromReader(reader: Reader): ClearRecentReactions;
         }
+        export class GetExtendedMedia extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+                id: int[];
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 2230847508;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "messages.GetExtendedMedia";
+            static fromReader(reader: Reader): GetExtendedMedia;
+            peer: Api.TypeEntityLike;
+            id: int[];
+        }
     }
 
     export namespace updates {
@@ -22778,7 +22839,8 @@ export namespace Api {
         | UpdateUserEmojiStatus
         | UpdateRecentEmojiStatuses
         | UpdateRecentReactions
-        | UpdateMoveStickerSetToTop;
+        | UpdateMoveStickerSetToTop
+        | UpdateMessageExtendedMedia;
     export type TypeUpdates =
         | UpdatesTooLong
         | UpdateShortMessage
@@ -23380,6 +23442,9 @@ export namespace Api {
         | EmailVerificationApple;
     export type TypePremiumSubscriptionOption = PremiumSubscriptionOption;
     export type TypeSendAsPeer = SendAsPeer;
+    export type TypeMessageExtendedMedia =
+        | MessageExtendedMediaPreview
+        | MessageExtendedMedia;
     export type TypeResPQ = ResPQ;
     export type TypeP_Q_inner_data =
         | PQInnerData
@@ -23745,6 +23810,7 @@ export namespace Api {
         | messages.GetTopReactions
         | messages.GetRecentReactions
         | messages.ClearRecentReactions
+        | messages.GetExtendedMedia
         | updates.GetState
         | updates.GetDifference
         | updates.GetChannelDifference
