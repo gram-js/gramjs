@@ -724,6 +724,7 @@ export namespace Api {
         botAttachMenu?: boolean;
         premium?: boolean;
         attachMenuEnabled?: boolean;
+        // flags2: null;
         id: long;
         accessHash?: long;
         firstName?: string;
@@ -737,8 +738,9 @@ export namespace Api {
         botInlinePlaceholder?: string;
         langCode?: string;
         emojiStatus?: Api.TypeEmojiStatus;
+        usernames?: Api.TypeUsername[];
     }> {
-        CONSTRUCTOR_ID: 1570352622;
+        CONSTRUCTOR_ID: 2409088552;
         SUBCLASS_OF_ID: 765557111;
         classType: "constructor";
         className: "User";
@@ -762,6 +764,7 @@ export namespace Api {
         botAttachMenu?: boolean;
         premium?: boolean;
         attachMenuEnabled?: boolean;
+        // flags2: null;
         id: long;
         accessHash?: long;
         firstName?: string;
@@ -775,6 +778,7 @@ export namespace Api {
         botInlinePlaceholder?: string;
         langCode?: string;
         emojiStatus?: Api.TypeEmojiStatus;
+        usernames?: Api.TypeUsername[];
     }
     export class UserProfilePhotoEmpty extends VirtualClass<void> {
         CONSTRUCTOR_ID: 1326562017;
@@ -932,6 +936,8 @@ export namespace Api {
         noforwards?: boolean;
         joinToSend?: boolean;
         joinRequest?: boolean;
+        forum?: boolean;
+        // flags2: null;
         id: long;
         accessHash?: long;
         title: string;
@@ -943,8 +949,9 @@ export namespace Api {
         bannedRights?: Api.TypeChatBannedRights;
         defaultBannedRights?: Api.TypeChatBannedRights;
         participantsCount?: int;
+        usernames?: Api.TypeUsername[];
     }> {
-        CONSTRUCTOR_ID: 2187439201;
+        CONSTRUCTOR_ID: 2200278116;
         SUBCLASS_OF_ID: 3316604308;
         classType: "constructor";
         className: "Channel";
@@ -969,6 +976,8 @@ export namespace Api {
         noforwards?: boolean;
         joinToSend?: boolean;
         joinRequest?: boolean;
+        forum?: boolean;
+        // flags2: null;
         id: long;
         accessHash?: long;
         title: string;
@@ -980,6 +989,7 @@ export namespace Api {
         bannedRights?: Api.TypeChatBannedRights;
         defaultBannedRights?: Api.TypeChatBannedRights;
         participantsCount?: int;
+        usernames?: Api.TypeUsername[];
     }
     export class ChannelForbidden extends VirtualClass<{
         // flags: null;
@@ -1821,6 +1831,38 @@ export namespace Api {
         amount: long;
         months: int;
     }
+    export class MessageActionTopicCreate extends VirtualClass<{
+        // flags: null;
+        title: string;
+        iconColor: int;
+        iconEmojiId?: long;
+    }> {
+        CONSTRUCTOR_ID: 228168278;
+        SUBCLASS_OF_ID: 2256589094;
+        classType: "constructor";
+        className: "MessageActionTopicCreate";
+        static fromReader(reader: Reader): MessageActionTopicCreate;
+        // flags: null;
+        title: string;
+        iconColor: int;
+        iconEmojiId?: long;
+    }
+    export class MessageActionTopicEdit extends VirtualClass<{
+        // flags: null;
+        title?: string;
+        iconEmojiId?: long;
+        closed?: Bool;
+    }> {
+        CONSTRUCTOR_ID: 2978628380;
+        SUBCLASS_OF_ID: 2256589094;
+        classType: "constructor";
+        className: "MessageActionTopicEdit";
+        static fromReader(reader: Reader): MessageActionTopicEdit;
+        // flags: null;
+        title?: string;
+        iconEmojiId?: long;
+        closed?: Bool;
+    }
     export class Dialog extends VirtualClass<{
         // flags: null;
         pinned?: boolean;
@@ -2056,6 +2098,18 @@ export namespace Api {
         classType: "constructor";
         className: "InputNotifyBroadcasts";
         static fromReader(reader: Reader): InputNotifyBroadcasts;
+    }
+    export class InputNotifyForumTopic extends VirtualClass<{
+        peer: Api.TypeInputPeer;
+        topMsgId: int;
+    }> {
+        CONSTRUCTOR_ID: 1548122514;
+        SUBCLASS_OF_ID: 1486362133;
+        classType: "constructor";
+        className: "InputNotifyForumTopic";
+        static fromReader(reader: Reader): InputNotifyForumTopic;
+        peer: Api.TypeInputPeer;
+        topMsgId: int;
     }
     export class InputPeerNotifySettings extends VirtualClass<{
         // flags: null;
@@ -2553,9 +2607,9 @@ export namespace Api {
         userId: long;
         firstName: string;
         lastName: string;
-        username: string;
+        usernames: Api.TypeUsername[];
     }> {
-        CONSTRUCTOR_ID: 3287417568;
+        CONSTRUCTOR_ID: 2810480932;
         SUBCLASS_OF_ID: 2676568142;
         classType: "constructor";
         className: "UpdateUserName";
@@ -2563,7 +2617,7 @@ export namespace Api {
         userId: long;
         firstName: string;
         lastName: string;
-        username: string;
+        usernames: Api.TypeUsername[];
     }
     export class UpdateUserPhoto extends VirtualClass<{
         userId: long;
@@ -3075,15 +3129,19 @@ export namespace Api {
         maxId: int;
     }
     export class UpdateDraftMessage extends VirtualClass<{
+        // flags: null;
         peer: Api.TypePeer;
+        topMsgId?: int;
         draft: Api.TypeDraftMessage;
     }> {
-        CONSTRUCTOR_ID: 3995842921;
+        CONSTRUCTOR_ID: 457829485;
         SUBCLASS_OF_ID: 2676568142;
         classType: "constructor";
         className: "UpdateDraftMessage";
         static fromReader(reader: Reader): UpdateDraftMessage;
+        // flags: null;
         peer: Api.TypePeer;
+        topMsgId?: int;
         draft: Api.TypeDraftMessage;
     }
     export class UpdateReadFeaturedStickers extends VirtualClass<void> {
@@ -3262,15 +3320,19 @@ export namespace Api {
         static fromReader(reader: Reader): UpdateFavedStickers;
     }
     export class UpdateChannelReadMessagesContents extends VirtualClass<{
+        // flags: null;
         channelId: long;
+        topMsgId?: int;
         messages: int[];
     }> {
-        CONSTRUCTOR_ID: 1153291573;
+        CONSTRUCTOR_ID: 3928556893;
         SUBCLASS_OF_ID: 2676568142;
         classType: "constructor";
         className: "UpdateChannelReadMessagesContents";
         static fromReader(reader: Reader): UpdateChannelReadMessagesContents;
+        // flags: null;
         channelId: long;
+        topMsgId?: int;
         messages: int[];
     }
     export class UpdateContactsReset extends VirtualClass<void> {
@@ -3781,17 +3843,21 @@ export namespace Api {
         qts: int;
     }
     export class UpdateMessageReactions extends VirtualClass<{
+        // flags: null;
         peer: Api.TypePeer;
         msgId: int;
+        topMsgId?: int;
         reactions: Api.TypeMessageReactions;
     }> {
-        CONSTRUCTOR_ID: 357013699;
+        CONSTRUCTOR_ID: 1578843320;
         SUBCLASS_OF_ID: 2676568142;
         classType: "constructor";
         className: "UpdateMessageReactions";
         static fromReader(reader: Reader): UpdateMessageReactions;
+        // flags: null;
         peer: Api.TypePeer;
         msgId: int;
+        topMsgId?: int;
         reactions: Api.TypeMessageReactions;
     }
     export class UpdateAttachMenuBots extends VirtualClass<void> {
@@ -3912,6 +3978,20 @@ export namespace Api {
         peer: Api.TypePeer;
         msgId: int;
         extendedMedia: Api.TypeMessageExtendedMedia;
+    }
+    export class UpdateChannelPinnedTopic extends VirtualClass<{
+        // flags: null;
+        channelId: long;
+        topicId?: int;
+    }> {
+        CONSTRUCTOR_ID: 4136939694;
+        SUBCLASS_OF_ID: 2676568142;
+        classType: "constructor";
+        className: "UpdateChannelPinnedTopic";
+        static fromReader(reader: Reader): UpdateChannelPinnedTopic;
+        // flags: null;
+        channelId: long;
+        topicId?: int;
     }
     export class UpdatesTooLong extends VirtualClass<void> {
         CONSTRUCTOR_ID: 3809980286;
@@ -4537,6 +4617,18 @@ export namespace Api {
         classType: "constructor";
         className: "NotifyBroadcasts";
         static fromReader(reader: Reader): NotifyBroadcasts;
+    }
+    export class NotifyForumTopic extends VirtualClass<{
+        peer: Api.TypePeer;
+        topMsgId: int;
+    }> {
+        CONSTRUCTOR_ID: 577659656;
+        SUBCLASS_OF_ID: 3756548142;
+        classType: "constructor";
+        className: "NotifyForumTopic";
+        static fromReader(reader: Reader): NotifyForumTopic;
+        peer: Api.TypePeer;
+        topMsgId: int;
     }
     export class SendMessageTypingAction extends VirtualClass<void> {
         CONSTRUCTOR_ID: 381645902;
@@ -5396,6 +5488,15 @@ export namespace Api {
         classType: "constructor";
         className: "InputStickerSetEmojiDefaultStatuses";
         static fromReader(reader: Reader): InputStickerSetEmojiDefaultStatuses;
+    }
+    export class InputStickerSetEmojiDefaultTopicIcons extends VirtualClass<void> {
+        CONSTRUCTOR_ID: 1153562857;
+        SUBCLASS_OF_ID: 1034127786;
+        classType: "constructor";
+        className: "InputStickerSetEmojiDefaultTopicIcons";
+        static fromReader(
+            reader: Reader
+        ): InputStickerSetEmojiDefaultTopicIcons;
     }
     export class StickerSet extends VirtualClass<{
         // flags: null;
@@ -6853,15 +6954,17 @@ export namespace Api {
     export class StickerSetFullCovered extends VirtualClass<{
         set: Api.TypeStickerSet;
         packs: Api.TypeStickerPack[];
+        keywords: Api.TypeStickerKeyword[];
         documents: Api.TypeDocument[];
     }> {
-        CONSTRUCTOR_ID: 451763941;
+        CONSTRUCTOR_ID: 1087454222;
         SUBCLASS_OF_ID: 2139546853;
         classType: "constructor";
         className: "StickerSetFullCovered";
         static fromReader(reader: Reader): StickerSetFullCovered;
         set: Api.TypeStickerSet;
         packs: Api.TypeStickerPack[];
+        keywords: Api.TypeStickerKeyword[];
         documents: Api.TypeDocument[];
     }
     export class MaskCoords extends VirtualClass<{
@@ -8621,6 +8724,82 @@ export namespace Api {
         prevValue: Api.TypeChatReactions;
         newValue: Api.TypeChatReactions;
     }
+    export class ChannelAdminLogEventActionChangeUsernames extends VirtualClass<{
+        prevValue: string[];
+        newValue: string[];
+    }> {
+        CONSTRUCTOR_ID: 4031755177;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionChangeUsernames";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionChangeUsernames;
+        prevValue: string[];
+        newValue: string[];
+    }
+    export class ChannelAdminLogEventActionToggleForum extends VirtualClass<{
+        newValue: Bool;
+    }> {
+        CONSTRUCTOR_ID: 46949251;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionToggleForum";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionToggleForum;
+        newValue: Bool;
+    }
+    export class ChannelAdminLogEventActionCreateTopic extends VirtualClass<{
+        topic: Api.TypeForumTopic;
+    }> {
+        CONSTRUCTOR_ID: 1483767080;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionCreateTopic";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionCreateTopic;
+        topic: Api.TypeForumTopic;
+    }
+    export class ChannelAdminLogEventActionEditTopic extends VirtualClass<{
+        prevTopic: Api.TypeForumTopic;
+        newTopic: Api.TypeForumTopic;
+    }> {
+        CONSTRUCTOR_ID: 4033864200;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionEditTopic";
+        static fromReader(reader: Reader): ChannelAdminLogEventActionEditTopic;
+        prevTopic: Api.TypeForumTopic;
+        newTopic: Api.TypeForumTopic;
+    }
+    export class ChannelAdminLogEventActionDeleteTopic extends VirtualClass<{
+        topic: Api.TypeForumTopic;
+    }> {
+        CONSTRUCTOR_ID: 2920712457;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionDeleteTopic";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionDeleteTopic;
+        topic: Api.TypeForumTopic;
+    }
+    export class ChannelAdminLogEventActionPinTopic extends VirtualClass<{
+        // flags: null;
+        prevTopic?: Api.TypeForumTopic;
+        newTopic?: Api.TypeForumTopic;
+    }> {
+        CONSTRUCTOR_ID: 1569535291;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionPinTopic";
+        static fromReader(reader: Reader): ChannelAdminLogEventActionPinTopic;
+        // flags: null;
+        prevTopic?: Api.TypeForumTopic;
+        newTopic?: Api.TypeForumTopic;
+    }
     export class ChannelAdminLogEvent extends VirtualClass<{
         id: long;
         date: int;
@@ -8656,6 +8835,7 @@ export namespace Api {
         groupCall?: boolean;
         invites?: boolean;
         send?: boolean;
+        forums?: boolean;
     }> {
         CONSTRUCTOR_ID: 3926948580;
         SUBCLASS_OF_ID: 2092692249;
@@ -8680,6 +8860,7 @@ export namespace Api {
         groupCall?: boolean;
         invites?: boolean;
         send?: boolean;
+        forums?: boolean;
     }
     export class PopularContact extends VirtualClass<{
         clientId: long;
@@ -9765,6 +9946,7 @@ export namespace Api {
         anonymous?: boolean;
         manageCall?: boolean;
         other?: boolean;
+        manageTopics?: boolean;
     }> {
         CONSTRUCTOR_ID: 1605510357;
         SUBCLASS_OF_ID: 2252195780;
@@ -9783,6 +9965,7 @@ export namespace Api {
         anonymous?: boolean;
         manageCall?: boolean;
         other?: boolean;
+        manageTopics?: boolean;
     }
     export class ChatBannedRights extends VirtualClass<{
         // flags: null;
@@ -9798,6 +9981,7 @@ export namespace Api {
         changeInfo?: boolean;
         inviteUsers?: boolean;
         pinMessages?: boolean;
+        manageTopics?: boolean;
         untilDate: int;
     }> {
         CONSTRUCTOR_ID: 2668758040;
@@ -9818,6 +10002,7 @@ export namespace Api {
         changeInfo?: boolean;
         inviteUsers?: boolean;
         pinMessages?: boolean;
+        manageTopics?: boolean;
         untilDate: int;
     }
     export class InputWallPaper extends VirtualClass<{
@@ -10555,6 +10740,7 @@ export namespace Api {
     export class MessageReplyHeader extends VirtualClass<{
         // flags: null;
         replyToScheduled?: boolean;
+        forumTopic?: boolean;
         replyToMsgId: int;
         replyToPeerId?: Api.TypePeer;
         replyToTopId?: int;
@@ -10566,6 +10752,7 @@ export namespace Api {
         static fromReader(reader: Reader): MessageReplyHeader;
         // flags: null;
         replyToScheduled?: boolean;
+        forumTopic?: boolean;
         replyToMsgId: int;
         replyToPeerId?: Api.TypePeer;
         replyToTopId?: int;
@@ -10888,6 +11075,7 @@ export namespace Api {
     export class SponsoredMessage extends VirtualClass<{
         // flags: null;
         recommended?: boolean;
+        showPeerPhoto?: boolean;
         randomId: bytes;
         fromId?: Api.TypePeer;
         chatInvite?: Api.TypeChatInvite;
@@ -10904,6 +11092,7 @@ export namespace Api {
         static fromReader(reader: Reader): SponsoredMessage;
         // flags: null;
         recommended?: boolean;
+        showPeerPhoto?: boolean;
         randomId: bytes;
         fromId?: Api.TypePeer;
         chatInvite?: Api.TypeChatInvite;
@@ -11541,6 +11730,88 @@ export namespace Api {
         className: "MessageExtendedMedia";
         static fromReader(reader: Reader): MessageExtendedMedia;
         media: Api.TypeMessageMedia;
+    }
+    export class StickerKeyword extends VirtualClass<{
+        documentId: long;
+        keyword: string[];
+    }> {
+        CONSTRUCTOR_ID: 4244550300;
+        SUBCLASS_OF_ID: 1435835755;
+        classType: "constructor";
+        className: "StickerKeyword";
+        static fromReader(reader: Reader): StickerKeyword;
+        documentId: long;
+        keyword: string[];
+    }
+    export class Username extends VirtualClass<{
+        // flags: null;
+        editable?: boolean;
+        active?: boolean;
+        username: string;
+    }> {
+        CONSTRUCTOR_ID: 3020371527;
+        SUBCLASS_OF_ID: 19424289;
+        classType: "constructor";
+        className: "Username";
+        static fromReader(reader: Reader): Username;
+        // flags: null;
+        editable?: boolean;
+        active?: boolean;
+        username: string;
+    }
+    export class ForumTopicDeleted extends VirtualClass<{
+        id: int;
+    }> {
+        CONSTRUCTOR_ID: 37687451;
+        SUBCLASS_OF_ID: 2367169027;
+        classType: "constructor";
+        className: "ForumTopicDeleted";
+        static fromReader(reader: Reader): ForumTopicDeleted;
+        id: int;
+    }
+    export class ForumTopic extends VirtualClass<{
+        // flags: null;
+        my?: boolean;
+        closed?: boolean;
+        pinned?: boolean;
+        id: int;
+        date: int;
+        title: string;
+        iconColor: int;
+        iconEmojiId?: long;
+        topMessage: int;
+        readInboxMaxId: int;
+        readOutboxMaxId: int;
+        unreadCount: int;
+        unreadMentionsCount: int;
+        unreadReactionsCount: int;
+        fromId: Api.TypePeer;
+        notifySettings: Api.TypePeerNotifySettings;
+        draft?: Api.TypeDraftMessage;
+    }> {
+        CONSTRUCTOR_ID: 1903173033;
+        SUBCLASS_OF_ID: 2367169027;
+        classType: "constructor";
+        className: "ForumTopic";
+        static fromReader(reader: Reader): ForumTopic;
+        // flags: null;
+        my?: boolean;
+        closed?: boolean;
+        pinned?: boolean;
+        id: int;
+        date: int;
+        title: string;
+        iconColor: int;
+        iconEmojiId?: long;
+        topMessage: int;
+        readInboxMaxId: int;
+        readOutboxMaxId: int;
+        unreadCount: int;
+        unreadMentionsCount: int;
+        unreadReactionsCount: int;
+        fromId: Api.TypePeer;
+        notifySettings: Api.TypePeerNotifySettings;
+        draft?: Api.TypeDraftMessage;
     }
     export class ResPQ extends VirtualClass<{
         nonce: int128;
@@ -13115,15 +13386,17 @@ export namespace Api {
         export class StickerSet extends VirtualClass<{
             set: Api.TypeStickerSet;
             packs: Api.TypeStickerPack[];
+            keywords: Api.TypeStickerKeyword[];
             documents: Api.TypeDocument[];
         }> {
-            CONSTRUCTOR_ID: 3054118054;
+            CONSTRUCTOR_ID: 1846886166;
             SUBCLASS_OF_ID: 2607827546;
             classType: "constructor";
             className: "messages.StickerSet";
             static fromReader(reader: Reader): StickerSet;
             set: Api.TypeStickerSet;
             packs: Api.TypeStickerPack[];
+            keywords: Api.TypeStickerKeyword[];
             documents: Api.TypeDocument[];
         }
         export class StickerSetNotModified extends VirtualClass<void> {
@@ -13567,18 +13840,29 @@ export namespace Api {
             confirmText: string;
         }
         export class SponsoredMessages extends VirtualClass<{
+            // flags: null;
+            postsBetween?: int;
             messages: Api.TypeSponsoredMessage[];
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }> {
-            CONSTRUCTOR_ID: 1705297877;
+            CONSTRUCTOR_ID: 3387825543;
             SUBCLASS_OF_ID: 2134993376;
             classType: "constructor";
             className: "messages.SponsoredMessages";
             static fromReader(reader: Reader): SponsoredMessages;
+            // flags: null;
+            postsBetween?: int;
             messages: Api.TypeSponsoredMessage[];
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
+        }
+        export class SponsoredMessagesEmpty extends VirtualClass<void> {
+            CONSTRUCTOR_ID: 406407439;
+            SUBCLASS_OF_ID: 2134993376;
+            classType: "constructor";
+            className: "messages.SponsoredMessagesEmpty";
+            static fromReader(reader: Reader): SponsoredMessagesEmpty;
         }
         export class SearchResultsCalendar extends VirtualClass<{
             // flags: null;
@@ -13724,6 +14008,30 @@ export namespace Api {
             static fromReader(reader: Reader): Reactions;
             hash: long;
             reactions: Api.TypeReaction[];
+        }
+        export class ForumTopics extends VirtualClass<{
+            // flags: null;
+            orderByCreateDate?: boolean;
+            count: int;
+            topics: Api.TypeForumTopic[];
+            messages: Api.TypeMessage[];
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+            pts: int;
+        }> {
+            CONSTRUCTOR_ID: 913709011;
+            SUBCLASS_OF_ID: 2384281118;
+            classType: "constructor";
+            className: "messages.ForumTopics";
+            static fromReader(reader: Reader): ForumTopics;
+            // flags: null;
+            orderByCreateDate?: boolean;
+            count: int;
+            topics: Api.TypeForumTopic[];
+            messages: Api.TypeMessage[];
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+            pts: int;
         }
     }
 
@@ -15200,7 +15508,9 @@ export namespace Api {
         export type TypeChatAdminsWithInvites = messages.ChatAdminsWithInvites;
         export type TypeCheckedHistoryImportPeer =
             messages.CheckedHistoryImportPeer;
-        export type TypeSponsoredMessages = messages.SponsoredMessages;
+        export type TypeSponsoredMessages =
+            | messages.SponsoredMessages
+            | messages.SponsoredMessagesEmpty;
         export type TypeSearchResultsCalendar = messages.SearchResultsCalendar;
         export type TypeSearchResultsPositions =
             messages.SearchResultsPositions;
@@ -15216,6 +15526,7 @@ export namespace Api {
         export type TypeReactions =
             | messages.ReactionsNotModified
             | messages.Reactions;
+        export type TypeForumTopics = messages.ForumTopics;
     }
 
     export namespace updates {
@@ -16505,18 +16816,16 @@ export namespace Api {
             Partial<{
                 format: string;
                 theme: Api.TypeInputTheme;
-                documentId: long;
             }>,
             Api.TypeTheme
         > {
-            CONSTRUCTOR_ID: 2375906347;
+            CONSTRUCTOR_ID: 978872812;
             SUBCLASS_OF_ID: 1454688268;
             classType: "request";
             className: "account.GetTheme";
             static fromReader(reader: Reader): GetTheme;
             format: string;
             theme: Api.TypeInputTheme;
-            documentId: long;
         }
         export class GetThemes extends Request<
             Partial<{
@@ -16765,6 +17074,34 @@ export namespace Api {
             classType: "request";
             className: "account.ClearRecentEmojiStatuses";
             static fromReader(reader: Reader): ClearRecentEmojiStatuses;
+        }
+        export class ReorderUsernames extends Request<
+            Partial<{
+                order: string[];
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 4015001259;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "account.ReorderUsernames";
+            static fromReader(reader: Reader): ReorderUsernames;
+            order: string[];
+        }
+        export class ToggleUsername extends Request<
+            Partial<{
+                username: string;
+                active: Bool;
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 1490465654;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "account.ToggleUsername";
+            static fromReader(reader: Reader): ToggleUsername;
+            username: string;
+            active: Bool;
         }
     }
 
@@ -17332,6 +17669,7 @@ export namespace Api {
                 updateStickersetsOrder?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 message: string;
                 randomId?: long;
                 replyMarkup?: Api.TypeReplyMarkup;
@@ -17341,7 +17679,7 @@ export namespace Api {
             }>,
             Api.TypeUpdates
         > {
-            CONSTRUCTOR_ID: 228423076;
+            CONSTRUCTOR_ID: 482476935;
             SUBCLASS_OF_ID: 2331323052;
             classType: "request";
             className: "messages.SendMessage";
@@ -17355,6 +17693,7 @@ export namespace Api {
             updateStickersetsOrder?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             message: string;
             randomId?: long;
             replyMarkup?: Api.TypeReplyMarkup;
@@ -17372,6 +17711,7 @@ export namespace Api {
                 updateStickersetsOrder?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 media: Api.TypeInputMedia;
                 message: string;
                 randomId?: long;
@@ -17382,7 +17722,7 @@ export namespace Api {
             }>,
             Api.TypeUpdates
         > {
-            CONSTRUCTOR_ID: 3797940448;
+            CONSTRUCTOR_ID: 1967638886;
             SUBCLASS_OF_ID: 2331323052;
             classType: "request";
             className: "messages.SendMedia";
@@ -17395,6 +17735,7 @@ export namespace Api {
             updateStickersetsOrder?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             media: Api.TypeInputMedia;
             message: string;
             randomId?: long;
@@ -17416,12 +17757,13 @@ export namespace Api {
                 id: int[];
                 randomId: long[];
                 toPeer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
                 scheduleDate?: int;
                 sendAs?: Api.TypeEntityLike;
             }>,
             Api.TypeUpdates
         > {
-            CONSTRUCTOR_ID: 3425708299;
+            CONSTRUCTOR_ID: 3328293828;
             SUBCLASS_OF_ID: 2331323052;
             classType: "request";
             className: "messages.ForwardMessages";
@@ -17437,6 +17779,7 @@ export namespace Api {
             id: int[];
             randomId: long[];
             toPeer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
             scheduleDate?: int;
             sendAs?: Api.TypeEntityLike;
         }
@@ -18147,6 +18490,7 @@ export namespace Api {
                 hideVia?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 randomId?: long;
                 queryId: long;
                 id: string;
@@ -18155,7 +18499,7 @@ export namespace Api {
             }>,
             Api.TypeUpdates
         > {
-            CONSTRUCTOR_ID: 2057376407;
+            CONSTRUCTOR_ID: 3556498635;
             SUBCLASS_OF_ID: 2331323052;
             classType: "request";
             className: "messages.SendInlineBotResult";
@@ -18167,6 +18511,7 @@ export namespace Api {
             hideVia?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             randomId?: long;
             queryId: long;
             id: string;
@@ -18306,13 +18651,14 @@ export namespace Api {
                 // flags: null;
                 noWebpage?: boolean;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 peer: Api.TypeEntityLike;
                 message: string;
                 entities?: Api.TypeMessageEntity[];
             }>,
             Bool
         > {
-            CONSTRUCTOR_ID: 3157909835;
+            CONSTRUCTOR_ID: 3023248959;
             SUBCLASS_OF_ID: 4122188204;
             classType: "request";
             className: "messages.SaveDraft";
@@ -18320,6 +18666,7 @@ export namespace Api {
             // flags: null;
             noWebpage?: boolean;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             peer: Api.TypeEntityLike;
             message: string;
             entities?: Api.TypeMessageEntity[];
@@ -18729,7 +19076,9 @@ export namespace Api {
         }
         export class GetUnreadMentions extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
                 offsetId: int;
                 addOffset: int;
                 limit: int;
@@ -18738,12 +19087,14 @@ export namespace Api {
             }>,
             messages.TypeMessages
         > {
-            CONSTRUCTOR_ID: 1180140658;
+            CONSTRUCTOR_ID: 4043827088;
             SUBCLASS_OF_ID: 3568569182;
             classType: "request";
             className: "messages.GetUnreadMentions";
             static fromReader(reader: Reader): GetUnreadMentions;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
             offsetId: int;
             addOffset: int;
             limit: int;
@@ -18752,16 +19103,20 @@ export namespace Api {
         }
         export class ReadMentions extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
             }>,
             messages.TypeAffectedHistory
         > {
-            CONSTRUCTOR_ID: 251759059;
+            CONSTRUCTOR_ID: 921026381;
             SUBCLASS_OF_ID: 743031062;
             classType: "request";
             className: "messages.ReadMentions";
             static fromReader(reader: Reader): ReadMentions;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
         }
         export class GetRecentLocations extends Request<
             Partial<{
@@ -18790,13 +19145,14 @@ export namespace Api {
                 updateStickersetsOrder?: boolean;
                 peer: Api.TypeEntityLike;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 multiMedia: Api.TypeInputSingleMedia[];
                 scheduleDate?: int;
                 sendAs?: Api.TypeEntityLike;
             }>,
             Api.TypeUpdates
         > {
-            CONSTRUCTOR_ID: 4160951183;
+            CONSTRUCTOR_ID: 3069254172;
             SUBCLASS_OF_ID: 2331323052;
             classType: "request";
             className: "messages.SendMultiMedia";
@@ -18809,6 +19165,7 @@ export namespace Api {
             updateStickersetsOrder?: boolean;
             peer: Api.TypeEntityLike;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             multiMedia: Api.TypeInputSingleMedia[];
             scheduleDate?: int;
             sendAs?: Api.TypeEntityLike;
@@ -19045,17 +19402,21 @@ export namespace Api {
         }
         export class GetSearchCounters extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
                 filters: Api.TypeMessagesFilter[];
             }>,
             messages.TypeSearchCounter[]
         > {
-            CONSTRUCTOR_ID: 1932455680;
+            CONSTRUCTOR_ID: 11435201;
             SUBCLASS_OF_ID: 1809726574;
             classType: "request";
             className: "messages.GetSearchCounters";
             static fromReader(reader: Reader): GetSearchCounters;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
             filters: Api.TypeMessagesFilter[];
         }
         export class RequestUrlAuth extends Request<
@@ -19349,16 +19710,20 @@ export namespace Api {
         }
         export class UnpinAllMessages extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
             }>,
             messages.TypeAffectedHistory
         > {
-            CONSTRUCTOR_ID: 4029004939;
+            CONSTRUCTOR_ID: 3995253160;
             SUBCLASS_OF_ID: 743031062;
             classType: "request";
             className: "messages.UnpinAllMessages";
             static fromReader(reader: Reader): UnpinAllMessages;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
         }
         export class DeleteChat extends Request<
             Partial<{
@@ -19880,7 +20245,9 @@ export namespace Api {
         }
         export class GetUnreadReactions extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
                 offsetId: int;
                 addOffset: int;
                 limit: int;
@@ -19889,12 +20256,14 @@ export namespace Api {
             }>,
             messages.TypeMessages
         > {
-            CONSTRUCTOR_ID: 3898322458;
+            CONSTRUCTOR_ID: 841173339;
             SUBCLASS_OF_ID: 3568569182;
             classType: "request";
             className: "messages.GetUnreadReactions";
             static fromReader(reader: Reader): GetUnreadReactions;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
             offsetId: int;
             addOffset: int;
             limit: int;
@@ -19903,16 +20272,20 @@ export namespace Api {
         }
         export class ReadReactions extends Request<
             Partial<{
+                // flags: null;
                 peer: Api.TypeEntityLike;
+                topMsgId?: MessageIDLike;
             }>,
             messages.TypeAffectedHistory
         > {
-            CONSTRUCTOR_ID: 2195870167;
+            CONSTRUCTOR_ID: 1420459918;
             SUBCLASS_OF_ID: 743031062;
             classType: "request";
             className: "messages.ReadReactions";
             static fromReader(reader: Reader): ReadReactions;
+            // flags: null;
             peer: Api.TypeEntityLike;
+            topMsgId?: MessageIDLike;
         }
         export class SearchSentMedia extends Request<
             Partial<{
@@ -19984,11 +20357,12 @@ export namespace Api {
                 themeParams?: Api.TypeDataJSON;
                 platform: string;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 sendAs?: Api.TypeEntityLike;
             }>,
             Api.TypeWebViewResult
         > {
-            CONSTRUCTOR_ID: 4236748092;
+            CONSTRUCTOR_ID: 395003915;
             SUBCLASS_OF_ID: 2479793990;
             classType: "request";
             className: "messages.RequestWebView";
@@ -20003,6 +20377,7 @@ export namespace Api {
             themeParams?: Api.TypeDataJSON;
             platform: string;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             sendAs?: Api.TypeEntityLike;
         }
         export class ProlongWebView extends Request<
@@ -20013,11 +20388,12 @@ export namespace Api {
                 bot: Api.TypeEntityLike;
                 queryId: long;
                 replyToMsgId?: MessageIDLike;
+                topMsgId?: MessageIDLike;
                 sendAs?: Api.TypeEntityLike;
             }>,
             Bool
         > {
-            CONSTRUCTOR_ID: 3932142798;
+            CONSTRUCTOR_ID: 2146648841;
             SUBCLASS_OF_ID: 4122188204;
             classType: "request";
             className: "messages.ProlongWebView";
@@ -20028,6 +20404,7 @@ export namespace Api {
             bot: Api.TypeEntityLike;
             queryId: long;
             replyToMsgId?: MessageIDLike;
+            topMsgId?: MessageIDLike;
             sendAs?: Api.TypeEntityLike;
         }
         export class RequestSimpleWebView extends Request<
@@ -21394,6 +21771,186 @@ export namespace Api {
             channel: Api.TypeEntityLike;
             enabled: Bool;
         }
+        export class ReorderUsernames extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                order: string[];
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 3025988893;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "channels.ReorderUsernames";
+            static fromReader(reader: Reader): ReorderUsernames;
+            channel: Api.TypeEntityLike;
+            order: string[];
+        }
+        export class ToggleUsername extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                username: string;
+                active: Bool;
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 1358053637;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "channels.ToggleUsername";
+            static fromReader(reader: Reader): ToggleUsername;
+            channel: Api.TypeEntityLike;
+            username: string;
+            active: Bool;
+        }
+        export class DeactivateAllUsernames extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 170155475;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "channels.DeactivateAllUsernames";
+            static fromReader(reader: Reader): DeactivateAllUsernames;
+            channel: Api.TypeEntityLike;
+        }
+        export class ToggleForum extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                enabled: Bool;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 2754186025;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "channels.ToggleForum";
+            static fromReader(reader: Reader): ToggleForum;
+            channel: Api.TypeEntityLike;
+            enabled: Bool;
+        }
+        export class CreateForumTopic extends Request<
+            Partial<{
+                // flags: null;
+                channel: Api.TypeEntityLike;
+                title: string;
+                iconColor?: int;
+                iconEmojiId?: long;
+                randomId?: long;
+                sendAs?: Api.TypeEntityLike;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 4094427684;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "channels.CreateForumTopic";
+            static fromReader(reader: Reader): CreateForumTopic;
+            // flags: null;
+            channel: Api.TypeEntityLike;
+            title: string;
+            iconColor?: int;
+            iconEmojiId?: long;
+            randomId?: long;
+            sendAs?: Api.TypeEntityLike;
+        }
+        export class GetForumTopics extends Request<
+            Partial<{
+                // flags: null;
+                channel: Api.TypeEntityLike;
+                q?: string;
+                offsetDate: int;
+                offsetId: int;
+                offsetTopic: int;
+                limit: int;
+            }>,
+            messages.TypeForumTopics
+        > {
+            CONSTRUCTOR_ID: 233136337;
+            SUBCLASS_OF_ID: 2384281118;
+            classType: "request";
+            className: "channels.GetForumTopics";
+            static fromReader(reader: Reader): GetForumTopics;
+            // flags: null;
+            channel: Api.TypeEntityLike;
+            q?: string;
+            offsetDate: int;
+            offsetId: int;
+            offsetTopic: int;
+            limit: int;
+        }
+        export class GetForumTopicsByID extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                topics: int[];
+            }>,
+            messages.TypeForumTopics
+        > {
+            CONSTRUCTOR_ID: 2961383097;
+            SUBCLASS_OF_ID: 2384281118;
+            classType: "request";
+            className: "channels.GetForumTopicsByID";
+            static fromReader(reader: Reader): GetForumTopicsByID;
+            channel: Api.TypeEntityLike;
+            topics: int[];
+        }
+        export class EditForumTopic extends Request<
+            Partial<{
+                // flags: null;
+                channel: Api.TypeEntityLike;
+                topicId: int;
+                title?: string;
+                iconEmojiId?: long;
+                closed?: Bool;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 1820868141;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "channels.EditForumTopic";
+            static fromReader(reader: Reader): EditForumTopic;
+            // flags: null;
+            channel: Api.TypeEntityLike;
+            topicId: int;
+            title?: string;
+            iconEmojiId?: long;
+            closed?: Bool;
+        }
+        export class UpdatePinnedForumTopic extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                topicId: int;
+                pinned: Bool;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 1814925350;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "channels.UpdatePinnedForumTopic";
+            static fromReader(reader: Reader): UpdatePinnedForumTopic;
+            channel: Api.TypeEntityLike;
+            topicId: int;
+            pinned: Bool;
+        }
+        export class DeleteTopicHistory extends Request<
+            Partial<{
+                channel: Api.TypeEntityLike;
+                topMsgId: MessageIDLike;
+            }>,
+            messages.TypeAffectedHistory
+        > {
+            CONSTRUCTOR_ID: 876830509;
+            SUBCLASS_OF_ID: 743031062;
+            classType: "request";
+            className: "channels.DeleteTopicHistory";
+            static fromReader(reader: Reader): DeleteTopicHistory;
+            channel: Api.TypeEntityLike;
+            topMsgId: MessageIDLike;
+        }
     }
 
     export namespace bots {
@@ -22680,7 +23237,9 @@ export namespace Api {
         | MessageActionChatJoinedByRequest
         | MessageActionWebViewDataSentMe
         | MessageActionWebViewDataSent
-        | MessageActionGiftPremium;
+        | MessageActionGiftPremium
+        | MessageActionTopicCreate
+        | MessageActionTopicEdit;
     export type TypeDialog = Dialog | DialogFolder;
     export type TypePhoto = PhotoEmpty | Photo;
     export type TypePhotoSize =
@@ -22695,7 +23254,8 @@ export namespace Api {
         | InputNotifyPeer
         | InputNotifyUsers
         | InputNotifyChats
-        | InputNotifyBroadcasts;
+        | InputNotifyBroadcasts
+        | InputNotifyForumTopic;
     export type TypeInputPeerNotifySettings = InputPeerNotifySettings;
     export type TypePeerNotifySettings = PeerNotifySettings;
     export type TypePeerSettings = PeerSettings;
@@ -22840,7 +23400,8 @@ export namespace Api {
         | UpdateRecentEmojiStatuses
         | UpdateRecentReactions
         | UpdateMoveStickerSetToTop
-        | UpdateMessageExtendedMedia;
+        | UpdateMessageExtendedMedia
+        | UpdateChannelPinnedTopic;
     export type TypeUpdates =
         | UpdatesTooLong
         | UpdateShortMessage
@@ -22874,7 +23435,8 @@ export namespace Api {
         | NotifyPeer
         | NotifyUsers
         | NotifyChats
-        | NotifyBroadcasts;
+        | NotifyBroadcasts
+        | NotifyForumTopic;
     export type TypeSendMessageAction =
         | SendMessageTypingAction
         | SendMessageCancelAction
@@ -22966,7 +23528,8 @@ export namespace Api {
         | InputStickerSetAnimatedEmojiAnimations
         | InputStickerSetPremiumGifts
         | InputStickerSetEmojiGenericAnimations
-        | InputStickerSetEmojiDefaultStatuses;
+        | InputStickerSetEmojiDefaultStatuses
+        | InputStickerSetEmojiDefaultTopicIcons;
     export type TypeStickerSet = StickerSet;
     export type TypeBotCommand = BotCommand;
     export type TypeBotInfo = BotInfo;
@@ -23214,7 +23777,13 @@ export namespace Api {
         | ChannelAdminLogEventActionParticipantJoinByRequest
         | ChannelAdminLogEventActionToggleNoForwards
         | ChannelAdminLogEventActionSendMessage
-        | ChannelAdminLogEventActionChangeAvailableReactions;
+        | ChannelAdminLogEventActionChangeAvailableReactions
+        | ChannelAdminLogEventActionChangeUsernames
+        | ChannelAdminLogEventActionToggleForum
+        | ChannelAdminLogEventActionCreateTopic
+        | ChannelAdminLogEventActionEditTopic
+        | ChannelAdminLogEventActionDeleteTopic
+        | ChannelAdminLogEventActionPinTopic;
     export type TypeChannelAdminLogEvent = ChannelAdminLogEvent;
     export type TypeChannelAdminLogEventsFilter = ChannelAdminLogEventsFilter;
     export type TypePopularContact = PopularContact;
@@ -23445,6 +24014,9 @@ export namespace Api {
     export type TypeMessageExtendedMedia =
         | MessageExtendedMediaPreview
         | MessageExtendedMedia;
+    export type TypeStickerKeyword = StickerKeyword;
+    export type TypeUsername = Username;
+    export type TypeForumTopic = ForumTopicDeleted | ForumTopic;
     export type TypeResPQ = ResPQ;
     export type TypeP_Q_inner_data =
         | PQInnerData
@@ -23610,6 +24182,8 @@ export namespace Api {
         | account.GetDefaultEmojiStatuses
         | account.GetRecentEmojiStatuses
         | account.ClearRecentEmojiStatuses
+        | account.ReorderUsernames
+        | account.ToggleUsername
         | users.GetUsers
         | users.GetFullUser
         | users.SetSecureValueErrors
@@ -23890,6 +24464,16 @@ export namespace Api {
         | channels.DeleteParticipantHistory
         | channels.ToggleJoinToSend
         | channels.ToggleJoinRequest
+        | channels.ReorderUsernames
+        | channels.ToggleUsername
+        | channels.DeactivateAllUsernames
+        | channels.ToggleForum
+        | channels.CreateForumTopic
+        | channels.GetForumTopics
+        | channels.GetForumTopicsByID
+        | channels.EditForumTopic
+        | channels.UpdatePinnedForumTopic
+        | channels.DeleteTopicHistory
         | bots.SendCustomRequest
         | bots.AnswerWebhookJSONQuery
         | bots.SetBotCommands
