@@ -14,7 +14,7 @@
 import { AuthKey } from "../crypto/AuthKey";
 import { MTProtoState } from "./MTProtoState";
 
-import { BinaryReader, CancelHelper, Logger } from "../extensions";
+import { BinaryReader, Logger } from "../extensions";
 import { MessagePacker } from "../extensions";
 import { GZIPPacked, MessageContainer, RPCResult, TLMessage } from "../tl/core";
 import { Api } from "../tl";
@@ -34,6 +34,11 @@ import { Connection, UpdateConnectionState } from "./";
 import type { TelegramClient } from "..";
 import { LogLevel } from "../extensions/Logger";
 import { Mutex } from "async-mutex";
+import {
+    pseudoCancellable,
+    CancellablePromise,
+    Cancellation,
+} from "real-cancellable-promise";
 
 interface DEFAULT_OPTIONS {
     logger: any;
@@ -101,11 +106,8 @@ export class MTProtoSender {
     _authenticated: boolean;
     private _securityChecks: boolean;
     private _connectMutex: Mutex;
-    private _recvCancelPromise: Promise<CancelHelper>;
-    private _recvCancelResolve?: (value: CancelHelper) => void;
-    private _sendCancelPromise: Promise<CancelHelper>;
-    private _sendCancelResolve?: (value: CancelHelper) => void;
     private _cancelSend: boolean;
+    cancellableRecvLoopPromise?: CancellablePromise<any>;
 
     /**
      * @param authKey
@@ -135,12 +137,6 @@ export class MTProtoSender {
 
         this._connectMutex = new Mutex();
 
-        this._recvCancelPromise = new Promise((resolve) => {
-            this._recvCancelResolve = resolve;
-        });
-        this._sendCancelPromise = new Promise((resolve) => {
-            this._sendCancelResolve = resolve;
-        });
         /**
          * whether we disconnected ourself or telegram did it.
          */
@@ -438,14 +434,7 @@ export class MTProtoSender {
 
     _cancelLoops() {
         this._cancelSend = true;
-        this._recvCancelResolve!(new CancelHelper());
-        this._sendCancelResolve!(new CancelHelper());
-        this._recvCancelPromise = new Promise((resolve) => {
-            this._recvCancelResolve = resolve;
-        });
-        this._sendCancelPromise = new Promise((resolve) => {
-            this._sendCancelResolve = resolve;
-        });
+        this.cancellableRecvLoopPromise!.cancel();
     }
 
     /**
@@ -526,14 +515,14 @@ export class MTProtoSender {
         while (this._userConnected && !this._reconnecting) {
             this._log.debug("Receiving items from the network...");
             try {
-                body = await Promise.race([
-                    this._connection!.recv(),
-                    this._recvCancelPromise,
-                ]);
-                if (body instanceof CancelHelper) {
+                this.cancellableRecvLoopPromise = pseudoCancellable(
+                    this._connection!.recv()
+                );
+                body = await this.cancellableRecvLoopPromise;
+            } catch (e: any) {
+                if (e instanceof Cancellation) {
                     return;
                 }
-            } catch (e: any) {
                 this._log.error(e);
                 this._log.warn("Connection closed while receiving data...");
                 this._startReconnecting(e);

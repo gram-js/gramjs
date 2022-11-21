@@ -13,6 +13,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "declaration": true,
+    "skipLibCheck": true,
     "outDir": "./dist"
   },
   "exclude": ["gramjs/tl/types-generator", "node_modules"],

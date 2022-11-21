@@ -80,6 +80,12 @@ To get a browser bundle of GramJS, use the following command:
 NODE_ENV=production npx webpack
 ```
 
+You can also use the helpful script `generate_webpack.js`
+
+```bash
+node generate_webpack.js
+```
+
 ## Calling the raw API
 
 To use raw telegram API methods use [invoke function](https://gram.js.org/beta/classes/TelegramClient.html#invoke).
