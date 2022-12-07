@@ -98,12 +98,10 @@ const DISCONNECT_SLEEP = 1000;
 async function getFileBuffer(
     file: File | CustomFile,
     fileSize: number,
-    maxBufferSize?: number
+    maxBufferSize: number
 ): Promise<CustomBuffer> {
-    const isBiggerThan2Gb = fileSize > 2 ** 31 - 1;
-    const usePath = maxBufferSize ? fileSize > maxBufferSize : false;
     const options: CustomBufferOptions = {};
-    if ((usePath || isBiggerThan2Gb) && file instanceof CustomFile) {
+    if (fileSize > maxBufferSize && file instanceof CustomFile) {
         options.filePath = file.path;
     } else {
         options.buffer = Buffer.from(await fileToBuffer(file));
@@ -126,7 +124,7 @@ export async function uploadFile(
 
     const partSize = getAppropriatedPartSize(bigInt(size)) * KB_TO_BYTES;
     const partCount = Math.floor((size + partSize - 1) / partSize);
-    const buffer = await getFileBuffer(file, size, fileParams.maxBufferSize);
+    const buffer = await getFileBuffer(file, size, fileParams.maxBufferSize || /* 2G */ 2 ** 31 - 1);
 
     // Make sure a new sender can be created before starting upload
     await client.getSender(client.session.dcId);
