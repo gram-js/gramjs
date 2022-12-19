@@ -12,6 +12,7 @@ env:
 on:
   schedule:
   - cron: '30 19 * * *'
+  workflow-dispatch:
 
 jobs:
   stale:
@@ -25,10 +26,10 @@ jobs:
     - uses: actions/stale@v5
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        days-before-issue-stale: 30
-        days-before-pr-stale: 30
-        days-before-issue-close: 90
-        days-before-pr-close: 90
+        days-before-issue-stale: $BEFORE_STALE
+        days-before-pr-stale: $BEFORE_STALE
+        days-before-issue-close: $BEFORE_CLOSE
+        days-before-pr-close: $BEFORE_CLOSE
         stale-issue-message: 'This issue has been inactive for $BEFORE_STALE days and has been marked as stale. It will be closed in $BEFORE_CLOSE days'
         stale-pr-message: 'This issue has had no activity in $BEFORE_STALE days and has been marked as stale. It will be closed in $BEFORE_CLOSE days'
         close-issue-message: 'This issue has been closed due to being inactive for ${env.BEFORE_STALE + env.BEFORE_CLOSE}}'
