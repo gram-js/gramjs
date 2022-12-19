@@ -2,16 +2,16 @@ import { MemorySession } from "./Memory";
 import store, { StoreBase } from "store2";
 import { AuthKey } from "../crypto/AuthKey";
 import bigInt from "big-integer";
-import { LocalStorage } from "./localStorage";
 
 export class StoreSession extends MemorySession {
     private readonly sessionName: string;
     private store: StoreBase;
 
-    constructor(sessionName: string, divider = ":") { // divider becomes URL encoded name on Windows (%3A)
+    constructor(sessionName: string, divider = ":") {
         super();
         if (typeof localStorage === "undefined" || localStorage === null) {
-            this.store = store.area(Date.now().toString(), new LocalStorage(sessionName));
+            const LocalStorage = require("./localStorage").LocalStorage;
+            this.store = store.area("fs", new LocalStorage("./" + sessionName));
         } else {
             this.store = store.area("fs", localStorage);
         }
