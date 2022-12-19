@@ -100,6 +100,8 @@ General documentation, use cases, quick start, refer to [gram.js.org](https://gr
 
 For more advanced documentation refer to [gram.js.org/beta](https://gram.js.org/beta) (work in progress).
 
+If your ISP is blocking Telegram, you can check [My ISP blocks Telegram. How can I still use GramJS?](https://gist.github.com/SecurityAndStuff/7cd04b28216c49b73b30a64d56d630ab)
+
 ## Ask a question
 
 If you have any questions about GramJS, feel free to open an issue or ask directly in our telegram group - [@GramJSChat](https://t.me/gramjschat).
