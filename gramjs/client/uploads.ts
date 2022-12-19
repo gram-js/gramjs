@@ -125,7 +125,11 @@ export async function uploadFile(
 
     const partSize = getAppropriatedPartSize(bigInt(size)) * KB_TO_BYTES;
     const partCount = Math.floor((size + partSize - 1) / partSize);
-    const buffer = await getFileBuffer(file, size, fileParams.maxBufferSize || BUFFER_SIZE_2GB  - 1);
+    const buffer = await getFileBuffer(
+        file,
+        size,
+        fileParams.maxBufferSize || BUFFER_SIZE_2GB - 1
+    );
 
     // Make sure a new sender can be created before starting upload
     await client.getSender(client.session.dcId);

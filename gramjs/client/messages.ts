@@ -149,7 +149,7 @@ export class _MessagesIter extends RequestIter {
                 fromId: fromUser,
             });
             if (
-                filter instanceof Api.InputMessagesFilterEmpty &&
+                !(filter instanceof Api.InputMessagesFilterEmpty) &&
                 offsetDate &&
                 !search &&
                 !offsetId
