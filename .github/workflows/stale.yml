@@ -12,7 +12,8 @@ env:
 on:
   schedule:
   - cron: '30 19 * * *'
-  workflow-dispatch:
+  
+  workflow_dispatch:
 
 jobs:
   stale:
