@@ -11,9 +11,12 @@ export class StoreSession extends MemorySession {
         super();
         if (typeof localStorage === "undefined" || localStorage === null) {
             const LocalStorage = require("./localStorage").LocalStorage;
-            this.store = store.area("fs", new LocalStorage("./" + sessionName));
+            this.store = store.area(
+                sessionName,
+                new LocalStorage("./" + sessionName)
+            );
         } else {
-            this.store = store.area("fs", localStorage);
+            this.store = store.area(sessionName, localStorage);
         }
         if (divider == undefined) {
             divider = ":";
