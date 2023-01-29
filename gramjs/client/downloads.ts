@@ -232,9 +232,7 @@ export class GenericDownloadIter extends DirectDownloadIter {
         let data = Buffer.alloc(0);
 
         //  1.1. ``bad`` is how much into the data we have we need to offset
-        const bad = this.request!.offset.divide(
-            this.request!.limit
-        ).toJSNumber();
+        const bad = this.request!.offset.mod(this.request!.limit).toJSNumber()
         const before = this.request!.offset;
 
         // 1.2. We have to fetch from a valid offset, so remove that bad part
