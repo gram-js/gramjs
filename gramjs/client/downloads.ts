@@ -232,7 +232,7 @@ export class GenericDownloadIter extends DirectDownloadIter {
         let data = Buffer.alloc(0);
 
         //  1.1. ``bad`` is how much into the data we have we need to offset
-        const bad = this.request!.offset.mod(this.request!.limit).toJSNumber()
+        const bad = this.request!.offset.mod(this.request!.limit).toJSNumber();
         const before = this.request!.offset;
 
         // 1.2. We have to fetch from a valid offset, so remove that bad part
@@ -622,7 +622,7 @@ export async function _downloadDocument(
             id: doc.id,
             accessHash: doc.accessHash,
             fileReference: doc.fileReference,
-            thumbSize: size ? size.type : "",
+            thumbSize: size && "type" in size ? size.type : "",
         }),
         {
             outputFile: outputFile,
@@ -668,10 +668,10 @@ function pickFileSize(sizes: Api.TypePhotoSize[], sizeType: string) {
 
 /** @hidden */
 function getThumb(
-    thumbs: (Api.TypePhotoSize | Api.VideoSize)[],
+    thumbs: (Api.TypePhotoSize | Api.TypeVideoSize)[],
     thumb?: number | string | Api.TypePhotoSize | Api.VideoSize
 ) {
-    function sortThumb(thumb: Api.TypePhotoSize | Api.VideoSize) {
+    function sortThumb(thumb: Api.TypePhotoSize | Api.TypeVideoSize) {
         if (thumb instanceof Api.PhotoStrippedSize) {
             return thumb.bytes.length;
         }
@@ -703,7 +703,7 @@ function getThumb(
         return correctThumbs[thumb];
     } else if (typeof thumb == "string") {
         for (const t of correctThumbs) {
-            if (t.type == thumb) {
+            if ("type" in t && t.type == thumb) {
                 return t;
             }
         }
@@ -796,7 +796,7 @@ export async function _downloadPhoto(
     if (size instanceof Api.PhotoSizeProgressive) {
         fileSize = Math.max(...size.sizes);
     } else {
-        fileSize = size.size;
+        fileSize = "size" in size ? size.size : 512;
     }
 
     return downloadFileV2(
@@ -805,7 +805,7 @@ export async function _downloadPhoto(
             id: photo.id,
             accessHash: photo.accessHash,
             fileReference: photo.fileReference,
-            thumbSize: size.type,
+            thumbSize: "type" in size ? size.type : "",
         }),
         {
             outputFile: file,

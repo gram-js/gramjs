@@ -531,6 +531,7 @@ export interface ForwardMessagesParams {
     silent?: boolean;
     /** If set, the message(s) won't forward immediately, and instead they will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
+    dropAuthor?: boolean;
     noforwards?: boolean;
 }
 
@@ -821,7 +822,14 @@ export async function sendMessage(
 export async function forwardMessages(
     client: TelegramClient,
     entity: EntityLike,
-    { messages, fromPeer, silent, schedule, noforwards }: ForwardMessagesParams
+    {
+        messages,
+        fromPeer,
+        silent,
+        schedule,
+        noforwards,
+        dropAuthor,
+    }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
         messages = [messages];
@@ -869,6 +877,7 @@ export async function forwardMessages(
             silent: silent,
             scheduleDate: schedule,
             noforwards: noforwards,
+            dropAuthor: dropAuthor,
         });
         const result = await client.invoke(request);
         sent.push(

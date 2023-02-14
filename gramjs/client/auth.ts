@@ -381,6 +381,8 @@ export async function sendCode(
                 settings: new Api.CodeSettings({}),
             })
         );
+        if (sendResult instanceof Api.auth.SentCodeSuccess)
+            throw new Error("logged in right after sending the code");
 
         // If we already sent a SMS, do not resend the phoneCode (hash may be empty)
         if (!forceSMS || sendResult.type instanceof Api.auth.SentCodeTypeSms) {
@@ -397,6 +399,8 @@ export async function sendCode(
                 phoneCodeHash: sendResult.phoneCodeHash,
             })
         );
+        if (resendResult instanceof Api.auth.SentCodeSuccess)
+            throw new Error("logged in right after resending the code");
 
         return {
             phoneCodeHash: resendResult.phoneCodeHash,
