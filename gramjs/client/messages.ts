@@ -14,6 +14,7 @@ import {
     TotalList,
     isArrayLike,
     groupBy,
+    generateRandomBigInt,
 } from "../Helpers";
 import { getInputMedia, getMessageId, getPeerId, parseID } from "../Utils";
 import type { TelegramClient } from "../";
@@ -145,7 +146,7 @@ export class _MessagesIter extends RequestIter {
                 limit: 0,
                 maxId: 0,
                 minId: 0,
-                hash: bigInt.zero,
+                hash: generateRandomBigInt(),
                 fromId: fromUser,
             });
             if (
