@@ -519,6 +519,10 @@ export interface SendMessageParams {
      If there is no linked chat, `SG_ID_INVALID` is thrown.
      */
     commentTo?: number | Api.Message;
+    /**
+     * Used for threads to reply to a specific thread
+     */
+    topMsgId?: number | Api.Message;
 }
 
 /** interface used for forwarding messages */
@@ -706,6 +710,7 @@ export async function sendMessage(
         schedule,
         noforwards,
         commentTo,
+        topMsgId,
     }: SendMessageParams = {}
 ) {
     if (file) {
@@ -729,6 +734,7 @@ export async function sendMessage(
             buttons: buttons,
             noforwards: noforwards,
             commentTo: commentTo,
+            topMsgId: topMsgId,
         });
     }
     entity = await client.getInputEntity(entity);
@@ -766,6 +772,7 @@ export async function sendMessage(
             message: message.message || "",
             silent: silent,
             replyToMsgId: getMessageId(replyTo),
+            topMsgId: getMessageId(topMsgId),
             replyMarkup: markup,
             entities: message.entities,
             clearDraft: clearDraft,

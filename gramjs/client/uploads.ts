@@ -288,6 +288,10 @@ export interface SendFileInterface {
      If there is no linked chat, `SG_ID_INVALID` is thrown.
      */
     commentTo?: number | Api.Message;
+    /**
+     * Used for threads to reply to a specific thread
+     */
+    topMsgId?: number | Api.Message;
 }
 
 interface FileToMediaInterface {
@@ -514,6 +518,7 @@ export async function _sendAlbum(
         workers = 1,
         noforwards,
         commentTo,
+        topMsgId,
     }: SendFileInterface
 ) {
     entity = await client.getInputEntity(entity);
@@ -595,6 +600,7 @@ export async function _sendAlbum(
         new Api.messages.SendMultiMedia({
             peer: entity,
             replyToMsgId: replyTo,
+            topMsgId: utils.getMessageId(topMsgId),
             multiMedia: albumFiles,
             silent: silent,
             scheduleDate: scheduleDate,
@@ -631,6 +637,7 @@ export async function sendFile(
         workers = 1,
         noforwards,
         commentTo,
+        topMsgId,
     }: SendFileInterface
 ) {
     if (!file) {
@@ -695,6 +702,7 @@ export async function sendFile(
         peer: entity,
         media: media,
         replyToMsgId: replyTo,
+        topMsgId: utils.getMessageId(topMsgId),
         message: caption,
         entities: msgEntities,
         replyMarkup: markup,
