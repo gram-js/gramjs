@@ -146,13 +146,12 @@ export function readBufferFromBigInt(
     let buffer = Buffer.from(hex, "hex");
 
     if (signed && below) {
-            buffer[buffer.length - 1] =
-                256 - buffer[buffer.length - 1];
-            for (let i = 0; i < buffer.length - 1; i++) {
-                buffer[i] = 255 - buffer[i];
-            }
-
-    } if (little) {
+        buffer[buffer.length - 1] = 256 - buffer[buffer.length - 1];
+        for (let i = 0; i < buffer.length - 1; i++) {
+            buffer[i] = 255 - buffer[i];
+        }
+    }
+    if (little) {
         buffer = buffer.reverse();
     }
 
