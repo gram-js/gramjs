@@ -211,7 +211,7 @@ export class HTMLParser {
 </code>
 </pre>`);
                 } else {
-                    html.push(`<pre></pre><code>${entityText}</code><pre>`);
+                    html.push(`<pre>${entityText}</pre>`);
                 }
             } else if (entity instanceof Api.MessageEntityEmail) {
                 html.push(`<a href="mailto:${entityText}">${entityText}</a>`);

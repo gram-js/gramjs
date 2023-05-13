@@ -1,10 +1,10 @@
-import {MTProtoState} from "../../gramjs/network/MTProtoState";
+import { MTProtoState } from "../../gramjs/network/MTProtoState";
 
 describe("calcKey function", () => {
   test(
     "it should return 0x93355e3f1f50529b6fb93eaf97f29b69c16345f53621e9d45cd9a11ddfbebac9 and" +
       " 11e94363ad7145222e2fbac4aaa27f01a6d832fb8115e89395bc43e23f868e47",
-    async() => {
+    async () => {
       const authKey = Buffer.from(
         "bbf38532a79cd64363b490b3bc5e258adfc1d1a67ef3c6d322caac603f90a15215b609" +
           "0ccb2226b477b24eb3412757d078d53c72b81864d1376ff20eb405a591781726495407628d8d611e37ecd6e23c605b57c5" +
@@ -23,7 +23,11 @@ describe("calcKey function", () => {
         "11e94363ad7145222e2fbac4aaa27f01a6d832fb8115e89395bc43e23f868e47",
         "hex"
       );
-      const { key, iv } = await new MTProtoState()._calcKey(authKey, msgKey, false);
+      const { key, iv } = await new MTProtoState()._calcKey(
+        authKey,
+        msgKey,
+        false
+      );
 
       expect([aesKey, aesIv]).toEqual([key, iv]);
     }

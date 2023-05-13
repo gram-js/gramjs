@@ -1,6 +1,13 @@
-import bigInt from 'big-integer'
-import * as Helpers from '../../gramjs/Helpers';
+import bigInt from "big-integer";
+import * as Helpers from "../../gramjs/Helpers";
 
+describe("readBufferFromBigInt 4 bytes function", () => {
+  test("it should return 0x0000ff00", () => {
+    const input = bigInt("-65537");
+    const output = Buffer.from([0xff, 0xff, 0xfe, 0xff]);
+    expect(Helpers.readBufferFromBigInt(input, 4, true, true)).toEqual(output);
+  });
+});
 describe("readBufferFromBigInt 8 bytes function", () => {
   test("it should return 0x20a13b25e1726bfc", () => {
     const input = bigInt("-257986242325798624");

@@ -1,4 +1,4 @@
-import bigInt from 'big-integer';
+import bigInt from "big-integer";
 import { Factorizator } from "../../gramjs/crypto/Factorizator";
 
 describe("calcKey function", () => {

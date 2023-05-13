@@ -41,15 +41,19 @@ describe("HTMLParser", () => {
     test("it should parse link entities", () => {
       const [text, entities] = HTMLParser.parse(
         'Hello <a href="https://hello.world">world</a>'
-      );;
+      );
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
-      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual("https://hello.world");
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "https://hello.world"
+      );
     });
 
     test("it should parse nested entities", () => {
-      const [text, entities] = HTMLParser.parse("Hello <strong><em>world</em></strong>");
+      const [text, entities] = HTMLParser.parse(
+        "Hello <strong><em>world</em></strong>"
+      );
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(2);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityItalic);
@@ -57,7 +61,9 @@ describe("HTMLParser", () => {
     });
 
     test("it should parse multiple entities", () => {
-      const [text, entities] = HTMLParser.parse("<em>Hello</em> <strong>world</strong>");
+      const [text, entities] = HTMLParser.parse(
+        "<em>Hello</em> <strong>world</strong>"
+      );
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(2);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityItalic);

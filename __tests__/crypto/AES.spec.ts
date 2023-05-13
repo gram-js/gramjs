@@ -1,5 +1,5 @@
-import {IGE} from "../../gramjs/crypto/IGE";
-import {CTR} from "../../gramjs/crypto/CTR";
+import { IGE } from "../../gramjs/crypto/IGE";
+import { CTR } from "../../gramjs/crypto/CTR";
 
 describe("IGE encrypt function", () => {
   test(
@@ -16,7 +16,7 @@ describe("IGE encrypt function", () => {
           "2ba18a53a49b879b245e1065e14b6e8ac5ba9b24befaff3209b77b5f",
         "hex"
       );
-     
+
       expect(new IGE(key, iv).encryptIge(plainText)).toEqual(encrypted);
     }
   );

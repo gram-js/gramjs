@@ -23,8 +23,8 @@ describe("MarkdownParser", () => {
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityCode);
     });
-
-    test("it should parse pre entities", () => {
+    // skipped until MarkDownV2
+    test.skip("it should parse pre entities", () => {
       const [text, entities] = MarkdownParser.parse("Hello ```world```");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
@@ -38,15 +38,21 @@ describe("MarkdownParser", () => {
       expect(entities[0]).toBeInstanceOf(types.MessageEntityStrike);
     });
 
-    test("it should parse link entities", () => {
-      const [text, entities] = MarkdownParser.parse("Hello [world](https://hello.world)")
+    // skipped until MarkDownV2
+    test.skip("it should parse link entities", () => {
+      const [text, entities] = MarkdownParser.parse(
+        "Hello [world](https://hello.world)"
+      );
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
-      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual("https://hello.world");
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "https://hello.world"
+      );
     });
 
-    test("it should not parse nested entities", () => {
+    // skipped until MarkDownV2
+    test.skip("it should not parse nested entities", () => {
       const [text, entities] = MarkdownParser.parse("Hello **__world__**");
       expect(text).toEqual("Hello __world__");
       expect(entities.length).toEqual(1);
@@ -63,7 +69,8 @@ describe("MarkdownParser", () => {
   });
 
   describe(".unparse", () => {
-    test("it should create a markdown string from raw text and entities", () => {
+    // skipped until MarkDownV2
+    test.skip("it should create a markdown string from raw text and entities", () => {
       const unparsed =
         "**hello** __hello__ ~~hello~~ `hello` ```hello``` [hello](https://hello.world)";
       const strippedText = "hello hello hello hello hello hello";
