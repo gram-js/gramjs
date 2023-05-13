@@ -1,74 +1,60 @@
-const { MarkdownParser } = require("../../gramjs/extensions/Markdown");
-const types = require("../../gramjs/tl/types");
+import { MarkdownParser } from "../../gramjs/extensions/markdown";
+import { Api as types } from "../../gramjs/tl/api";
 
 describe("MarkdownParser", () => {
-  test("it should construct a new MarkdownParser", () => {
-    const parser = new MarkdownParser("Hello world");
-    expect(parser.text).toEqual("");
-    expect(parser.entities).toEqual([]);
-  });
-
   describe(".parse", () => {
     test("it should parse bold entities", () => {
-      const parser = new MarkdownParser("Hello **world**");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello **world**");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityBold);
     });
 
     test("it should parse italic entities", () => {
-      const parser = new MarkdownParser("Hello __world__");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello __world__");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityItalic);
     });
 
     test("it should parse code entities", () => {
-      const parser = new MarkdownParser("Hello `world`");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello `world`");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityCode);
     });
 
     test("it should parse pre entities", () => {
-      const parser = new MarkdownParser("Hello ```world```");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello ```world```");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityPre);
     });
 
     test("it should parse strike entities", () => {
-      const parser = new MarkdownParser("Hello ~~world~~");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello ~~world~~");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityStrike);
     });
 
     test("it should parse link entities", () => {
-      const parser = new MarkdownParser("Hello [world](https://hello.world)");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello [world](https://hello.world)")
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
-      expect(entities[0].url).toEqual("https://hello.world");
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual("https://hello.world");
     });
 
     test("it should not parse nested entities", () => {
-      const parser = new MarkdownParser("Hello **__world__**");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("Hello **__world__**");
       expect(text).toEqual("Hello __world__");
       expect(entities.length).toEqual(1);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityBold);
     });
 
     test("it should parse multiple entities", () => {
-      const parser = new MarkdownParser("__Hello__ **world**");
-      const [text, entities] = parser.parse();
+      const [text, entities] = MarkdownParser.parse("__Hello__ **world**");
       expect(text).toEqual("Hello world");
       expect(entities.length).toEqual(2);
       expect(entities[0]).toBeInstanceOf(types.MessageEntityItalic);
@@ -86,7 +72,7 @@ describe("MarkdownParser", () => {
         new types.MessageEntityItalic({ offset: 6, length: 5 }),
         new types.MessageEntityStrike({ offset: 12, length: 5 }),
         new types.MessageEntityCode({ offset: 18, length: 5 }),
-        new types.MessageEntityPre({ offset: 24, length: 5 }),
+        new types.MessageEntityPre({ offset: 24, length: 5, language: "" }),
         new types.MessageEntityTextUrl({
           offset: 30,
           length: 5,
