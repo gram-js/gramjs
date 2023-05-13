@@ -1,5 +1,6 @@
-const AES = require("../../gramjs/crypto/AES");
-const AESModeCTR = require("../../gramjs/crypto/AESCTR");
+import {IGE} from "../../gramjs/crypto/IGE";
+import {CTR} from "../../gramjs/crypto/CTR";
+
 describe("IGE encrypt function", () => {
   test(
     "it should return 4a657a834edc2956ec95b2a42ec8c1f2d1f0a6028ac26fd830ed23855574b4e69dd1a2be2ba18a53a49b879b2" +
@@ -15,7 +16,8 @@ describe("IGE encrypt function", () => {
           "2ba18a53a49b879b245e1065e14b6e8ac5ba9b24befaff3209b77b5f",
         "hex"
       );
-      expect(AES.encryptIge(plainText, key, iv)).toEqual(encrypted);
+     
+      expect(new IGE(key, iv).encryptIge(plainText)).toEqual(encrypted);
     }
   );
 });
@@ -31,7 +33,7 @@ describe("IGE decrypt function", () => {
     const plainText = Buffer.from(
       "this should hold a 64 characters long string. only 10 more left."
     );
-    expect(AES.decryptIge(encrypted, key, iv)).toEqual(plainText);
+    expect(new IGE(key, iv).decryptIge(encrypted)).toEqual(plainText);
   });
 });
 describe("CTR encrypt function", () => {
@@ -41,7 +43,7 @@ describe("CTR encrypt function", () => {
     () => {
       const encryptKey = Buffer.from("the key needs 32 characters long");
       const encryptIv = Buffer.from("the iv does not.");
-      const encryptor = new AESModeCTR(encryptKey, encryptIv);
+      const encryptor = new CTR(encryptKey, encryptIv);
       const firstData = Buffer.from("this can be any length");
       const firstResult = encryptor.encrypt(firstData);
       const secondData = Buffer.from("this also can be anything");
