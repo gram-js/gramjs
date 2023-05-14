@@ -151,7 +151,7 @@ export class TelegramClient extends TelegramBaseClient {
      * logs the user using a QR code to be scanned.<br/>
      * this function generates the QR code that needs to be scanned by mobile.
      * @example
-     * '''ts
+     * ```ts
      * await client.connect();
      * const user = await client.signInUserWithQrCode({ apiId, apiHash },
      * {
@@ -174,7 +174,7 @@ export class TelegramClient extends TelegramBaseClient {
      * );
      * console.log("user is", user);
      *
-     * '''
+     * ```
      * @param apiCredentials - credentials to be used.
      * @param authParams - user auth params.
      */
