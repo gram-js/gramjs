@@ -36,7 +36,7 @@ jobs:
 
       - run: npm ci
 
-      - run: NODE_ENV=production npx webpack
+      - run: CI=1 node generate_webpack.js
 
       - uses: softprops/action-gh-release@v1
         with:
