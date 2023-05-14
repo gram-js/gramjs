@@ -82,7 +82,7 @@ delete packageJSON.dependencies["socks"];
 fs.writeFileSync(
   "package.json",
   JSON.stringify(packageJSON, null, "  "),
-  "utf8",
+  "utf8"
 );
 
 const npmi = exec("npm i");
@@ -120,7 +120,7 @@ npmi.on("close", (code) => {
     fs.writeFileSync(
       "package.json",
       JSON.stringify(packageJSON, null, "  "),
-      "utf8",
+      "utf8"
     );
 
     webpack(webpackConfig, (err, stats) => {
@@ -135,7 +135,7 @@ npmi.on("close", (code) => {
       }
       console.log(
         "DONE!. File created at ",
-        path.resolve(__dirname, "browser/telegram.js"),
+        path.resolve(__dirname, "browser/telegram.js")
       );
     });
   });

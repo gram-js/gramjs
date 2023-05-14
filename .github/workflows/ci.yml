@@ -41,4 +41,3 @@ jobs:
         with:
           generate_release_notes: true
           files: browser/telegram.js
-
