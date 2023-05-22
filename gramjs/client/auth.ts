@@ -456,7 +456,7 @@ export async function signInWithPassword(
         }
     }
     if (emptyPassword) {
-        throw new Error("Account has 2FA enabled.");
+        throw new Error("Account has 2FA disabled.");
     }
     return undefined!; // Never reached (TypeScript fix)
 }
