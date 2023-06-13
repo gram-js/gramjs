@@ -666,6 +666,7 @@ export async function sendFile(
             clearDraft: clearDraft,
             forceDocument: forceDocument,
             noforwards: noforwards,
+            topMsgId: topMsgId,
         });
     }
     if (Array.isArray(caption)) {
