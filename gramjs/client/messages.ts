@@ -537,6 +537,7 @@ export interface ForwardMessagesParams {
     /** If set, the message(s) won't forward immediately, and instead they will be scheduled to be automatically sent at a later time. */
     schedule?: DateLike;
     dropAuthor?: boolean;
+    dropMediaCaptions?: boolean;
     noforwards?: boolean;
 }
 
@@ -837,6 +838,7 @@ export async function forwardMessages(
         schedule,
         noforwards,
         dropAuthor,
+        dropMediaCaptions,
     }: ForwardMessagesParams
 ) {
     if (!isArrayLike(messages)) {
@@ -886,6 +888,7 @@ export async function forwardMessages(
             scheduleDate: schedule,
             noforwards: noforwards,
             dropAuthor: dropAuthor,
+            dropMediaCaptions: dropMediaCaptions,
         });
         const result = await client.invoke(request);
         sent.push(
