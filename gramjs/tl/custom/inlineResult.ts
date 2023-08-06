@@ -4,6 +4,7 @@ import { Api } from "../api";
 import { utils } from "../../";
 import { betterConsoleLog } from "../../Helpers";
 import { inspect } from "../../inspect";
+import { getMessageId } from "../../Utils";
 
 export class InlineResult {
     private _ARTICLE = "article";
@@ -88,7 +89,13 @@ export class InlineResult {
                 "You must provide the entity where the result should be sent to"
             );
         }
-        const replyId = replyTo ? utils.getMessageId(replyTo) : undefined;
+        let replyObject = undefined;
+        if (replyTo != undefined) {
+            replyObject = new Api.InputReplyToMessage({
+                replyToMsgId: getMessageId(replyTo)!,
+            });
+        }
+
         const request = new Api.messages.SendInlineBotResult({
             peer: entity,
             queryId: this._queryId,
@@ -96,7 +103,7 @@ export class InlineResult {
             silent: silent,
             clearDraft: clearDraft,
             hideVia: hideVia,
-            replyToMsgId: replyId,
+            replyTo: replyObject,
         });
         return await this._client.invoke(request);
     }

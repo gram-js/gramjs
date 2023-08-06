@@ -744,6 +744,14 @@ export async function sendMessage(
         replyTo = discussionData.replyTo;
     }
     let markup, request;
+    let replyObject = undefined;
+    if (replyTo != undefined) {
+        replyObject = new Api.InputReplyToMessage({
+            replyToMsgId: getMessageId(replyTo)!,
+            topMsgId: getMessageId(topMsgId),
+        });
+    }
+
     if (message && message instanceof Api.Message) {
         if (buttons == undefined) {
             markup = message.replyMarkup;
@@ -753,6 +761,7 @@ export async function sendMessage(
         if (silent == undefined) {
             silent = message.silent;
         }
+
         if (
             message.media &&
             !(message.media instanceof Api.MessageMediaWebPage)
@@ -771,8 +780,7 @@ export async function sendMessage(
             peer: entity,
             message: message.message || "",
             silent: silent,
-            replyToMsgId: getMessageId(replyTo),
-            topMsgId: getMessageId(topMsgId),
+            replyTo: replyObject,
             replyMarkup: markup,
             entities: message.entities,
             clearDraft: clearDraft,
@@ -800,7 +808,7 @@ export async function sendMessage(
             message: message.toString(),
             entities: formattingEntities,
             noWebpage: !linkPreview,
-            replyToMsgId: getMessageId(replyTo),
+            replyTo: replyObject,
             clearDraft: clearDraft,
             silent: silent,
             replyMarkup: client.buildReplyMarkup(buttons),

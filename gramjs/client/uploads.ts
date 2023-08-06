@@ -2,7 +2,7 @@ import { Api } from "../tl";
 
 import { TelegramClient } from "./TelegramClient";
 import { generateRandomBytes, readBigIntFromBuffer, sleep } from "../Helpers";
-import { getAppropriatedPartSize, getInputMedia } from "../Utils";
+import { getAppropriatedPartSize, getInputMedia, getMessageId } from "../Utils";
 import { EntityLike, FileLike, MarkupLike, MessageIDLike } from "../define";
 import path from "./path";
 import { promises as fs } from "./fs";
@@ -596,11 +596,18 @@ export async function _sendAlbum(
             })
         );
     }
+    let replyObject = undefined;
+    if (replyTo != undefined) {
+        replyObject = new Api.InputReplyToMessage({
+            replyToMsgId: getMessageId(replyTo)!,
+            topMsgId: getMessageId(topMsgId),
+        });
+    }
+
     const result = await client.invoke(
         new Api.messages.SendMultiMedia({
             peer: entity,
-            replyToMsgId: replyTo,
-            topMsgId: utils.getMessageId(topMsgId),
+            replyTo: replyObject,
             multiMedia: albumFiles,
             silent: silent,
             scheduleDate: scheduleDate,
@@ -699,11 +706,18 @@ export async function sendFile(
         throw new Error(`Cannot use ${file} as file.`);
     }
     const markup = client.buildReplyMarkup(buttons);
+    let replyObject = undefined;
+    if (replyTo != undefined) {
+        replyObject = new Api.InputReplyToMessage({
+            replyToMsgId: getMessageId(replyTo)!,
+            topMsgId: getMessageId(topMsgId),
+        });
+    }
+
     const request = new Api.messages.SendMedia({
         peer: entity,
         media: media,
-        replyToMsgId: replyTo,
-        topMsgId: utils.getMessageId(topMsgId),
+        replyTo: replyObject,
         message: caption,
         entities: msgEntities,
         replyMarkup: markup,
