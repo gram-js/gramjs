@@ -35,6 +35,8 @@ export async function invoke<R extends Api.AnyRequest>(
         );
     }
 
+    await client._connectedDeferred.promise;
+
     await request.resolve(client, utils);
     client._lastRequest = new Date().getTime();
     let attempt: number;

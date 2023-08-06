@@ -23,6 +23,8 @@ import {
 import { Semaphore } from "async-mutex";
 import { LogLevel } from "../extensions/Logger";
 import { isBrowser, isNode } from "../platform";
+import Deferred from "../extensions/Deferred";
+import Timeout = NodeJS.Timeout;
 
 const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
@@ -221,6 +223,8 @@ export abstract class TelegramBaseClient {
     /** @hidden */
     _destroyed: boolean;
     /** @hidden */
+    _isSwitchingDc: boolean;
+    /** @hidden */
     protected _proxy?: ProxyInterface;
     /** @hidden */
     _semaphore: Semaphore;
@@ -230,6 +234,7 @@ export abstract class TelegramBaseClient {
     public testServers: boolean;
     /** @hidden */
     public networkSocket: typeof PromisedNetSockets | typeof PromisedWebSockets;
+    _connectedDeferred: Deferred<void>;
 
     constructor(
         session: string | Session,
@@ -315,6 +320,8 @@ export abstract class TelegramBaseClient {
         this._loopStarted = false;
         this._reconnecting = false;
         this._destroyed = false;
+        this._isSwitchingDc = false;
+        this._connectedDeferred = new Deferred();
 
         // parse mode
         this._parseMode = MarkdownParser;
@@ -354,27 +361,31 @@ export abstract class TelegramBaseClient {
     async disconnect() {
         await this._disconnect();
         await Promise.all(
-            Object.values(this._exportedSenderPromises).map(
-                (promise: Promise<MTProtoSender>) => {
-                    return (
-                        promise &&
-                        promise.then((sender: MTProtoSender) => {
-                            if (sender) {
-                                return sender.disconnect();
-                            }
-                            return undefined;
-                        })
-                    );
-                }
-            )
+            Object.values(this._exportedSenderPromises)
+                .map((promises) => {
+                    return Object.values(promises).map((promise: any) => {
+                        return (
+                            promise &&
+                            promise.then((sender: MTProtoSender) => {
+                                if (sender) {
+                                    return sender.disconnect();
+                                }
+                                return undefined;
+                            })
+                        );
+                    });
+                })
+                .flat()
         );
 
-        this._exportedSenderPromises = new Map<
-            number,
-            Promise<MTProtoSender>
-        >();
-
-        // TODO cancel hanging promises
+        Object.values(this._exportedSenderReleaseTimeouts).forEach(
+            (timeouts) => {
+                Object.values(timeouts).forEach((releaseTimeout: any) => {
+                    clearTimeout(releaseTimeout);
+                });
+            }
+        );
+        this._exportedSenderPromises.clear();
     }
 
     get disconnected() {
@@ -435,7 +446,8 @@ export abstract class TelegramBaseClient {
                         proxy: this._proxy,
                         testServers: this.testServers,
                         socket: this.networkSocket,
-                    })
+                    }),
+                    false
                 );
 
                 if (this.session.dcId !== dcId && !sender._authenticated) {

@@ -111,9 +111,13 @@ export class _DialogsIter extends RequestIter {
         for (const m of r.messages) {
             let message = m as unknown as Api.Message;
             try {
-                // todo make sure this never fails
-                message._finishInit(this.client, entities, undefined);
+                if (message && "_finishInit" in message) {
+                    // todo make sure this never fails
+                    message._finishInit(this.client, entities, undefined);
+                }
             } catch (e) {
+                console.log("msg", message);
+
                 this.client._log.error(
                     "Got error while trying to finish init message with id " +
                         m.id

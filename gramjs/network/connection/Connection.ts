@@ -48,7 +48,6 @@ class Connection {
     protected _obfuscation: any;
     _sendArray: AsyncQueue;
     _recvArray: AsyncQueue;
-    recvCancel?: CancellablePromise<any>;
     sendCancel?: CancellablePromise<any>;
     socket: PromisedNetSockets | PromisedWebSockets;
     public _testServers: boolean;
@@ -91,24 +90,19 @@ class Connection {
         await this._connect();
         this._connected = true;
 
-        this._sendTask = this._sendLoop();
+        if (!this._sendTask) {
+            this._sendTask = this._sendLoop();
+        }
         this._recvTask = this._recvLoop();
     }
 
-    _cancelLoops() {
-        this.recvCancel!.cancel();
-        this.sendCancel!.cancel();
-    }
-
     async disconnect() {
-        this._connected = false;
-        this._cancelLoops();
-
-        try {
-            await this.socket.close();
-        } catch (e) {
-            this._log.error("error while closing socket connection");
+        if (!this._connected) {
+            return;
         }
+
+        this._connected = false;
+        void this._recvArray.push(undefined);
     }
 
     async send(data: Buffer) {
@@ -121,7 +115,8 @@ class Connection {
     async recv() {
         while (this._connected) {
             const result = await this._recvArray.pop();
-            if (result && result.length) {
+            // null = sentinel value = keep trying
+            if (result) {
                 return result;
             }
         }
@@ -131,44 +126,38 @@ class Connection {
     async _sendLoop() {
         try {
             while (this._connected) {
-                this.sendCancel = pseudoCancellable(this._sendArray.pop());
-                const data = await this.sendCancel;
+                const data = await this._sendArray.pop();
                 if (!data) {
-                    continue;
+                    this._sendTask = undefined;
+                    return;
                 }
                 await this._send(data);
             }
-        } catch (e: any) {
-            if (e instanceof Cancellation) {
-                return;
-            }
+        } catch (e) {
             this._log.info("The server closed the connection while sending");
-            await this.disconnect();
         }
+    }
+
+    isConnected() {
+        return this._connected;
     }
 
     async _recvLoop() {
         let data;
         while (this._connected) {
             try {
-                this.recvCancel = pseudoCancellable(this._recv());
-                data = await this.recvCancel;
-            } catch (e: any) {
-                if (e instanceof Cancellation) {
-                    return;
+                data = await this._recv();
+                if (!data) {
+                    throw new Error("no data received");
                 }
-                this._log.info("The server closed the connection");
-                await this.disconnect();
-                if (!this._recvArray._queue.length) {
-                    await this._recvArray.push(undefined);
-                }
-                break;
-            }
-            try {
-                await this._recvArray.push(data);
             } catch (e) {
-                break;
+                this._log.info("connection closed");
+                // await this._recvArray.push()
+
+                this.disconnect();
+                return;
             }
+            await this._recvArray.push(data);
         }
     }
 

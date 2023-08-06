@@ -794,6 +794,7 @@ export async function sendMessage(
                 "The message cannot be empty unless a file is provided"
             );
         }
+
         request = new Api.messages.SendMessage({
             peer: entity,
             message: message.toString(),

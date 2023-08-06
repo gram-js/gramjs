@@ -1,18 +1,25 @@
 import type { EventBuilder } from "../events/common";
 import { Api } from "../tl";
 import type { TelegramClient } from "../";
-import bigInt from "big-integer";
 import { UpdateConnectionState } from "../network";
 import type { Raw } from "../events";
 import { utils } from "../index";
 import { getRandomInt, returnBigInt, sleep } from "../Helpers";
 import { LogLevel } from "../extensions/Logger";
+import Timeout = NodeJS.Timeout;
 
 const PING_INTERVAL = 9000; // 9 sec
 const PING_TIMEOUT = 10000; // 10 sec
 const PING_FAIL_ATTEMPTS = 3;
 const PING_FAIL_INTERVAL = 100; // ms
 const PING_DISCONNECT_DELAY = 60000; // 1 min
+// An unusually long interval is a sign of returning from background mode...
+const PING_INTERVAL_TO_WAKE_UP = 5000; // 5 sec
+// ... so we send a quick "wake-up" ping to confirm than connection was dropped ASAP
+const PING_WAKE_UP_TIMEOUT = 3000; // 3 sec
+// We also send a warning to the user even a bit more quickly
+const PING_WAKE_UP_WARNING_TIMEOUT = 1000; // 1 sec
+
 /**
  If this exception is raised in any of the handlers for a given event,
  it will stop the execution of all other registered event handlers.
@@ -167,7 +174,9 @@ export async function _dispatchUpdate(
                     if (e instanceof StopPropagation) {
                         break;
                     }
-                    console.error(e);
+                    if (client._log.canSend(LogLevel.ERROR)) {
+                        console.error(e);
+                    }
                 }
             }
         }
@@ -175,38 +184,92 @@ export async function _dispatchUpdate(
 }
 
 /** @hidden */
-export async function _updateLoop(client: TelegramClient): Promise<void> {
-    while (client.connected) {
+export async function _updateLoop(client: TelegramClient) {
+    let lastPongAt;
+    while (!client._destroyed) {
+        await sleep(PING_INTERVAL);
+        if (client._sender!.isReconnecting || client._isSwitchingDc) {
+            lastPongAt = undefined;
+            continue;
+        }
+
         try {
-            await sleep(60 * 1000);
-            if (!client._sender?._transportConnected()) {
+            const ping = () => {
+                return client._sender!.send(
+                    new Api.PingDelayDisconnect({
+                        pingId: returnBigInt(
+                            getRandomInt(
+                                Number.MIN_SAFE_INTEGER,
+                                Number.MAX_SAFE_INTEGER
+                            )
+                        ),
+                        disconnectDelay: PING_DISCONNECT_DELAY,
+                    })
+                );
+            };
+
+            const pingAt = Date.now();
+            const lastInterval = lastPongAt ? pingAt - lastPongAt : undefined;
+
+            if (!lastInterval || lastInterval < PING_INTERVAL_TO_WAKE_UP) {
+                await attempts(
+                    () => timeout(ping, PING_TIMEOUT),
+                    PING_FAIL_ATTEMPTS,
+                    PING_FAIL_INTERVAL
+                );
+            } else {
+                let wakeUpWarningTimeout: Timeout | undefined = setTimeout(
+                    () => {
+                        _handleUpdate(
+                            client,
+                            UpdateConnectionState.disconnected
+                        );
+                        wakeUpWarningTimeout = undefined;
+                    },
+                    PING_WAKE_UP_WARNING_TIMEOUT
+                );
+
+                await timeout(ping, PING_WAKE_UP_TIMEOUT);
+
+                if (wakeUpWarningTimeout) {
+                    clearTimeout(wakeUpWarningTimeout);
+                    wakeUpWarningTimeout = undefined;
+                }
+
+                _handleUpdate(client, UpdateConnectionState.connected);
+            }
+
+            lastPongAt = Date.now();
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            if (client._log.canSend(LogLevel.ERROR)) {
+                console.error(err);
+            }
+
+            lastPongAt = undefined;
+
+            if (client._sender!.isReconnecting || client._isSwitchingDc) {
                 continue;
             }
-            await client.invoke(
-                new Api.Ping({
-                    pingId: bigInt(
-                        getRandomInt(
-                            Number.MIN_SAFE_INTEGER,
-                            Number.MAX_SAFE_INTEGER
-                        )
-                    ),
-                })
-            );
-        } catch (e) {
-            return;
+            console.log("recoonecting");
+            client._sender!.reconnect();
         }
-        client.session.save();
-        if (
-            new Date().getTime() - (client._lastRequest || 0) >
-            30 * 60 * 1000
-        ) {
+
+        // We need to send some content-related request at least hourly
+        // for Telegram to keep delivering updates, otherwise they will
+        // just stop even if we're connected. Do so every 30 minutes.
+
+        if (Date.now() - (client._lastRequest || 0) > 30 * 60 * 1000) {
             try {
                 await client.invoke(new Api.updates.GetState());
             } catch (e) {
                 // we don't care about errors here
             }
+
+            lastPongAt = undefined;
         }
     }
+    await client.disconnect();
 }
 
 /** @hidden */
@@ -227,9 +290,15 @@ async function attempts(cb: CallableFunction, times: number, pause: number) {
 }
 
 /** @hidden */
-function timeout(promise: Promise<any>, ms: number) {
+function timeout(cb: any, ms: any) {
+    let isResolved = false;
+
     return Promise.race([
-        promise,
-        sleep(ms).then(() => Promise.reject(new Error("TIMEOUT"))),
-    ]);
+        cb(),
+        sleep(ms).then(() =>
+            isResolved ? undefined : Promise.reject(new Error("TIMEOUT"))
+        ),
+    ]).finally(() => {
+        isResolved = true;
+    });
 }

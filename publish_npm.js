@@ -82,6 +82,12 @@ fs.writeFileSync(
   JSON.stringify(packageJSON, null, "  "),
   "utf8"
 );
+fs.writeFileSync(
+  "gramjs/Version.ts",
+  `export const version = "${packageJSON.version}";`,
+  "utf8"
+);
+
 renameFiles("tempBrowser", "rename");
 
 const npmi = exec("npm i");
@@ -146,6 +152,11 @@ npmi.on("close", (code) => {
       JSON.stringify(packageJSON, null, "  "),
       "utf8"
     );
+    fs.writeFileSync(
+      "gramjs/Version.ts",
+      `export const version = "${packageJSON.version}";`,
+      "utf8"
+    );
 
     const npmi = exec("npm i");
     npmi.on("close", (code) => {
@@ -162,7 +173,7 @@ npmi.on("close", (code) => {
           fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
           fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
           renameFiles("dist", "delete");
-          const npm_publish = exec("npm publish", { cwd: "dist" });
+          const npm_publish = exec("npm publish --tag next", { cwd: "dist" });
           npm_publish.stdout.on("data", function (data) {
             console.log(data.toString());
           });
