@@ -54,6 +54,7 @@ tlsBlockDomain = TlsBlock;
 tlsBlockGrease seed:int = TlsBlock;
 tlsBlockPublicKey = TlsBlock;
 tlsBlockScope entries:Vector<TlsBlock> = TlsBlock;
+tlsBlockPermutation entries:Vector<Vector<TlsBlock>> = TlsBlock;
 ---functions---
 rpc_drop_answer#58e4a740 req_msg_id:long = RpcDropAnswer;
 get_future_salts#b921bd04 num:int = FutureSalts;

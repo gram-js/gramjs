@@ -173,7 +173,7 @@ npmi.on("close", (code) => {
           fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
           fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
           renameFiles("dist", "delete");
-          const npm_publish = exec("npm publish --tag next", { cwd: "dist" });
+          const npm_publish = exec("npm publish", { cwd: "dist" });
           npm_publish.stdout.on("data", function (data) {
             console.log(data.toString());
           });

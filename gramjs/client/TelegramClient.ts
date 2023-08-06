@@ -365,7 +365,7 @@ export class TelegramClient extends TelegramBaseClient {
      * @param inlineOnly - Whether the buttons **must** be inline buttons only or not.
      * @example
      * ```ts
-     * import {Button} from "telegram";
+     * import {Button} from "telegram/tl/custom/button";
      *  // PS this function is not async
      * const markup = client.buildReplyMarkup(Button.inline("Hello!"));
      *
@@ -1051,6 +1051,8 @@ export class TelegramClient extends TelegramBaseClient {
      * @example
      *```ts
      * import {TelegramClient} from "telegram";
+     * import { NewMessage } from "telegram/events";
+     * import { NewMessageEvent } from "telegram/events";
      * const client = new TelegramClient(new StringSession(''), apiId, apiHash, {});
      *
      * async function handler(event: NewMessageEvent) {
@@ -1117,6 +1119,7 @@ export class TelegramClient extends TelegramBaseClient {
      * @return {@link Api.InputFileBig} if the file size is larger than 10mb otherwise {@link Api.InputFile}
      * @example
      * ```ts
+     * import { CustomFile } from "telegram/client/uploads";
      * const toUpload = new CustomFile("photo.jpg", fs.statSync("../photo.jpg").size, "../photo.jpg");
      * const file = await client.uploadFile({
      *  file: toUpload,
