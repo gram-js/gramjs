@@ -152,11 +152,6 @@ npmi.on("close", (code) => {
       JSON.stringify(packageJSON, null, "  "),
       "utf8"
     );
-    fs.writeFileSync(
-      "gramjs/Version.ts",
-      `export const version = "${packageJSON.version}";`,
-      "utf8"
-    );
 
     const npmi = exec("npm i");
     npmi.on("close", (code) => {

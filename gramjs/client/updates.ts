@@ -251,7 +251,6 @@ export async function _updateLoop(client: TelegramClient) {
             if (client._sender!.isReconnecting || client._isSwitchingDc) {
                 continue;
             }
-            console.log("recoonecting");
             client._sender!.reconnect();
         }
 

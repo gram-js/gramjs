@@ -12,7 +12,7 @@ import { errors, utils } from "../";
 import type { TelegramClient } from "../";
 import bigInt from "big-integer";
 import { LogLevel } from "../extensions/Logger";
-import { MTProtoSender } from "../network";
+import { RequestState } from "../network/RequestState";
 
 // UserMethods {
 // region Invoking Telegram request
@@ -21,14 +21,13 @@ import { MTProtoSender } from "../network";
 export async function invoke<R extends Api.AnyRequest>(
     client: TelegramClient,
     request: R,
-    sender?: MTProtoSender
+    dcId?: number
 ): Promise<R["__response"]> {
     if (request.classType !== "request") {
         throw new Error("You can only invoke MTProtoRequests");
     }
-    if (!sender) {
-        sender = client._sender;
-    }
+    const isExported = dcId !== undefined;
+    let sender = !isExported ? client._sender : await client.getSender(dcId);
     if (sender == undefined) {
         throw new Error(
             "Cannot send requests while disconnected. You need to call .connect()"
@@ -39,13 +38,18 @@ export async function invoke<R extends Api.AnyRequest>(
 
     await request.resolve(client, utils);
     client._lastRequest = new Date().getTime();
-    let attempt: number;
+    const state = new RequestState(request);
+
+    let attempt: number = 0;
     for (attempt = 0; attempt < client._requestRetries; attempt++) {
+        sender!.addStateToQueue(state);
+
         try {
-            const promise = sender.send(request);
-            const result = await promise;
+            const result = await state.promise;
+            state.finished.resolve();
             client.session.processEntities(result);
             client._entityCache.add(result);
+
             return result;
         } catch (e: any) {
             if (
@@ -67,6 +71,8 @@ export async function invoke<R extends Api.AnyRequest>(
                     );
                     await sleep(e.seconds * 1000);
                 } else {
+                    state.finished.resolve();
+
                     throw e;
                 }
             } else if (
@@ -79,13 +85,31 @@ export async function invoke<R extends Api.AnyRequest>(
                     e instanceof errors.PhoneMigrateError ||
                     e instanceof errors.NetworkMigrateError;
                 if (shouldRaise && (await client.isUserAuthorized())) {
+                    state.finished.resolve();
+
                     throw e;
                 }
                 await client._switchDC(e.newDc);
+                sender =
+                    dcId === undefined
+                        ? client._sender
+                        : await client.getSender(dcId);
+            } else if (e instanceof errors.MsgWaitError) {
+                // We need to resend this after the old one was confirmed.
+                await state.isReady();
+
+                state.after = undefined;
+            } else if (e.message === "CONNECTION_NOT_INITED") {
+                await client.disconnect();
+                await sleep(2000);
+                await client.connect();
             } else {
+                state.finished.resolve();
+
                 throw e;
             }
         }
+        state.resetPromise();
     }
     throw new Error(`Request was unsuccessful ${attempt} time(s)`);
 }

@@ -1188,7 +1188,7 @@ export class TelegramClient extends TelegramBaseClient {
      * Generally this should only be used when there isn't a friendly method that does what you need.<br/>
      * All available requests and types are found under the `Api.` namespace.
      * @param request - The request to send. this should be of type request.
-     * @param sender - Optional sender to use to send the requests. defaults to main sender.
+     * @param dcId - Optional dc id to use when sending.
      * @return The response from Telegram.
      * @example
      * ```ts
@@ -1202,9 +1202,9 @@ export class TelegramClient extends TelegramBaseClient {
      */
     invoke<R extends Api.AnyRequest>(
         request: R,
-        sender?: MTProtoSender
+        dcId?: number
     ): Promise<R["__response"]> {
-        return userMethods.invoke(this, request, sender);
+        return userMethods.invoke(this, request, dcId);
     }
 
     /**
