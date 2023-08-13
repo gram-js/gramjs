@@ -89,6 +89,7 @@ export class CallbackQuery extends EventBuilder {
         if (this.match) {
             const data = new TextDecoder().decode(event.query.data);
             const result = this.match.exec(data);
+            this.match.lastIndex = 0;
             if (result) {
                 event.patternMatch = result;
             } else {

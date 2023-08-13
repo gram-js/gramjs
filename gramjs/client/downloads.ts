@@ -179,7 +179,7 @@ export class DirectDownloadIter extends RequestIter {
     async _request(): Promise<Buffer> {
         try {
             this._sender = await this.client.getSender(this._sender!.dcId);
-            const result = await this.client.invoke(
+            const result = await this.client.invokeWithSender(
                 this.request!,
                 this._sender
             );

@@ -1206,6 +1206,12 @@ export class TelegramClient extends TelegramBaseClient {
     ): Promise<R["__response"]> {
         return userMethods.invoke(this, request, dcId);
     }
+    invokeWithSender<R extends Api.AnyRequest>(
+        request: R,
+        sender?: MTProtoSender
+    ): Promise<R["__response"]> {
+        return userMethods.invoke(this, request, undefined, sender);
+    }
 
     /**
      * Gets the current logged in {@link Api.User}.

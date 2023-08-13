@@ -13,6 +13,7 @@ import type { TelegramClient } from "../";
 import bigInt from "big-integer";
 import { LogLevel } from "../extensions/Logger";
 import { RequestState } from "../network/RequestState";
+import { MTProtoSender } from "../network";
 
 // UserMethods {
 // region Invoking Telegram request
@@ -21,13 +22,19 @@ import { RequestState } from "../network/RequestState";
 export async function invoke<R extends Api.AnyRequest>(
     client: TelegramClient,
     request: R,
-    dcId?: number
+    dcId?: number,
+    otherSender?: MTProtoSender
 ): Promise<R["__response"]> {
     if (request.classType !== "request") {
         throw new Error("You can only invoke MTProtoRequests");
     }
-    const isExported = dcId !== undefined;
-    let sender = !isExported ? client._sender : await client.getSender(dcId);
+    let sender = client._sender;
+    if (dcId) {
+        sender = await client.getSender(dcId);
+    }
+    if (otherSender != undefined) {
+        sender = otherSender;
+    }
     if (sender == undefined) {
         throw new Error(
             "Cannot send requests while disconnected. You need to call .connect()"
