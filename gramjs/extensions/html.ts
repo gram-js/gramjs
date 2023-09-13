@@ -81,7 +81,7 @@ class HTMLToTelegramParser implements Handler {
         }
         else if (name == "tg-emoji") {
             EntityType = Api.MessageEntityCustomEmoji;
-            args["documentId"] = attributes.id;
+            args["documentId"] = attributes["emoji-id"];
         }
         if (EntityType && !this._buildingEntities.has(name)) {
             this._buildingEntities.set(
