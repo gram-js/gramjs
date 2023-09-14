@@ -78,8 +78,7 @@ class HTMLToTelegramParser implements Handler {
             }
             this._openTagsMeta.shift();
             this._openTagsMeta.unshift(url);
-        }
-        else if (name == "tg-emoji") {
+        } else if (name == "tg-emoji") {
             EntityType = Api.MessageEntityCustomEmoji;
             args["documentId"] = attributes["emoji-id"];
         }
@@ -123,27 +122,27 @@ class HTMLToTelegramParser implements Handler {
         name: string,
         value: string,
         quote?: string | undefined | null
-    ): void { }
+    ): void {}
 
-    oncdataend(): void { }
+    oncdataend(): void {}
 
-    oncdatastart(): void { }
+    oncdatastart(): void {}
 
-    oncomment(data: string): void { }
+    oncomment(data: string): void {}
 
-    oncommentend(): void { }
+    oncommentend(): void {}
 
-    onend(): void { }
+    onend(): void {}
 
-    onerror(error: Error): void { }
+    onerror(error: Error): void {}
 
-    onopentagname(name: string): void { }
+    onopentagname(name: string): void {}
 
-    onparserinit(parser: Parser): void { }
+    onparserinit(parser: Parser): void {}
 
-    onprocessinginstruction(name: string, data: string): void { }
+    onprocessinginstruction(name: string, data: string): void {}
 
-    onreset(): void { }
+    onreset(): void {}
 }
 
 export class HTMLParser {
