@@ -77,6 +77,7 @@ delete packageJSON.dependencies["socks"];
 const oldVersion = packageJSON.version.split(".");
 +oldVersion[2]++;
 packageJSON.version = oldVersion.join(".");
+console.log("browser version is", packageJSON.version);
 fs.writeFileSync(
   "package.json",
   JSON.stringify(packageJSON, null, "  "),
@@ -129,67 +130,69 @@ npmi.on("close", (code) => {
         console.log("=====================================");
         console.log("FINISHED UPLOADING BROWSER VERSION");
         console.log("=====================================");
+        fs.rmSync("tempBrowser", { recursive: true, force: true });
+        fs.rmSync("dist", { recursive: true, force: true });
+        // easier that writing two files smh
+        const tsconfig = fs.readFileSync("tsconfig.json", "utf8");
+        let newTsconfig = tsconfig.replace(/\.\/browser/g, "./dist");
+        newTsconfig = newTsconfig.replace(/tempBrowser/g, "gramjs");
+        fs.writeFileSync("tsconfig.json", newTsconfig, "utf8");
+        const packageJSON = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        packageJSON.dependencies["node-localstorage"] = oldValueStorage;
+        packageJSON.dependencies["socks"] = oldValueSocks;
+        const oldVersion = packageJSON.version.split(".");
+        +oldVersion[2]++;
+        packageJSON.version = oldVersion.join(".");
+        console.log("node version is", packageJSON.version);
+        fs.writeFileSync(
+          "package.json",
+          JSON.stringify(packageJSON, null, "  "),
+          "utf8"
+        );
+
+        const npmi = exec("npm i");
+        npmi.on("close", (code) => {
+          if (code !== 0) {
+            throw new Error("Error happened " + code);
+          }
+
+          const tsc = exec("tsc");
+          tsc.on("close", (code) => {
+            if (code === 0) {
+              fs.copyFileSync("package.json", "dist/package.json");
+              fs.copyFileSync("README.md", "dist/README.md");
+              fs.copyFileSync("LICENSE", "dist/LICENSE");
+              fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
+              fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
+              renameFiles("dist", "delete");
+              const npm_publish = exec("npm publish --tag latest", {
+                cwd: "dist",
+              });
+              npm_publish.stdout.on("data", function (data) {
+                console.log(data.toString());
+              });
+
+              npm_publish.stderr.on("data", function (data) {
+                console.error(data.toString());
+              });
+              npm_publish.on("close", (code) => {
+                if (code === 0) {
+                  console.log("=====================================");
+                  console.log("FINISHED UPLOADING NODE VERSION");
+                  console.log("=====================================");
+                } else {
+                  throw new Error("something went wrong");
+                }
+              });
+            } else {
+              console.log(code);
+              throw new Error("Error happened");
+            }
+          });
+        });
       } else {
         throw new Error("something went wrong");
       }
-    });
-    fs.rmSync("tempBrowser", { recursive: true, force: true });
-    fs.rmSync("dist", { recursive: true, force: true });
-    // easier that writing two files smh
-    const tsconfig = fs.readFileSync("tsconfig.json", "utf8");
-    let newTsconfig = tsconfig.replace(/\.\/browser/g, "./dist");
-    newTsconfig = newTsconfig.replace(/tempBrowser/g, "gramjs");
-    fs.writeFileSync("tsconfig.json", newTsconfig, "utf8");
-    const packageJSON = JSON.parse(fs.readFileSync("package.json", "utf8"));
-    packageJSON.dependencies["node-localstorage"] = oldValueStorage;
-    packageJSON.dependencies["socks"] = oldValueSocks;
-    const oldVersion = packageJSON.version.split(".");
-    +oldVersion[2]++;
-    packageJSON.version = oldVersion.join(".");
-
-    fs.writeFileSync(
-      "package.json",
-      JSON.stringify(packageJSON, null, "  "),
-      "utf8"
-    );
-
-    const npmi = exec("npm i");
-    npmi.on("close", (code) => {
-      if (code !== 0) {
-        throw new Error("Error happened " + code);
-      }
-
-      const tsc = exec("tsc");
-      tsc.on("close", (code) => {
-        if (code === 0) {
-          fs.copyFileSync("package.json", "dist/package.json");
-          fs.copyFileSync("README.md", "dist/README.md");
-          fs.copyFileSync("LICENSE", "dist/LICENSE");
-          fs.copyFileSync("gramjs/tl/api.d.ts", "dist/tl/api.d.ts");
-          fs.copyFileSync("gramjs/define.d.ts", "dist/define.d.ts");
-          renameFiles("dist", "delete");
-          const npm_publish = exec("npm publish", { cwd: "dist" });
-          npm_publish.stdout.on("data", function (data) {
-            console.log(data.toString());
-          });
-
-          npm_publish.stderr.on("data", function (data) {
-            console.error(data.toString());
-          });
-          npm_publish.on("close", (code) => {
-            if (code === 0) {
-              console.log("=====================================");
-              console.log("FINISHED UPLOADING NODE VERSION");
-              console.log("=====================================");
-            } else {
-              throw new Error("something went wrong");
-            }
-          });
-        } else {
-          console.log(code);
-          throw new Error("Error happened");
-        }
-      });
     });
   });
 });
