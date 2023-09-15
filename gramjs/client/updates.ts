@@ -218,7 +218,7 @@ export async function _updateLoop(client: TelegramClient) {
                     PING_FAIL_INTERVAL
                 );
             } else {
-                let wakeUpWarningTimeout: Timeout | undefined = setTimeout(
+                let wakeUpWarningTimeout: Timeout | undefined | number = setTimeout(
                     () => {
                         _handleUpdate(
                             client,

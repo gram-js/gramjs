@@ -556,7 +556,9 @@ export class TelegramClient extends TelegramBaseClient {
     setParseMode(
         mode:
             | "md"
+            | "md2"
             | "markdown"
+            | "markdownv2"
             | "html"
             | parseMethods.ParseInterface
             | undefined
