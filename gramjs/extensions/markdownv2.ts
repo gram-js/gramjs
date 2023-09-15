@@ -14,12 +14,12 @@ export class MarkdownV2Parser {
 
         // italic
         message = message.replace(/-(.*?)-/g, '<i>$1</i>');
-
-        // code
-        message = message.replace(/`(.*?)`/g, '<code>$1</code>');
-
+        
         // pre
         message = message.replace(/```(.*?)```/g, '<pre>$1</pre>');
+        
+        // code
+        message = message.replace(/`(.*?)`/g, '<code>$1</code>');
 
         // Spoiler 
         message = message.replace(/\|\|(.*?)\|\|/g, '<spoiler>$1</spoiler>');
