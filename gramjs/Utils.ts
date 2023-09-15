@@ -7,6 +7,7 @@ import mime from "mime";
 import type { ParseInterface } from "./client/messageParse";
 import { MarkdownParser } from "./extensions/markdown";
 import { CustomFile } from "./client/uploads";
+import { MarkdownV2Parser } from "./extensions/markdownv2";
 
 export function getFileInfo(
     fileLocation:
@@ -1104,6 +1105,10 @@ export function sanitizeParseMode(
     if (mode === "md" || mode === "markdown") {
         return MarkdownParser;
     }
+
+    if (mode === "md2" || mode === "markdownv2") {
+        return MarkdownV2Parser;
+    }
     if (mode == "html") {
         return HTMLParser;
     }
@@ -1114,6 +1119,7 @@ export function sanitizeParseMode(
     }
     throw new Error(`Invalid parse mode type ${mode}`);
 }
+
 
 /**
  Convert the given peer into its marked ID by default.
