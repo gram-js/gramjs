@@ -183,8 +183,7 @@ export class _DialogsIter extends RequestIter {
         this.request.excludePinned = true;
         this.request.offsetId = lastMessage ? lastMessage.id : 0;
         this.request.offsetDate = lastMessage ? lastMessage.date! : 0;
-        this.request.offsetPeer =
-            this.buffer[this.buffer.length - 1].inputEntity;
+        this.request.offsetPeer = this.buffer[this.buffer.length - 1]?.inputEntity;
     }
 }
 
