@@ -50,17 +50,17 @@ describe("MarkdownV2Parser", () => {
       );
     });
 
-    test("it should parse custom emoji", () =>{
-        const [text, entities] = MarkdownV2Parser.parse(
-            "![👍](tg://emoji?id=5368324170671202286)"
-        );
-        expect(text).toEqual("👍");
-        expect(entities.length).toEqual(1);
-        expect(entities[0]).toBeInstanceOf(types.MessageEntityCustomEmoji);
-        expect((entities[0] as types.MessageEntityCustomEmoji).documentId).toEqual(
-            "5368324170671202286"
-        );
-    } )
+    test("it should parse custom emoji", () => {
+      const [text, entities] = MarkdownV2Parser.parse(
+        "![👍](tg://emoji?id=5368324170671202286)"
+      );
+      expect(text).toEqual("👍");
+      expect(entities.length).toEqual(1);
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityCustomEmoji);
+      expect(
+        (entities[0] as types.MessageEntityCustomEmoji).documentId
+      ).toEqual("5368324170671202286");
+    });
 
     test("it should parse multiple entities", () => {
       const [text, entities] = MarkdownV2Parser.parse("-Hello- *world*");

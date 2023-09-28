@@ -226,9 +226,10 @@ export class HTMLParser {
                     `<a href="tg://user?id=${entity.userId}">${entityText}</a>`
                 );
             } else if (entity instanceof Api.MessageEntityCustomEmoji) {
-                html.push(`<tg-emoji emoji-id="${entity.documentId}">${entityText}</tg-emoji>`);
-            }
-            else {
+                html.push(
+                    `<tg-emoji emoji-id="${entity.documentId}">${entityText}</tg-emoji>`
+                );
+            } else {
                 skipEntity = true;
             }
             lastOffset = relativeOffset + (skipEntity ? 0 : length);

@@ -1120,7 +1120,6 @@ export function sanitizeParseMode(
     throw new Error(`Invalid parse mode type ${mode}`);
 }
 
-
 /**
  Convert the given peer into its marked ID by default.
 

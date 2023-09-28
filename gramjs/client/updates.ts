@@ -218,16 +218,14 @@ export async function _updateLoop(client: TelegramClient) {
                     PING_FAIL_INTERVAL
                 );
             } else {
-                let wakeUpWarningTimeout: Timeout | undefined | number = setTimeout(
-                    () => {
+                let wakeUpWarningTimeout: Timeout | undefined | number =
+                    setTimeout(() => {
                         _handleUpdate(
                             client,
                             UpdateConnectionState.disconnected
                         );
                         wakeUpWarningTimeout = undefined;
-                    },
-                    PING_WAKE_UP_WARNING_TIMEOUT
-                );
+                    }, PING_WAKE_UP_WARNING_TIMEOUT);
 
                 await timeout(ping, PING_WAKE_UP_TIMEOUT);
 
