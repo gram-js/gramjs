@@ -426,10 +426,13 @@ export function getRandomInt(min: number, max: number): number {
 /**
  * Sleeps a specified amount of time
  * @param ms time in milliseconds
+ * @param isUnref make a timer unref'ed
  * @returns {Promise}
  */
-export const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms: number, isUnref: boolean = false) =>
+    new Promise((resolve) =>
+        isUnref ? setTimeout(resolve, ms).unref() : setTimeout(resolve, ms)
+    );
 
 /**
  * Helper to export two buffers of same length
