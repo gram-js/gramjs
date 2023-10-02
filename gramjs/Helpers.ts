@@ -2,6 +2,7 @@ import bigInt from "big-integer";
 import type { EntityLike } from "./define";
 import type { Api } from "./tl";
 import crypto from "./CryptoFile";
+import { isNode } from "./platform";
 
 /**
  * converts a buffer to big int
@@ -431,7 +432,7 @@ export function getRandomInt(min: number, max: number): number {
  */
 export const sleep = (ms: number, isUnref: boolean = false) =>
     new Promise((resolve) =>
-        isUnref ? setTimeout(resolve, ms).unref() : setTimeout(resolve, ms)
+        (isUnref && isNode) ? setTimeout(resolve, ms).unref() : setTimeout(resolve, ms)
     );
 
 /**
