@@ -103,6 +103,7 @@ class Connection {
 
         this._connected = false;
         void this._recvArray.push(undefined);
+        await this.socket.close();
     }
 
     async send(data: Buffer) {
