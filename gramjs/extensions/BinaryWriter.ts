@@ -1,15 +1,15 @@
 export class BinaryWriter {
-    private _stream: Buffer;
+    private readonly _buffers: Buffer[];
 
     constructor(stream: Buffer) {
-        this._stream = stream;
+        this._buffers = [stream];
     }
 
     write(buffer: Buffer) {
-        this._stream = Buffer.concat([this._stream, buffer]);
+        this._buffers.push(buffer);
     }
 
-    getValue() {
-        return this._stream;
+    getValue(): Buffer {
+        return Buffer.concat(this._buffers);
     }
 }
