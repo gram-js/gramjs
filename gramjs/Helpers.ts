@@ -432,7 +432,9 @@ export function getRandomInt(min: number, max: number): number {
  */
 export const sleep = (ms: number, isUnref: boolean = false) =>
     new Promise((resolve) =>
-        (isUnref && isNode) ? setTimeout(resolve, ms).unref() : setTimeout(resolve, ms)
+        isUnref && isNode
+            ? setTimeout(resolve, ms).unref()
+            : setTimeout(resolve, ms)
     );
 
 /**
