@@ -3,11 +3,20 @@
 A Telegram client written in JavaScript for Node.js and browsers, with its core being based on
 [Telethon](https://github.com/LonamiWebs/Telethon).
 
-## How to get started
+## Documentation
 
-Here you'll learn how to obtain necessary information to create telegram application, authorize into your account and send yourself a message.
+General documentation, use cases, quick start, refer to [gram.js.org](https://gram.js.org), or [older version of documentation](https://painor.gitbook.io/gramjs) (will be removed in the future).
 
-> **Note** that if you want to use a GramJS inside of a browser, refer to [this instructions](https://gram.js.org/introduction/advanced-installation).
+For more advanced documentation refer to [gram.js.org/beta](https://gram.js.org/beta) (work in progress).
+
+If your ISP is blocking Telegram, you can check [My ISP blocks Telegram. How can I still use GramJS?](https://gist.github.com/SecurityAndStuff/7cd04b28216c49b73b30a64d56d630ab)
+
+
+## Getting Started
+
+Here you'll learn how to obtain necessary information to create Telegram application, authorize into your account and send yourself a message.
+
+> **Note** that if you want to use a GramJS inside of a browser, refer to [these instructions](https://gram.js.org/introduction/advanced-installation).
 
 Install GramJS:
 
@@ -23,13 +32,13 @@ $ npm i input
 
 After installation, you'll need to obtain an API ID and hash:
 
-1. Login into your [telegram account](https://my.telegram.org/)
+1. Login into your [Telegram account](https://my.telegram.org/)
 2. Then click "API development tools" and fill your application details (only app title and short name required)
 3. Finally, click "Create application"
 
 > **Never** share any API/authorization details, that will compromise your application and account.
 
-When you've successfully created the application, change `apiId` and `apiHash` on what you got from telegram.
+When you've successfully created the application, change `apiId` and `apiHash` on what you got from Telegram.
 
 Then run this code to send a message to yourself.
 
@@ -94,14 +103,6 @@ To use raw telegram API methods use [invoke function](https://gram.js.org/beta/c
 await client.invoke(new RequestClass(args));
 ```
 
-## Documentation
-
-General documentation, use cases, quick start, refer to [gram.js.org](https://gram.js.org), or [older version of documentation](https://painor.gitbook.io/gramjs) (will be removed in the future).
-
-For more advanced documentation refer to [gram.js.org/beta](https://gram.js.org/beta) (work in progress).
-
-If your ISP is blocking Telegram, you can check [My ISP blocks Telegram. How can I still use GramJS?](https://gist.github.com/SecurityAndStuff/7cd04b28216c49b73b30a64d56d630ab)
-
 ## Ask a question
 
-If you have any questions about GramJS, feel free to open an issue or ask directly in our telegram group - [@GramJSChat](https://t.me/gramjschat).
+If you have any questions about GramJS, feel free to open an issue or ask directly in our Telegram group - [@GramJSChat](https://t.me/gramjschat).
