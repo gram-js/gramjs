@@ -1407,7 +1407,7 @@ export class TelegramClient extends TelegramBaseClient {
                 _updateLoop(this);
                 this._loopStarted = true;
             }
-            return;
+            return false;
         }
         this.session.setAuthKey(this._sender.authKey);
         this.session.save();
@@ -1426,6 +1426,7 @@ export class TelegramClient extends TelegramBaseClient {
         }
         this._connectedDeferred.resolve();
         this._isSwitchingDc = false;
+        return true;
     }
     //endregion
     // region Working with different connections/Data Centers

@@ -107,6 +107,7 @@ export class MTProtoSender {
     private _connectMutex: Mutex;
     private _cancelSend: boolean;
     cancellableRecvLoopPromise?: CancellablePromise<any>;
+    private _finishedConnecting: boolean;
 
     /**
      * @param authKey
@@ -117,6 +118,7 @@ export class MTProtoSender {
             ...MTProtoSender.DEFAULT_OPTIONS,
             ...opts,
         };
+        this._finishedConnecting = false;
         this._cancelSend = false;
         this._connection = undefined;
         this._log = args.logger;
@@ -249,7 +251,7 @@ export class MTProtoSender {
         }
         this.isConnecting = true;
         this._connection = connection;
-
+        this._finishedConnecting = false;
         for (let attempt = 0; attempt < this._retries; attempt++) {
             try {
                 await this._connect();
@@ -261,6 +263,7 @@ export class MTProtoSender {
                         )
                     );
                 }
+                this._finishedConnecting = true;
                 break;
             } catch (err) {
                 if (this._updateCallback && attempt === 0) {
@@ -282,7 +285,7 @@ export class MTProtoSender {
         }
         this.isConnecting = false;
 
-        return true;
+        return this._finishedConnecting;
     }
 
     isConnected() {
