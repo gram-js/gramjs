@@ -464,6 +464,24 @@ export namespace Api {
         peer: Api.TypeInputPeer;
         id: int;
     }
+    export class InputMediaWebPage extends VirtualClass<{
+        // flags: null;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        optional?: boolean;
+        url: string;
+    }> {
+        CONSTRUCTOR_ID: 3256584265;
+        SUBCLASS_OF_ID: 4210575092;
+        classType: "constructor";
+        className: "InputMediaWebPage";
+        static fromReader(reader: Reader): InputMediaWebPage;
+        // flags: null;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        optional?: boolean;
+        url: string;
+    }
     export class InputChatPhotoEmpty extends VirtualClass<void> {
         CONSTRUCTOR_ID: 480546647;
         SUBCLASS_OF_ID: 3572182388;
@@ -770,8 +788,10 @@ export namespace Api {
         emojiStatus?: Api.TypeEmojiStatus;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
+        color?: int;
+        backgroundEmojiId?: long;
     }> {
-        CONSTRUCTOR_ID: 2880827680;
+        CONSTRUCTOR_ID: 3948949285;
         SUBCLASS_OF_ID: 765557111;
         classType: "constructor";
         className: "User";
@@ -815,6 +835,8 @@ export namespace Api {
         emojiStatus?: Api.TypeEmojiStatus;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
+        color?: int;
+        backgroundEmojiId?: long;
     }
     export class UserProfilePhotoEmpty extends VirtualClass<void> {
         CONSTRUCTOR_ID: 1326562017;
@@ -992,8 +1014,10 @@ export namespace Api {
         participantsCount?: int;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
+        color?: int;
+        backgroundEmojiId?: long;
     }> {
-        CONSTRUCTOR_ID: 2499121883;
+        CONSTRUCTOR_ID: 427944574;
         SUBCLASS_OF_ID: 3316604308;
         classType: "constructor";
         className: "Channel";
@@ -1036,6 +1060,8 @@ export namespace Api {
         participantsCount?: int;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
+        color?: int;
+        backgroundEmojiId?: long;
     }
     export class ChannelForbidden extends VirtualClass<{
         // flags: null;
@@ -1415,13 +1441,23 @@ export namespace Api {
         ttlSeconds?: int;
     }
     export class MessageMediaWebPage extends VirtualClass<{
+        // flags: null;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        manual?: boolean;
+        safe?: boolean;
         webpage: Api.TypeWebPage;
     }> {
-        CONSTRUCTOR_ID: 2737690112;
+        CONSTRUCTOR_ID: 3723562043;
         SUBCLASS_OF_ID: 1198308914;
         classType: "constructor";
         className: "MessageMediaWebPage";
         static fromReader(reader: Reader): MessageMediaWebPage;
+        // flags: null;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        manual?: boolean;
+        safe?: boolean;
         webpage: Api.TypeWebPage;
     }
     export class MessageMediaVenue extends VirtualClass<{
@@ -1543,6 +1579,28 @@ export namespace Api {
         peer: Api.TypePeer;
         id: int;
         story?: Api.TypeStoryItem;
+    }
+    export class MessageMediaGiveaway extends VirtualClass<{
+        // flags: null;
+        onlyNewSubscribers?: boolean;
+        channels: long[];
+        countriesIso2?: string[];
+        quantity: int;
+        months: int;
+        untilDate: int;
+    }> {
+        CONSTRUCTOR_ID: 1478887012;
+        SUBCLASS_OF_ID: 1198308914;
+        classType: "constructor";
+        className: "MessageMediaGiveaway";
+        static fromReader(reader: Reader): MessageMediaGiveaway;
+        // flags: null;
+        onlyNewSubscribers?: boolean;
+        channels: long[];
+        countriesIso2?: string[];
+        quantity: int;
+        months: int;
+        untilDate: int;
     }
     export class MessageActionEmpty extends VirtualClass<void> {
         CONSTRUCTOR_ID: 3064919984;
@@ -2006,6 +2064,33 @@ export namespace Api {
         className: "MessageActionSetSameChatWallPaper";
         static fromReader(reader: Reader): MessageActionSetSameChatWallPaper;
         wallpaper: Api.TypeWallPaper;
+    }
+    export class MessageActionGiftCode extends VirtualClass<{
+        // flags: null;
+        viaGiveaway?: boolean;
+        unclaimed?: boolean;
+        boostPeer?: Api.TypePeer;
+        months: int;
+        slug: string;
+    }> {
+        CONSTRUCTOR_ID: 3536837390;
+        SUBCLASS_OF_ID: 2256589094;
+        classType: "constructor";
+        className: "MessageActionGiftCode";
+        static fromReader(reader: Reader): MessageActionGiftCode;
+        // flags: null;
+        viaGiveaway?: boolean;
+        unclaimed?: boolean;
+        boostPeer?: Api.TypePeer;
+        months: int;
+        slug: string;
+    }
+    export class MessageActionGiveawayLaunch extends VirtualClass<void> {
+        CONSTRUCTOR_ID: 858499565;
+        SUBCLASS_OF_ID: 2256589094;
+        classType: "constructor";
+        className: "MessageActionGiveawayLaunch";
+        static fromReader(reader: Reader): MessageActionGiveawayLaunch;
     }
     export class Dialog extends VirtualClass<{
         // flags: null;
@@ -2920,6 +3005,7 @@ export namespace Api {
     export class UpdateServiceNotification extends VirtualClass<{
         // flags: null;
         popup?: boolean;
+        invertMedia?: boolean;
         inboxDate?: int;
         type: string;
         message: string;
@@ -2933,6 +3019,7 @@ export namespace Api {
         static fromReader(reader: Reader): UpdateServiceNotification;
         // flags: null;
         popup?: boolean;
+        invertMedia?: boolean;
         inboxDate?: int;
         type: string;
         message: string;
@@ -5498,29 +5585,38 @@ export namespace Api {
         documents: long[];
     }
     export class WebPageEmpty extends VirtualClass<{
+        // flags: null;
         id: long;
+        url?: string;
     }> {
-        CONSTRUCTOR_ID: 3943987176;
+        CONSTRUCTOR_ID: 555358088;
         SUBCLASS_OF_ID: 1437168769;
         classType: "constructor";
         className: "WebPageEmpty";
         static fromReader(reader: Reader): WebPageEmpty;
+        // flags: null;
         id: long;
+        url?: string;
     }
     export class WebPagePending extends VirtualClass<{
+        // flags: null;
         id: long;
+        url?: string;
         date: int;
     }> {
-        CONSTRUCTOR_ID: 3313949212;
+        CONSTRUCTOR_ID: 2966502983;
         SUBCLASS_OF_ID: 1437168769;
         classType: "constructor";
         className: "WebPagePending";
         static fromReader(reader: Reader): WebPagePending;
+        // flags: null;
         id: long;
+        url?: string;
         date: int;
     }
     export class WebPage extends VirtualClass<{
         // flags: null;
+        hasLargeMedia?: boolean;
         id: long;
         url: string;
         displayUrl: string;
@@ -5546,6 +5642,7 @@ export namespace Api {
         className: "WebPage";
         static fromReader(reader: Reader): WebPage;
         // flags: null;
+        hasLargeMedia?: boolean;
         id: long;
         url: string;
         displayUrl: string;
@@ -5701,8 +5798,9 @@ export namespace Api {
         photo: Api.TypePhoto;
         participantsCount: int;
         participants?: Api.TypeUser[];
+        color: int;
     }> {
-        CONSTRUCTOR_ID: 806110401;
+        CONSTRUCTOR_ID: 3454069824;
         SUBCLASS_OF_ID: 72750902;
         classType: "constructor";
         className: "ChatInvite";
@@ -5721,6 +5819,7 @@ export namespace Api {
         photo: Api.TypePhoto;
         participantsCount: int;
         participants?: Api.TypeUser[];
+        color: int;
     }
     export class ChatInvitePeek extends VirtualClass<{
         chat: Api.TypeChat;
@@ -5829,6 +5928,7 @@ export namespace Api {
         animated?: boolean;
         videos?: boolean;
         emojis?: boolean;
+        textColor?: boolean;
         installedDate?: int;
         id: long;
         accessHash: long;
@@ -5853,6 +5953,7 @@ export namespace Api {
         animated?: boolean;
         videos?: boolean;
         emojis?: boolean;
+        textColor?: boolean;
         installedDate?: int;
         id: long;
         accessHash: long;
@@ -6391,18 +6492,6 @@ export namespace Api {
         offset: int;
         length: int;
     }
-    export class MessageEntityBlockquote extends VirtualClass<{
-        offset: int;
-        length: int;
-    }> {
-        CONSTRUCTOR_ID: 34469328;
-        SUBCLASS_OF_ID: 3479443932;
-        classType: "constructor";
-        className: "MessageEntityBlockquote";
-        static fromReader(reader: Reader): MessageEntityBlockquote;
-        offset: int;
-        length: int;
-    }
     export class MessageEntityBankCard extends VirtualClass<{
         offset: int;
         length: int;
@@ -6440,6 +6529,18 @@ export namespace Api {
         offset: int;
         length: int;
         documentId: long;
+    }
+    export class MessageEntityBlockquote extends VirtualClass<{
+        offset: int;
+        length: int;
+    }> {
+        CONSTRUCTOR_ID: 34469328;
+        SUBCLASS_OF_ID: 3479443932;
+        classType: "constructor";
+        className: "MessageEntityBlockquote";
+        static fromReader(reader: Reader): MessageEntityBlockquote;
+        offset: int;
+        length: int;
     }
     export class InputChannelEmpty extends VirtualClass<void> {
         CONSTRUCTOR_ID: 4002160262;
@@ -6686,6 +6787,7 @@ export namespace Api {
     }
     export class InputBotInlineMessageMediaAuto extends VirtualClass<{
         // flags: null;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6696,6 +6798,7 @@ export namespace Api {
         className: "InputBotInlineMessageMediaAuto";
         static fromReader(reader: Reader): InputBotInlineMessageMediaAuto;
         // flags: null;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6703,6 +6806,7 @@ export namespace Api {
     export class InputBotInlineMessageText extends VirtualClass<{
         // flags: null;
         noWebpage?: boolean;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6714,6 +6818,7 @@ export namespace Api {
         static fromReader(reader: Reader): InputBotInlineMessageText;
         // flags: null;
         noWebpage?: boolean;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6820,6 +6925,32 @@ export namespace Api {
         providerData: Api.TypeDataJSON;
         replyMarkup?: Api.TypeReplyMarkup;
     }
+    export class InputBotInlineMessageMediaWebPage extends VirtualClass<{
+        // flags: null;
+        invertMedia?: boolean;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        optional?: boolean;
+        message: string;
+        entities?: Api.TypeMessageEntity[];
+        url: string;
+        replyMarkup?: Api.TypeReplyMarkup;
+    }> {
+        CONSTRUCTOR_ID: 3185362192;
+        SUBCLASS_OF_ID: 1408974864;
+        classType: "constructor";
+        className: "InputBotInlineMessageMediaWebPage";
+        static fromReader(reader: Reader): InputBotInlineMessageMediaWebPage;
+        // flags: null;
+        invertMedia?: boolean;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        optional?: boolean;
+        message: string;
+        entities?: Api.TypeMessageEntity[];
+        url: string;
+        replyMarkup?: Api.TypeReplyMarkup;
+    }
     export class InputBotInlineResult extends VirtualClass<{
         // flags: null;
         id: string;
@@ -6900,6 +7031,7 @@ export namespace Api {
     }
     export class BotInlineMessageMediaAuto extends VirtualClass<{
         // flags: null;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6910,6 +7042,7 @@ export namespace Api {
         className: "BotInlineMessageMediaAuto";
         static fromReader(reader: Reader): BotInlineMessageMediaAuto;
         // flags: null;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6917,6 +7050,7 @@ export namespace Api {
     export class BotInlineMessageText extends VirtualClass<{
         // flags: null;
         noWebpage?: boolean;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -6928,6 +7062,7 @@ export namespace Api {
         static fromReader(reader: Reader): BotInlineMessageText;
         // flags: null;
         noWebpage?: boolean;
+        invertMedia?: boolean;
         message: string;
         entities?: Api.TypeMessageEntity[];
         replyMarkup?: Api.TypeReplyMarkup;
@@ -7020,6 +7155,34 @@ export namespace Api {
         photo?: Api.TypeWebDocument;
         currency: string;
         totalAmount: long;
+        replyMarkup?: Api.TypeReplyMarkup;
+    }
+    export class BotInlineMessageMediaWebPage extends VirtualClass<{
+        // flags: null;
+        invertMedia?: boolean;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        manual?: boolean;
+        safe?: boolean;
+        message: string;
+        entities?: Api.TypeMessageEntity[];
+        url: string;
+        replyMarkup?: Api.TypeReplyMarkup;
+    }> {
+        CONSTRUCTOR_ID: 2157631910;
+        SUBCLASS_OF_ID: 3297841032;
+        classType: "constructor";
+        className: "BotInlineMessageMediaWebPage";
+        static fromReader(reader: Reader): BotInlineMessageMediaWebPage;
+        // flags: null;
+        invertMedia?: boolean;
+        forceLargeMedia?: boolean;
+        forceSmallMedia?: boolean;
+        manual?: boolean;
+        safe?: boolean;
+        message: string;
+        entities?: Api.TypeMessageEntity[];
+        url: string;
         replyMarkup?: Api.TypeReplyMarkup;
     }
     export class BotInlineResult extends VirtualClass<{
@@ -7251,21 +7414,25 @@ export namespace Api {
     export class DraftMessage extends VirtualClass<{
         // flags: null;
         noWebpage?: boolean;
-        replyToMsgId?: int;
+        invertMedia?: boolean;
+        replyTo?: Api.TypeInputReplyTo;
         message: string;
         entities?: Api.TypeMessageEntity[];
+        media?: Api.TypeInputMedia;
         date: int;
     }> {
-        CONSTRUCTOR_ID: 4253970719;
+        CONSTRUCTOR_ID: 1070397423;
         SUBCLASS_OF_ID: 869564229;
         classType: "constructor";
         className: "DraftMessage";
         static fromReader(reader: Reader): DraftMessage;
         // flags: null;
         noWebpage?: boolean;
-        replyToMsgId?: int;
+        invertMedia?: boolean;
+        replyTo?: Api.TypeInputReplyTo;
         message: string;
         entities?: Api.TypeMessageEntity[];
+        media?: Api.TypeInputMedia;
         date: int;
     }
     export class StickerSetCovered extends VirtualClass<{
@@ -9168,6 +9335,34 @@ export namespace Api {
             reader: Reader
         ): ChannelAdminLogEventActionToggleAntiSpam;
         newValue: Bool;
+    }
+    export class ChannelAdminLogEventActionChangeColor extends VirtualClass<{
+        prevValue: int;
+        newValue: int;
+    }> {
+        CONSTRUCTOR_ID: 1009460347;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionChangeColor";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionChangeColor;
+        prevValue: int;
+        newValue: int;
+    }
+    export class ChannelAdminLogEventActionChangeBackgroundEmoji extends VirtualClass<{
+        prevValue: long;
+        newValue: long;
+    }> {
+        CONSTRUCTOR_ID: 1147126836;
+        SUBCLASS_OF_ID: 2998503411;
+        classType: "constructor";
+        className: "ChannelAdminLogEventActionChangeBackgroundEmoji";
+        static fromReader(
+            reader: Reader
+        ): ChannelAdminLogEventActionChangeBackgroundEmoji;
+        prevValue: long;
+        newValue: long;
     }
     export class ChannelAdminLogEvent extends VirtualClass<{
         id: long;
@@ -11170,11 +11365,16 @@ export namespace Api {
         // flags: null;
         replyToScheduled?: boolean;
         forumTopic?: boolean;
-        replyToMsgId: int;
+        quote?: boolean;
+        replyToMsgId?: int;
         replyToPeerId?: Api.TypePeer;
+        replyFrom?: Api.TypeMessageFwdHeader;
+        replyMedia?: Api.TypeMessageMedia;
         replyToTopId?: int;
+        quoteText?: string;
+        quoteEntities?: Api.TypeMessageEntity[];
     }> {
-        CONSTRUCTOR_ID: 2799007587;
+        CONSTRUCTOR_ID: 1860946621;
         SUBCLASS_OF_ID: 1531810151;
         classType: "constructor";
         className: "MessageReplyHeader";
@@ -11182,9 +11382,14 @@ export namespace Api {
         // flags: null;
         replyToScheduled?: boolean;
         forumTopic?: boolean;
-        replyToMsgId: int;
+        quote?: boolean;
+        replyToMsgId?: int;
         replyToPeerId?: Api.TypePeer;
+        replyFrom?: Api.TypeMessageFwdHeader;
+        replyMedia?: Api.TypeMessageMedia;
         replyToTopId?: int;
+        quoteText?: string;
+        quoteEntities?: Api.TypeMessageEntity[];
     }
     export class MessageReplyStoryHeader extends VirtualClass<{
         userId: long;
@@ -11934,6 +12139,18 @@ export namespace Api {
         static fromReader(reader: Reader): InputInvoiceSlug;
         slug: string;
     }
+    export class InputInvoicePremiumGiftCode extends VirtualClass<{
+        purpose: Api.TypeInputStorePaymentPurpose;
+        option: Api.TypePremiumGiftCodeOption;
+    }> {
+        CONSTRUCTOR_ID: 2560125965;
+        SUBCLASS_OF_ID: 1919851518;
+        classType: "constructor";
+        className: "InputInvoicePremiumGiftCode";
+        static fromReader(reader: Reader): InputInvoicePremiumGiftCode;
+        purpose: Api.TypeInputStorePaymentPurpose;
+        option: Api.TypePremiumGiftCodeOption;
+    }
     export class InputStorePaymentPremiumSubscription extends VirtualClass<{
         // flags: null;
         restore?: boolean;
@@ -11959,6 +12176,50 @@ export namespace Api {
         className: "InputStorePaymentGiftPremium";
         static fromReader(reader: Reader): InputStorePaymentGiftPremium;
         userId: Api.TypeInputUser;
+        currency: string;
+        amount: long;
+    }
+    export class InputStorePaymentPremiumGiftCode extends VirtualClass<{
+        // flags: null;
+        users: Api.TypeInputUser[];
+        boostPeer?: Api.TypeInputPeer;
+        currency: string;
+        amount: long;
+    }> {
+        CONSTRUCTOR_ID: 2743099199;
+        SUBCLASS_OF_ID: 3886290765;
+        classType: "constructor";
+        className: "InputStorePaymentPremiumGiftCode";
+        static fromReader(reader: Reader): InputStorePaymentPremiumGiftCode;
+        // flags: null;
+        users: Api.TypeInputUser[];
+        boostPeer?: Api.TypeInputPeer;
+        currency: string;
+        amount: long;
+    }
+    export class InputStorePaymentPremiumGiveaway extends VirtualClass<{
+        // flags: null;
+        onlyNewSubscribers?: boolean;
+        boostPeer: Api.TypeInputPeer;
+        additionalPeers?: Api.TypeInputPeer[];
+        countriesIso2?: string[];
+        randomId?: long;
+        untilDate: int;
+        currency: string;
+        amount: long;
+    }> {
+        CONSTRUCTOR_ID: 2090038758;
+        SUBCLASS_OF_ID: 3886290765;
+        classType: "constructor";
+        className: "InputStorePaymentPremiumGiveaway";
+        static fromReader(reader: Reader): InputStorePaymentPremiumGiveaway;
+        // flags: null;
+        onlyNewSubscribers?: boolean;
+        boostPeer: Api.TypeInputPeer;
+        additionalPeers?: Api.TypeInputPeer[];
+        countriesIso2?: string[];
+        randomId?: long;
+        untilDate: int;
         currency: string;
         amount: long;
     }
@@ -12733,8 +12994,11 @@ export namespace Api {
         // flags: null;
         replyToMsgId: int;
         topMsgId?: int;
+        replyToPeerId?: Api.TypeInputPeer;
+        quoteText?: string;
+        quoteEntities?: Api.TypeMessageEntity[];
     }> {
-        CONSTRUCTOR_ID: 2622719716;
+        CONSTRUCTOR_ID: 121554949;
         SUBCLASS_OF_ID: 2356220701;
         classType: "constructor";
         className: "InputReplyToMessage";
@@ -12742,6 +13006,9 @@ export namespace Api {
         // flags: null;
         replyToMsgId: int;
         topMsgId?: int;
+        replyToPeerId?: Api.TypeInputPeer;
+        quoteText?: string;
+        quoteEntities?: Api.TypeMessageEntity[];
     }
     export class InputReplyToStory extends VirtualClass<{
         userId: Api.TypeInputUser;
@@ -12879,17 +13146,93 @@ export namespace Api {
         maxReadId?: int;
         stories: Api.TypeStoryItem[];
     }
-    export class Booster extends VirtualClass<{
-        userId: long;
-        expires: int;
+    export class PremiumGiftCodeOption extends VirtualClass<{
+        // flags: null;
+        users: int;
+        months: int;
+        storeProduct?: string;
+        storeQuantity?: int;
+        currency: string;
+        amount: long;
     }> {
-        CONSTRUCTOR_ID: 245261184;
-        SUBCLASS_OF_ID: 550217265;
+        CONSTRUCTOR_ID: 629052971;
+        SUBCLASS_OF_ID: 2216898;
         classType: "constructor";
-        className: "Booster";
-        static fromReader(reader: Reader): Booster;
-        userId: long;
+        className: "PremiumGiftCodeOption";
+        static fromReader(reader: Reader): PremiumGiftCodeOption;
+        // flags: null;
+        users: int;
+        months: int;
+        storeProduct?: string;
+        storeQuantity?: int;
+        currency: string;
+        amount: long;
+    }
+    export class PrepaidGiveaway extends VirtualClass<{
+        id: long;
+        months: int;
+        quantity: int;
+        date: int;
+    }> {
+        CONSTRUCTOR_ID: 2991824212;
+        SUBCLASS_OF_ID: 3997067136;
+        classType: "constructor";
+        className: "PrepaidGiveaway";
+        static fromReader(reader: Reader): PrepaidGiveaway;
+        id: long;
+        months: int;
+        quantity: int;
+        date: int;
+    }
+    export class Boost extends VirtualClass<{
+        // flags: null;
+        gift?: boolean;
+        giveaway?: boolean;
+        unclaimed?: boolean;
+        id: string;
+        userId?: long;
+        giveawayMsgId?: int;
+        date: int;
         expires: int;
+        usedGiftSlug?: string;
+        multiplier?: int;
+    }> {
+        CONSTRUCTOR_ID: 706514033;
+        SUBCLASS_OF_ID: 2544175212;
+        classType: "constructor";
+        className: "Boost";
+        static fromReader(reader: Reader): Boost;
+        // flags: null;
+        gift?: boolean;
+        giveaway?: boolean;
+        unclaimed?: boolean;
+        id: string;
+        userId?: long;
+        giveawayMsgId?: int;
+        date: int;
+        expires: int;
+        usedGiftSlug?: string;
+        multiplier?: int;
+    }
+    export class MyBoost extends VirtualClass<{
+        // flags: null;
+        slot: int;
+        peer?: Api.TypePeer;
+        date: int;
+        expires: int;
+        cooldownUntilDate?: int;
+    }> {
+        CONSTRUCTOR_ID: 3293069660;
+        SUBCLASS_OF_ID: 3306842303;
+        classType: "constructor";
+        className: "MyBoost";
+        static fromReader(reader: Reader): MyBoost;
+        // flags: null;
+        slot: int;
+        peer?: Api.TypePeer;
+        date: int;
+        expires: int;
+        cooldownUntilDate?: int;
     }
     export class ResPQ extends VirtualClass<{
         nonce: int128;
@@ -16388,6 +16731,80 @@ export namespace Api {
             static fromReader(reader: Reader): ExportedInvoice;
             url: string;
         }
+        export class CheckedGiftCode extends VirtualClass<{
+            // flags: null;
+            viaGiveaway?: boolean;
+            fromId: Api.TypePeer;
+            giveawayMsgId?: int;
+            toId?: long;
+            date: int;
+            months: int;
+            usedDate?: int;
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+        }> {
+            CONSTRUCTOR_ID: 3072520536;
+            SUBCLASS_OF_ID: 1529452520;
+            classType: "constructor";
+            className: "payments.CheckedGiftCode";
+            static fromReader(reader: Reader): CheckedGiftCode;
+            // flags: null;
+            viaGiveaway?: boolean;
+            fromId: Api.TypePeer;
+            giveawayMsgId?: int;
+            toId?: long;
+            date: int;
+            months: int;
+            usedDate?: int;
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+        }
+        export class GiveawayInfo extends VirtualClass<{
+            // flags: null;
+            participating?: boolean;
+            preparingResults?: boolean;
+            startDate: int;
+            joinedTooEarlyDate?: int;
+            adminDisallowedChatId?: long;
+            disallowedCountry?: string;
+        }> {
+            CONSTRUCTOR_ID: 1130879648;
+            SUBCLASS_OF_ID: 2527295421;
+            classType: "constructor";
+            className: "payments.GiveawayInfo";
+            static fromReader(reader: Reader): GiveawayInfo;
+            // flags: null;
+            participating?: boolean;
+            preparingResults?: boolean;
+            startDate: int;
+            joinedTooEarlyDate?: int;
+            adminDisallowedChatId?: long;
+            disallowedCountry?: string;
+        }
+        export class GiveawayInfoResults extends VirtualClass<{
+            // flags: null;
+            winner?: boolean;
+            refunded?: boolean;
+            startDate: int;
+            giftCodeSlug?: string;
+            finishDate: int;
+            winnersCount: int;
+            activatedCount: int;
+        }> {
+            CONSTRUCTOR_ID: 13456752;
+            SUBCLASS_OF_ID: 2527295421;
+            classType: "constructor";
+            className: "payments.GiveawayInfoResults";
+            static fromReader(reader: Reader): GiveawayInfoResults;
+            // flags: null;
+            winner?: boolean;
+            refunded?: boolean;
+            startDate: int;
+            giftCodeSlug?: string;
+            finishDate: int;
+            winnersCount: int;
+            activatedCount: int;
+        }
     }
 
     export namespace phone {
@@ -16811,66 +17228,70 @@ export namespace Api {
             chats: Api.TypeChat[];
             users: Api.TypeUser[];
         }
+    }
+
+    export namespace premium {
+        export class BoostsList extends VirtualClass<{
+            // flags: null;
+            count: int;
+            boosts: Api.TypeBoost[];
+            nextOffset?: string;
+            users: Api.TypeUser[];
+        }> {
+            CONSTRUCTOR_ID: 2264424764;
+            SUBCLASS_OF_ID: 573941949;
+            classType: "constructor";
+            className: "premium.BoostsList";
+            static fromReader(reader: Reader): BoostsList;
+            // flags: null;
+            count: int;
+            boosts: Api.TypeBoost[];
+            nextOffset?: string;
+            users: Api.TypeUser[];
+        }
+        export class MyBoosts extends VirtualClass<{
+            myBoosts: Api.TypeMyBoost[];
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+        }> {
+            CONSTRUCTOR_ID: 2598512866;
+            SUBCLASS_OF_ID: 2905936603;
+            classType: "constructor";
+            className: "premium.MyBoosts";
+            static fromReader(reader: Reader): MyBoosts;
+            myBoosts: Api.TypeMyBoost[];
+            chats: Api.TypeChat[];
+            users: Api.TypeUser[];
+        }
         export class BoostsStatus extends VirtualClass<{
             // flags: null;
             myBoost?: boolean;
             level: int;
             currentLevelBoosts: int;
             boosts: int;
+            giftBoosts?: int;
             nextLevelBoosts?: int;
             premiumAudience?: Api.TypeStatsPercentValue;
             boostUrl: string;
+            prepaidGiveaways?: Api.TypePrepaidGiveaway[];
+            myBoostSlots?: int[];
         }> {
-            CONSTRUCTOR_ID: 3854674524;
-            SUBCLASS_OF_ID: 3681797604;
+            CONSTRUCTOR_ID: 1230586490;
+            SUBCLASS_OF_ID: 3273333433;
             classType: "constructor";
-            className: "stories.BoostsStatus";
+            className: "premium.BoostsStatus";
             static fromReader(reader: Reader): BoostsStatus;
             // flags: null;
             myBoost?: boolean;
             level: int;
             currentLevelBoosts: int;
             boosts: int;
+            giftBoosts?: int;
             nextLevelBoosts?: int;
             premiumAudience?: Api.TypeStatsPercentValue;
             boostUrl: string;
-        }
-        export class CanApplyBoostOk extends VirtualClass<void> {
-            CONSTRUCTOR_ID: 3273078151;
-            SUBCLASS_OF_ID: 1461124156;
-            classType: "constructor";
-            className: "stories.CanApplyBoostOk";
-            static fromReader(reader: Reader): CanApplyBoostOk;
-        }
-        export class CanApplyBoostReplace extends VirtualClass<{
-            currentBoost: Api.TypePeer;
-            chats: Api.TypeChat[];
-        }> {
-            CONSTRUCTOR_ID: 1898726997;
-            SUBCLASS_OF_ID: 1461124156;
-            classType: "constructor";
-            className: "stories.CanApplyBoostReplace";
-            static fromReader(reader: Reader): CanApplyBoostReplace;
-            currentBoost: Api.TypePeer;
-            chats: Api.TypeChat[];
-        }
-        export class BoostersList extends VirtualClass<{
-            // flags: null;
-            count: int;
-            boosters: Api.TypeBooster[];
-            nextOffset?: string;
-            users: Api.TypeUser[];
-        }> {
-            CONSTRUCTOR_ID: 4091362589;
-            SUBCLASS_OF_ID: 792007542;
-            classType: "constructor";
-            className: "stories.BoostersList";
-            static fromReader(reader: Reader): BoostersList;
-            // flags: null;
-            count: int;
-            boosters: Api.TypeBooster[];
-            nextOffset?: string;
-            users: Api.TypeUser[];
+            prepaidGiveaways?: Api.TypePrepaidGiveaway[];
+            myBoostSlots?: int[];
         }
     }
 
@@ -17133,6 +17554,10 @@ export namespace Api {
         export type TypeSavedInfo = payments.SavedInfo;
         export type TypeBankCardData = payments.BankCardData;
         export type TypeExportedInvoice = payments.ExportedInvoice;
+        export type TypeCheckedGiftCode = payments.CheckedGiftCode;
+        export type TypeGiveawayInfo =
+            | payments.GiveawayInfo
+            | payments.GiveawayInfoResults;
     }
 
     export namespace phone {
@@ -17181,11 +17606,12 @@ export namespace Api {
         export type TypeStoryViewsList = stories.StoryViewsList;
         export type TypeStoryViews = stories.StoryViews;
         export type TypePeerStories = stories.PeerStories;
-        export type TypeBoostsStatus = stories.BoostsStatus;
-        export type TypeCanApplyBoostResult =
-            | stories.CanApplyBoostOk
-            | stories.CanApplyBoostReplace;
-        export type TypeBoostersList = stories.BoostersList;
+    }
+
+    export namespace premium {
+        export type TypeBoostsList = premium.BoostsList;
+        export type TypeMyBoosts = premium.MyBoosts;
+        export type TypeBoostsStatus = premium.BoostsStatus;
     }
 
     export namespace auth {
@@ -18770,6 +19196,36 @@ export namespace Api {
             static fromReader(reader: Reader): InvalidateSignInCodes;
             codes: string[];
         }
+        export class UpdateColor extends Request<
+            Partial<{
+                // flags: null;
+                color: int;
+                backgroundEmojiId?: long;
+            }>,
+            Bool
+        > {
+            CONSTRUCTOR_ID: 2684472387;
+            SUBCLASS_OF_ID: 4122188204;
+            classType: "request";
+            className: "account.UpdateColor";
+            static fromReader(reader: Reader): UpdateColor;
+            // flags: null;
+            color: int;
+            backgroundEmojiId?: long;
+        }
+        export class GetDefaultBackgroundEmojis extends Request<
+            Partial<{
+                hash: long;
+            }>,
+            Api.TypeEmojiList
+        > {
+            CONSTRUCTOR_ID: 2785720782;
+            SUBCLASS_OF_ID: 3169807034;
+            classType: "request";
+            className: "account.GetDefaultBackgroundEmojis";
+            static fromReader(reader: Reader): GetDefaultBackgroundEmojis;
+            hash: long;
+        }
     }
 
     export namespace users {
@@ -19401,6 +19857,7 @@ export namespace Api {
                 clearDraft?: boolean;
                 noforwards?: boolean;
                 updateStickersetsOrder?: boolean;
+                invertMedia?: boolean;
                 peer: Api.TypeEntityLike;
                 replyTo?: Api.TypeInputReplyTo;
                 message: string;
@@ -19424,6 +19881,7 @@ export namespace Api {
             clearDraft?: boolean;
             noforwards?: boolean;
             updateStickersetsOrder?: boolean;
+            invertMedia?: boolean;
             peer: Api.TypeEntityLike;
             replyTo?: Api.TypeInputReplyTo;
             message: string;
@@ -19441,6 +19899,7 @@ export namespace Api {
                 clearDraft?: boolean;
                 noforwards?: boolean;
                 updateStickersetsOrder?: boolean;
+                invertMedia?: boolean;
                 peer: Api.TypeEntityLike;
                 replyTo?: Api.TypeInputReplyTo;
                 media: Api.TypeInputMedia;
@@ -19464,6 +19923,7 @@ export namespace Api {
             clearDraft?: boolean;
             noforwards?: boolean;
             updateStickersetsOrder?: boolean;
+            invertMedia?: boolean;
             peer: Api.TypeEntityLike;
             replyTo?: Api.TypeInputReplyTo;
             media: Api.TypeInputMedia;
@@ -20271,6 +20731,7 @@ export namespace Api {
             Partial<{
                 // flags: null;
                 noWebpage?: boolean;
+                invertMedia?: boolean;
                 peer: Api.TypeEntityLike;
                 id: int;
                 message?: string;
@@ -20288,6 +20749,7 @@ export namespace Api {
             static fromReader(reader: Reader): EditMessage;
             // flags: null;
             noWebpage?: boolean;
+            invertMedia?: boolean;
             peer: Api.TypeEntityLike;
             id: int;
             message?: string;
@@ -20300,6 +20762,7 @@ export namespace Api {
             Partial<{
                 // flags: null;
                 noWebpage?: boolean;
+                invertMedia?: boolean;
                 id: Api.TypeInputBotInlineMessageID;
                 message?: string;
                 media?: Api.TypeInputMedia;
@@ -20315,6 +20778,7 @@ export namespace Api {
             static fromReader(reader: Reader): EditInlineBotMessage;
             // flags: null;
             noWebpage?: boolean;
+            invertMedia?: boolean;
             id: Api.TypeInputBotInlineMessageID;
             message?: string;
             media?: Api.TypeInputMedia;
@@ -20384,26 +20848,28 @@ export namespace Api {
             Partial<{
                 // flags: null;
                 noWebpage?: boolean;
-                replyToMsgId?: MessageIDLike;
-                topMsgId?: MessageIDLike;
+                invertMedia?: boolean;
+                replyTo?: Api.TypeInputReplyTo;
                 peer: Api.TypeEntityLike;
                 message: string;
                 entities?: Api.TypeMessageEntity[];
+                media?: Api.TypeInputMedia;
             }>,
             Bool
         > {
-            CONSTRUCTOR_ID: 3023248959;
+            CONSTRUCTOR_ID: 2146678790;
             SUBCLASS_OF_ID: 4122188204;
             classType: "request";
             className: "messages.SaveDraft";
             static fromReader(reader: Reader): SaveDraft;
             // flags: null;
             noWebpage?: boolean;
-            replyToMsgId?: MessageIDLike;
-            topMsgId?: MessageIDLike;
+            invertMedia?: boolean;
+            replyTo?: Api.TypeInputReplyTo;
             peer: Api.TypeEntityLike;
             message: string;
             entities?: Api.TypeMessageEntity[];
+            media?: Api.TypeInputMedia;
         }
         export class GetAllDrafts extends Request<void, Api.TypeUpdates> {
             CONSTRUCTOR_ID: 1782549861;
@@ -20864,6 +21330,7 @@ export namespace Api {
                 clearDraft?: boolean;
                 noforwards?: boolean;
                 updateStickersetsOrder?: boolean;
+                invertMedia?: boolean;
                 peer: Api.TypeEntityLike;
                 replyTo?: Api.TypeInputReplyTo;
                 multiMedia: Api.TypeInputSingleMedia[];
@@ -20883,6 +21350,7 @@ export namespace Api {
             clearDraft?: boolean;
             noforwards?: boolean;
             updateStickersetsOrder?: boolean;
+            invertMedia?: boolean;
             peer: Api.TypeEntityLike;
             replyTo?: Api.TypeInputReplyTo;
             multiMedia: Api.TypeInputSingleMedia[];
@@ -23982,6 +24450,25 @@ export namespace Api {
             channel: Api.TypeEntityLike;
             randomId: bytes;
         }
+        export class UpdateColor extends Request<
+            Partial<{
+                // flags: null;
+                channel: Api.TypeEntityLike;
+                color: int;
+                backgroundEmojiId?: long;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 1645879327;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "channels.UpdateColor";
+            static fromReader(reader: Reader): UpdateColor;
+            // flags: null;
+            channel: Api.TypeEntityLike;
+            color: int;
+            backgroundEmojiId?: long;
+        }
     }
 
     export namespace bots {
@@ -24406,6 +24893,79 @@ export namespace Api {
             classType: "request";
             className: "payments.CanPurchasePremium";
             static fromReader(reader: Reader): CanPurchasePremium;
+            purpose: Api.TypeInputStorePaymentPurpose;
+        }
+        export class GetPremiumGiftCodeOptions extends Request<
+            Partial<{
+                // flags: null;
+                boostPeer?: Api.TypeEntityLike;
+            }>,
+            Api.TypePremiumGiftCodeOption[]
+        > {
+            CONSTRUCTOR_ID: 660060756;
+            SUBCLASS_OF_ID: 178857347;
+            classType: "request";
+            className: "payments.GetPremiumGiftCodeOptions";
+            static fromReader(reader: Reader): GetPremiumGiftCodeOptions;
+            // flags: null;
+            boostPeer?: Api.TypeEntityLike;
+        }
+        export class CheckGiftCode extends Request<
+            Partial<{
+                slug: string;
+            }>,
+            payments.TypeCheckedGiftCode
+        > {
+            CONSTRUCTOR_ID: 2387719361;
+            SUBCLASS_OF_ID: 1529452520;
+            classType: "request";
+            className: "payments.CheckGiftCode";
+            static fromReader(reader: Reader): CheckGiftCode;
+            slug: string;
+        }
+        export class ApplyGiftCode extends Request<
+            Partial<{
+                slug: string;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 4142032980;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "payments.ApplyGiftCode";
+            static fromReader(reader: Reader): ApplyGiftCode;
+            slug: string;
+        }
+        export class GetGiveawayInfo extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+                msgId: MessageIDLike;
+            }>,
+            payments.TypeGiveawayInfo
+        > {
+            CONSTRUCTOR_ID: 4095972389;
+            SUBCLASS_OF_ID: 2527295421;
+            classType: "request";
+            className: "payments.GetGiveawayInfo";
+            static fromReader(reader: Reader): GetGiveawayInfo;
+            peer: Api.TypeEntityLike;
+            msgId: MessageIDLike;
+        }
+        export class LaunchPrepaidGiveaway extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+                giveawayId: long;
+                purpose: Api.TypeInputStorePaymentPurpose;
+            }>,
+            Api.TypeUpdates
+        > {
+            CONSTRUCTOR_ID: 1609928480;
+            SUBCLASS_OF_ID: 2331323052;
+            classType: "request";
+            className: "payments.LaunchPrepaidGiveaway";
+            static fromReader(reader: Reader): LaunchPrepaidGiveaway;
+            peer: Api.TypeEntityLike;
+            giveawayId: long;
             purpose: Api.TypeInputStorePaymentPurpose;
         }
     }
@@ -25860,60 +26420,65 @@ export namespace Api {
             peer: Api.TypeEntityLike;
             hidden: Bool;
         }
-        export class GetBoostsStatus extends Request<
+    }
+
+    export namespace premium {
+        export class GetBoostsList extends Request<
             Partial<{
-                peer: Api.TypeEntityLike;
-            }>,
-            stories.TypeBoostsStatus
-        > {
-            CONSTRUCTOR_ID: 1279562866;
-            SUBCLASS_OF_ID: 3681797604;
-            classType: "request";
-            className: "stories.GetBoostsStatus";
-            static fromReader(reader: Reader): GetBoostsStatus;
-            peer: Api.TypeEntityLike;
-        }
-        export class GetBoostersList extends Request<
-            Partial<{
+                // flags: null;
+                gifts?: boolean;
                 peer: Api.TypeEntityLike;
                 offset: string;
                 limit: int;
             }>,
-            stories.TypeBoostersList
+            premium.TypeBoostsList
         > {
-            CONSTRUCTOR_ID: 863959424;
-            SUBCLASS_OF_ID: 792007542;
+            CONSTRUCTOR_ID: 1626764896;
+            SUBCLASS_OF_ID: 573941949;
             classType: "request";
-            className: "stories.GetBoostersList";
-            static fromReader(reader: Reader): GetBoostersList;
+            className: "premium.GetBoostsList";
+            static fromReader(reader: Reader): GetBoostsList;
+            // flags: null;
+            gifts?: boolean;
             peer: Api.TypeEntityLike;
             offset: string;
             limit: int;
         }
-        export class CanApplyBoost extends Request<
-            Partial<{
-                peer: Api.TypeEntityLike;
-            }>,
-            stories.TypeCanApplyBoostResult
-        > {
-            CONSTRUCTOR_ID: 3674587581;
-            SUBCLASS_OF_ID: 1461124156;
+        export class GetMyBoosts extends Request<void, premium.TypeMyBoosts> {
+            CONSTRUCTOR_ID: 199719754;
+            SUBCLASS_OF_ID: 2905936603;
             classType: "request";
-            className: "stories.CanApplyBoost";
-            static fromReader(reader: Reader): CanApplyBoost;
-            peer: Api.TypeEntityLike;
+            className: "premium.GetMyBoosts";
+            static fromReader(reader: Reader): GetMyBoosts;
         }
         export class ApplyBoost extends Request<
             Partial<{
+                // flags: null;
+                slots?: int[];
                 peer: Api.TypeEntityLike;
             }>,
-            Bool
+            premium.TypeMyBoosts
         > {
-            CONSTRUCTOR_ID: 4070407211;
-            SUBCLASS_OF_ID: 4122188204;
+            CONSTRUCTOR_ID: 1803396934;
+            SUBCLASS_OF_ID: 2905936603;
             classType: "request";
-            className: "stories.ApplyBoost";
+            className: "premium.ApplyBoost";
             static fromReader(reader: Reader): ApplyBoost;
+            // flags: null;
+            slots?: int[];
+            peer: Api.TypeEntityLike;
+        }
+        export class GetBoostsStatus extends Request<
+            Partial<{
+                peer: Api.TypeEntityLike;
+            }>,
+            premium.TypeBoostsStatus
+        > {
+            CONSTRUCTOR_ID: 70197089;
+            SUBCLASS_OF_ID: 3273333433;
+            classType: "request";
+            className: "premium.GetBoostsStatus";
+            static fromReader(reader: Reader): GetBoostsStatus;
             peer: Api.TypeEntityLike;
         }
     }
@@ -25950,7 +26515,8 @@ export namespace Api {
         | InputMediaGeoLive
         | InputMediaPoll
         | InputMediaDice
-        | InputMediaStory;
+        | InputMediaStory
+        | InputMediaWebPage;
     export type TypeInputChatPhoto =
         | InputChatPhotoEmpty
         | InputChatUploadedPhoto
@@ -26008,7 +26574,8 @@ export namespace Api {
         | MessageMediaGeoLive
         | MessageMediaPoll
         | MessageMediaDice
-        | MessageMediaStory;
+        | MessageMediaStory
+        | MessageMediaGiveaway;
     export type TypeMessageAction =
         | MessageActionEmpty
         | MessageActionChatCreate
@@ -26048,7 +26615,9 @@ export namespace Api {
         | MessageActionSuggestProfilePhoto
         | MessageActionRequestedPeer
         | MessageActionSetChatWallPaper
-        | MessageActionSetSameChatWallPaper;
+        | MessageActionSetSameChatWallPaper
+        | MessageActionGiftCode
+        | MessageActionGiveawayLaunch;
     export type TypeDialog = Dialog | DialogFolder;
     export type TypePhoto = PhotoEmpty | Photo;
     export type TypePhotoSize =
@@ -26396,10 +26965,10 @@ export namespace Api {
         | MessageEntityCashtag
         | MessageEntityUnderline
         | MessageEntityStrike
-        | MessageEntityBlockquote
         | MessageEntityBankCard
         | MessageEntitySpoiler
-        | MessageEntityCustomEmoji;
+        | MessageEntityCustomEmoji
+        | MessageEntityBlockquote;
     export type TypeInputChannel =
         | InputChannelEmpty
         | InputChannel
@@ -26431,7 +27000,8 @@ export namespace Api {
         | InputBotInlineMessageMediaVenue
         | InputBotInlineMessageMediaContact
         | InputBotInlineMessageGame
-        | InputBotInlineMessageMediaInvoice;
+        | InputBotInlineMessageMediaInvoice
+        | InputBotInlineMessageMediaWebPage;
     export type TypeInputBotInlineResult =
         | InputBotInlineResult
         | InputBotInlineResultPhoto
@@ -26443,7 +27013,8 @@ export namespace Api {
         | BotInlineMessageMediaGeo
         | BotInlineMessageMediaVenue
         | BotInlineMessageMediaContact
-        | BotInlineMessageMediaInvoice;
+        | BotInlineMessageMediaInvoice
+        | BotInlineMessageMediaWebPage;
     export type TypeBotInlineResult = BotInlineResult | BotInlineMediaResult;
     export type TypeExportedMessageLink = ExportedMessageLink;
     export type TypeMessageFwdHeader = MessageFwdHeader;
@@ -26608,7 +27179,9 @@ export namespace Api {
         | ChannelAdminLogEventActionEditTopic
         | ChannelAdminLogEventActionDeleteTopic
         | ChannelAdminLogEventActionPinTopic
-        | ChannelAdminLogEventActionToggleAntiSpam;
+        | ChannelAdminLogEventActionToggleAntiSpam
+        | ChannelAdminLogEventActionChangeColor
+        | ChannelAdminLogEventActionChangeBackgroundEmoji;
     export type TypeChannelAdminLogEvent = ChannelAdminLogEvent;
     export type TypeChannelAdminLogEventsFilter = ChannelAdminLogEventsFilter;
     export type TypePopularContact = PopularContact;
@@ -26815,10 +27388,15 @@ export namespace Api {
         | AttachMenuPeerTypePM
         | AttachMenuPeerTypeChat
         | AttachMenuPeerTypeBroadcast;
-    export type TypeInputInvoice = InputInvoiceMessage | InputInvoiceSlug;
+    export type TypeInputInvoice =
+        | InputInvoiceMessage
+        | InputInvoiceSlug
+        | InputInvoicePremiumGiftCode;
     export type TypeInputStorePaymentPurpose =
         | InputStorePaymentPremiumSubscription
-        | InputStorePaymentGiftPremium;
+        | InputStorePaymentGiftPremium
+        | InputStorePaymentPremiumGiftCode
+        | InputStorePaymentPremiumGiveaway;
     export type TypePremiumGiftOption = PremiumGiftOption;
     export type TypePaymentFormMethod = PaymentFormMethod;
     export type TypeEmojiStatus =
@@ -26885,7 +27463,10 @@ export namespace Api {
         | MediaAreaGeoPoint
         | MediaAreaSuggestedReaction;
     export type TypePeerStories = PeerStories;
-    export type TypeBooster = Booster;
+    export type TypePremiumGiftCodeOption = PremiumGiftCodeOption;
+    export type TypePrepaidGiveaway = PrepaidGiveaway;
+    export type TypeBoost = Boost;
+    export type TypeMyBoost = MyBoost;
     export type TypeResPQ = ResPQ;
     export type TypeP_Q_inner_data =
         | PQInnerData
@@ -27063,6 +27644,8 @@ export namespace Api {
         | account.SaveAutoSaveSettings
         | account.DeleteAutoSaveExceptions
         | account.InvalidateSignInCodes
+        | account.UpdateColor
+        | account.GetDefaultBackgroundEmojis
         | users.GetUsers
         | users.GetFullUser
         | users.SetSecureValueErrors
@@ -27373,6 +27956,7 @@ export namespace Api {
         | channels.ReportAntiSpamFalsePositive
         | channels.ToggleParticipantsHidden
         | channels.ClickSponsoredMessage
+        | channels.UpdateColor
         | bots.SendCustomRequest
         | bots.AnswerWebhookJSONQuery
         | bots.SetBotCommands
@@ -27400,6 +27984,11 @@ export namespace Api {
         | payments.AssignAppStoreTransaction
         | payments.AssignPlayMarketTransaction
         | payments.CanPurchasePremium
+        | payments.GetPremiumGiftCodeOptions
+        | payments.CheckGiftCode
+        | payments.ApplyGiftCode
+        | payments.GetGiveawayInfo
+        | payments.LaunchPrepaidGiveaway
         | stickers.CreateStickerSet
         | stickers.RemoveStickerFromSet
         | stickers.ChangeStickerPosition
@@ -27486,8 +28075,8 @@ export namespace Api {
         | stories.GetPeerMaxIDs
         | stories.GetChatsToSend
         | stories.TogglePeerStoriesHidden
-        | stories.GetBoostsStatus
-        | stories.GetBoostersList
-        | stories.CanApplyBoost
-        | stories.ApplyBoost;
+        | premium.GetBoostsList
+        | premium.GetMyBoosts
+        | premium.ApplyBoost
+        | premium.GetBoostsStatus;
 }
