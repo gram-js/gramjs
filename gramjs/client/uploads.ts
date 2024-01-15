@@ -680,6 +680,7 @@ export async function sendFile(
         return await _sendAlbum(client, entity, {
             file: file,
             caption: caption,
+            formattingEntities: formattingEntities,
             replyTo: replyTo,
             parseMode: parseMode,
             attributes: attributes,
