@@ -502,6 +502,7 @@ export async function _sendAlbum(
     {
         file,
         caption,
+        formattingEntities,
         forceDocument = false,
         fileSize,
         clearDraft = false,
@@ -535,8 +536,15 @@ export async function _sendAlbum(
         caption = [caption];
     }
     const captions: [string, Api.TypeMessageEntity[]][] = [];
+    let counter = 0;
     for (const c of caption) {
-        captions.push(await _parseMessageText(client, c, parseMode));
+        if (!formattingEntities?.length){
+            captions.push(await _parseMessageText(client, c, parseMode));
+        }
+        else {
+            captions.push([c, counter?[]:formattingEntities]);
+        }
+        counter++;
     }
     if (commentTo != undefined) {
         const discussionData = await getCommentData(client, entity, commentTo);
