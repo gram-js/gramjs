@@ -42,9 +42,9 @@ export class Draft {
                 : draft.message;
             this._rawText = draft.message;
             this.date = draft.date;
-            const replyTo = draft.replyTo
-            if (replyTo != undefined){
-                if ("replyToMsgId" in replyTo){
+            const replyTo = draft.replyTo;
+            if (replyTo != undefined) {
+                if ("replyToMsgId" in replyTo) {
                     this.replyToMsgId = replyTo.replyToMsgId;
                 }
             }
