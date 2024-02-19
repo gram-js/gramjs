@@ -209,7 +209,7 @@ export class HTMLParser {
                 if (entity.language) {
                     html.push(`<pre>
 <code class="language-${entity.language}">
-    ${entityText}
+${entityText}
 </code>
 </pre>`);
                 } else {
