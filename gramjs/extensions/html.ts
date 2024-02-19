@@ -207,11 +207,7 @@ export class HTMLParser {
                 html.push(`<blockquote>${entityText}</blockquote>`);
             } else if (entity instanceof Api.MessageEntityPre) {
                 if (entity.language) {
-                    html.push(`<pre>
-<code class="language-${entity.language}">
-${entityText}
-</code>
-</pre>`);
+                    html.push(`<pre><code class="language-${entity.language}">${entityText}</code></pre>`);
                 } else {
                     html.push(`<pre>${entityText}</pre>`);
                 }
