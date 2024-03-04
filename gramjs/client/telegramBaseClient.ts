@@ -102,6 +102,10 @@ export interface TelegramClientParams {
      */
     systemLangCode?: string;
     /**
+     * Language pack. Defaults to ''.
+     */
+    langPack?: string,
+    /**
      * Instance of Logger to use. <br />
      * If a `Logger` is given, it'll be used directly. If nothing is given, the default logger will be used. <br />
      * To create your own Logger make sure you extends GramJS logger {@link Logger} and override `log` method.
@@ -146,6 +150,7 @@ const clientParamsDefault = {
     appVersion: "",
     langCode: "en",
     systemLangCode: "en",
+    langPack: "",
     _securityChecks: true,
     useWSS: isBrowser ? window.location.protocol == "https:" : false,
     testServers: false,
@@ -297,7 +302,7 @@ export abstract class TelegramBaseClient {
                 clientParams.systemVersion || os.release().toString() || "1.0",
             appVersion: clientParams.appVersion || "1.0",
             langCode: clientParams.langCode,
-            langPack: "", // this should be left empty.
+            langPack: clientParams.langPack,
             systemLangCode: clientParams.systemLangCode,
             proxy: initProxy,
         });

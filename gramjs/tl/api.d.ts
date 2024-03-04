@@ -767,6 +767,7 @@ export namespace Api {
         restrictionReason?: Api.TypeRestrictionReason[];
         botInlinePlaceholder?: string;
         langCode?: string;
+        langPack?: string;
         emojiStatus?: Api.TypeEmojiStatus;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
@@ -812,6 +813,7 @@ export namespace Api {
         restrictionReason?: Api.TypeRestrictionReason[];
         botInlinePlaceholder?: string;
         langCode?: string;
+        langPack?: string;
         emojiStatus?: Api.TypeEmojiStatus;
         usernames?: Api.TypeUsername[];
         storiesMaxId?: int;
