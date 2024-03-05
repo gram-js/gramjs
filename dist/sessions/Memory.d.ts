@@ -1,0 +1,38 @@
+import { Session } from "./Abstract";
+import type { AuthKey } from "../crypto/AuthKey";
+import { Api } from "../tl";
+import bigInt from "big-integer";
+import type { EntityLike } from "../define";
+export declare class MemorySession extends Session {
+    protected _serverAddress?: string;
+    protected _dcId: number;
+    protected _port?: number;
+    protected _takeoutId: undefined;
+    protected _entities: Set<any>;
+    protected _updateStates: {};
+    protected _authKey?: AuthKey;
+    constructor();
+    setDC(dcId: number, serverAddress: string, port: number): void;
+    get dcId(): number;
+    get serverAddress(): string;
+    get port(): number;
+    get authKey(): AuthKey | undefined;
+    set authKey(value: AuthKey | undefined);
+    get takeoutId(): undefined;
+    set takeoutId(value: undefined);
+    getAuthKey(dcId?: number): AuthKey | undefined;
+    setAuthKey(authKey?: AuthKey, dcId?: number): undefined;
+    close(): void;
+    save(): void;
+    load(): Promise<void>;
+    delete(): void;
+    _entityValuesToRow(id: bigInt.BigInteger | string, hash: bigInt.BigInteger | string, username: string, phone: string, name: string): (string | bigInt.BigInteger)[];
+    _entityToRow(e: any): (string | bigInt.BigInteger)[] | undefined;
+    _entitiesToRows(tlo: any): (string | bigInt.BigInteger)[][];
+    processEntities(tlo: any): void;
+    getEntityRowsByPhone(phone: string): any[] | undefined;
+    getEntityRowsByUsername(username: string): any[] | undefined;
+    getEntityRowsByName(name: string): any[] | undefined;
+    getEntityRowsById(id: string | bigInt.BigInteger, exact?: boolean): any[] | undefined;
+    getInputEntity(key: EntityLike): Api.TypeInputPeer;
+}

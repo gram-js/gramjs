@@ -3,7 +3,6 @@
 /.idea/
 # Generated code
 /docs/
-/dist/
 /coverage/
 
 # User session

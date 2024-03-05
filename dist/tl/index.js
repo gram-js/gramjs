@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.serializeDate = exports.serializeBytes = exports.Api = void 0;
+const api_1 = require("./api");
+Object.defineProperty(exports, "Api", { enumerable: true, get: function () { return api_1.Api; } });
+const patched_1 = require("./patched");
+(0, patched_1.patchAll)();
+var generationHelpers_1 = require("./generationHelpers");
+Object.defineProperty(exports, "serializeBytes", { enumerable: true, get: function () { return generationHelpers_1.serializeBytes; } });
+Object.defineProperty(exports, "serializeDate", { enumerable: true, get: function () { return generationHelpers_1.serializeDate; } });
