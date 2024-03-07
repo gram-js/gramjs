@@ -137,21 +137,14 @@ export function readBufferFromBigInt(
     if (!signed && bigIntVar.lesser(bigInt(0))) {
         throw new Error("Cannot convert to unsigned");
     }
-    let below = false;
-    if (bigIntVar.lesser(bigInt(0))) {
-        below = true;
-        bigIntVar = bigIntVar.abs();
+
+    if (signed && bigIntVar.lesser(bigInt(0))) {
+        bigIntVar = bigInt(2).pow(bigInt(bytesNumber).multiply(8)).add(bigIntVar);
     }
 
     const hex = bigIntVar.toString(16).padStart(bytesNumber * 2, "0");
     let buffer = Buffer.from(hex, "hex");
 
-    if (signed && below) {
-        buffer[buffer.length - 1] = 256 - buffer[buffer.length - 1];
-        for (let i = 0; i < buffer.length - 1; i++) {
-            buffer[i] = 255 - buffer[i];
-        }
-    }
     if (little) {
         buffer = buffer.reverse();
     }
