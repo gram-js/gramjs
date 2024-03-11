@@ -616,7 +616,9 @@ export class CustomMessage extends SenderGetter {
                 "Got error while trying to finish init message with id " +
                     this.id
             );
-            if (this._client._log.canSend(LogLevel.ERROR)) {
+            if (this._client._errorHandler) {
+                await this._client._errorHandler(e as Error);
+            } if (this._client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

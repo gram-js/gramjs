@@ -122,7 +122,9 @@ export class _DialogsIter extends RequestIter {
                     "Got error while trying to finish init message with id " +
                         m.id
                 );
-                if (this.client._log.canSend(LogLevel.ERROR)) {
+                if (this.client._errorHandler) {
+                    await this.client._errorHandler(e as Error);
+                } else if (this.client._log.canSend(LogLevel.ERROR)) {
                     console.error(e);
                 }
             }
