@@ -108,7 +108,9 @@ export class AlbumEvent extends EventCommon {
                     "Got error while trying to finish init message with id " +
                         this.messages[i].id
                 );
-                if (client._log.canSend(LogLevel.ERROR)) {
+                if (client._errorHandler) {
+                    client._errorHandler(e as Error);
+                } if (client._log.canSend(LogLevel.ERROR)) {
                     console.error(e);
                 }
             }
