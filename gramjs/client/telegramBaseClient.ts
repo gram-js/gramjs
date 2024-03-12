@@ -592,6 +592,12 @@ export abstract class TelegramBaseClient {
 
     /**
      * Custom error handler for the client
+     * @example
+     * ```ts
+     * client.onError = async (error)=>{
+     *         console.log("error is",error)
+     *     }
+     * ```
      */
     set onError(handler: (error: Error) => Promise<void>) {
         this._errorHandler = async (error: Error) => {

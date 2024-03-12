@@ -69,13 +69,13 @@ interface MessageBaseInterface {
  *    await message.click(row, column)
  *
  *    # Click by text
- *    await message.click(text='👍')
+ *    await message.click({text:'👍'})
  *
  *    # Click by data
- *    await message.click(data=b'payload')
+ *    await message.click({data:'payload'})
  *
  *    # Click on a button requesting a phone
- *    await message.click(0, share_phone=True)
+ *    await message.click(0, {share_phone:true})
  * ```
  */
 
