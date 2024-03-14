@@ -430,13 +430,13 @@ export async function downloadFileV2(
             msgData: msgData,
         })) {
             await writer.write(chunk);
+            downloaded = downloaded.add(chunk.length);
             if (progressCallback) {
                 await progressCallback(
                     downloaded,
                     bigInt(fileSize || bigInt.zero)
                 );
             }
-            downloaded = downloaded.add(chunk.length);
         }
         return returnWriterValue(writer);
     } finally {
