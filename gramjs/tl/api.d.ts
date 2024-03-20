@@ -18385,7 +18385,7 @@ export namespace Api {
                 phoneNumber: string;
                 phoneCodeHash: string;
                 firstName: string;
-                lastName: string;
+                lastName?: string;
             }>,
             auth.TypeAuthorization
         > {
