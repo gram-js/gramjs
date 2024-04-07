@@ -107,6 +107,7 @@ export class MTProtoSender {
     private _connectMutex: Mutex;
     private _cancelSend: boolean;
     cancellableRecvLoopPromise?: CancellablePromise<any>;
+    private _finishedConnecting: boolean;
 
     /**
      * @param authKey
@@ -117,6 +118,7 @@ export class MTProtoSender {
             ...MTProtoSender.DEFAULT_OPTIONS,
             ...opts,
         };
+        this._finishedConnecting = false;
         this._cancelSend = false;
         this._connection = undefined;
         this._log = args.logger;
@@ -249,7 +251,7 @@ export class MTProtoSender {
         }
         this.isConnecting = true;
         this._connection = connection;
-
+        this._finishedConnecting = false;
         for (let attempt = 0; attempt < this._retries; attempt++) {
             try {
                 await this._connect();
@@ -261,6 +263,7 @@ export class MTProtoSender {
                         )
                     );
                 }
+                this._finishedConnecting = true;
                 break;
             } catch (err) {
                 if (this._updateCallback && attempt === 0) {
@@ -274,7 +277,9 @@ export class MTProtoSender {
                 this._log.error(
                     `WebSocket connection failed attempt: ${attempt + 1}`
                 );
-                if (this._log.canSend(LogLevel.ERROR)) {
+                if (this._client._errorHandler) {
+                    await this._client._errorHandler(err as Error);
+                } if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
                 await sleep(this._delay);
@@ -282,7 +287,7 @@ export class MTProtoSender {
         }
         this.isConnecting = false;
 
-        return true;
+        return this._finishedConnecting;
     }
 
     isConnected() {
@@ -576,7 +581,9 @@ export class MTProtoSender {
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data");
-                    if (this._log.canSend(LogLevel.ERROR)) {
+                    if (this._client._errorHandler) {
+                        await this._client._errorHandler(e as Error);
+                    } if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                     this.reconnect();
@@ -598,7 +605,9 @@ export class MTProtoSender {
                     }
                 } else {
                     this._log.error("Unhandled error while receiving data");
-                    if (this._log.canSend(LogLevel.ERROR)) {
+                    if (this._client._errorHandler) {
+                        await this._client._errorHandler(e as Error);
+                    } if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                 }
@@ -975,7 +984,9 @@ export class MTProtoSender {
             await this._disconnect();
         } catch (err) {
             this._log.warn("Error happened while disconnecting");
-            if (this._log.canSend(LogLevel.ERROR)) {
+            if (this._client._errorHandler) {
+                await this._client._errorHandler(err as Error);
+            } if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
         }

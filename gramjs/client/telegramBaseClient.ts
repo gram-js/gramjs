@@ -202,6 +202,8 @@ export abstract class TelegramBaseClient {
     public useWSS: boolean;
 
     /** @hidden */
+    public _errorHandler?: (error: Error) => Promise<void>;
+    /** @hidden */
     public _eventBuilders: [EventBuilder, CallableFunction][];
     /** @hidden */
     public _entityCache: EntityCache;
@@ -484,7 +486,9 @@ export abstract class TelegramBaseClient {
                     sender.userDisconnected = false;
                     return sender;
                 }
-                if (this._log.canSend(LogLevel.ERROR)) {
+                if (this._errorHandler) {
+                    await this._errorHandler(err as Error);
+                } else if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
 
@@ -523,7 +527,9 @@ export abstract class TelegramBaseClient {
                 }
             }
         } catch (err) {
-            if (this._log.canSend(LogLevel.ERROR)) {
+            if (this._errorHandler) {
+                await this._errorHandler(err as Error);
+            } if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
             return this._borrowExportedSender(dcId, true);
@@ -587,5 +593,27 @@ export abstract class TelegramBaseClient {
 
     get logger() {
         return this._log;
+    }
+
+    /**
+     * Custom error handler for the client
+     * @example
+     * ```ts
+     * client.onError = async (error)=>{
+     *         console.log("error is",error)
+     *     }
+     * ```
+     */
+    set onError(handler: (error: Error) => Promise<void>) {
+        this._errorHandler = async (error: Error) => {
+            try {
+                await handler(error);
+            } catch (e: any) {
+                if (this._log.canSend(LogLevel.ERROR)) {
+                    e.message = `Error ${e.message} thrown while handling top-level error: ${error.message}`;
+                    console.error(e);
+                }
+            }
+        };
     }
 }

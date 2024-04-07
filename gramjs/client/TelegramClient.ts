@@ -1366,7 +1366,9 @@ export class TelegramClient extends TelegramBaseClient {
             const res = await this.getMe();
         } catch (e) {
             this._log.error(`Error while trying to reconnect`);
-            if (this._log.canSend(LogLevel.ERROR)) {
+            if (this._errorHandler) {
+                await this._errorHandler(e as Error);
+            } if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }
@@ -1407,7 +1409,7 @@ export class TelegramClient extends TelegramBaseClient {
                 _updateLoop(this);
                 this._loopStarted = true;
             }
-            return;
+            return false;
         }
         this.session.setAuthKey(this._sender.authKey);
         this.session.save();
@@ -1426,6 +1428,7 @@ export class TelegramClient extends TelegramBaseClient {
         }
         this._connectedDeferred.resolve();
         this._isSwitchingDc = false;
+        return true;
     }
     //endregion
     // region Working with different connections/Data Centers
