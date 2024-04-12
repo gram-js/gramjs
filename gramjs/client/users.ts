@@ -127,7 +127,7 @@ export async function getMe<
     R = T extends true ? Api.InputPeerUser : Api.User
 >(client: TelegramClient, inputPeer: T): Promise<R> {
     if (inputPeer && client._selfInputPeer) {
-        return client._selfInputPeer as R;
+        return client._selfInputPeer as unknown as R;
     }
     const me = (
         await client.invoke(
@@ -142,7 +142,7 @@ export async function getMe<
             false
         ) as Api.InputPeerUser;
     }
-    return inputPeer ? (client._selfInputPeer as R) : (me as R);
+    return inputPeer ? (client._selfInputPeer as unknown as R) : (me as unknown as R);
 }
 
 /** @hidden */
