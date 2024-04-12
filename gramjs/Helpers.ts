@@ -139,7 +139,9 @@ export function readBufferFromBigInt(
     }
 
     if (signed && bigIntVar.lesser(bigInt(0))) {
-        bigIntVar = bigInt(2).pow(bigInt(bytesNumber).multiply(8)).add(bigIntVar);
+        bigIntVar = bigInt(2)
+            .pow(bigInt(bytesNumber).multiply(8))
+            .add(bigIntVar);
     }
 
     const hex = bigIntVar.toString(16).padStart(bytesNumber * 2, "0");

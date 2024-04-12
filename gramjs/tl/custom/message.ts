@@ -618,7 +618,8 @@ export class CustomMessage extends SenderGetter {
             );
             if (this._client._errorHandler) {
                 await this._client._errorHandler(e as Error);
-            } if (this._client._log.canSend(LogLevel.ERROR)) {
+            }
+            if (this._client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

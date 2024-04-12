@@ -279,7 +279,8 @@ export class MTProtoSender {
                 );
                 if (this._client._errorHandler) {
                     await this._client._errorHandler(err as Error);
-                } if (this._log.canSend(LogLevel.ERROR)) {
+                }
+                if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
                 await sleep(this._delay);
@@ -583,7 +584,8 @@ export class MTProtoSender {
                     this._log.error("Unhandled error while receiving data");
                     if (this._client._errorHandler) {
                         await this._client._errorHandler(e as Error);
-                    } if (this._log.canSend(LogLevel.ERROR)) {
+                    }
+                    if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                     this.reconnect();
@@ -607,7 +609,8 @@ export class MTProtoSender {
                     this._log.error("Unhandled error while receiving data");
                     if (this._client._errorHandler) {
                         await this._client._errorHandler(e as Error);
-                    } if (this._log.canSend(LogLevel.ERROR)) {
+                    }
+                    if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                 }
@@ -986,7 +989,8 @@ export class MTProtoSender {
             this._log.warn("Error happened while disconnecting");
             if (this._client._errorHandler) {
                 await this._client._errorHandler(err as Error);
-            } if (this._log.canSend(LogLevel.ERROR)) {
+            }
+            if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
         }

@@ -260,7 +260,8 @@ export class NewMessageEvent extends EventCommon {
             );
             if (client._errorHandler) {
                 client._errorHandler(e as Error);
-            } if (client._log.canSend(LogLevel.ERROR)) {
+            }
+            if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

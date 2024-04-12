@@ -370,7 +370,8 @@ export async function getInputEntity(
         } catch (e) {
             if (client._errorHandler) {
                 await client._errorHandler(e as Error);
-            } if (client._log.canSend(LogLevel.ERROR)) {
+            }
+            if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }

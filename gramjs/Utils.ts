@@ -237,9 +237,8 @@ export function _photoSizeByteCount(size: Api.TypePhotoSize) {
     } else if (size instanceof Api.PhotoSizeEmpty) {
         return 0;
     } else if (size instanceof Api.PhotoSizeProgressive) {
-        return size.sizes[size.sizes.length -1];
-    }
-    else {
+        return size.sizes[size.sizes.length - 1];
+    } else {
         return undefined;
     }
 }

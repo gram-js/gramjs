@@ -524,7 +524,8 @@ export abstract class TelegramBaseClient {
         } catch (err) {
             if (this._errorHandler) {
                 await this._errorHandler(err as Error);
-            } if (this._log.canSend(LogLevel.ERROR)) {
+            }
+            if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
             return this._borrowExportedSender(dcId, true);
