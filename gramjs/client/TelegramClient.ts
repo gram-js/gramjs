@@ -1226,6 +1226,8 @@ export class TelegramClient extends TelegramBaseClient {
      * console.log("My username is",me.username);
      * ```
      */
+    getMe(inputPeer: true): Promise<Api.InputPeerUser>;
+    getMe(inputPeer?: false): Promise<Api.User>;
     getMe(inputPeer = false) {
         return userMethods.getMe(this, inputPeer);
     }
