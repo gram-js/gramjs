@@ -39,7 +39,7 @@ export class PromisedNetSockets {
             const thisTime = await this.read(number);
             readData = Buffer.concat([readData, thisTime]);
             number = number - thisTime.length;
-            if (!number) {
+            if (!number || number === -437) {
                 return readData;
             }
         }
