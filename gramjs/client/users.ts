@@ -142,7 +142,9 @@ export async function getMe<
             false
         ) as Api.InputPeerUser;
     }
-    return inputPeer ? (client._selfInputPeer as unknown as R) : (me as unknown as R);
+    return inputPeer
+        ? (client._selfInputPeer as unknown as R)
+        : (me as unknown as R);
 }
 
 /** @hidden */
