@@ -69,7 +69,9 @@ export class File {
 
     get size() {
         if (this.media instanceof Api.Photo) {
-            return _photoSizeByteCount(this.media.sizes[-1]);
+            return _photoSizeByteCount(
+                this.media.sizes[this.media.sizes.length - 1]
+            );
         } else if (this.media instanceof Api.Document) {
             return this.media.size;
         }

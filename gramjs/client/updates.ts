@@ -174,6 +174,9 @@ export async function _dispatchUpdate(
                     if (e instanceof StopPropagation) {
                         break;
                     }
+                    if (client._errorHandler) {
+                        await client._errorHandler(e as Error);
+                    }
                     if (client._log.canSend(LogLevel.ERROR)) {
                         console.error(e);
                     }
@@ -241,6 +244,9 @@ export async function _updateLoop(client: TelegramClient) {
             lastPongAt = Date.now();
         } catch (err) {
             // eslint-disable-next-line no-console
+            if (client._errorHandler) {
+                await client._errorHandler(err as Error);
+            }
             if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }

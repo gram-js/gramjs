@@ -122,12 +122,12 @@ export async function invoke<R extends Api.AnyRequest>(
 }
 
 /** @hidden */
-export async function getMe(
-    client: TelegramClient,
-    inputPeer = false
-): Promise<Api.InputPeerUser | Api.User> {
+export async function getMe<
+    T extends boolean,
+    R = T extends true ? Api.InputPeerUser : Api.User
+>(client: TelegramClient, inputPeer: T): Promise<R> {
     if (inputPeer && client._selfInputPeer) {
-        return client._selfInputPeer;
+        return client._selfInputPeer as unknown as R;
     }
     const me = (
         await client.invoke(
@@ -142,7 +142,9 @@ export async function getMe(
             false
         ) as Api.InputPeerUser;
     }
-    return inputPeer ? client._selfInputPeer : me;
+    return inputPeer
+        ? (client._selfInputPeer as unknown as R)
+        : (me as unknown as R);
 }
 
 /** @hidden */
@@ -368,6 +370,9 @@ export async function getInputEntity(
 
             return utils.getInputPeer(channels.chats[0]);
         } catch (e) {
+            if (client._errorHandler) {
+                await client._errorHandler(e as Error);
+            }
             if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }

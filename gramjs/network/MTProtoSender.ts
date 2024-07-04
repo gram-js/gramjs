@@ -277,6 +277,9 @@ export class MTProtoSender {
                 this._log.error(
                     `WebSocket connection failed attempt: ${attempt + 1}`
                 );
+                if (this._client._errorHandler) {
+                    await this._client._errorHandler(err as Error);
+                }
                 if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
@@ -579,6 +582,9 @@ export class MTProtoSender {
                     return;
                 } else {
                     this._log.error("Unhandled error while receiving data");
+                    if (this._client._errorHandler) {
+                        await this._client._errorHandler(e as Error);
+                    }
                     if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
@@ -601,6 +607,9 @@ export class MTProtoSender {
                     }
                 } else {
                     this._log.error("Unhandled error while receiving data");
+                    if (this._client._errorHandler) {
+                        await this._client._errorHandler(e as Error);
+                    }
                     if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
@@ -978,6 +987,9 @@ export class MTProtoSender {
             await this._disconnect();
         } catch (err) {
             this._log.warn("Error happened while disconnecting");
+            if (this._client._errorHandler) {
+                await this._client._errorHandler(err as Error);
+            }
             if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }

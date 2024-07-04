@@ -1226,6 +1226,8 @@ export class TelegramClient extends TelegramBaseClient {
      * console.log("My username is",me.username);
      * ```
      */
+    getMe(inputPeer: true): Promise<Api.InputPeerUser>;
+    getMe(inputPeer?: false): Promise<Api.User>;
     getMe(inputPeer = false) {
         return userMethods.getMe(this, inputPeer);
     }
@@ -1366,6 +1368,9 @@ export class TelegramClient extends TelegramBaseClient {
             const res = await this.getMe();
         } catch (e) {
             this._log.error(`Error while trying to reconnect`);
+            if (this._errorHandler) {
+                await this._errorHandler(e as Error);
+            }
             if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
