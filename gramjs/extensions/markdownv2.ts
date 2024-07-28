@@ -36,7 +36,7 @@ export class MarkdownV2Parser {
             '<tg-emoji emoji-id="$2">$1</tg-emoji>'
         );
 
-        // 
+        //
         return HTMLParser.parse(message);
     }
 

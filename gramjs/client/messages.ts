@@ -1175,8 +1175,9 @@ export async function getCommentData(
             msgId: utils.getMessageId(message),
         })
     );
-    const relevantMessage = result.messages
-                            .reduce((p: Api.TypeMessage, c: Api.TypeMessage) => (p && p.id < c.id ? p : c));
+    const relevantMessage = result.messages.reduce(
+        (p: Api.TypeMessage, c: Api.TypeMessage) => (p && p.id < c.id ? p : c)
+    );
     let chat;
     for (const c of result.chats) {
         if (

@@ -1049,11 +1049,8 @@ export class TelegramClient extends TelegramBaseClient {
      * // Leaving chat
      * await client.kickParticipant(chat, 'me');
      */
-    kickParticipant(
-        entity:EntityLike,
-        participant:EntityLike
-    ) {
-        return chatMethods.kickParticipant(this,entity,participant)
+    kickParticipant(entity: EntityLike, participant: EntityLike) {
+        return chatMethods.kickParticipant(this, entity, participant);
     }
 
     //endregion
@@ -1574,7 +1571,6 @@ export class TelegramClient extends TelegramBaseClient {
     static get events() {
         return require("../events");
     }
-    
 
     // endregion
 }

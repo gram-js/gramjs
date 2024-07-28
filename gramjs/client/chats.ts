@@ -1,6 +1,12 @@
 import type { TelegramClient } from "./TelegramClient";
 import type { EntitiesLike, Entity, EntityLike, ValueOf } from "../define";
-import { sleep, getMinBigInt, TotalList, betterConsoleLog, returnBigInt } from "../Helpers";
+import {
+    sleep,
+    getMinBigInt,
+    TotalList,
+    betterConsoleLog,
+    returnBigInt,
+} from "../Helpers";
 import { RequestIter } from "../requestIter";
 import { helpers, utils } from "../";
 import { Api } from "../tl";
@@ -451,44 +457,43 @@ export async function kickParticipant(
 ) {
     const peer = await client.getInputEntity(entity);
     const user = await client.getInputEntity(participant);
-    let resp
-    let request
-    
+    let resp;
+    let request;
+
     const type = helpers._entityType(peer);
-    if(type === helpers._EntityType.CHAT){
+    if (type === helpers._EntityType.CHAT) {
         request = new Api.messages.DeleteChatUser({
             chatId: returnBigInt(getPeerId(entity)),
-            userId:returnBigInt(getPeerId(participant))
-        })
+            userId: returnBigInt(getPeerId(participant)),
+        });
         resp = await client.invoke(request);
-    }
-    else if(type === helpers._EntityType.CHANNEL){
-        if(user instanceof Api.InputPeerSelf){
+    } else if (type === helpers._EntityType.CHANNEL) {
+        if (user instanceof Api.InputPeerSelf) {
             request = new Api.channels.LeaveChannel({
-                channel:peer
-            })
-            resp = await client.invoke(request)
-        }
-        else{
+                channel: peer,
+            });
+            resp = await client.invoke(request);
+        } else {
             request = new Api.channels.EditBanned({
-                channel:peer,
-                participant:user,
+                channel: peer,
+                participant: user,
                 bannedRights: new Api.ChatBannedRights({
-                    untilDate:0,
-                    viewMessages:true
+                    untilDate: 0,
+                    viewMessages: true,
+                }),
+            });
+            resp = await client.invoke(request);
+            await sleep(500);
+            await client.invoke(
+                new Api.channels.EditBanned({
+                    channel: peer,
+                    participant: user,
+                    bannedRights: new Api.ChatBannedRights({ untilDate: 0 }),
                 })
-            })
-            resp = await client.invoke(request)
-            await sleep(500)
-            await client.invoke(new Api.channels.EditBanned({
-                channel:peer,
-                participant:user,
-                bannedRights:new Api.ChatBannedRights({untilDate:0})
-            }))
+            );
         }
+    } else {
+        throw new Error("You must pass either a channel or a chat");
     }
-    else{
-        throw new Error("You must pass either a channel or a chat")
-    }
-    return client._getResponseMessage(request,resp,entity)
+    return client._getResponseMessage(request, resp, entity);
 }
