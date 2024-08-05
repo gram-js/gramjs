@@ -46,6 +46,9 @@ class HTMLToTelegramParser implements Handler {
             EntityType = Api.MessageEntityStrike;
         } else if (name == "blockquote") {
             EntityType = Api.MessageEntityBlockquote;
+            if (attributes.expandable !== undefined) {
+                args.collapsed = true;
+            }
         } else if (name == "code") {
             const pre = this._buildingEntities.get("pre");
             if (pre && pre instanceof Api.MessageEntityPre) {
