@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/niocncn/gramjs.git"
+    "url": "git+https://github.com/gram-js/gramjs.git"
   },
   "browser": {
     "fs": false
