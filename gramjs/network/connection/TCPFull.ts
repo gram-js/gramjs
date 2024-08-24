@@ -44,7 +44,7 @@ export class FullPacketCodec extends PacketCodec {
             // # It has been observed that the length and seq can be -429,
             // # followed by the body of 4 bytes also being -429.
             // # See https://github.com/LonamiWebs/Telethon/issues/4042.
-            const body = await reader.readExactly(4)
+            const body = await reader.readExactly(4);
             throw new InvalidBufferError(body);
         }
         let body = await reader.readExactly(packetLen - 8);

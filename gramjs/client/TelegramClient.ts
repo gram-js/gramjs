@@ -1416,6 +1416,7 @@ export class TelegramClient extends TelegramBaseClient {
                 client: this,
                 securityChecks: this._securityChecks,
                 autoReconnectCallback: this._handleReconnect.bind(this),
+                _exportedSenderPromises: this._exportedSenderPromises,
             });
         }
 

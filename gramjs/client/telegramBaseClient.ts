@@ -212,7 +212,7 @@ export abstract class TelegramBaseClient {
         [ReturnType<typeof setTimeout>, Api.TypeUpdate[]]
     >();
     /** @hidden */
-    private _exportedSenderPromises = new Map<number, Promise<MTProtoSender>>();
+    public _exportedSenderPromises = new Map<number, Promise<MTProtoSender>>();
     /** @hidden */
     private _exportedSenderReleaseTimeouts = new Map<
         number,
@@ -540,7 +540,15 @@ export abstract class TelegramBaseClient {
             dcId,
             setTimeout(() => {
                 this._exportedSenderReleaseTimeouts.delete(dcId);
-                sender.disconnect();
+                if (sender._pendingState.values().length) {
+                    console.log(
+                        "sender already has some hanging states. reconnecting"
+                    );
+                    sender._reconnect();
+                    this._borrowExportedSender(dcId, false, sender);
+                } else {
+                    sender.disconnect();
+                }
             }, EXPORTED_SENDER_RELEASE_TIMEOUT)
         );
 
@@ -561,6 +569,7 @@ export abstract class TelegramBaseClient {
             onConnectionBreak: this._cleanupExportedSender.bind(this),
             client: this as unknown as TelegramClient,
             securityChecks: this._securityChecks,
+            _exportedSenderPromises: this._exportedSenderPromises,
         });
     }
 
