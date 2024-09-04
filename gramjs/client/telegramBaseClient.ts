@@ -284,11 +284,11 @@ export abstract class TelegramBaseClient {
         }
         this._connection = clientParams.connection;
         let initProxy;
-        if (this._proxy?.MTProxy) {
+        if (this._proxy && 'MTProxy' in this._proxy) {
             this._connection = ConnectionTCPMTProxyAbridged;
             initProxy = new Api.InputClientProxy({
-                address: this._proxy!.ip,
-                port: this._proxy!.port,
+                address: this._proxy.ip,
+                port: this._proxy.port,
             });
         }
         this._initRequest = new Api.InitConnection({
