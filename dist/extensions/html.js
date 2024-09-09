@@ -177,11 +177,7 @@ class HTMLParser {
             }
             else if (entity instanceof tl_1.Api.MessageEntityPre) {
                 if (entity.language) {
-                    html.push(`<pre>
-<code class="language-${entity.language}">
-    ${entityText}
-</code>
-</pre>`);
+                    html.push(`<pre><code class="language-${entity.language}">${entityText}</code></pre>`);
                 }
                 else {
                     html.push(`<pre>${entityText}</pre>`);

@@ -315,6 +315,9 @@ async function getInputEntity(client, peer) {
             return __1.utils.getInputPeer(channels.chats[0]);
         }
         catch (e) {
+            if (client._errorHandler) {
+                await client._errorHandler(e);
+            }
             if (client._log.canSend(Logger_1.LogLevel.ERROR)) {
                 console.error(e);
             }

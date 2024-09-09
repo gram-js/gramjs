@@ -1033,6 +1033,9 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
         }
         catch (e) {
             this._log.error(`Error while trying to reconnect`);
+            if (this._errorHandler) {
+                await this._errorHandler(e);
+            }
             if (this._log.canSend(Logger_1.LogLevel.ERROR)) {
                 console.error(e);
             }
@@ -1071,7 +1074,7 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
                 (0, updates_1._updateLoop)(this);
                 this._loopStarted = true;
             }
-            return;
+            return false;
         }
         this.session.setAuthKey(this._sender.authKey);
         this.session.save();
@@ -1087,6 +1090,7 @@ class TelegramClient extends telegramBaseClient_1.TelegramBaseClient {
         }
         this._connectedDeferred.resolve();
         this._isSwitchingDc = false;
+        return true;
     }
     //endregion
     // region Working with different connections/Data Centers

@@ -155,6 +155,8 @@ export declare abstract class TelegramBaseClient {
     /** @hidden */
     useWSS: boolean;
     /** @hidden */
+    _errorHandler?: (error: Error) => Promise<void>;
+    /** @hidden */
     _eventBuilders: [EventBuilder, CallableFunction][];
     /** @hidden */
     _entityCache: EntityCache;
@@ -221,4 +223,14 @@ export declare abstract class TelegramBaseClient {
     invoke<R extends Api.AnyRequest>(request: R): Promise<R["__response"]>;
     setLogLevel(level: LogLevel): void;
     get logger(): Logger;
+    /**
+     * Custom error handler for the client
+     * @example
+     * ```ts
+     * client.onError = async (error)=>{
+     *         console.log("error is",error)
+     *     }
+     * ```
+     */
+    set onError(handler: (error: Error) => Promise<void>);
 }

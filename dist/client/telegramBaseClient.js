@@ -252,7 +252,10 @@ class TelegramBaseClient {
                     sender.userDisconnected = false;
                     return sender;
                 }
-                if (this._log.canSend(Logger_1.LogLevel.ERROR)) {
+                if (this._errorHandler) {
+                    await this._errorHandler(err);
+                }
+                else if (this._log.canSend(Logger_1.LogLevel.ERROR)) {
                     console.error(err);
                 }
                 await (0, Helpers_1.sleep)(1000);
@@ -279,6 +282,9 @@ class TelegramBaseClient {
             }
         }
         catch (err) {
+            if (this._errorHandler) {
+                await this._errorHandler(err);
+            }
             if (this._log.canSend(Logger_1.LogLevel.ERROR)) {
                 console.error(err);
             }
@@ -328,6 +334,28 @@ class TelegramBaseClient {
     }
     get logger() {
         return this._log;
+    }
+    /**
+     * Custom error handler for the client
+     * @example
+     * ```ts
+     * client.onError = async (error)=>{
+     *         console.log("error is",error)
+     *     }
+     * ```
+     */
+    set onError(handler) {
+        this._errorHandler = async (error) => {
+            try {
+                await handler(error);
+            }
+            catch (e) {
+                if (this._log.canSend(Logger_1.LogLevel.ERROR)) {
+                    e.message = `Error ${e.message} thrown while handling top-level error: ${error.message}`;
+                    console.error(e);
+                }
+            }
+        };
     }
 }
 exports.TelegramBaseClient = TelegramBaseClient;

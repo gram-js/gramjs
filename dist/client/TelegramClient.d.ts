@@ -990,9 +990,9 @@ export declare class TelegramClient extends TelegramBaseClient {
     _getInputNotify(notify: any): Promise<any>;
     /** @hidden */
     _handleReconnect(): Promise<void>;
-    connect(): Promise<void>;
+    connect(): Promise<boolean>;
     /** @hidden */
-    _switchDC(newDc: number): Promise<void>;
+    _switchDC(newDc: number): Promise<boolean>;
     /**
      * Returns the DC ip in case of node or the DC web address in case of browser.<br/>
      * This will do an API request to fill the cache if it's the first time it's called.

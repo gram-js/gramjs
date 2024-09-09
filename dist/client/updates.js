@@ -147,6 +147,9 @@ async function _dispatchUpdate(client, args) {
                     if (e instanceof StopPropagation) {
                         break;
                     }
+                    if (client._errorHandler) {
+                        await client._errorHandler(e);
+                    }
                     if (client._log.canSend(Logger_1.LogLevel.ERROR)) {
                         console.error(e);
                     }
@@ -195,6 +198,9 @@ async function _updateLoop(client) {
         }
         catch (err) {
             // eslint-disable-next-line no-console
+            if (client._errorHandler) {
+                await client._errorHandler(err);
+            }
             if (client._log.canSend(Logger_1.LogLevel.ERROR)) {
                 console.error(err);
             }

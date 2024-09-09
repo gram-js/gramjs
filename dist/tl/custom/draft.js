@@ -24,7 +24,12 @@ class Draft {
                 : draft.message;
             this._rawText = draft.message;
             this.date = draft.date;
-            this.replyToMsgId = draft.replyToMsgId;
+            const replyTo = draft.replyTo;
+            if (replyTo != undefined) {
+                if ("replyToMsgId" in replyTo) {
+                    this.replyToMsgId = replyTo.replyToMsgId;
+                }
+            }
         }
     }
     [inspect_1.inspect.custom]() {

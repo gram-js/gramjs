@@ -84,6 +84,7 @@ export declare class MTProtoSender {
     private _connectMutex;
     private _cancelSend;
     cancellableRecvLoopPromise?: CancellablePromise<any>;
+    private _finishedConnecting;
     /**
      * @param authKey
      * @param opts

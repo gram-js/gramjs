@@ -18,8 +18,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.client = exports.password = exports.tl = exports.helpers = exports.extensions = exports.sessions = exports.errors = exports.utils = exports.Logger = exports.version = exports.Connection = exports.TelegramClient = exports.Api = void 0;
+exports.bigInt = exports.client = exports.password = exports.tl = exports.helpers = exports.extensions = exports.sessions = exports.errors = exports.utils = exports.Logger = exports.version = exports.Connection = exports.TelegramClient = exports.Api = void 0;
 var tl_1 = require("./tl");
 Object.defineProperty(exports, "Api", { enumerable: true, get: function () { return tl_1.Api; } });
 const tl = __importStar(require("./tl"));
@@ -46,3 +49,5 @@ const client = __importStar(require("./client"));
 exports.client = client;
 const password = __importStar(require("./Password"));
 exports.password = password;
+const big_integer_1 = __importDefault(require("big-integer"));
+exports.bigInt = big_integer_1.default;

@@ -201,6 +201,9 @@ function _photoSizeByteCount(size) {
     else if (size instanceof tl_1.Api.PhotoSizeEmpty) {
         return 0;
     }
+    else if (size instanceof tl_1.Api.PhotoSizeProgressive) {
+        return size.sizes[size.sizes.length - 1];
+    }
     else {
         return undefined;
     }

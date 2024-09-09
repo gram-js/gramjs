@@ -11,4 +11,5 @@ import * as extensions from "./extensions";
 import * as helpers from "./Helpers";
 import * as client from "./client";
 import * as password from "./Password";
-export { utils, errors, sessions, extensions, helpers, tl, password, client };
+import bigInt from "big-integer";
+export { utils, errors, sessions, extensions, helpers, tl, password, client, bigInt };

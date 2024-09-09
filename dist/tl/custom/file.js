@@ -49,7 +49,7 @@ class File {
     }
     get size() {
         if (this.media instanceof api_1.Api.Photo) {
-            return (0, Utils_1._photoSizeByteCount)(this.media.sizes[-1]);
+            return (0, Utils_1._photoSizeByteCount)(this.media.sizes[this.media.sizes.length - 1]);
         }
         else if (this.media instanceof api_1.Api.Document) {
             return this.media.size;

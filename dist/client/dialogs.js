@@ -98,6 +98,9 @@ class _DialogsIter extends requestIter_1.RequestIter {
                 if (this.client._log.canSend(Logger_1.LogLevel.ERROR)) {
                     console.error(e);
                 }
+                if (this.client._errorHandler) {
+                    await this.client._errorHandler(e);
+                }
             }
             messages.set(_dialogMessageKey(message.peerId, message.id), message);
         }

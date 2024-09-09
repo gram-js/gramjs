@@ -5,6 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "build": "./prepare_dist.sh",
     "test": "jest"
   },
   "repository": {
