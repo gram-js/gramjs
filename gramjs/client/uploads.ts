@@ -155,7 +155,15 @@ export async function uploadFile(
         }
 
         for (let j = i; j < end; j++) {
-            const bytes = await buffer.slice(j * partSize, (j + 1) * partSize);
+            let endPart = (j + 1) * partSize;
+            if (endPart > size) {
+                endPart = size;
+            }
+            if (endPart == j * partSize) {
+                break;
+            }
+
+            const bytes = await buffer.slice(j * partSize, endPart);
 
             // eslint-disable-next-line no-loop-func
             sendingParts.push(
