@@ -18,10 +18,10 @@ interface BasicProxyInterface {
 export type MTProxyType = BasicProxyInterface & {
     secret: string;
     MTProxy: true;
-}
+};
 export type SocksProxyType = BasicProxyInterface & {
     socksType: 4 | 5;
-}
+};
 
 export type ProxyInterface = MTProxyType | SocksProxyType;
 
@@ -160,7 +160,7 @@ export class TCPMTProxy extends ObfuscatedConnection {
             proxy: proxy,
             testServers: testServers,
         });
-        if (!('MTProxy' in proxy)) {
+        if (!("MTProxy" in proxy)) {
             throw new Error("This connection only supports MPTProxies");
         }
         if (!proxy.secret) {

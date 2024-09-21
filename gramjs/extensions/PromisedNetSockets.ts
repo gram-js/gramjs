@@ -2,7 +2,10 @@ import * as net from "./net";
 import { SocksClient } from "./socks";
 
 import { Mutex } from "async-mutex";
-import { ProxyInterface, SocksProxyType } from "../network/connection/TCPMTProxy";
+import {
+    ProxyInterface,
+    SocksProxyType,
+} from "../network/connection/TCPMTProxy";
 
 const mutex = new Mutex();
 
@@ -22,7 +25,7 @@ export class PromisedNetSockets {
         this.stream = Buffer.alloc(0);
         if (proxy) {
             // we only want to use this when it's not an MTProto proxy.
-            if (!('MTProxy' in proxy)) {
+            if (!("MTProxy" in proxy)) {
                 if (!proxy.ip || !proxy.port || !proxy.socksType) {
                     throw new Error(
                         `Invalid sockets params: ip=${proxy.ip}, port=${proxy.port}, socksType=${proxy.socksType}`
