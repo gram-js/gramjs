@@ -513,9 +513,16 @@ export class MTProtoSender {
             try {
                 await this._connection!.send(data);
             } catch (e) {
-                this._log.debug(`Connection closed while sending data ${e}`);
-                if (this._log.canSend(LogLevel.DEBUG)) {
-                    console.error(e);
+                /** when the server disconnects us we want to reconnect */
+                if (!this.userDisconnected) {
+                    this._log.debug(
+                        `Connection closed while sending data ${e}`
+                    );
+
+                    if (this._log.canSend(LogLevel.DEBUG)) {
+                        console.error(e);
+                    }
+                    this.reconnect();
                 }
                 this._sendLoopHandle = undefined;
                 return;
