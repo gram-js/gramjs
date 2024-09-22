@@ -921,7 +921,7 @@ export class CustomMessage extends SenderGetter {
 
     async edit(params: Omit<EditMessageParams, "message">) {
         const param = params as EditMessageParams;
-        if (this.fwdFrom || !this.out || !this._client) return undefined;
+        if (this.fwdFrom || !this._client) return undefined;
         if (param.linkPreview == undefined) {
             param.linkPreview = !!this.webPreview;
         }
