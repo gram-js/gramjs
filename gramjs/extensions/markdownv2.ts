@@ -25,10 +25,7 @@ export class MarkdownV2Parser {
         message = message.replace(/\|\|(.*?)\|\|/g, "<spoiler>$1</spoiler>");
 
         // Inline URL
-        message = message.replace(
-            /(?<!\!)\[([^\]]+)\]\(([^)]+)\)/g,
-            '<a href="$2">$1</a>'
-        );
+        message = replaceInnerUrl(message);
 
         // Emoji
         message = message.replace(
@@ -79,3 +76,21 @@ export class MarkdownV2Parser {
         return text;
     }
 }
+
+const replaceInnerUrl = (message: string) => {
+    let innerUrl = message;
+    const replacedMarkdownText = message.replace(
+        /!\[([^\[\]]*)\]\(([^)]+)\)/g,
+        ""
+    );
+
+    const linkRegex = /\[([^\[\]]*)\]\(([^)]+)\)/g;
+
+    let match;
+    while ((match = linkRegex.exec(replacedMarkdownText)) !== null) {
+        const text = match[1];
+        const url = match[2];
+        innerUrl = `'<a href="${url}">${text}</a>'`;
+    }
+    return innerUrl;
+};
