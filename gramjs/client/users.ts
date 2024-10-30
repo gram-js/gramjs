@@ -41,6 +41,12 @@ export async function invoke<R extends Api.AnyRequest>(
         );
     }
 
+    if (sender.userDisconnected) {
+        throw new Error(
+            "Cannot send requests while disconnected. Please reconnect."
+        );
+    }
+
     await client._connectedDeferred.promise;
 
     await request.resolve(client, utils);

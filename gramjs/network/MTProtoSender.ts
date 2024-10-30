@@ -41,6 +41,7 @@ import MsgsAck = Api.MsgsAck;
 interface DEFAULT_OPTIONS {
     logger: any;
     retries: number;
+    reconnectRetries: number;
     delay: number;
     autoReconnect: boolean;
     connectTimeout: any;
@@ -59,6 +60,7 @@ interface DEFAULT_OPTIONS {
 export class MTProtoSender {
     static DEFAULT_OPTIONS = {
         logger: null,
+        reconnectRetries: Infinity,
         retries: Infinity,
         delay: 2000,
         autoReconnect: true,
@@ -75,6 +77,8 @@ export class MTProtoSender {
     private readonly _log: Logger;
     private _dcId: number;
     private readonly _retries: number;
+    private _reconnectRetries: number;
+    private _currentRetries: number;
     private readonly _delay: number;
     private _connectTimeout: null;
     private _autoReconnect: boolean;
@@ -126,6 +130,8 @@ export class MTProtoSender {
         this._log = args.logger;
         this._dcId = args.dcId;
         this._retries = args.retries;
+        this._currentRetries = 0;
+        this._reconnectRetries = args.reconnectRetries;
         this._delay = args.delay;
         this._autoReconnect = args.autoReconnect;
         this._connectTimeout = args.connectTimeout;
@@ -543,6 +549,16 @@ export class MTProtoSender {
             try {
                 body = await this._connection!.recv();
             } catch (e) {
+                if (this._currentRetries > this._reconnectRetries) {
+                    for (const state of this._pendingState.values()) {
+                        state.reject(
+                            "Maximum reconnection retries reached. Aborting!"
+                        );
+                    }
+                    this.userDisconnected = true;
+                    return;
+                }
+
                 /** when the server disconnects us we want to reconnect */
                 if (!this.userDisconnected) {
                     this._log.warn("Connection closed while receiving data");
@@ -625,6 +641,7 @@ export class MTProtoSender {
                     }
                 }
             }
+            this._currentRetries = 0;
         }
 
         this._recvLoopHandle = undefined;
@@ -982,6 +999,7 @@ export class MTProtoSender {
     reconnect() {
         if (this._userConnected && !this.isReconnecting) {
             this.isReconnecting = true;
+            this._currentRetries++;
             if (this._isMainSender) {
                 this._log.debug("Reconnecting all senders");
                 for (const promise of this._exportedSenderPromises.values()) {
