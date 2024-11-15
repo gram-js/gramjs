@@ -80,6 +80,7 @@ function patchClass(clazz: Function) {
 function patchAll() {
     patchClass(Api.Message);
     patchClass(Api.MessageService);
+    patchClass(Api.MessageEmpty);
 }
 
 export { patchAll };

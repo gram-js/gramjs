@@ -618,7 +618,8 @@ export class CustomMessage extends SenderGetter {
             );
             if (this._client._errorHandler) {
                 await this._client._errorHandler(e as Error);
-            } if (this._client._log.canSend(LogLevel.ERROR)) {
+            }
+            if (this._client._log.canSend(LogLevel.ERROR)) {
                 console.error(e);
             }
         }
@@ -920,7 +921,7 @@ export class CustomMessage extends SenderGetter {
 
     async edit(params: Omit<EditMessageParams, "message">) {
         const param = params as EditMessageParams;
-        if (this.fwdFrom || !this.out || !this._client) return undefined;
+        if (this.fwdFrom || !this._client) return undefined;
         if (param.linkPreview == undefined) {
             param.linkPreview = !!this.webPreview;
         }
@@ -1041,7 +1042,7 @@ export class CustomMessage extends SenderGetter {
                         }
                     } else {
                         for (const answer of answers) {
-                            if (answer.text == text) {
+                            if (answer.text.text == text) {
                                 return [answer.option];
                             }
                         }

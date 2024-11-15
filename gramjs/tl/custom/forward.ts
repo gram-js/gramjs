@@ -54,6 +54,7 @@ export class Forward extends SenderGetter {
         }
         ChatGetter.initChatClass(this, {
             chatPeer: peer,
+            chat: chat,
             inputChat: inputChat,
         });
         SenderGetter.initSenderClass(this, {

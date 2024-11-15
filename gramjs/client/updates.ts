@@ -176,7 +176,8 @@ export async function _dispatchUpdate(
                     }
                     if (client._errorHandler) {
                         await client._errorHandler(e as Error);
-                    } if (client._log.canSend(LogLevel.ERROR)) {
+                    }
+                    if (client._log.canSend(LogLevel.ERROR)) {
                         console.error(e);
                     }
                 }
@@ -245,7 +246,8 @@ export async function _updateLoop(client: TelegramClient) {
             // eslint-disable-next-line no-console
             if (client._errorHandler) {
                 await client._errorHandler(err as Error);
-            } if (client._log.canSend(LogLevel.ERROR)) {
+            }
+            if (client._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
             }
 

@@ -15,12 +15,6 @@ Install GramJS:
 $ npm i telegram
 ```
 
-Install [input package](https://www.npmjs.com/package/input), we'll use it to prompt ourselves inside terminal for login information:
-
-```bash
-$ npm i input
-```
-
 After installation, you'll need to obtain an API ID and hash:
 
 1. Login into your [telegram account](https://my.telegram.org/)
@@ -36,11 +30,16 @@ Then run this code to send a message to yourself.
 ```javascript
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
-import input from "input";
+import readline from "readline";
 
 const apiId = 123456;
 const apiHash = "123456abcdfg";
 const stringSession = new StringSession(""); // fill this later with the value from session.save()
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 (async () => {
   console.log("Loading interactive example...");
@@ -48,10 +47,18 @@ const stringSession = new StringSession(""); // fill this later with the value f
     connectionRetries: 5,
   });
   await client.start({
-    phoneNumber: async () => await input.text("Please enter your number: "),
-    password: async () => await input.text("Please enter your password: "),
+    phoneNumber: async () =>
+      new Promise((resolve) =>
+        rl.question("Please enter your number: ", resolve)
+      ),
+    password: async () =>
+      new Promise((resolve) =>
+        rl.question("Please enter your password: ", resolve)
+      ),
     phoneCode: async () =>
-      await input.text("Please enter the code you received: "),
+      new Promise((resolve) =>
+        rl.question("Please enter the code you received: ", resolve)
+      ),
     onError: (err) => console.log(err),
   });
   console.log("You should now be connected.");

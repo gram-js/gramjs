@@ -160,6 +160,7 @@ export const rpcErrorRe = new Map<RegExp, any>([
     [/FILE_MIGRATE_(\d+)/, FileMigrateError],
     [/FLOOD_TEST_PHONE_WAIT_(\d+)/, FloodTestPhoneWaitError],
     [/FLOOD_WAIT_(\d+)/, FloodWaitError],
+    [/FLOOD_PREMIUM_WAIT_(\d+)/, FloodWaitError],
     [/MSG_WAIT_(.*)/, MsgWaitError],
     [/PHONE_MIGRATE_(\d+)/, PhoneMigrateError],
     [/SLOWMODE_WAIT_(\d+)/, SlowModeWaitError],

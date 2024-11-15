@@ -46,6 +46,9 @@ class HTMLToTelegramParser implements Handler {
             EntityType = Api.MessageEntityStrike;
         } else if (name == "blockquote") {
             EntityType = Api.MessageEntityBlockquote;
+            if (attributes.expandable !== undefined) {
+                args.collapsed = true;
+            }
         } else if (name == "code") {
             const pre = this._buildingEntities.get("pre");
             if (pre && pre instanceof Api.MessageEntityPre) {
@@ -207,7 +210,9 @@ export class HTMLParser {
                 html.push(`<blockquote>${entityText}</blockquote>`);
             } else if (entity instanceof Api.MessageEntityPre) {
                 if (entity.language) {
-                    html.push(`<pre><code class="language-${entity.language}">${entityText}</code></pre>`);
+                    html.push(
+                        `<pre><code class="language-${entity.language}">${entityText}</code></pre>`
+                    );
                 } else {
                     html.push(`<pre>${entityText}</pre>`);
                 }

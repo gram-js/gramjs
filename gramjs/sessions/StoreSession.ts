@@ -9,6 +9,11 @@ export class StoreSession extends MemorySession {
 
     constructor(sessionName: string, divider = ":") {
         super();
+        if (sessionName === "session") {
+            throw new Error(
+                "Session name can't be 'session'. Please use a different name."
+            );
+        }
         if (typeof localStorage === "undefined" || localStorage === null) {
             const LocalStorage = require("./localStorage").LocalStorage;
             this.store = store.area(

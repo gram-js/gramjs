@@ -8,16 +8,22 @@ import {
 } from "../../extensions";
 import { CTR } from "../../crypto/CTR";
 
-export interface ProxyInterface {
-    socksType?: 4 | 5;
+interface BasicProxyInterface {
     ip: string;
     port: number;
-    secret?: string;
-    MTProxy?: boolean;
     timeout?: number;
     username?: string;
     password?: string;
 }
+export type MTProxyType = BasicProxyInterface & {
+    secret: string;
+    MTProxy: true;
+};
+export type SocksProxyType = BasicProxyInterface & {
+    socksType: 4 | 5;
+};
+
+export type ProxyInterface = MTProxyType | SocksProxyType;
 
 class MTProxyIO {
     header?: Buffer = undefined;
@@ -154,7 +160,7 @@ export class TCPMTProxy extends ObfuscatedConnection {
             proxy: proxy,
             testServers: testServers,
         });
-        if (!proxy.MTProxy) {
+        if (!("MTProxy" in proxy)) {
             throw new Error("This connection only supports MPTProxies");
         }
         if (!proxy.secret) {

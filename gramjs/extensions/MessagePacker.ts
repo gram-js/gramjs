@@ -13,7 +13,7 @@ const USE_INVOKE_AFTER_WITH = new Set([
 
 export class MessagePacker {
     private _state: MTProtoState;
-    private _pendingStates: RequestState[];
+    public _pendingStates: RequestState[];
     private _queue: any[];
     private _ready: Promise<unknown>;
     private setReady: ((value?: any) => void) | undefined;
@@ -79,7 +79,7 @@ export class MessagePacker {
             this._pendingStates.push(state);
             state
                 .promise! // Using finally causes triggering `unhandledrejection` event
-                .catch(() => {})
+                .catch((err) => {})
                 .finally(() => {
                     this._pendingStates = this._pendingStates.filter(
                         (s) => s !== state

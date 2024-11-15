@@ -16,7 +16,7 @@ export class MarkdownV2Parser {
         message = message.replace(/-(.*?)-/g, "<i>$1</i>");
 
         // pre
-        message = message.replace(/```(.*?)```/g, "<pre>$1</pre>");
+        message = message.replace(/```([\s\S]*?)```/g, "<pre>$1</pre>");
 
         // code
         message = message.replace(/`(.*?)`/g, "<code>$1</code>");
@@ -35,6 +35,8 @@ export class MarkdownV2Parser {
             /!\[([^\]]+)\]\(tg:\/\/emoji\?id=(\d+)\)/g,
             '<tg-emoji emoji-id="$2">$1</tg-emoji>'
         );
+
+        //
         return HTMLParser.parse(message);
     }
 

@@ -2,7 +2,10 @@ import * as net from "./net";
 import { SocksClient } from "./socks";
 
 import { Mutex } from "async-mutex";
-import { ProxyInterface } from "../network/connection/TCPMTProxy";
+import {
+    ProxyInterface,
+    SocksProxyType,
+} from "../network/connection/TCPMTProxy";
 
 const mutex = new Mutex();
 
@@ -14,22 +17,22 @@ export class PromisedNetSockets {
     private stream: Buffer;
     private canRead?: boolean | Promise<boolean>;
     private resolveRead: ((value?: any) => void) | undefined;
-    private proxy?: ProxyInterface;
+    private proxy?: SocksProxyType;
 
     constructor(proxy?: ProxyInterface) {
         this.client = undefined;
         this.closed = true;
         this.stream = Buffer.alloc(0);
-        if (!proxy?.MTProxy) {
+        if (proxy) {
             // we only want to use this when it's not an MTProto proxy.
-            if (proxy) {
+            if (!("MTProxy" in proxy)) {
                 if (!proxy.ip || !proxy.port || !proxy.socksType) {
                     throw new Error(
-                        `Invalid sockets params. ${proxy.ip}, ${proxy.port}, ${proxy.socksType}`
+                        `Invalid sockets params: ip=${proxy.ip}, port=${proxy.port}, socksType=${proxy.socksType}`
                     );
                 }
+                this.proxy = proxy;
             }
-            this.proxy = proxy;
         }
     }
 
@@ -39,7 +42,7 @@ export class PromisedNetSockets {
             const thisTime = await this.read(number);
             readData = Buffer.concat([readData, thisTime]);
             number = number - thisTime.length;
-            if (!number) {
+            if (!number || number === -437) {
                 return readData;
             }
         }
@@ -90,10 +93,7 @@ export class PromisedNetSockets {
                 proxy: {
                     host: this.proxy.ip,
                     port: this.proxy.port,
-                    type:
-                        this.proxy.socksType != undefined
-                            ? this.proxy.socksType
-                            : 5, // Proxy version (4 or 5)
+                    type: this.proxy.socksType,
                     userId: this.proxy.username,
                     password: this.proxy.password,
                 },

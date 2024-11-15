@@ -53,6 +53,7 @@ interface DEFAULT_OPTIONS {
     client: TelegramClient;
     onConnectionBreak?: CallableFunction;
     securityChecks: boolean;
+    _exportedSenderPromises: Map<number, Promise<MTProtoSender>>;
 }
 
 export class MTProtoSender {
@@ -94,7 +95,7 @@ export class MTProtoSender {
     readonly authKey: AuthKey;
     private readonly _state: MTProtoState;
     private _sendQueue: MessagePacker;
-    private _pendingState: PendingState;
+    _pendingState: PendingState;
     private readonly _pendingAck: Set<any>;
     private readonly _lastAcks: any[];
     private readonly _handlers: any;
@@ -108,6 +109,7 @@ export class MTProtoSender {
     private _cancelSend: boolean;
     cancellableRecvLoopPromise?: CancellablePromise<any>;
     private _finishedConnecting: boolean;
+    private _exportedSenderPromises = new Map<number, Promise<MTProtoSender>>();
 
     /**
      * @param authKey
@@ -137,7 +139,7 @@ export class MTProtoSender {
         this._securityChecks = args.securityChecks;
 
         this._connectMutex = new Mutex();
-
+        this._exportedSenderPromises = args._exportedSenderPromises;
         /**
          * whether we disconnected ourself or telegram did it.
          */
@@ -279,7 +281,8 @@ export class MTProtoSender {
                 );
                 if (this._client._errorHandler) {
                     await this._client._errorHandler(err as Error);
-                } if (this._log.canSend(LogLevel.ERROR)) {
+                }
+                if (this._log.canSend(LogLevel.ERROR)) {
                     console.error(err);
                 }
                 await sleep(this._delay);
@@ -403,6 +406,7 @@ export class MTProtoSender {
             "Connection to %s complete!".replace("%s", connection.toString())
         );
     }
+
     async _disconnect() {
         const connection = this._connection;
         if (this._updateCallback) {
@@ -493,17 +497,6 @@ export class MTProtoSender {
             );
 
             data = await this._state.encryptMessageData(data);
-
-            try {
-                await this._connection!.send(data);
-            } catch (e) {
-                this._log.debug(`Connection closed while sending data ${e}`);
-                if (this._log.canSend(LogLevel.DEBUG)) {
-                    console.error(e);
-                }
-                this._sendLoopHandle = undefined;
-                return;
-            }
             for (const state of batch) {
                 if (!Array.isArray(state)) {
                     if (state.request.classType === "request") {
@@ -517,6 +510,24 @@ export class MTProtoSender {
                     }
                 }
             }
+            try {
+                await this._connection!.send(data);
+            } catch (e) {
+                /** when the server disconnects us we want to reconnect */
+                if (!this.userDisconnected) {
+                    this._log.debug(
+                        `Connection closed while sending data ${e}`
+                    );
+
+                    if (this._log.canSend(LogLevel.DEBUG)) {
+                        console.error(e);
+                    }
+                    this.reconnect();
+                }
+                this._sendLoopHandle = undefined;
+                return;
+            }
+
             this._log.debug("Encrypted messages put in a queue to be sent");
         }
 
@@ -583,7 +594,8 @@ export class MTProtoSender {
                     this._log.error("Unhandled error while receiving data");
                     if (this._client._errorHandler) {
                         await this._client._errorHandler(e as Error);
-                    } if (this._log.canSend(LogLevel.ERROR)) {
+                    }
+                    if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                     this.reconnect();
@@ -607,7 +619,8 @@ export class MTProtoSender {
                     this._log.error("Unhandled error while receiving data");
                     if (this._client._errorHandler) {
                         await this._client._errorHandler(e as Error);
-                    } if (this._log.canSend(LogLevel.ERROR)) {
+                    }
+                    if (this._log.canSend(LogLevel.ERROR)) {
                         console.log(e);
                     }
                 }
@@ -636,6 +649,7 @@ export class MTProtoSender {
             this._onConnectionBreak(this._dcId);
         }
     }
+
     /**
      * Adds the given message to the list of messages that must be
      * acknowledged and dispatches control to different ``_handle_*``
@@ -693,6 +707,7 @@ export class MTProtoSender {
 
         return [];
     }
+
     /**
      * Handles the result for Remote Procedure Calls:
      * rpc_result#f35c6d01 req_msg_id:long result:bytes = RpcResult;
@@ -741,9 +756,7 @@ export class MTProtoSender {
             try {
                 const reader = new BinaryReader(result.body);
                 const read = state.request.readResult(reader);
-                this._log.debug(
-                    `Handling RPC result ${read?.constructor?.name}`
-                );
+                this._log.debug(`Handling RPC result ${read?.className}`);
                 state.resolve(read);
             } catch (err) {
                 state.reject(err);
@@ -965,9 +978,26 @@ export class MTProtoSender {
      * @private
      */
     async _handleMsgAll(message: TLMessage) {}
+
     reconnect() {
         if (this._userConnected && !this.isReconnecting) {
             this.isReconnecting = true;
+            if (this._isMainSender) {
+                this._log.debug("Reconnecting all senders");
+                for (const promise of this._exportedSenderPromises.values()) {
+                    promise
+                        .then((sender) => {
+                            if (sender && !sender._isMainSender) {
+                                sender.reconnect();
+                            }
+                        })
+                        .catch((error) => {
+                            this._log.warn(
+                                "Error getting sender to reconnect to"
+                            );
+                        });
+                }
+            }
             // we want to wait a second between each reconnect try to not flood the server with reconnects
             // in case of internal server issues.
             sleep(1000).then(() => {
@@ -978,7 +1008,6 @@ export class MTProtoSender {
     }
 
     async _reconnect() {
-        this._log.debug("Closing current connection...");
         try {
             this._log.warn("[Reconnect] Closing current connection...");
             await this._disconnect();
@@ -986,8 +1015,20 @@ export class MTProtoSender {
             this._log.warn("Error happened while disconnecting");
             if (this._client._errorHandler) {
                 await this._client._errorHandler(err as Error);
-            } if (this._log.canSend(LogLevel.ERROR)) {
+            }
+            if (this._log.canSend(LogLevel.ERROR)) {
                 console.error(err);
+            }
+        }
+        this._log.debug(
+            `Adding ${this._sendQueue._pendingStates.length} old request to resend`
+        );
+        for (let i = 0; i < this._sendQueue._pendingStates.length; i++) {
+            if (this._sendQueue._pendingStates[i].msgId != undefined) {
+                this._pendingState.set(
+                    this._sendQueue._pendingStates[i].msgId!,
+                    this._sendQueue._pendingStates[i]
+                );
             }
         }
 
