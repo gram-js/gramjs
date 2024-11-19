@@ -432,11 +432,6 @@ export async function signInWithPassword(
                 break;
             }
 
-            const password = await authParams.password(passwordSrpResult.hint);
-            if (!password) {
-                throw new Error("Password is empty");
-            }
-
             const passwordSrpCheck = await computePasswordSrpCheck(
                 passwordSrpResult,
                 password
