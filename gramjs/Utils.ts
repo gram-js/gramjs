@@ -1,13 +1,14 @@
-import type { Entity, EntityLike, MessageIDLike } from "./define";
-import { Api } from "./tl";
 import bigInt from "big-integer";
-import * as markdown from "./extensions/markdown";
-import { EntityCache } from "./entityCache";
 import mime from "mime";
 import type { ParseInterface } from "./client/messageParse";
-import { MarkdownParser } from "./extensions/markdown";
 import { CustomFile } from "./client/uploads";
+import type { Entity, EntityLike, MessageIDLike } from "./define";
+import { EntityCache } from "./entityCache";
+import { HTMLParser } from "./extensions/html";
+import { MarkdownParser } from "./extensions/markdown";
 import { MarkdownV2Parser } from "./extensions/markdownv2";
+import { returnBigInt } from "./Helpers";
+import { Api } from "./tl";
 
 export function getFileInfo(
     fileLocation:
@@ -81,8 +82,6 @@ export function* chunks<T>(arr: T[], size = 100): Generator<T[]> {
 }
 
 import TypeInputFile = Api.TypeInputFile;
-import { HTMLParser } from "./extensions/html";
-import { returnBigInt } from "./Helpers";
 
 const USERNAME_RE = new RegExp(
     "@|(?:https?:\\/\\/)?(?:www\\.)?" +
@@ -744,7 +743,11 @@ export function getAttributes(
     }: GetAttributesParams
 ) {
     const name: string =
-        typeof file == "string" ? file : file.name || "unnamed";
+        typeof file == "string"
+            ? file
+            : "name" in file
+            ? file.name || "unnamed"
+            : "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.getType(name) || "application/octet-stream";
     }
