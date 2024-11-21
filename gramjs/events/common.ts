@@ -210,4 +210,8 @@ export class EventCommonSender extends SenderGetter {
     get client() {
         return this._client;
     }
+    
+    get messageId() {
+        return this._messageId;
+    }
 }
