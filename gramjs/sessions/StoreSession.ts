@@ -7,21 +7,21 @@ export class StoreSession extends MemorySession {
     private readonly sessionName: string;
     private store: StoreBase;
 
-    constructor(sessionName: string, divider = ":") {
+    constructor(sessionName: string, divider = ":", localStorageGiven = localStorage) {
         super();
         if (sessionName === "session") {
             throw new Error(
                 "Session name can't be 'session'. Please use a different name."
             );
         }
-        if (typeof localStorage === "undefined" || localStorage === null) {
+        if (typeof localStorageGiven === "undefined" || localStorageGiven === null) {
             const LocalStorage = require("./localStorage").LocalStorage;
             this.store = store.area(
                 sessionName,
                 new LocalStorage("./" + sessionName)
             );
         } else {
-            this.store = store.area(sessionName, localStorage);
+            this.store = store.area(sessionName, localStorageGiven);
         }
         if (divider == undefined) {
             divider = ":";
