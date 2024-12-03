@@ -1,6 +1,6 @@
 {
   "name": "@sipz/telegram",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "NodeJS/Browser MTProto API Telegram client library,",
   "main": "index.js",
   "types": "index.d.ts",
