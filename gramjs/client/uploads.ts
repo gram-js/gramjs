@@ -301,6 +301,10 @@ export interface SendFileInterface {
      * Used for threads to reply to a specific thread
      */
     topMsgId?: number | Api.Message;
+    /**
+     * Show media (usually link preview) on the top of message text
+     */
+    invertMedia?: boolean;
 }
 
 interface FileToMediaInterface {
@@ -528,6 +532,7 @@ export async function _sendAlbum(
         noforwards,
         commentTo,
         topMsgId,
+        invertMedia = false,
     }: SendFileInterface
 ) {
     entity = await client.getInputEntity(entity);
@@ -629,6 +634,7 @@ export async function _sendAlbum(
             scheduleDate: scheduleDate,
             clearDraft: clearDraft,
             noforwards: noforwards,
+            invertMedia: invertMedia,
         })
     );
     const randomIds = albumFiles.map((m) => m.randomId);
@@ -661,6 +667,7 @@ export async function sendFile(
         noforwards,
         commentTo,
         topMsgId,
+        invertMedia = false,
     }: SendFileInterface
 ) {
     if (!file) {
@@ -691,6 +698,7 @@ export async function sendFile(
             forceDocument: forceDocument,
             noforwards: noforwards,
             topMsgId: topMsgId,
+            invertMedia: invertMedia,
         });
     }
     if (Array.isArray(caption)) {
@@ -743,6 +751,7 @@ export async function sendFile(
         scheduleDate: scheduleDate,
         clearDraft: clearDraft,
         noforwards: noforwards,
+        invertMedia: invertMedia,
     });
     const result = await client.invoke(request);
     return client._getResponseMessage(request, result, entity) as Api.Message;
