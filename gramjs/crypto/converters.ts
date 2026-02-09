@@ -21,7 +21,7 @@ export function i2abLow(buf: Uint32Array): ArrayBuffer {
  * Uint32Array -> ArrayBuffer (big-endian os)
  */
 export function i2abBig(buf: Uint32Array): ArrayBuffer {
-    return buf.buffer;
+    return buf.buffer as ArrayBuffer;
 }
 
 /**
@@ -30,7 +30,7 @@ export function i2abBig(buf: Uint32Array): ArrayBuffer {
 export function ab2iLow(
     ab: ArrayBuffer | SharedArrayBuffer | Uint8Array
 ): Uint32Array {
-    const uint8 = new Uint8Array(ab);
+    const uint8 = new Uint8Array(ab as ArrayBuffer);
     const buf = new Uint32Array(uint8.length / 4);
 
     for (let i = 0; i < uint8.length; i += 4) {
@@ -50,7 +50,7 @@ export function ab2iLow(
 export function ab2iBig(
     ab: ArrayBuffer | SharedArrayBuffer | Uint8Array
 ): Uint32Array {
-    return new Uint32Array(ab);
+    return new Uint32Array(ab as ArrayBuffer);
 }
 
 export const isBigEndian =

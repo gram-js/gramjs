@@ -106,11 +106,11 @@ export class Hash {
         if (this.data) {
             if (this.algorithm === "sha1") {
                 return Buffer.from(
-                    await self.crypto.subtle.digest("SHA-1", this.data)
+                    await self.crypto.subtle.digest("SHA-1", this.data as BufferSource)
                 );
             } else if (this.algorithm === "sha256") {
                 return Buffer.from(
-                    await self.crypto.subtle.digest("SHA-256", this.data)
+                    await self.crypto.subtle.digest("SHA-256", this.data as BufferSource)
                 );
             }
         }

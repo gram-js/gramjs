@@ -1,3 +1,15 @@
+// Core types (no need to gen)
+
+int ? = Int;
+long ? = Long;
+double ? = Double;
+string ? = String;
+
+vector {t:Type} # [ t ] = Vector t;
+
+int128 4*[ int ] = Int128;
+int256 8*[ int ] = Int256;
+
 ///////////////////////////////
 /// Authorization key creation
 ///////////////////////////////
@@ -100,6 +112,9 @@ tlsBlockGrease seed:int = TlsBlock;
 tlsBlockPublicKey = TlsBlock;
 tlsBlockScope entries:Vector<TlsBlock> = TlsBlock;
 tlsBlockPermutation entries:Vector<Vector<TlsBlock>> = TlsBlock;
+tlsBlockM = TlsBlock;
+tlsBlockE = TlsBlock;
+tlsBlockPadding = TlsBlock;
 
 ---functions---
 

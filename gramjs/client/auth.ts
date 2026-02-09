@@ -385,10 +385,15 @@ export async function sendCode(
             throw new Error("logged in right after sending the code");
 
         // If we already sent a SMS, do not resend the phoneCode (hash may be empty)
-        if (!forceSMS || sendResult.type instanceof Api.auth.SentCodeTypeSms) {
+        if (
+            !forceSMS ||
+            ("type" in sendResult &&
+                sendResult.type instanceof Api.auth.SentCodeTypeSms)
+        ) {
             return {
                 phoneCodeHash: sendResult.phoneCodeHash,
                 isCodeViaApp:
+                    "type" in sendResult &&
                     sendResult.type instanceof Api.auth.SentCodeTypeApp,
             };
         }
@@ -404,7 +409,9 @@ export async function sendCode(
 
         return {
             phoneCodeHash: resendResult.phoneCodeHash,
-            isCodeViaApp: resendResult.type instanceof Api.auth.SentCodeTypeApp,
+            isCodeViaApp:
+                "type" in resendResult &&
+                resendResult.type instanceof Api.auth.SentCodeTypeApp,
         };
     } catch (err: any) {
         if (err.errorMessage === "AUTH_RESTART") {

@@ -178,16 +178,16 @@ export async function uploadFile(
                             await sender.send(
                                 isLarge
                                     ? new Api.upload.SaveBigFilePart({
-                                          fileId,
-                                          filePart: jMemo,
-                                          fileTotalParts: partCount,
-                                          bytes: bytesMemo,
-                                      })
+                                        fileId,
+                                        filePart: jMemo,
+                                        fileTotalParts: partCount,
+                                        bytes: bytesMemo,
+                                    })
                                     : new Api.upload.SaveFilePart({
-                                          fileId,
-                                          filePart: jMemo,
-                                          bytes: bytesMemo,
-                                      })
+                                        fileId,
+                                        filePart: jMemo,
+                                        bytes: bytesMemo,
+                                    })
                             );
                         } catch (err: any) {
                             if (sender && !sender.isConnected()) {
@@ -219,16 +219,16 @@ export async function uploadFile(
 
     return isLarge
         ? new Api.InputFileBig({
-              id: fileId,
-              parts: partCount,
-              name,
-          })
+            id: fileId,
+            parts: partCount,
+            name,
+        })
         : new Api.InputFile({
-              id: fileId,
-              parts: partCount,
-              name,
-              md5Checksum: "", // This is not a "flag", so not sure if we can make it optional.
-          });
+            id: fileId,
+            parts: partCount,
+            name,
+            md5Checksum: "", // This is not a "flag", so not sure if we can make it optional.
+        });
 }
 
 /**
@@ -491,7 +491,7 @@ export async function _fileToMedia(
         }
         media = new Api.InputMediaUploadedDocument({
             file: fileHandle,
-            mimeType: mimeType,
+            mimeType: mimeType || "application/octet-stream",
             attributes: attributes,
             thumb: uploadedThumb,
             forceFile: forceDocument && !isImage,
@@ -750,7 +750,7 @@ export async function sendFile(
 
 function fileToBuffer(file: File | CustomFile): Promise<Buffer> | Buffer {
     if (typeof File !== "undefined" && file instanceof File) {
-        return new Response(file).arrayBuffer() as Promise<Buffer>;
+        return new Response(file).arrayBuffer() as unknown as Promise<Buffer>;
     } else if (file instanceof CustomFile) {
         if (file.buffer != undefined) {
             return file.buffer;

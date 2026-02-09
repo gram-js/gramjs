@@ -85,7 +85,7 @@ import TypeInputFile = Api.TypeInputFile;
 
 const USERNAME_RE = new RegExp(
     "@|(?:https?:\\/\\/)?(?:www\\.)?" +
-        "(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?",
+    "(?:telegram\\.(?:me|dog)|t\\.me)\\/(@|joinchat\\/)?",
     "i"
 );
 
@@ -97,9 +97,10 @@ const JPEG_FOOTER = Buffer.from("ffd9", "hex");
 
 const TG_JOIN_RE = new RegExp("tg:\\/\\/(join)\\?invite=", "i");
 
+// Allow 4+ char usernames to be attempted against the API (TS previously enforced 5+)
 const VALID_USERNAME_RE = new RegExp(
-    "^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|" +
-        "pic|bing|wiki|imdb|bold|vote|like|coub)$",
+    "^([a-z]((?!__)[\\w\\d]){2,30}[a-z\\d]|gif|vid|" +
+    "pic|bing|wiki|imdb|bold|vote|like|coub)$",
     "i"
 );
 
@@ -255,7 +256,7 @@ export function _getEntityPair(
     } catch (e: any) {
         try {
             inputEntity = getInputPeerFunction(inputEntity);
-        } catch (e) {}
+        } catch (e) { }
     }
     return [entity, inputEntity];
 }
@@ -666,7 +667,7 @@ export function getExtension(media: any): string {
     try {
         getInputPhoto(media);
         return ".jpg";
-    } catch (e) {}
+    } catch (e) { }
     if (
         media instanceof Api.UserProfilePhoto ||
         media instanceof Api.ChatPhoto
@@ -746,8 +747,8 @@ export function getAttributes(
         typeof file == "string"
             ? file
             : "name" in file
-            ? file.name || "unnamed"
-            : "unnamed";
+                ? file.name || "unnamed"
+                : "unnamed";
     if (mimeType === undefined) {
         mimeType = mime.getType(name) || "application/octet-stream";
     }
@@ -941,7 +942,7 @@ export function getInputMedia(
             });
             return new Api.InputMediaUploadedDocument({
                 file: media,
-                mimeType: mimeType,
+                mimeType: mimeType || "application/octet-stream",
                 attributes: attrs,
                 forceFile: forceDocument,
             });
@@ -1100,7 +1101,7 @@ export function getPeer(peer: EntityLike | any) {
         } else if (peer instanceof Api.InputPeerChannel) {
             return new Api.PeerChannel({ channelId: peer.channelId });
         }
-    } catch (e) {}
+    } catch (e) { }
     _raiseCastFail(peer, "peer");
 }
 
@@ -1188,9 +1189,9 @@ export function getPeerId(peer: EntityLike, addMark = true): string {
 export function resolveId(
     markedId: bigInt.BigInteger
 ): [
-    bigInt.BigInteger,
-    typeof Api.PeerUser | typeof Api.PeerChannel | typeof Api.PeerChat
-] {
+        bigInt.BigInteger,
+        typeof Api.PeerUser | typeof Api.PeerChannel | typeof Api.PeerChat
+    ] {
     if (markedId.greaterOrEquals(bigInt.zero)) {
         return [markedId, Api.PeerUser];
     }

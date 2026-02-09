@@ -208,7 +208,7 @@ export async function getEntity(
     for (const x of inputs) {
         try {
             lists.get(_entityType(x))!.push(x);
-        } catch (e) {}
+        } catch (e) { }
     }
     let users = lists.get(_EntityType.USER)!;
     let chats = lists.get(_EntityType.CHAT)!;
@@ -274,7 +274,7 @@ export async function getInputEntity(
     try {
         return utils.getInputPeer(peer);
         // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) { }
     // Next in priority is having a peer (or its ID) cached in-memory
     try {
         if (typeof peer == "string") {
@@ -308,7 +308,7 @@ export async function getInputEntity(
             }
         }
         // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) { }
     // Then come known strings that take precedence
     if (typeof peer == "string") {
         if (["me", "this", "self"].includes(peer)) {
@@ -322,7 +322,7 @@ export async function getInputEntity(
             return client.session.getInputEntity(peer);
         }
         // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) { }
     // Only network left to try
     if (typeof peer === "string") {
         return utils.getInputPeer(await _getEntityFromString(client, peer));
@@ -387,8 +387,8 @@ export async function getInputEntity(
     throw new Error(
         `Could not find the input entity for ${JSON.stringify(peer)}.
          Please read https://` +
-            "docs.telethon.dev/en/stable/concepts/entities.html to" +
-            " find out more details."
+        "docs.telethon.dev/en/stable/concepts/entities.html to" +
+        " find out more details."
     );
 }
 
@@ -416,7 +416,7 @@ export async function _getEntityFromString(
             if (e.errorMessage === "BOT_METHOD_INVALID") {
                 throw new Error(
                     "Cannot get entity by phone number as a " +
-                        "bot (try using integer IDs, not strings)"
+                    "bot (try using integer IDs, not strings)"
                 );
             }
             throw e;
@@ -438,7 +438,7 @@ export async function _getEntityFromString(
             if (invite instanceof Api.ChatInvite) {
                 throw new Error(
                     "Cannot get entity from a channel (or group) " +
-                        "that you are not part of. Join the group and retry"
+                    "that you are not part of. Join the group and retry"
                 );
             } else if (invite instanceof Api.ChatInviteAlready) {
                 return invite.chat;
@@ -470,6 +470,13 @@ export async function _getEntityFromString(
             }
         }
     }
+    // Fallback: try resolving from disk cache by exact name/title (Telethon-like behavior)
+    try {
+        const cachedInput = client.session.getInputEntity(string);
+        if (cachedInput) {
+            return await getEntity(client, cachedInput as any);
+        }
+    } catch (e) { }
     throw new Error(`Cannot find any entity corresponding to "${string}"`);
 }
 
@@ -531,7 +538,7 @@ export async function _getInputDialog(client: TelegramClient, dialog: any) {
                 peer: dialog,
             });
         }
-    } catch (e) {}
+    } catch (e) { }
     return new Api.InputDialogPeer({
         peer: dialog,
     });
@@ -546,7 +553,7 @@ export async function _getInputNotify(client: TelegramClient, notify: any) {
             }
             return notify;
         }
-    } catch (e) {}
+    } catch (e) { }
     return new Api.InputNotifyPeer({
         peer: await client.getInputEntity(notify),
     });

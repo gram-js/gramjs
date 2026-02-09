@@ -32,6 +32,21 @@ const AUTH_KEY_TYPES = new Set([
 ]);
 
 const fromLine = (line: string, isFunction: boolean) => {
+    // Skip lines with ? instead of constructor id (like "int ? = Int;")
+    if (line.includes(' ? = ')) {
+        return null;
+    }
+
+    // Skip special vector definition (like "vector {t:Type} # [ t ] = Vector t;")
+    if (line.includes(' # [ t ] = ')) {
+        return null;
+    }
+
+    // Skip array definitions (like "int128 4*[ int ] = Int128;")
+    if (/\d+\*\[/.test(line)) {
+        return null;
+    }
+
     const match = line.match(
         /([\w.]+)(?:#([0-9a-fA-F]+))?(?:\s{?\w+:[\w\d<>#.?!]+}?)*\s=\s([\w\d<>#.?]+);$/
     );
@@ -229,6 +244,11 @@ const parseTl = function* (
 
         try {
             const result = fromLine(line, isFunction);
+
+            // Skip null results (like "int ? = Int;" lines)
+            if (result === null) {
+                continue;
+            }
 
             if (ignoreIds.has(result.constructorId)) {
                 continue;
