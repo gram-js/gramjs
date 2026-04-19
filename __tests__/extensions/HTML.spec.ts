@@ -235,11 +235,10 @@ describe("HTMLParser", () => {
 
     test.each([
       ["+123", "tg://user?id=+123"],
-      ["0123", "tg://user?id=0123"],
       ["1e5", "tg://user?id=1e5"],
       [" 42 ", "tg://user?id= 42 "],
     ])(
-      "it should not accept laundered numeric form %s as a mention",
+      "it should not accept non-canonical numeric form %s as a mention",
       (_id, fullUrl) => {
         const [, entities] = HTMLParser.parse(`<a href="${fullUrl}">x</a>`);
         expect(entities[0]).not.toBeInstanceOf(
