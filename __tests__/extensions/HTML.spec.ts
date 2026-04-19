@@ -105,16 +105,46 @@ describe("HTMLParser", () => {
       ).toEqual("42");
     });
 
-    test("it should fall back to TextUrl when the mention id is not numeric", () => {
+    test("it should parse tg://user?id mention with negative numeric id (channel/group)", () => {
+      const [text, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=-1001234567890">channel</a>'
+      );
+      expect(text).toEqual("channel");
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityMentionName);
+      const mention = entities[0] as types.MessageEntityMentionName;
+      expect(mention.userId.toString()).toEqual("-1001234567890");
+    });
+
+    test("it should map alphanumeric mention id to TextUrl with @-prefixed username", () => {
       const [text, entities] = HTMLParser.parse(
         '<a href="tg://user?id=alice">alice</a>'
       );
       expect(text).toEqual("alice");
       expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
       const fallback = entities[0] as types.MessageEntityTextUrl;
-      expect(fallback.url).toEqual("tg://user?id=alice");
+      expect(fallback.url).toEqual("@alice");
       expect(fallback.offset).toEqual(0);
       expect(fallback.length).toEqual(5);
+    });
+
+    test("it should not double the @ when the alphanumeric id already starts with one", () => {
+      const [, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=@alice">alice</a>'
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "@alice"
+      );
+    });
+
+    test("it should strip extra query params from alphanumeric mention id too", () => {
+      const [, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=alice&foo=bar">alice</a>'
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "@alice"
+      );
     });
 
     test("it should parse mention containing nested formatting", () => {
@@ -145,6 +175,78 @@ describe("HTMLParser", () => {
         "tg://user?id="
       );
     });
+
+    test("it should preserve original URL when alphanumeric id is too short to be a username", () => {
+      const [, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=ab">ab</a>'
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "tg://user?id=ab"
+      );
+    });
+
+    test("it should preserve original URL when alphanumeric id is too long to be a username", () => {
+      const longId = "a".repeat(33);
+      const [, entities] = HTMLParser.parse(
+        `<a href="tg://user?id=${longId}">x</a>`
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        `tg://user?id=${longId}`
+      );
+    });
+
+    test("it should preserve original URL when alphanumeric id has no letter or number", () => {
+      const [, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=______">x</a>'
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "tg://user?id=______"
+      );
+    });
+
+    test("it should preserve original URL on double @ in alphanumeric id", () => {
+      const [, entities] = HTMLParser.parse(
+        '<a href="tg://user?id=@@alice">x</a>'
+      );
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "tg://user?id=@@alice"
+      );
+    });
+
+    test("it should preserve original URL on lone @", () => {
+      const [, entities] = HTMLParser.parse('<a href="tg://user?id=@">x</a>');
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "tg://user?id=@"
+      );
+    });
+
+    test("it should preserve original URL on lone minus sign", () => {
+      const [, entities] = HTMLParser.parse('<a href="tg://user?id=-">x</a>');
+      expect(entities[0]).toBeInstanceOf(types.MessageEntityTextUrl);
+      expect((entities[0] as types.MessageEntityTextUrl).url).toEqual(
+        "tg://user?id=-"
+      );
+    });
+
+    test.each([
+      ["+123", "tg://user?id=+123"],
+      ["0123", "tg://user?id=0123"],
+      ["1e5", "tg://user?id=1e5"],
+      [" 42 ", "tg://user?id= 42 "],
+    ])(
+      "it should not accept laundered numeric form %s as a mention",
+      (_id, fullUrl) => {
+        const [, entities] = HTMLParser.parse(`<a href="${fullUrl}">x</a>`);
+        expect(entities[0]).not.toBeInstanceOf(
+          types.MessageEntityMentionName
+        );
+      }
+    );
   });
 
   describe(".unparse", () => {
@@ -199,6 +301,26 @@ describe("HTMLParser", () => {
       expect(mention.userId.toString()).toEqual("123456789");
       expect(mention.offset).toEqual(0);
       expect(mention.length).toEqual(4);
+    });
+
+    test("entities → unparse → parse should preserve a negative MessageEntityMentionName id", () => {
+      const original = [
+        new types.MessageEntityMentionName({
+          offset: 0,
+          length: 7,
+          userId: bigInt("-1001234567890"),
+        }),
+      ];
+      const html = HTMLParser.unparse("channel", original);
+      expect(html).toEqual(
+        '<a href="tg://user?id=-1001234567890">channel</a>'
+      );
+      const [text, parsed] = HTMLParser.parse(html);
+      expect(text).toEqual("channel");
+      expect(parsed[0]).toBeInstanceOf(types.MessageEntityMentionName);
+      expect(
+        (parsed[0] as types.MessageEntityMentionName).userId.toString()
+      ).toEqual("-1001234567890");
     });
   });
 });
