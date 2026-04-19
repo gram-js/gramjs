@@ -1,5 +1,6 @@
 import { Parser } from "htmlparser2";
 import { Handler } from "htmlparser2/lib/Parser";
+import bigInt from "big-integer";
 import { Api } from "../tl";
 import { helpers } from "../index";
 
@@ -74,6 +75,19 @@ class HTMLToTelegramParser implements Handler {
             if (url.startsWith("mailto:")) {
                 url = url.slice("mailto:".length, url.length);
                 EntityType = Api.MessageEntityEmail;
+            } else if (url.startsWith("tg://user?id=")) {
+                const rawId = url
+                    .slice("tg://user?id=".length)
+                    .split("&")[0];
+                if (/^\d+$/.test(rawId)) {
+                    EntityType = Api.MessageEntityMentionName;
+                    args["userId"] = bigInt(rawId);
+                    url = undefined;
+                } else {
+                    EntityType = Api.MessageEntityTextUrl;
+                    args["url"] = url;
+                    url = undefined;
+                }
             } else {
                 EntityType = Api.MessageEntityTextUrl;
                 args["url"] = url;
