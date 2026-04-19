@@ -5,3 +5,4 @@ export { PromisedWebSockets } from "./PromisedWebSockets";
 export { PromisedNetSockets } from "./PromisedNetSockets";
 export { MessagePacker } from "./MessagePacker";
 export { AsyncQueue } from "./AsyncQueue";
+export { markdownV2ToHtml, htmlToMarkdownV2 } from "./markdownv2";

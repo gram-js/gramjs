@@ -36,13 +36,17 @@ class HTMLToTelegramParser implements Handler {
         const args: any = {};
         if (name == "strong" || name == "b") {
             EntityType = Api.MessageEntityBold;
-        } else if (name == "spoiler") {
+        } else if (
+            name == "spoiler" ||
+            name == "tg-spoiler" ||
+            (name == "span" && attributes.class === "tg-spoiler")
+        ) {
             EntityType = Api.MessageEntitySpoiler;
         } else if (name == "em" || name == "i") {
             EntityType = Api.MessageEntityItalic;
-        } else if (name == "u") {
+        } else if (name == "u" || name == "ins") {
             EntityType = Api.MessageEntityUnderline;
-        } else if (name == "del" || name == "s") {
+        } else if (name == "del" || name == "s" || name == "strike") {
             EntityType = Api.MessageEntityStrike;
         } else if (name == "blockquote") {
             EntityType = Api.MessageEntityBlockquote;
@@ -197,7 +201,7 @@ export class HTMLParser {
             if (entity instanceof Api.MessageEntityBold) {
                 html.push(`<strong>${entityText}</strong>`);
             } else if (entity instanceof Api.MessageEntitySpoiler) {
-                html.push(`<spoiler>${entityText}</spoiler>`);
+                html.push(`<tg-spoiler>${entityText}</tg-spoiler>`);
             } else if (entity instanceof Api.MessageEntityItalic) {
                 html.push(`<em>${entityText}</em>`);
             } else if (entity instanceof Api.MessageEntityCode) {
@@ -207,7 +211,13 @@ export class HTMLParser {
             } else if (entity instanceof Api.MessageEntityStrike) {
                 html.push(`<del>${entityText}</del>`);
             } else if (entity instanceof Api.MessageEntityBlockquote) {
-                html.push(`<blockquote>${entityText}</blockquote>`);
+                if ((entity as any).collapsed) {
+                    html.push(
+                        `<blockquote expandable>${entityText}</blockquote>`
+                    );
+                } else {
+                    html.push(`<blockquote>${entityText}</blockquote>`);
+                }
             } else if (entity instanceof Api.MessageEntityPre) {
                 if (entity.language) {
                     html.push(
