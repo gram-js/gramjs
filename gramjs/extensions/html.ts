@@ -1,8 +1,10 @@
 import { Parser } from "htmlparser2";
 import { Handler } from "htmlparser2/lib/Parser";
-import bigInt from "big-integer";
 import { Api } from "../tl";
 import { helpers } from "../index";
+
+const ALL_DIGITS = /^\d+$/;
+const VALID_USERNAME = /^@?(?=.*[A-Za-z0-9])[A-Za-z0-9_]{5,32}$/;
 
 class HTMLToTelegramParser implements Handler {
     text: string;
@@ -79,13 +81,10 @@ class HTMLToTelegramParser implements Handler {
                 const rawId = url
                     .slice("tg://user?id=".length)
                     .split("&")[0];
-                if (/^-?\d+$/.test(rawId)) {
-                    EntityType = Api.MessageEntityMentionName;
-                    args["userId"] = bigInt(rawId);
-                    url = undefined;
-                } else if (
-                    /^@?(?=.*[A-Za-z0-9])[A-Za-z0-9_]{5,32}$/.test(rawId)
-                ) {
+                // Numeric ids are resolved later by _parseMessageText; only
+                // rewrite the username form (tg://user?id=<username>) into
+                // the @-prefixed url it knows how to look up.
+                if (!ALL_DIGITS.test(rawId) && VALID_USERNAME.test(rawId)) {
                     EntityType = Api.MessageEntityTextUrl;
                     args["url"] = rawId.startsWith("@")
                         ? rawId
