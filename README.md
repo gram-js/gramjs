@@ -1,5 +1,16 @@
 # GramJS
 
+> **⚠️ This project is archived and no longer maintained.**
+> Development continues in [teleproto](https://github.com/sanyok12345/teleproto), an actively maintained fork. It's largely compatible with GramJS for most projects, migration means little more than swapping the package:
+>
+> ```bash
+> npm install teleproto
+> ```
+>
+> See the [migration guide](https://docs.teleproto.dev/migrating-from-gramjs) for details
+>
+> 📖 [Documentation](https://docs.teleproto.dev) · 📦 [npm](https://npmjs.com/package/teleproto) · 💬 [Community](https://t.me/teleproto)
+
 A Telegram client written in JavaScript for Node.js and browsers, with its core being based on
 [Telethon](https://github.com/LonamiWebs/Telethon).
 
