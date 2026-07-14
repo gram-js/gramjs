@@ -14,7 +14,7 @@ export class Dialog {
     folderId?: number;
     archived: boolean;
     message?: Api.Message;
-    date: number;
+    date?: number;
     entity?: Entity;
     inputEntity: Api.TypeInputPeer;
     id?: bigInt.BigInteger;
@@ -42,7 +42,7 @@ export class Dialog {
         this.folderId = dialog.folderId;
         this.archived = dialog.folderId != undefined;
         this.message = message;
-        this.date = this.message!.date!;
+        this.date = this.messager?.date;
 
         this.entity = entities.get(getPeerId(dialog.peer));
         this.inputEntity = getInputPeer(this.entity);
