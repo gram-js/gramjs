@@ -66,6 +66,13 @@ export class RequestIter implements AsyncIterable<any> {
                             this.waitTime -
                                 (new Date().getTime() / 1000 - this.lastLoad)
                         );
+                        await sleep(
+                            Math.max(
+                                0, 
+                                this.waitTime - 
+                                    (new Date().getTime() / 1000 - this.lastLoad)
+                            )
+                        );
                     }
                     this.lastLoad = new Date().getTime() / 1000;
                     this.index = 0;
