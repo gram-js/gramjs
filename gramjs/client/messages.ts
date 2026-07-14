@@ -481,7 +481,7 @@ export interface SendMessageParams {
     /** A list of message formatting entities. When provided, the parseMode is ignored. */
     formattingEntities?: Api.TypeMessageEntity[];
     /** Should the link preview be shown? */
-    linkPreview?: boolean;
+    linkPreview?: boolean | { showAboveText: boolean};
     /** Sends a message with a file attached (e.g. a photo, video, audio or document). The message may be empty. */
     file?: FileLike | FileLike[];
     /** Optional JPEG thumbnail (for documents). Telegram will ignore this parameter unless you pass a .jpg file!<br/>
@@ -551,7 +551,7 @@ export interface EditMessageParams {
     /** A list of message formatting entities. When provided, the parseMode is ignored. */
     formattingEntities?: Api.TypeMessageEntity[];
     /** Should the link preview be shown? */
-    linkPreview?: boolean;
+    linkPreview?: boolean | { showAboveText: boolean};
     /** The file object that should replace the existing media in the message. Does nothing if entity was a Message */
     file?: FileLike;
     /** Whether to send the given file as a document or not. */
@@ -735,6 +735,7 @@ export async function sendMessage(
             noforwards: noforwards,
             commentTo: commentTo,
             topMsgId: topMsgId,
+            invertMedia: typeof linkPreview === 'object' ? linkPreview.showAboveText : false,
         });
     }
     entity = await client.getInputEntity(entity);
@@ -785,6 +786,7 @@ export async function sendMessage(
             entities: message.entities,
             clearDraft: clearDraft,
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
+            invertMedia: typeof linkPreview === 'object' ? linkPreview.showAboveText : false,
             scheduleDate: schedule,
             noforwards: noforwards,
         });
@@ -808,6 +810,7 @@ export async function sendMessage(
             message: message.toString(),
             entities: formattingEntities,
             noWebpage: !linkPreview,
+            invertMedia: typeof linkPreview === 'object' ? linkPreview.showAboveText : false,
             replyTo: replyObject,
             clearDraft: clearDraft,
             silent: silent,
@@ -977,6 +980,7 @@ export async function editMessage(
         id,
         message: text,
         noWebpage: !linkPreview,
+        invertMedia: typeof linkPreview === 'object' ? linkPreview.showAboveText : false,
         entities,
         media: inputMedia,
         replyMarkup: markup,
