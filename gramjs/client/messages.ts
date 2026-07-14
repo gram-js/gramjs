@@ -523,6 +523,13 @@ export interface SendMessageParams {
      * Used for threads to reply to a specific thread
      */
     topMsgId?: number | Api.Message;
+    /**
+     * Send the message on behalf of another peer (e.g. a linked channel or an
+     * anonymous-admin identity). Maps to `send_as` on `messages.sendMessage`.
+     * The current account must be allowed to post as the given peer
+     * (use `channels.getSendAs` to enumerate valid options).
+     */
+    sendAs?: EntityLike;
 }
 
 /** interface used for forwarding messages */
@@ -711,6 +718,7 @@ export async function sendMessage(
         noforwards,
         commentTo,
         topMsgId,
+        sendAs,
     }: SendMessageParams = {}
 ) {
     if (file) {
@@ -738,6 +746,8 @@ export async function sendMessage(
         });
     }
     entity = await client.getInputEntity(entity);
+    const sendAsPeer =
+        sendAs != undefined ? await client.getInputEntity(sendAs) : undefined;
     if (commentTo != undefined) {
         const discussionData = await getCommentData(client, entity, commentTo);
         entity = discussionData.entity;
@@ -787,6 +797,7 @@ export async function sendMessage(
             noWebpage: !(message.media instanceof Api.MessageMediaWebPage),
             scheduleDate: schedule,
             noforwards: noforwards,
+            sendAs: sendAsPeer,
         });
         message = message.message;
     } else {
@@ -814,6 +825,7 @@ export async function sendMessage(
             replyMarkup: client.buildReplyMarkup(buttons),
             scheduleDate: schedule,
             noforwards: noforwards,
+            sendAs: sendAsPeer,
         });
     }
     const result = await client.invoke(request);
