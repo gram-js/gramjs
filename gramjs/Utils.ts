@@ -98,7 +98,7 @@ const JPEG_FOOTER = Buffer.from("ffd9", "hex");
 const TG_JOIN_RE = new RegExp("tg:\\/\\/(join)\\?invite=", "i");
 
 const VALID_USERNAME_RE = new RegExp(
-    "^([a-z]((?!__)[\\w\\d]){3,30}[a-z\\d]|gif|vid|" +
+    "^([a-z]((?!__)[\\w\\d]){2,30}[a-z\\d]|gif|vid|" +
         "pic|bing|wiki|imdb|bold|vote|like|coub)$",
     "i"
 );
