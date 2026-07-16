@@ -107,6 +107,16 @@ You can also use the helpful script `generate_webpack.js`
 node generate_webpack.js
 ```
 
+## Running Inside Cloudflare Workers
+
+To use GramJS inside Cloudflare Workers, you need to install the browser-compatible version:
+
+```bash
+$ npm i telegram@browser
+```
+
+Cloudflare Workers' runtime uses the V8 engine—the same engine used by Chromium and Node.js—but it doesn't support many Node.js-specific APIs like fs (file system). That's why you need to install the browser-compatible version.
+
 ## Calling the raw API
 
 To use raw telegram API methods use [invoke function](https://gram.js.org/beta/classes/TelegramClient.html#invoke).

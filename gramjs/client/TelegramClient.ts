@@ -30,7 +30,7 @@ import { EditedMessage, EditedMessageEvent } from "../events/EditedMessage";
 import { DeletedMessage, DeletedMessageEvent } from "../events/DeletedMessage";
 import { LogLevel } from "../extensions/Logger";
 import { inspect } from "../inspect";
-import { isNode } from "../platform";
+import { isCloudflareWorker, isNode } from "../platform";
 
 /**
  * The TelegramClient uses several methods in different files to provide all the common functionality in a nice interface.</br>
@@ -1489,7 +1489,7 @@ export class TelegramClient extends TelegramBaseClient {
         web = false
     ): Promise<{ id: number; ipAddress: string; port: number }> {
         this._log.debug(`Getting DC ${dcId}`);
-        if (!isNode || web) {
+        if (!isNode || web || isCloudflareWorker) {
             switch (dcId) {
                 case 1:
                     return {

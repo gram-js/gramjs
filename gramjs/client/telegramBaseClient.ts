@@ -22,7 +22,7 @@ import {
 } from "../network/connection/TCPMTProxy";
 import { Semaphore } from "async-mutex";
 import { LogLevel } from "../extensions/Logger";
-import { isBrowser, isNode } from "../platform";
+import { isBrowser, isCloudflareWorker, isNode } from "../platform";
 import Deferred from "../extensions/Deferred";
 import Timeout = NodeJS.Timeout;
 
@@ -30,7 +30,7 @@ const EXPORTED_SENDER_RECONNECT_TIMEOUT = 1000; // 1 sec
 const EXPORTED_SENDER_RELEASE_TIMEOUT = 30000; // 30 sec
 
 const DEFAULT_DC_ID = 4;
-const DEFAULT_IPV4_IP = isNode ? "149.154.167.91" : "vesta.web.telegram.org";
+const DEFAULT_IPV4_IP = isNode && !isCloudflareWorker ? "149.154.167.91" : "vesta.web.telegram.org";
 const DEFAULT_IPV6_IP = "2001:067c:04e8:f004:0000:0000:0000:000a";
 
 /**
@@ -152,7 +152,7 @@ const clientParamsDefault = {
     langCode: "en",
     systemLangCode: "en",
     _securityChecks: true,
-    useWSS: isBrowser ? window.location.protocol == "https:" : false,
+    useWSS: isBrowser ? window.location.protocol == "https:" : isCloudflareWorker ? true : false,
     testServers: false,
 };
 
